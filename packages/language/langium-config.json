@@ -1,0 +1,16 @@
+{
+    "projectName": "Api2AiDsl",
+    "languages": [
+        {
+            "id": "api-2-ai-dsl",
+            "grammar": "src/api-2-ai-dsl.langium",
+            "fileExtensions": [
+                "api2ai"
+            ],
+            "textMate": {
+                "out": "syntaxes/api-2-ai-dsl.tmLanguage.json"
+            }
+        }
+    ],
+    "out": "src/generated"
+}

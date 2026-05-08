@@ -1,0 +1,35 @@
+openapi: 3.0.3
+info:
+  title: Petstore Example
+  version: 1.0.0
+paths:
+  /pet/findByStatus:
+    get:
+      operationId: findPetsByStatus
+      parameters:
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+  /pet/{petId}:
+    get:
+      operationId: getPetById
+      parameters:
+        - name: petId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: OK
+  /pet:
+    post:
+      operationId: upsertPet
+      responses:
+        "200":
+          description: OK

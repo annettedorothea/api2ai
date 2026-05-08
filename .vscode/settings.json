@@ -1,0 +1,4 @@
+{
+    "langium.config": "packages/language/langium-config.json",
+    "npm.autoDetect": "off"
+}

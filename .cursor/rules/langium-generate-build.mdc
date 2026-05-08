@@ -1,0 +1,12 @@
+---
+description: Run Langium generate and workspace build after edits
+alwaysApply: true
+---
+
+# Langium Generate And Build
+
+After every code change in this repository, run:
+
+`npm run langium:generate && npm run build`
+
+If either command fails, fix the issue before proceeding with more implementation work.
