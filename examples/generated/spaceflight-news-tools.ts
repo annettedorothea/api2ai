@@ -1,5 +1,5 @@
 /**
- * Generated from: ./examples/spaceflight-news.api2ai
+ * Generated from: spaceflight-news.api2ai
  * Referenced OpenAPI: ./openapi/spaceflight-news.openapi.yaml
  */
 

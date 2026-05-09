@@ -105,6 +105,10 @@ function renderAuthConfig(model: Model): string {
     }, null, 4);
 }
 
+function renderSourceReference(source: string): string {
+    return path.basename(source);
+}
+
 function renderTsModule(model: Model, source: string): string {
     const operations = model.operations.map(operation => ({
         method: operation.method,
@@ -115,10 +119,11 @@ function renderTsModule(model: Model, source: string): string {
     }));
     const toolsArrayLiteral = JSON.stringify(operations, null, 4);
     const authConfigLiteral = renderAuthConfig(model);
+    const sourceReference = renderSourceReference(source);
 
     const fileNode = expandToNode`
         /**
-         * Generated from: ${source}
+         * Generated from: ${sourceReference}
          * Referenced OpenAPI: ${model.openapi}
          */
 
@@ -182,8 +187,9 @@ function renderJsModule(model: Model, source: string): string {
     }));
     const toolsArrayLiteral = JSON.stringify(operations, null, 4);
     const authConfigLiteral = renderAuthConfig(model);
+    const sourceReference = renderSourceReference(source);
     return `/**
- * Generated from: ${source}
+ * Generated from: ${sourceReference}
  * Referenced OpenAPI: ${model.openapi}
  */
 

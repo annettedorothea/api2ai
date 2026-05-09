@@ -1,5 +1,5 @@
 /**
- * Generated from: ./examples/open-meteo.api2ai
+ * Generated from: open-meteo.api2ai
  * Referenced OpenAPI: ./openapi/open-meteo.openapi.yaml
  */
 

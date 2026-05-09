@@ -1,5 +1,5 @@
 /**
- * Generated from: ./examples/tmdb.api2ai
+ * Generated from: tmdb.api2ai
  * Referenced OpenAPI: ./openapi/tmdb.openapi.json
  */
 

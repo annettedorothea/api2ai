@@ -53,19 +53,5 @@
                 "${workspaceFolder}/packages/extension/out/**/*.js"
             ]
         }
-    ],
-    "compounds": [
-        {
-            "name": "Extension + Language Server",
-            "configurations": [
-                "Run Extension",
-                "Attach to Language Server"
-            ],
-            "stopAll": true,
-            "presentation": {
-                "group": "api2ai",
-                "order": 1
-            }
-        }
     ]
 }

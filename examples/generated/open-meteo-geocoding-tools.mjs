@@ -1,5 +1,5 @@
 /**
- * Generated from: ./examples/open-meteo-geocoding.api2ai
+ * Generated from: open-meteo-geocoding.api2ai
  * Referenced OpenAPI: ./openapi/open-meteo-geocoding.openapi.yaml
  */
 
