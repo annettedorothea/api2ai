@@ -2,7 +2,7 @@ import path from 'node:path';
 import type { ValidationAcceptor, ValidationChecks } from 'langium';
 import type { Api2AiDslAstType, Model, Operation } from './generated/ast.js';
 import type { Api2AiDslServices } from './api-2-ai-dsl-module.js';
-import { loadOpenApi, makeOperationLookupKey } from './openapi.js';
+import { getUnsupportedSerializationMessages, loadOpenApi, makeOperationLookupKey } from './openapi.js';
 
 /**
  * Register custom validation checks.
@@ -21,8 +21,28 @@ export function registerValidationChecks(services: Api2AiDslServices) {
  */
 export class Api2AiDslValidator {
     async checkModel(model: Model, accept: ValidationAcceptor): Promise<void> {
+        this.checkAuth(model, accept);
         this.checkUniqueToolNames(model, accept);
         await this.checkReferencedOperationsExist(model, accept);
+    }
+
+    private checkAuth(model: Model, accept: ValidationAcceptor): void {
+        if (!model.auth) {
+            return;
+        }
+
+        if (model.auth.name.trim().length === 0) {
+            accept('error', 'auth apiKey name must not be empty.', {
+                node: model.auth,
+                property: 'name'
+            });
+        }
+        if (model.auth.env.trim().length === 0) {
+            accept('error', 'auth apiKey env must not be empty.', {
+                node: model.auth,
+                property: 'env'
+            });
+        }
     }
 
     private checkUniqueToolNames(model: Model, accept: ValidationAcceptor): void {
@@ -62,8 +82,18 @@ export class Api2AiDslValidator {
 
         model.operations.forEach((operation: Operation, index) => {
             const key = makeOperationLookupKey(operation.method, operation.path);
-            if (!loaded.operations.has(key)) {
+            const openApiOperation = loaded.operations.get(key);
+            if (!openApiOperation) {
                 accept('error', `Operation ${operation.method} ${operation.path} does not exist in the referenced OpenAPI 3.x spec.`, {
+                    node: model,
+                    property: 'operations',
+                    index
+                });
+                return;
+            }
+
+            for (const message of getUnsupportedSerializationMessages(openApiOperation)) {
+                accept('error', `Operation ${operation.method} ${operation.path}: ${message}`, {
                     node: model,
                     property: 'operations',
                     index

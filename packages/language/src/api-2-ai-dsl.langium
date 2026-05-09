@@ -3,7 +3,16 @@ grammar Api2AiDsl
 entry Model:
     'openapi' openapi=STRING
     'baseUrl' baseUrl=STRING
+    auth=Auth?
     (operations += Operation)*;
+
+Auth:
+    'auth' 'apiKey' '{'
+        'in' ':' location=AuthLocation
+        'name' ':' name=STRING
+        'env' ':' env=STRING
+        ('prefix' ':' prefix=STRING)?
+    '}';
 
 Operation:
     method=HttpMethod path=STRING '{'
@@ -11,6 +20,9 @@ Operation:
         ('example' ':' example=STRING)?
         'toolName' ':' toolName=STRING
     '}';
+
+AuthLocation returns string:
+    'header' | 'query';
 
 HttpMethod returns string:
     'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' | 'HEAD' | 'OPTIONS' | 'TRACE';

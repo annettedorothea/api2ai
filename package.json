@@ -11,10 +11,14 @@
         "build:clean": "npm run clean && npm run build",
         "langium:generate": "npm run --workspace packages/language langium:generate",
         "langium:watch": "npm run --workspace packages/language langium:watch",
-        "generate:petstore-tools": "node ./packages/cli/bin/cli.js generate ./examples/petstore.api2ai ./examples/generated/petstore-tools.ts",
+        "generate:spaceflight-tools": "node ./packages/cli/bin/cli.js generate ./examples/spaceflight-news.api2ai ./examples/generated/spaceflight-news-tools.ts",
+        "generate:tmdb-tools": "node ./packages/cli/bin/cli.js generate ./examples/tmdb.api2ai ./examples/generated/tmdb-tools.ts",
+        "generate:open-meteo-tools": "node ./packages/cli/bin/cli.js generate ./examples/open-meteo.api2ai ./examples/generated/open-meteo-tools.ts",
+        "generate:open-meteo-geocoding-tools": "node ./packages/cli/bin/cli.js generate ./examples/open-meteo-geocoding.api2ai ./examples/generated/open-meteo-geocoding-tools.ts",
         "test": "npm run --workspace packages/language test",
-        "test:smoke": "node ./packages/cli/bin/cli.js smoke ./examples/petstore.api2ai getPetById @./examples/petstore-smoke-args.json",
-        "test:mcp": "node ./packages/cli/bin/cli.js mcp-serve ./examples/petstore.api2ai"
+        "test:smoke": "node ./packages/cli/bin/cli.js smoke-generated ./examples/generated/open-meteo-tools.mjs openMeteoForecast",
+        "test:smoke:tmdb": "node ./packages/cli/bin/cli.js smoke-generated ./examples/generated/tmdb-tools.mjs searchTmdbMovies '{\"query\":{\"query\":\"Dune\"}}'",
+        "test:mcp": "node ./packages/cli/bin/cli.js mcp-serve-generated ./examples/generated/open-meteo-tools.mjs"
     },
     "devDependencies": {
         "@types/node": "~20.17.48",

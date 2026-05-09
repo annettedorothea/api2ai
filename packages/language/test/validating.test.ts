@@ -37,6 +37,44 @@ describe('Validating', () => {
         expect(document.diagnostics ?? []).toHaveLength(0);
     });
 
+    test('accepts api key auth metadata without secret values', async () => {
+        document = await parseValidated(`
+            openapi "./petstore-mini.openapi.yaml"
+            baseUrl "https://petstore3.swagger.io/api/v3"
+            auth apiKey {
+                in: header
+                name: "Authorization"
+                env: "PETSTORE_TOKEN"
+                prefix: "Bearer "
+            }
+            GET "/pet/{petId}" {
+                intent: "get one pet"
+                toolName: "getPetById"
+            }
+        `);
+
+        expect(document.diagnostics ?? []).toHaveLength(0);
+    });
+
+    test('reports an error for empty auth env names', async () => {
+        document = await parseValidated(`
+            openapi "./petstore-mini.openapi.yaml"
+            baseUrl "https://petstore3.swagger.io/api/v3"
+            auth apiKey {
+                in: header
+                name: "Authorization"
+                env: ""
+            }
+            GET "/pet/{petId}" {
+                intent: "get one pet"
+                toolName: "getPetById"
+            }
+        `);
+
+        const diagnostics = document.diagnostics ?? [];
+        expect(diagnostics.some(d => d.message.includes('auth apiKey env must not be empty'))).toBe(true);
+    });
+
     test('reports an error for unknown method+path', async () => {
         document = await parseValidated(`
             openapi "./petstore-mini.openapi.yaml"
@@ -81,5 +119,19 @@ describe('Validating', () => {
 
         const diagnostics = document.diagnostics ?? [];
         expect(diagnostics.some(d => d.message.includes('Cannot load OpenAPI document'))).toBe(true);
+    });
+
+    test('reports unsupported style/explode serialization as DSL error', async () => {
+        document = await parseValidated(`
+            openapi "./unsupported-style.openapi.yaml"
+            baseUrl "https://petstore3.swagger.io/api/v3"
+            GET "/pets" {
+                intent: "list pets by filter object"
+                toolName: "listPets"
+            }
+        `);
+
+        const diagnostics = document.diagnostics ?? [];
+        expect(diagnostics.some(d => d.message.includes('supports query style "form" only'))).toBe(true);
     });
 });

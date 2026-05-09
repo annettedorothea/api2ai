@@ -1,0 +1,24 @@
+---
+description: Fuer api2ai-Prompts nur api2ai-MCPs, kein Web-Fallback, mit Voll-Audit
+alwaysApply: true
+---
+
+# MCP-Nutzung auf api2ai-Server beschraenken
+
+- Diese Regel greift nur, wenn die Nutzeranfrage mit `api2ai` beginnt.
+- Dann stelle ausschliesslich MCP-Anfragen an Server, deren Name mit `api2ai` beginnt oder `api2ai` enthaelt (z. B. `project-0-examples-api2ai-*`).
+- Nutze in diesem Fall keine anderen MCP-Server, auch wenn sie verfuegbar sind.
+- Nutze in diesem Fall keinerlei alternative Quellen ausserhalb dieser erlaubten MCP-Server:
+  - keine Websuche,
+  - kein WebFetch,
+  - keine nicht-MCP APIs als Ersatz.
+- Wenn eine solche Frage mit den erlaubten `api2ai*`-Tools nicht beantwortbar ist:
+  - sage klar, dass die Antwort aus den erlaubten Quellen nicht geliefert werden kann,
+  - fuehre keine Ersatzrecherche durch,
+  - gib keine Vermutungen oder erfundenen Details aus.
+- Bevorzuge explizit tool-basierte Antworten mit nachvollziehbarer Quelle aus den erlaubten `*api2ai*`-Servern.
+- Fuege am Ende jeder Antwort in diesem Fall einen Abschnitt `Audit` hinzu, der alle MCP-Aufrufe vollstaendig listet:
+  - Request: Servername, Toolname
+  - Params: exakt uebergebene Parameter/Argumente
+  - Antwort: relevante Rohantwort (oder Fehler) pro Request
+  - Wenn kein MCP-Request moeglich/erfolgreich war, dokumentiere das explizit.

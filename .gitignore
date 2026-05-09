@@ -6,8 +6,10 @@
 node_modules/
 dist/
 out/
+env.local
 **/src/generated
 syntaxes/
 *.tsbuildinfo
 *.vsix
 .idea
+examples/.env.local

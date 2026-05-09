@@ -1,0 +1,47 @@
+openapi "./openapi/spaceflight-news.openapi.yaml"
+baseUrl "https://api.spaceflightnewsapi.net"
+
+GET "/v4/articles/" {
+    intent: "list recent spaceflight news articles"
+    example: "Get the latest 5 articles"
+    toolName: "listSpaceflightArticles"
+}
+
+GET "/v4/articles/{id}/" {
+    intent: "get one spaceflight article by id"
+    example: "Get article with id 1"
+    toolName: "getSpaceflightArticleById"
+}
+
+GET "/v4/blogs/" {
+    intent: "list recent spaceflight blog posts"
+    example: "Get the latest 5 blog posts"
+    toolName: "listSpaceflightBlogs"
+}
+
+GET "/v4/blogs/{id}/" {
+    intent: "get one spaceflight blog post by id"
+    example: "Get blog post with id 1"
+    toolName: "getSpaceflightBlogById"
+}
+
+GET "/v4/reports/" {
+    intent: "list recent spaceflight reports"
+    example: "Get the latest 5 reports"
+    toolName: "listSpaceflightReports"
+}
+
+GET "/v4/reports/{id}/" {
+    intent: "get one spaceflight report by id"
+    example: "Get report with id 1"
+    toolName: "getSpaceflightReportById"
+}
+
+GET "/v4/info/" {
+    intent: "retrieve spaceflight API metadata and news sites"
+    example: "Show API info and available news sites"
+    toolName: "getSpaceflightInfo"
+}
+
+
+

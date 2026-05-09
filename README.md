@@ -1,128 +1,100 @@
-# Workspace overview
+# api2ai
 
-Depending on the selection during the project generation you will have one or more packages contained in the packages directory.
-Please check the specific projects here:
+`api2ai` is a PoC for turning existing OpenAPI descriptions into small, curated AI tools.
 
-- [packages/language](./packages/language/README.md) This package is always available and contains the language definition.
-- [packages/cli](./packages/cli/README.md) *Optional* Is only available if you chose to use the command-line interface.
-- [packages/extension](./packages/extension/langium-quickstart.md) *Optional* Contains the VSCode extension if you chose to create it.
-
-## What's in the folder?
-
-Some file are contained in the root directory as well.
-
-- [package.json](./package.json) - The manifest file the main workspace package
-- [tsconfig.json](./tsconfig.json) - The base TypeScript compiler configuration
-- [tsconfig.build.json](./package.json) - Configuration used to build the complete source code.
-- [.gitignore](.gitignore) - Files ignored by git
-
-## Preview the DSL extension
-
-Use this workflow to launch the generated VSCode/Cursor extension in an Extension Development Host.
-
-1. Open this folder as workspace root: `api2ai/api2ai`
-   - Important: this is required so `.vscode/launch.json` and the `Run Extension` configuration are detected.
-2. Install and build:
-   - `npm install`
-   - `npm run langium:generate`
-   - `npm run build`
-3. Start the preview:
-   - Press `F5` or use `Run` -> `Start Debugging`
-   - Select `Run Extension`
-4. In the new Extension Development Host window, create a file with extension `.api2ai`, for example:
-   - `demo.api2ai`
-   - content:
-     ```txt
-     openapi "./examples/petstore.openapi.yaml"
-     baseUrl "https://petstore3.swagger.io/api/v3"
-
-     GET "/pet/{petId}" {
-       intent: "get one pet"
-       toolName: "getPetById"
-     }
-     ```
-
-### Recommended development loop
-
-- `npm run langium:watch` (regenerate AST/grammar artifacts on grammar changes)
-- `npm run watch` (rebuild TypeScript on source changes)
-- In the Extension Development Host, press `Cmd+Shift+P` and run `Developer: Reload Window` after changes.
-
-## Live API tool testing modes
-
-The DSL contains both API references:
-
-- `openapi`: local OpenAPI 3.x spec used for validation.
-- `baseUrl`: live API base URL used when invoking tools.
-
-Example:
+The OpenAPI file stays the technical source of truth. The `.api2ai` DSL selects which endpoints should become tools and adds AI-facing metadata such as intent, examples, tool names, and optional runtime auth.
 
 ```txt
-openapi "./petstore.openapi.yaml"
-baseUrl "https://petstore3.swagger.io/api/v3"
+openapi "./openapi/spaceflight-news.openapi.yaml"
+baseUrl "https://api.spaceflightnewsapi.net"
+
+GET "/v4/articles/{id}/" {
+    intent: "get one spaceflight article by id"
+    example: "Get article with id 1"
+    toolName: "getSpaceflightArticleById"
+}
 ```
 
-Two test modes are available from the root `package.json`.
+The generator produces TypeScript and runnable `.mjs` modules. Those modules can be smoke-tested directly or exposed as MCP tools for any MCP-compatible agent or client.
 
-To refresh the generated TypeScript output after changing `examples/petstore.api2ai`, run:
+## Project Layout
+
+- `packages/language`: Langium grammar, AST generation, validation, and completion support.
+- `packages/cli`: CLI generator, smoke runner, and generated-module MCP server.
+- `packages/extension`: Cursor/VSCode extension wrapper for the DSL.
+- `examples`: demo DSL files, OpenAPI specs, generated tool modules, and MCP config.
+
+## Getting Started
+
+Install dependencies and build the workspace:
 
 ```bash
-npm run generate:petstore-tools
+npm install
+npm run langium:generate
+npm run build
 ```
 
-The smoke and MCP test modes parse the DSL file directly. The generated file is useful to inspect the TypeScript output that would be shipped or embedded elsewhere.
+Generate demo tool modules:
 
-### Mode A: Smoke test without MCP
+```bash
+npm run generate:spaceflight-tools
+npm run generate:open-meteo-tools
+npm run generate:open-meteo-geocoding-tools
+npm run generate:tmdb-tools
+```
 
-Runs one generated tool call directly against the live API. This is the fastest way to check whether the DSL, OpenAPI validation, URL construction, and HTTP call work.
+Run a quick smoke test against Open-Meteo:
 
 ```bash
 npm run test:smoke
 ```
 
-The script calls `getPetById` from `examples/petstore.api2ai` with arguments from `examples/petstore-smoke-args.json`:
-
-```json
-{"pathParams":{"petId":1}}
-```
-
-### Mode B: Real MCP server (stdio)
-
-Starts an MCP server over stdio and exposes all tools from the DSL. Use this when you want Cursor or another MCP client/agent to discover and call the generated tools.
+Start an MCP server from one generated module:
 
 ```bash
 npm run test:mcp
 ```
 
-### Connect Cursor to the MCP server
+For the included Cursor demo setup, open `examples` as a workspace and use `examples/.cursor/mcp.json` to enable the configured `api2ai-*` MCP servers. Restart or reload the MCP server after regenerating a tool module.
 
-The project contains `.cursor/mcp.json`, so Cursor can discover the `api2ai-petstore` MCP server automatically.
+## Auth
 
-The configured server starts:
+The DSL can reference API keys without embedding secret values in generated code:
 
-```bash
-node /Users/annette/Documents/Projekte/api2ai/api2ai/packages/cli/bin/cli.js \
-  mcp-serve \
-  /Users/annette/Documents/Projekte/api2ai/api2ai/examples/petstore.api2ai
+```txt
+auth apiKey {
+    in: header
+    name: "Authorization"
+    env: "TMDB_ACCESS_TOKEN"
+    prefix: "Bearer "
+}
 ```
 
-To load or refresh the MCP server in Cursor:
+At runtime, the generated module reads the secret from `process.env`. The CLI also loads local `.env.local` or `env.local` files for `smoke-generated` and `mcp-serve-generated`.
 
-1. Press `Cmd+Shift+P`.
-2. Search for `MCP`.
-3. Run the available MCP refresh/restart command, or enable `api2ai-petstore` in the MCP server list.
-4. If the server list does not update, press `Cmd+Shift+P` and run `Developer: Reload Window`.
+For the TMDB demo, `examples/.env` documents the required `TMDB_ACCESS_TOKEN` with a dummy value. Use a real token only in your local environment, for example via `examples/.env.local` or an exported shell variable.
 
-When connected, Cursor should show three enabled tools:
+## DSL Extension Preview
 
-- `findPetsByStatus`
-- `getPetById`
-- `upsertPet`
+To preview the language extension in Cursor/VSCode:
 
-After connecting, ask the agent to use one of the DSL tools, for example `getPetById` with path parameter `petId=1`.
+1. Open this repository as workspace root.
+2. Run `npm install`, `npm run langium:generate`, and `npm run build`.
+3. Open Run and Debug and start the `Run Extension` launch configuration.
+4. Open or create a `.api2ai` file in the Extension Development Host.
 
-## Alternative demo API: SWAPI
+Available debug launch configurations:
 
-SWAPI is a better conceptual demo API than Petstore because it is read-only, public, and has clear resources such as people, planets, films, species, vehicles, and starships.
+- `Run Extension`: starts an Extension Development Host with `examples` as the workspace.
+- `Run Extension (completion debug log)`: same as `Run Extension`, but enables completion debug logging.
+- `Attach to Language Server`: attaches the debugger to the language server on port `6009`.
+- `Extension + Language Server`: compound launch for extension debugging plus language server attach.
 
-For this PoC, the important requirement is an OpenAPI 3.x document. The original SWAPI docs do not provide an official OpenAPI spec, but the community package `swapi-typespec` provides a generated OpenAPI 3 spec at `./node_modules/swapi-typespec/swapi.openapi.yaml`. That makes SWAPI a good next candidate once we replace the Petstore example.
+Useful development commands:
+
+```bash
+npm run langium:watch
+npm run watch
+```
+
+Saving a `.api2ai` file in the extension host generates `generated/<name>-tools.ts` and `generated/<name>-tools.mjs` next to the source file.

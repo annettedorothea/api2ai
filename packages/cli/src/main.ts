@@ -8,8 +8,9 @@ import { NodeFileSystem } from 'langium/node';
 import * as url from 'node:url';
 import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
-import { runSmokeTest } from './smoke.js';
-import { runMcpServer } from './mcp-server.js';
+import { runSmokeGenerated } from './smoke.js';
+import { runMcpServerFromGeneratedModule } from './mcp-server.js';
+import { loadLocalEnvFiles } from './env.js';
 const __dirname = url.fileURLToPath(new URL('.', import.meta.url));
 
 const packagePath = path.resolve(__dirname, '..', 'package.json');
@@ -18,21 +19,21 @@ const packageContent = await fs.readFile(packagePath, 'utf-8');
 export const generateAction = async (source: string, destination: string): Promise<void> => {
     const services = createApi2AiDslServices(NodeFileSystem).Api2AiDsl;
     const model = await extractAstNode<Model>(source, services);
-    const generatedFilePath = generateOutput(model, source, destination);
-    console.log(chalk.green(`Code generated succesfully: ${generatedFilePath}`));
+    const generatedFiles = generateOutput(model, source, destination);
+    console.log(chalk.green(`Code generated succesfully:`));
+    console.log(chalk.green(`- TS: ${generatedFiles.tsPath}`));
+    console.log(chalk.green(`- JS: ${generatedFiles.jsPath}`));
 };
 
-export const smokeAction = async (source: string, toolName: string, argsJson?: string): Promise<void> => {
-    const services = createApi2AiDslServices(NodeFileSystem).Api2AiDsl;
-    const model = await extractAstNode<Model>(source, services);
-    await runSmokeTest(model, model.baseUrl, toolName, argsJson);
+export const smokeGeneratedAction = async (generatedModulePath: string, toolName: string, argsJson?: string): Promise<void> => {
+    loadLocalEnvFiles([process.cwd(), path.dirname(path.resolve(generatedModulePath))]);
+    await runSmokeGenerated(generatedModulePath, toolName, argsJson);
 };
 
-export const mcpServeAction = async (source: string): Promise<void> => {
-    const services = createApi2AiDslServices(NodeFileSystem).Api2AiDsl;
-    const model = await extractAstNode<Model>(source, services);
-    await runMcpServer(model, model.baseUrl);
-    console.error(`MCP server running for ${model.operations.length} tools`);
+export const mcpServeGeneratedAction = async (generatedModulePath: string): Promise<void> => {
+    loadLocalEnvFiles([process.cwd(), path.dirname(path.resolve(generatedModulePath))]);
+    await runMcpServerFromGeneratedModule(generatedModulePath);
+    console.error(`MCP server running from generated module: ${generatedModulePath}`);
 };
 
 export default function(): void {
@@ -50,18 +51,18 @@ export default function(): void {
         .action(generateAction);
 
     program
-        .command('smoke')
-        .argument('<file>', `source file (possible file extensions: ${fileExtensions})`)
-        .argument('<toolName>', 'tool name from the DSL')
+        .command('smoke-generated')
+        .argument('<generatedModule>', 'generated JS module path (local file path)')
+        .argument('<toolName>', 'tool name from generated module')
         .argument('[argsJson]', 'optional JSON args with pathParams/query/headers/body')
-        .description('Runs one generated tool call directly without MCP, using baseUrl from the DSL.')
-        .action(smokeAction);
+        .description('Runs one generated tool call directly from generated JS runtime module.')
+        .action(smokeGeneratedAction);
 
     program
-        .command('mcp-serve')
-        .argument('<file>', `source file (possible file extensions: ${fileExtensions})`)
-        .description('Starts an MCP server over stdio exposing all DSL tools, using baseUrl from the DSL.')
-        .action(mcpServeAction);
+        .command('mcp-serve-generated')
+        .argument('<generatedModule>', 'generated JS module path (local file path)')
+        .description('Starts an MCP server over stdio exposing tools loaded from generated JS module.')
+        .action(mcpServeGeneratedAction);
 
     program.parse(process.argv);
 }
