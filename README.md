@@ -55,7 +55,11 @@ Start an MCP server from one generated module:
 npm run test:mcp
 ```
 
-For the included Cursor demo setup, open `examples` as a workspace and use `examples/.cursor/mcp.json` to enable the configured `api2ai-*` MCP servers. Restart or reload the MCP server after regenerating a tool module.
+For the included Cursor demo setup, either open `examples` as a workspace and use `examples/.cursor/mcp.json`, or start the `Run Extension` launch configuration, which opens the Extension Development Host with `examples` as the workspace. Enable the configured `api2ai-*` MCP servers there.
+
+To connect Cursor to the generated MCP servers, open Cursor Settings and go to `Tools & MCP` -> `Installed MCP Servers`. The servers from `examples/.cursor/mcp.json` should appear there and can be enabled or disabled individually.
+
+When a `.api2ai` file changes, regenerate the matching tool module first. Then reload the MCP server so the client picks up the new `.mjs` runtime. In Cursor, press `Cmd+Shift+P`, search for `MCP`, and run the available refresh/restart command. If the server list or tool schema still looks stale, run `Developer: Reload Window`.
 
 ## Auth
 
@@ -88,7 +92,6 @@ Available debug launch configurations:
 - `Run Extension`: starts an Extension Development Host with `examples` as the workspace.
 - `Run Extension (completion debug log)`: same as `Run Extension`, but enables completion debug logging.
 - `Attach to Language Server`: attaches the debugger to the language server on port `6009`.
-- `Extension + Language Server`: compound launch for extension debugging plus language server attach.
 
 Useful development commands:
 
