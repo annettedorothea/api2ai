@@ -31,6 +31,19 @@ export function makeOperationLookupKey(method: string, routePath: string): strin
     return toLookupKey(method, routePath);
 }
 
+/** All OpenAPI paths that support the given HTTP method (normalized case). Sorted for stable completions. */
+export function pathsForHttpMethod(operations: OperationLookup, method: string): string[] {
+    const prefix = `${method.toUpperCase()} `;
+    const paths = new Set<string>();
+    for (const key of operations.keys()) {
+        if (!key.startsWith(prefix)) {
+            continue;
+        }
+        paths.add(key.slice(prefix.length));
+    }
+    return [...paths].sort((a, b) => a.localeCompare(b));
+}
+
 function buildOperationLookup(spec: OpenApiDocument): OperationLookup {
     const operations: OperationLookup = new Map();
     if (!spec.paths) {

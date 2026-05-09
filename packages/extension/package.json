@@ -21,7 +21,12 @@
             "language": "api-2-ai-dsl",
             "scopeName": "source.api-2-ai-dsl",
             "path": "syntaxes/api-2-ai-dsl.tmLanguage.json"
-        }]
+        }],
+        "configurationDefaults": {
+            "[api-2-ai-dsl]": {
+                "editor.wordBasedSuggestions": "off"
+            }
+        }
     },
     "activationEvents": [
         "onLanguage:api-2-ai-dsl"

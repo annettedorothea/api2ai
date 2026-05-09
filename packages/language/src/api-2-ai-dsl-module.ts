@@ -1,6 +1,7 @@
 import { type Module, inject } from 'langium';
 import { createDefaultModule, createDefaultSharedModule, type DefaultSharedModuleContext, type LangiumServices, type LangiumSharedServices, type PartialLangiumServices } from 'langium/lsp';
 import { Api2AiDslGeneratedModule, Api2AiDslGeneratedSharedModule } from './generated/module.js';
+import { Api2AiDslCompletionProvider } from './api-2-ai-dsl-completion-provider.js';
 import { Api2AiDslValidator, registerValidationChecks } from './api-2-ai-dsl-validator.js';
 
 /**
@@ -26,6 +27,9 @@ export type Api2AiDslServices = LangiumServices & Api2AiDslAddedServices
 export const Api2AiDslModule: Module<Api2AiDslServices, PartialLangiumServices & Api2AiDslAddedServices> = {
     validation: {
         Api2AiDslValidator: () => new Api2AiDslValidator()
+    },
+    lsp: {
+        CompletionProvider: (services) => new Api2AiDslCompletionProvider(services)
     }
 };
 

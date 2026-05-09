@@ -10,3 +10,4 @@ out/
 syntaxes/
 *.tsbuildinfo
 *.vsix
+.idea
