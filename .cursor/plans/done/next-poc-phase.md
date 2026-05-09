@@ -4,26 +4,30 @@ overview: Stabilisiere den PoC mit einer besseren öffentlichen Test-API, verbes
 todos:
   - id: api-eval
     content: Spaceflight News API, Tagesschau/bundesAPI, SWAPI, Open-Meteo und PetstoreAPI.com als Demo-API-Kandidaten evaluieren
-    status: pending
+    status: completed
   - id: api-migration
     content: Beispiel-DSL, OpenAPI-Spec, Smoke- und MCP-Scripts auf beste API migrieren
-    status: pending
+    status: completed
   - id: openapi-params
     content: OpenAPI-Parameter und RequestBodies in Loader-Metadaten aufnehmen
-    status: pending
+    status: completed
   - id: mcp-schemas
     content: Tool-spezifische MCP-Input-Schemas aus OpenAPI generieren
-    status: pending
+    status: cancelled
   - id: dsl-overrides
     content: Optionale DSL-Overrides für AI-freundliche Parameterbeschreibungen planen
-    status: pending
+    status: cancelled
   - id: code-review
     content: Code Review vor Auth-Erweiterungen durchführen
-    status: pending
+    status: cancelled
   - id: auth-v1
     content: Env-Token-basierte Authentifizierung als separaten nächsten Block planen
-    status: pending
+    status: completed
 isProject: false
+---
+
+**Status:** Abgeschlossen für den PoC-Umfang (Mai 2026). MCP-Schemas pro Operation sind bewusst ausgelagert in den aktiven Plan [mcp-tool-schemas-from-openapi.md](../mcp-tool-schemas-from-openapi.md). DSL-Overrides und formelles Review bleiben optional.
+
 ---
 
 # Nächste Schritte: API, Tool-Schemas, Auth, Review

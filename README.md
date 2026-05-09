@@ -59,7 +59,7 @@ For the included Cursor demo setup, either open `examples` as a workspace and us
 
 To connect Cursor to the generated MCP servers, open Cursor Settings and go to `Tools & MCP` -> `Installed MCP Servers`. The servers from `examples/.cursor/mcp.json` should appear there and can be enabled or disabled individually.
 
-When a `.api2ai` file changes, regenerate the matching tool module first. Then reload the MCP server so the client picks up the new `.mjs` runtime. In Cursor, press `Cmd+Shift+P`, search for `MCP`, and run the available refresh/restart command. If the server list or tool schema still looks stale, run `Developer: Reload Window`.
+When a `.api2ai` file changes in the Extension Development Host, saving the file automatically regenerates the matching tool module. If you edit files outside the extension workflow, run the matching `npm run generate:*` command manually. After regeneration, reload the MCP server so the client picks up the new `.mjs` runtime. In Cursor, press `Cmd+Shift+P`, search for `MCP`, and run the available refresh/restart command. If the server list or tool schema still looks stale, run `Developer: Reload Window`.
 
 ## Auth
 
@@ -74,7 +74,7 @@ auth apiKey {
 }
 ```
 
-At runtime, the generated module reads the secret from `process.env`. The CLI also loads local `.env.local` or `env.local` files for `smoke-generated` and `mcp-serve-generated`.
+At runtime, the generated module reads the secret from `process.env`.
 
 For the TMDB demo, `examples/.env` documents the required `TMDB_ACCESS_TOKEN` with a dummy value. Use a real token only in your local environment, for example via `examples/.env.local` or an exported shell variable.
 
@@ -99,5 +99,3 @@ Useful development commands:
 npm run langium:watch
 npm run watch
 ```
-
-Saving a `.api2ai` file in the extension host generates `generated/<name>-tools.ts` and `generated/<name>-tools.mjs` next to the source file.

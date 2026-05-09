@@ -1,7 +1,7 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 
-const LOCAL_ENV_FILES = ['.env.local', 'env.local'];
+const LOCAL_ENV_FILES = ['.env', '.env.local'];
 
 function stripOptionalQuotes(value: string): string {
     if (value.length < 2) {
@@ -52,6 +52,7 @@ function ancestorDirectories(startDir: string): string[] {
 
 export function loadLocalEnvFiles(startDirs: string[]): string[] {
     const protectedKeys = new Set(Object.keys(process.env));
+    const loadedKeys = new Set<string>();
     const loadedFiles: string[] = [];
     const visitedFiles = new Set<string>();
 
@@ -70,8 +71,9 @@ export function loadLocalEnvFiles(startDirs: string[]): string[] {
                         continue;
                     }
                     const [key, value] = parsed;
-                    if (!protectedKeys.has(key)) {
+                    if (!protectedKeys.has(key) || loadedKeys.has(key)) {
                         process.env[key] = value;
+                        loadedKeys.add(key);
                     }
                 }
                 loadedFiles.push(filePath);
