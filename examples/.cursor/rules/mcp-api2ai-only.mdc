@@ -17,6 +17,21 @@ alwaysApply: true
   - fuehre keine Ersatzrecherche durch,
   - gib keine Vermutungen oder erfundenen Details aus.
 - Bevorzuge explizit tool-basierte Antworten mit nachvollziehbarer Quelle aus den erlaubten `*api2ai*`-Servern.
+
+## Tool-Wahl und Parameter ohne Workspace-/OpenAPI-Wissen
+
+- Zum Testen soll ein Agent nur anhand der **bereitgestellten MCP-Tool-Informationen** (Toolname, Beschreibung/Intent, **JSON Schema** fuer Argumente wie sie fuer die jeweiligen `*api2ai*`-Tools ausgeliefert werden) arbeiten.
+- Bei `api2ai`-Anfragen **kein Workspace-Wissen** zur Beantwortung oder zur Konstruktion von Tool-Aufrufen nutzen, **insbesondere nicht**:
+  - OpenAPI-/Swagger-Dateien im Repo (`openapi/**`, eingebettete Specs),
+  - `*.api2ai`-Quelldateien,
+  - `examples/generated/**` oder andere generierte Helferskripte als „Dokumentation“ fuer Parameter,
+  - README oder anderer Repo-Code, um **undokumentierte** Query-/Path-Parameter zu erraten oder API-Verhalten zu erschliessen.
+- **Erlaubt** bleibt: MCP-Descriptors lesen/pruefen (Schema vor Toolaufruf, wie ohnehin verlangt).
+- Sind Parameter oder Endpunkt-Verhalten aus dem MCP-Schema **nicht** ableitbar:
+  - keinen Aufruf mit aus dem Gedaechtnis/OpenAPI rekonstruierten Feldern fuellen,
+  - stattdessen ehrlich sagen, dass die Anfrage mit den vorliegenden **Tooldefinitionen allein** nicht zuverlaessig formuliert werden kann (optional: was im Schema **fehlt**).
+- **Ja, das ist beabsichtigt moeglich:** Der Agent soll sich hier **bewusst „schema-only“ verhalten** – keine parallele Spezifikation aus dem Repo, keine Vermutungen als Ersatz fuer fehlende Schema-Felder.
+
 - Fuege am Ende jeder Antwort in diesem Fall einen Abschnitt `Audit` hinzu, der alle MCP-Aufrufe vollstaendig listet:
   - Request: Servername, Toolname
   - Params: exakt uebergebene Parameter/Argumente

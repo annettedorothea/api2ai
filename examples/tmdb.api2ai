@@ -9,57 +9,72 @@ auth apiKey {
 }
 
 GET "/3/search/movie" {
+    toolName: "searchTmdbMovies"
     intent: "search TMDB movies by title"
     example: "Find movies named Dune"
-    toolName: "searchTmdbMovies"
+    title: "Search movies by title"
 }
 
 GET "/3/movie/popular" {
+    toolName: "getPopularTmdbMovies"
     intent: "retrieve currently popular TMDB movies"
     example: "Show popular movies"
-    toolName: "getPopularTmdbMovies"
+    title: "Popular movies"
 }
 
 GET "/3/movie/{movie_id}" {
+    toolName: "getTmdbMovieDetails"
     intent: "retrieve details for a TMDB movie by id"
     example: "Get details for movie id 693134"
-    toolName: "getTmdbMovieDetails"
+    title: "Movie details by ID"
 }
 
 GET "/3/movie/{movie_id}/credits" {
+    toolName: "getTmdbMovieCredits"
     intent: "retrieve cast and crew credits for a TMDB movie"
     example: "Who played in movie id 693134?"
-    toolName: "getTmdbMovieCredits"
+    title: "Movie cast and crew"
 }
 
 GET "/3/discover/movie" {
+    toolName: "discoverTmdbMovies"
     intent: "discover TMDB movies using rich filters such as genre, year, and rating"
     example: "Find highly rated science fiction movies from 2024"
-    toolName: "discoverTmdbMovies"
+    title: "Discover movies with filters"
 }
 
 GET "/3/genre/movie/list" {
+    toolName: "getTmdbMovieGenres"
     intent: "retrieve TMDB movie genres for filtering and lookup"
     example: "List available movie genres"
-    toolName: "getTmdbMovieGenres"
+    title: "Movie genre list"
 }
 
 GET "/3/trending/movie/{time_window}" {
+    toolName: "getTmdbTrendingMovies"
     intent: "retrieve trending TMDB movies for a selected time window"
     example: "Show trending movies this week"
-    toolName: "getTmdbTrendingMovies"
+    title: "Trending movies"
 }
 
 GET "/3/movie/{movie_id}/videos" {
+    toolName: "getTmdbMovieVideos"
     intent: "retrieve videos such as trailers for a TMDB movie"
     example: "Show trailers for movie id 693134"
-    toolName: "getTmdbMovieVideos"
+    title: "Movie videos and trailers"
 }
 
 GET "/3/search/multi" {
+    toolName: "searchTmdbMulti"
     intent: "search TMDB across movies, tv shows, and people"
     example: "Search TMDB for Dune across all media types"
-    toolName: "searchTmdbMulti"
+    title: "Multi search (movies, TV, people)"
 }
 
+GET "/3/movie/{movie_id}/release_dates" {
+    toolName: "getTmdbMovieReleaseDates"
+    intent: "retrieve release dates for a TMDB movie"
+    example: "When was movie id 693134 released?"
+    title: "Movie release dates"
+}
 

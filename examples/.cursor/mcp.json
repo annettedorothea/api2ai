@@ -3,33 +3,29 @@
     "api2ai-spaceflight-news": {
       "command": "node",
       "args": [
-        "../packages/cli/bin/cli.js",
-        "mcp-serve-generated",
-        "./generated/spaceflight-news-tools.mjs"
+        "./generated/cli/mcp-serve.mjs",
+        "./generated/tools/spaceflight-news-tools.mjs"
       ]
     },
     "api2ai-tmdb": {
       "command": "node",
       "args": [
-        "../packages/cli/bin/cli.js",
-        "mcp-serve-generated",
-        "./generated/tmdb-tools.mjs"
+        "./generated/cli/mcp-serve.mjs",
+        "./generated/tools/tmdb-tools.mjs"
       ]
     },
     "api2ai-open-meteo": {
       "command": "node",
       "args": [
-        "../packages/cli/bin/cli.js",
-        "mcp-serve-generated",
-        "./generated/open-meteo-tools.mjs"
+        "./generated/cli/mcp-serve.mjs",
+        "./generated/tools/open-meteo-tools.mjs"
       ]
     },
     "api2ai-open-meteo-geocoding": {
       "command": "node",
       "args": [
-        "../packages/cli/bin/cli.js",
-        "mcp-serve-generated",
-        "./generated/open-meteo-geocoding-tools.mjs"
+        "./generated/cli/mcp-serve.mjs",
+        "./generated/tools/open-meteo-geocoding-tools.mjs"
       ]
     }
   }

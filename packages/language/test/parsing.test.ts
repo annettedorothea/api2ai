@@ -18,8 +18,8 @@ describe('Parsing tests', () => {
             openapi "./petstore.openapi.yaml"
             baseUrl "https://petstore3.swagger.io/api/v3"
             GET "/customers" {
-                intent: "get all customers"
                 toolName: "getAllCustomers"
+                intent: "get all customers"
             }
         `);
 
@@ -30,5 +30,38 @@ describe('Parsing tests', () => {
         expect(document.parseResult.value.operations[0].method).toBe('GET');
         expect(document.parseResult.value.operations[0].path).toBe('/customers');
         expect(document.parseResult.value.operations[0].toolName).toBe('getAllCustomers');
+    });
+
+    test('parses operation with optional overrides and includeResponses flag', async () => {
+        document = await parse(`
+            openapi "./petstore.openapi.yaml"
+            baseUrl "https://example.com"
+            GET "/customers" {
+                toolName: "listCustomers"
+                intent: "list"
+                summary: "Custom summary override"
+                includeResponses
+            }
+        `);
+
+        expect(document.parseResult.parserErrors).toHaveLength(0);
+        const op = document.parseResult.value.operations[0];
+        expect(op.summary).toBe('Custom summary override');
+        expect(op.includeResponses).toBe(true);
+        expect(op.title).toBeUndefined();
+    });
+
+    test('parses operation without includeResponses flag', async () => {
+        document = await parse(`
+            openapi "./petstore.openapi.yaml"
+            baseUrl "https://example.com"
+            GET "/customers" {
+                toolName: "listCustomers"
+                intent: "list"
+            }
+        `);
+
+        expect(document.parseResult.parserErrors).toHaveLength(0);
+        expect(document.parseResult.value.operations[0].includeResponses).toBeFalsy();
     });
 });

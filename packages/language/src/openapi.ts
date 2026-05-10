@@ -16,6 +16,7 @@ export type OpenApiSchema = {
     allOf?: OpenApiSchema[];
     additionalProperties?: boolean | OpenApiSchema;
     example?: unknown;
+    $ref?: string;
 };
 
 type OpenApiExample = {
@@ -51,6 +52,7 @@ type OpenApiMediaType = {
 
 type OpenApiResponse = {
     description?: string;
+    content?: Record<string, OpenApiMediaType | undefined>;
 };
 
 export type OpenApiParameterLocation = 'path' | 'query' | 'header' | 'cookie';
@@ -102,6 +104,8 @@ export type OpenApiRequestBodyDetails = {
 export type OpenApiResponseSummary = {
     statusCode: string;
     description?: string;
+    contentType?: string;
+    schema?: OpenApiSchema;
 };
 
 export type OpenApiOperationDetails = {
@@ -201,13 +205,37 @@ function extractRequestBodyDetails(operation: OpenApiOperation): OpenApiRequestB
     };
 }
 
+function extractMediaForResponse(response: OpenApiResponse | undefined): { contentType?: string; schema?: OpenApiSchema } | undefined {
+    const content = response?.content ?? {};
+    if (Object.keys(content).length === 0) {
+        return undefined;
+    }
+    const jsonEntry = content['application/json'];
+    const firstPair = jsonEntry !== undefined ? (['application/json', jsonEntry] as const) : (Object.entries(content)[0] as [string, OpenApiMediaType] | undefined);
+    if (!firstPair) {
+        return undefined;
+    }
+    const [contentType, media] = firstPair;
+    const schema = media?.schema;
+    if (!schema) {
+        return undefined;
+    }
+    return { contentType, schema };
+}
+
 function extractResponses(operation: OpenApiOperation): OpenApiResponseSummary[] {
     const responses = operation.responses ?? {};
     return Object.entries(responses)
-        .map(([statusCode, response]) => ({
-            statusCode,
-            description: response?.description
-        }))
+        .map(([statusCode, raw]) => {
+            const response = raw as OpenApiResponse | undefined;
+            const media = extractMediaForResponse(response);
+            return {
+                statusCode,
+                description: response?.description,
+                contentType: media?.contentType,
+                schema: media?.schema
+            };
+        })
         .sort((a, b) => a.statusCode.localeCompare(b.statusCode));
 }
 
@@ -293,6 +321,18 @@ function schemaKind(schema: OpenApiSchema | undefined): 'primitive' | 'array' | 
         return 'object';
     }
     return 'primitive';
+}
+
+/** Cookie parameters are not emitted into generated invoke/schema; fail validation so users do not rely on silent omission. */
+export function getCookieParameterMessages(operation: OpenApiOperationDetails): string[] {
+    const cookies = operation.parameters.filter((p) => p.in === 'cookie');
+    if (cookies.length === 0) {
+        return [];
+    }
+    const names = cookies.map((c) => c.name).join(', ');
+    return [
+        `cookie parameters are not supported in generated invoke (found: ${names}). Remove the operation from the DSL or drop cookie parameters in OpenAPI for this path.`
+    ];
 }
 
 export function getUnsupportedSerializationMessages(operation: OpenApiOperationDetails): string[] {

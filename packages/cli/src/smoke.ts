@@ -5,7 +5,7 @@ import { pathToFileURL } from 'node:url';
 
 type InvokeArgs = {
     pathParams?: Record<string, string | number | boolean>;
-    query?: Record<string, string | number | boolean>;
+    query?: Record<string, string | number | boolean | ReadonlyArray<string | number | boolean>>;
     headers?: Record<string, string>;
     body?: unknown;
 };

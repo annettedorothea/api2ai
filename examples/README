@@ -29,6 +29,7 @@ Nutze `Ortenberg` gezielt, damit der Agent bei der Geocoding-Aufloesung nachfrag
 - `api2ai wann ist der naechste SpaceX Start`
 - `api2ai zeig mir die naechsten 5 Spaceflight-Starts`
 - `api2ai gib mir Details zum naechsten Start (Name, Startzeit, Anbieter, Launchpad)`
+- `api2ai wie viele Raktenstarts gab es bei SapceX in 2025?` -> schwierig, scheitert möglicherweise auch am Rate Limit
 
 ## Verknuepfung von Tools (Spaceflight + Wetter)
 
@@ -43,3 +44,11 @@ Diese Prompts zeigen die Kombination aus Spaceflight-Daten und Wetterdaten:
 - `api2ai naechster SpaceX Start nur mit UTC-Zeit und Startort-Koordinaten`
 - `api2ai Wetter am Startort fuer den naechsten SpaceX Start: Temperatur, Wind, Niederschlag`
 - `api2ai nutze zuerst Geocoding fuer den Startort und danach das Wettertool fuer die 24h rund um den Start`
+
+## Movies
+
+- `api2ai Was war der teuerste Film, der 2025 rauskam?`
+- `api2ai Wer hat Captain Jack Sparrow in Fluch der Karibik gespielt?`
+- `api2ai Wann kam Dune 2 raus in Deutscland?` -> klappt nicht immer, bräuchte bessere Beschreibung der Parameter
+- `api2ai Wer war der Kameramann von Dune?`
+- `api2ai Mach eine Liste der Filme mit den höchsten Budgets aus 2024 mit dem jeweiligen Voting. Falls Infos vorhanden auch noch das, was sie eingespielt haben, sortiert nach Budget`

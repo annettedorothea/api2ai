@@ -12,6 +12,7 @@ const generateByFileQueue = new Map<string, Promise<void>>();
 export async function activate(context: vscode.ExtensionContext): Promise<void> {
     client = await startLanguageClient(context);
     registerGenerateOnSave(context);
+    registerGenerateCommand(context);
 }
 
 // This function is called when the extension is deactivated.
@@ -74,18 +75,45 @@ function registerGenerateOnSave(context: vscode.ExtensionContext): void {
     context.subscriptions.push(disposable);
 }
 
-async function generateForSourceFile(context: vscode.ExtensionContext, sourcePath: string): Promise<void> {
+function registerGenerateCommand(context: vscode.ExtensionContext): void {
+    const disposable = vscode.commands.registerCommand('api2ai.generateTools', async () => {
+        const editor = vscode.window.activeTextEditor;
+        const doc = editor?.document;
+        if (!doc || doc.languageId !== 'api-2-ai-dsl') {
+            void vscode.window.showWarningMessage(
+                'api2ai: Open and focus an .api2ai file (api-2-ai-dsl) to generate tool code.'
+            );
+            return;
+        }
+        await generateForSourceFile(context, doc.uri.fsPath, { reportSuccess: true });
+    });
+    context.subscriptions.push(disposable);
+}
+
+type CliSpawn = {
+    scriptPath: string;
+    embedHome?: string;
+};
+
+async function generateForSourceFile(
+    context: vscode.ExtensionContext,
+    sourcePath: string,
+    options?: { reportSuccess?: boolean }
+): Promise<void> {
+    const reportSuccess = options?.reportSuccess === true;
     const parsed = path.parse(sourcePath);
-    const destinationPath = path.join(parsed.dir, 'generated', `${parsed.name}-tools.ts`);
-    const cliPath = resolveCliPath(context);
-    if (!cliPath) {
-        void vscode.window.showWarningMessage('api2ai: CLI entry not found, skipped auto-generate on save.');
+    const destinationPath = path.join(parsed.dir, 'generated', 'tools', `${parsed.name}-tools.ts`);
+    const spawn = resolveCliSpawn(context);
+    if (!spawn) {
+        void vscode.window.showWarningMessage('api2ai: CLI entry not found, skipped generate.');
         return;
     }
+    const env = spawn.embedHome?.length ? { ...process.env, API2AI_EMBED_HOME: spawn.embedHome } : process.env;
     await new Promise<void>((resolve, reject) => {
         execFile(
             process.execPath,
-            [cliPath, 'generate', sourcePath, destinationPath],
+            [spawn.scriptPath, 'generate', sourcePath, destinationPath],
+            { env },
             (error, stdout, stderr) => {
                 if (error) {
                     const details = stderr || stdout || error.message;
@@ -95,28 +123,40 @@ async function generateForSourceFile(context: vscode.ExtensionContext, sourcePat
                 resolve();
             }
         );
+    }).then(() => {
+        if (reportSuccess) {
+            void vscode.window.showInformationMessage(`api2ai: generated tools for ${path.basename(sourcePath)}.`);
+        }
     }).catch((error) => {
         const message = error instanceof Error ? error.message.trim() : String(error);
-        void vscode.window.showErrorMessage(`api2ai: auto-generate failed for ${path.basename(sourcePath)}: ${message}`);
+        void vscode.window.showErrorMessage(`api2ai: generate failed for ${path.basename(sourcePath)}: ${message}`);
     });
 }
 
-function resolveCliPath(context: vscode.ExtensionContext): string | undefined {
+function resolveCliSpawn(context: vscode.ExtensionContext): CliSpawn | undefined {
     const workspaceFolder = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
     if (workspaceFolder) {
-        const workspaceRootCandidate = path.resolve(workspaceFolder, '..', 'packages', 'cli', 'bin', 'cli.js');
-        if (existsSync(workspaceRootCandidate)) {
-            return workspaceRootCandidate;
+        const monorepoNested = path.resolve(workspaceFolder, 'packages', 'cli', 'bin', 'cli.js');
+        if (existsSync(monorepoNested)) {
+            return { scriptPath: monorepoNested };
         }
-        const nestedCandidate = path.resolve(workspaceFolder, 'packages', 'cli', 'bin', 'cli.js');
-        if (existsSync(nestedCandidate)) {
-            return nestedCandidate;
+        const parentPackages = path.resolve(workspaceFolder, '..', 'packages', 'cli', 'bin', 'cli.js');
+        if (existsSync(parentPackages)) {
+            return { scriptPath: parentPackages };
         }
+    }
+
+    const bundledCliPath = context.asAbsolutePath(path.join('out', 'embed-api2ai', 'cli.cjs'));
+    if (existsSync(bundledCliPath)) {
+        return {
+            scriptPath: bundledCliPath,
+            embedHome: context.asAbsolutePath(path.join('out', 'embed-api2ai')),
+        };
     }
 
     const extensionRelativeCandidate = path.resolve(context.extensionPath, '..', 'cli', 'bin', 'cli.js');
     if (existsSync(extensionRelativeCandidate)) {
-        return extensionRelativeCandidate;
+        return { scriptPath: extensionRelativeCandidate };
     }
     return undefined;
 }

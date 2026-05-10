@@ -16,9 +16,13 @@ Auth:
 
 Operation:
     method=HttpMethod path=STRING '{'
+        'toolName' ':' toolName=STRING
         'intent' ':' intent=STRING
         ('example' ':' example=STRING)?
-        'toolName' ':' toolName=STRING
+        ('title' ':' title=STRING)?
+        ('summary' ':' summary=STRING)?
+        ('description' ':' description=STRING)?
+        (includeResponses?='includeResponses')?
     '}';
 
 AuthLocation returns string:

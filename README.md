@@ -2,27 +2,27 @@
 
 `api2ai` is a PoC for turning existing OpenAPI descriptions into small, curated AI tools.
 
-The OpenAPI file stays the technical source of truth. The `.api2ai` DSL selects which endpoints should become tools and adds AI-facing metadata such as intent, examples, tool names, and optional runtime auth.
+The OpenAPI file stays the technical source of truth. The `.api2ai` DSL selects which endpoints should become tools and adds AI-facing metadata such as intent, examples, tool names, and optional runtime auth. Inside each HTTP operation block you can add optional **`title`**, **`summary`**, **`description`** (an empty string suppresses pulling OpenAPI text into the MCP **`API:`** section), and **`includeResponses`** alone on its own line to attach a **`Response:`** excerpt from OpenAPI success responses.
 
 ```txt
 openapi "./openapi/spaceflight-news.openapi.yaml"
 baseUrl "https://api.spaceflightnewsapi.net"
 
 GET "/v4/articles/{id}/" {
+    toolName: "getSpaceflightArticleById"
     intent: "get one spaceflight article by id"
     example: "Get article with id 1"
-    toolName: "getSpaceflightArticleById"
 }
 ```
 
-The generator produces TypeScript and runnable `.mjs` modules. Those modules can be smoke-tested directly or exposed as MCP tools for any MCP-compatible agent or client.
+The generator writes TypeScript and ESM `.mjs` modules under [`examples/generated/tools/`](examples/generated/tools/), plus the standalone MCP entry copied to [`examples/generated/cli/`](examples/generated/cli/) (see `mcp-serve.mjs`). Those artifacts can be smoke-tested directly or exposed as MCP tools for any MCP-compatible agent or client.
 
 ## Project Layout
 
 - `packages/language`: Langium grammar, AST generation, validation, and completion support.
 - `packages/cli`: CLI generator, smoke runner, and generated-module MCP server.
 - `packages/extension`: Cursor/VSCode extension wrapper for the DSL.
-- `examples`: demo DSL files, OpenAPI specs, generated tool modules, and MCP config.
+- `examples`: demo `.api2ai` files and OpenAPI under [`examples/openapi/`](examples/openapi/) (and peers), MCP config under [`examples/.cursor/`](examples/.cursor/), codegen output under [`examples/generated/tools/`](examples/generated/tools/) and [`examples/generated/cli/`](examples/generated/cli/).
 
 ## Getting Started
 

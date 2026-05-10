@@ -26,19 +26,25 @@
             "[api-2-ai-dsl]": {
                 "editor.wordBasedSuggestions": "off"
             }
-        }
+        },
+        "commands": [{
+            "command": "api2ai.generateTools",
+            "title": "Generate tool code (.ts + .mjs + MCP host)"
+        }]
     },
     "activationEvents": [
-        "onLanguage:api-2-ai-dsl"
+        "onLanguage:api-2-ai-dsl",
+        "onCommand:api2ai.generateTools"
     ],
     "main": "./out/extension/main.cjs",
     "scripts": {
         "clean": "shx rm -fr *.tsbuildinfo out syntaxes",
         "vscode:prepublish": "npm run build",
         "build:prepare": "shx mkdir -p ./syntaxes/ && shx cp -f ../language/syntaxes/api-2-ai-dsl.tmLanguage.json ./syntaxes/api-2-ai-dsl.tmLanguage.json",
-        "build": "npm run build:prepare && tsc -b tsconfig.json && node esbuild.mjs",
+        "build": "npm run build:prepare && tsc -b tsconfig.json && node esbuild.mjs && node embed-cli-bundle.mjs",
         "build:clean": "npm run clean && npm run build",
-        "watch": "npm run build:prepare && concurrently -n tsc,esbuild -c blue,yellow \"tsc -b tsconfig.json --watch\" \"node esbuild.mjs --watch\""
+        "watch": "npm run build:prepare && npm run embed-cli:onetime && concurrently -n tsc,esbuild -c blue,yellow \"tsc -b tsconfig.json --watch\" \"node esbuild.mjs --watch\"",
+        "embed-cli:onetime": "node embed-cli-bundle.mjs"
     },
     "dependencies": {
         "api-2-ai-dsl-language": "0.0.1",

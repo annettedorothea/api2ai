@@ -1,17 +1,28 @@
 # Command-line interface (CLI)
 
-Check [this part](https://langium.org/docs/learn/minilogo/customizing_cli/) of the Langium Minilogo Tutorial as a useful guide to the CLI.
+Thin wrapper around the Langium-backed language plus the **`generate`** pipeline that emits TypeScript, ESM `.mjs`, bundled tooling metadata, and a copy of the standalone MCP host into `examples/generated/cli/` when you generate from repo examples.
 
-## What's in the folder?
+Langium’s Minilogo CLI guide is still a useful reference for the shared patterns: [customizing the CLI](https://langium.org/docs/learn/minilogo/customizing_cli/).
 
-- [package.json](./package.json) - The manifest file of your cli package.
-- [tsconfig.src.json](./tsconfig.src.json) - The package specific TypeScript compiler configuration extending the [base config](../../tsconfig.json).
-- [tsconfig.json](./tsconfig.json) - TypeScript compiler configuration options required for proper functionality of VSCode.
-- [bin/cli.js](bin/cli/cli.js) - Script referenced in the [package.json](./package.json) and used to execute the command-line interface.
-- [src/cli/main.ts](src/cli/main.ts) - The entry point of the command line interface (CLI) of your language.
-- [src/cli/generator.ts](src/cli/generator.ts) - The code generator used by the CLI to write output files from DSL documents.
-- [src/cli/util.ts](src/cli/util.ts) - Utility code for the CLI.
+## Layout
 
-## Instructions
+- [package.json](./package.json) – package manifest and `bin` entry.
+- [bin/cli.js](./bin/cli.js) – executable stub (run from repo root as `node ./packages/cli/bin/cli.js`, or use workspace scripts in the root `package.json`).
+- [src/main.ts](./src/main.ts) – Commander setup: `generate`, `smoke-generated`.
+- [src/generate-command.ts](./src/generate-command.ts) – wiring for the generate command.
+- [src/generator.ts](./src/generator.ts) – writes generated tool modules and copies the bundled MCP entry.
+- [src/smoke.ts](./src/smoke.ts) – `smoke-generated` runner.
+- [src/openapi-tool-codegen.ts](./src/openapi-tool-codegen.ts) – OpenAPI-derived input schemas for tools.
+- [src/util.ts](./src/util.ts), [src/env.ts](./src/env.ts) – helpers and optional `.env` loading for smoke runs.
+- [mcp-bundle/](./mcp-bundle/) – MCP server implementation; root `npm run bundle:mcp-runtime` produces [resources/mcp-serve-emitted.mjs](./resources/mcp-serve-emitted.mjs), which the generator copies next to generated outputs.
 
-Run `node ./bin/cli` to see options for the CLI; `node ./bin/cli generate <file>` generates code for a given DSL file.
+## Commands
+
+From the **workspace root** (after `npm install`, `npm run langium:generate`, `npm run build`):
+
+```bash
+node ./packages/cli/bin/cli.js generate <source.api2ai> <dest-tools.ts>
+node ./packages/cli/bin/cli.js smoke-generated <path-to-*-tools.mjs> <toolName> [argsJson]
+```
+
+Prefer the root `package.json` scripts (`generate:*`, `test:smoke`, `test:mcp`) for the bundled examples.

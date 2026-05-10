@@ -40,7 +40,7 @@ describe('Completion for operation path', () => {
     test('lists OpenAPI routes for GET', async () => {
         const header = `\nopenapi "./petstore-mini.openapi.yaml"\nbaseUrl "https://x"\n\nGET "`;
         const inner = `/pet`;
-        const tail = `" {\n    intent: "x"\n    toolName: "t"\n}`;
+        const tail = `" {\n    toolName: "t"\n    intent: "x"\n}`;
         const content = header + inner + tail;
         // Caret inside path literal (at string end boundary, the lexer can attach the cursor to `"` outside the STRING leaf)
         const offset = header.length + Math.max(1, Math.floor(inner.length / 2));
@@ -55,7 +55,7 @@ describe('Completion for operation path', () => {
     test('filters POST routes by typed prefix', async () => {
         const header = `\nopenapi "./petstore-mini.openapi.yaml"\nbaseUrl "https://x"\n\nPOST "`;
         const inner = `/pe`;
-        const tail = `" {\n    intent: "x"\n    toolName: "t"\n}`;
+        const tail = `" {\n    toolName: "t"\n    intent: "x"\n}`;
         const content = header + inner + tail;
         const offset = header.length + Math.max(1, inner.length - 1);
 
@@ -64,5 +64,35 @@ describe('Completion for operation path', () => {
         const labels = openApiPathLabels(list?.items ?? []);
         expect(labels.length).toBeGreaterThan(0);
         expect(labels.every(l => l.includes('/pet'))).toBe(true);
+    });
+
+    test('inserts quoted paths after GET when path is not parsed yet (Ctrl+Space after verb)', async () => {
+        const header = `\nopenapi "./petstore-mini.openapi.yaml"\nbaseUrl "https://x"\n\nGET `;
+        const content = header;
+        const offset = content.length;
+
+        const list = await completionAt(content, offset);
+
+        const labels = openApiPathLabels(list?.items ?? []);
+        expect(labels.length).toBeGreaterThan(0);
+        expect(labels.some(l => l.includes('/pet/{petId}'))).toBe(true);
+        const first = list?.items?.find(i => typeof i.label === 'string' && String(i.label).includes('/pet'));
+        expect(first && 'textEdit' in first && first.textEdit && 'newText' in first.textEdit).toBe(true);
+        if (first && 'textEdit' in first && first.textEdit && 'newText' in first.textEdit) {
+            expect(String(first.textEdit.newText).startsWith('"')).toBe(true);
+        }
+    });
+
+    test('lists routes when caret is on the Operation opening brace after the path', async () => {
+        const header = `\nopenapi "./petstore-mini.openapi.yaml"\nbaseUrl "https://x"\n\nGET "/pe" `;
+        const braceAndBody = `{\n    toolName: "t"\n    intent: "x"\n}`;
+        const content = header + braceAndBody;
+        const offset = content.indexOf('{');
+
+        const list = await completionAt(content, offset);
+
+        const labels = openApiPathLabels(list?.items ?? []);
+        expect(labels.length).toBeGreaterThan(0);
+        expect(labels.some(l => l.includes('/pet/{petId}'))).toBe(true);
     });
 });

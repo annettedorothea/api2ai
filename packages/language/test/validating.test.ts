@@ -29,8 +29,8 @@ describe('Validating', () => {
             openapi "./petstore-mini.openapi.yaml"
             baseUrl "https://petstore3.swagger.io/api/v3"
             GET "/pet/{petId}" {
-                intent: "get one pet"
                 toolName: "getPetById"
+                intent: "get one pet"
             }
         `);
 
@@ -48,8 +48,8 @@ describe('Validating', () => {
                 prefix: "Bearer "
             }
             GET "/pet/{petId}" {
-                intent: "get one pet"
                 toolName: "getPetById"
+                intent: "get one pet"
             }
         `);
 
@@ -66,8 +66,8 @@ describe('Validating', () => {
                 env: ""
             }
             GET "/pet/{petId}" {
-                intent: "get one pet"
                 toolName: "getPetById"
+                intent: "get one pet"
             }
         `);
 
@@ -75,13 +75,26 @@ describe('Validating', () => {
         expect(diagnostics.some(d => d.message.includes('auth apiKey env must not be empty'))).toBe(true);
     });
 
+    test('does not report OpenAPI existence for an incomplete operation before the path string', async () => {
+        document = await parseValidated(`
+            openapi "./petstore-mini.openapi.yaml"
+            baseUrl "https://petstore3.swagger.io/api/v3"
+            GET 
+        `);
+
+        const diagnostics = document.diagnostics ?? [];
+        expect(diagnostics.some(d => d.message.includes('does not exist in the referenced OpenAPI 3.x spec'))).toBe(
+            false
+        );
+    });
+
     test('reports an error for unknown method+path', async () => {
         document = await parseValidated(`
             openapi "./petstore-mini.openapi.yaml"
             baseUrl "https://petstore3.swagger.io/api/v3"
             DELETE "/customers" {
-                intent: "delete customer"
                 toolName: "deleteCustomer"
+                intent: "delete customer"
             }
         `);
 
@@ -94,12 +107,12 @@ describe('Validating', () => {
             openapi "./petstore-mini.openapi.yaml"
             baseUrl "https://petstore3.swagger.io/api/v3"
             GET "/pet/{petId}" {
-                intent: "first"
                 toolName: "petTool"
+                intent: "first"
             }
             POST "/pet" {
-                intent: "second"
                 toolName: "petTool"
+                intent: "second"
             }
         `);
 
@@ -112,8 +125,8 @@ describe('Validating', () => {
             openapi "./swagger2.openapi.yaml"
             baseUrl "https://petstore3.swagger.io/api/v3"
             GET "/pet/{petId}" {
-                intent: "get one pet"
                 toolName: "getPetById"
+                intent: "get one pet"
             }
         `);
 
@@ -126,12 +139,26 @@ describe('Validating', () => {
             openapi "./unsupported-style.openapi.yaml"
             baseUrl "https://petstore3.swagger.io/api/v3"
             GET "/pets" {
-                intent: "list pets by filter object"
                 toolName: "listPets"
+                intent: "list pets by filter object"
             }
         `);
 
         const diagnostics = document.diagnostics ?? [];
         expect(diagnostics.some(d => d.message.includes('supports query style "form" only'))).toBe(true);
+    });
+
+    test('reports cookie parameters as unsupported for generated invoke', async () => {
+        document = await parseValidated(`
+            openapi "./cookie-param.openapi.yaml"
+            baseUrl "https://example.com"
+            GET "/session" {
+                toolName: "getSession"
+                intent: "get session"
+            }
+        `);
+
+        const diagnostics = document.diagnostics ?? [];
+        expect(diagnostics.some((d) => d.message.includes('cookie parameters are not supported'))).toBe(true);
     });
 });

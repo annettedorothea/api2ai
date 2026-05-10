@@ -2,7 +2,12 @@ import path from 'node:path';
 import type { ValidationAcceptor, ValidationChecks } from 'langium';
 import type { Api2AiDslAstType, Model, Operation } from './generated/ast.js';
 import type { Api2AiDslServices } from './api-2-ai-dsl-module.js';
-import { getUnsupportedSerializationMessages, loadOpenApi, makeOperationLookupKey } from './openapi.js';
+import {
+    getCookieParameterMessages,
+    getUnsupportedSerializationMessages,
+    loadOpenApi,
+    makeOperationLookupKey
+} from './openapi.js';
 
 /**
  * Register custom validation checks.
@@ -49,6 +54,9 @@ export class Api2AiDslValidator {
         const seenToolNames = new Map<string, number>();
         model.operations.forEach((operation, index) => {
             const key = operation.toolName;
+            if (key === undefined || key === null || String(key).trim().length === 0) {
+                return;
+            }
             const firstIndex = seenToolNames.get(key);
             if (firstIndex !== undefined) {
                 accept('error', `toolName "${key}" must be unique.`, {
@@ -81,10 +89,14 @@ export class Api2AiDslValidator {
         }
 
         model.operations.forEach((operation: Operation, index) => {
-            const key = makeOperationLookupKey(operation.method, operation.path);
+            const opPath = operation.path;
+            if (typeof opPath !== 'string' || opPath.trim().length === 0) {
+                return;
+            }
+            const key = makeOperationLookupKey(operation.method, opPath);
             const openApiOperation = loaded.operations.get(key);
             if (!openApiOperation) {
-                accept('error', `Operation ${operation.method} ${operation.path} does not exist in the referenced OpenAPI 3.x spec.`, {
+                accept('error', `Operation ${operation.method} ${opPath} does not exist in the referenced OpenAPI 3.x spec.`, {
                     node: model,
                     property: 'operations',
                     index
@@ -93,6 +105,13 @@ export class Api2AiDslValidator {
             }
 
             for (const message of getUnsupportedSerializationMessages(openApiOperation)) {
+                accept('error', `Operation ${operation.method} ${operation.path}: ${message}`, {
+                    node: model,
+                    property: 'operations',
+                    index
+                });
+            }
+            for (const message of getCookieParameterMessages(openApiOperation)) {
                 accept('error', `Operation ${operation.method} ${operation.path}: ${message}`, {
                     node: model,
                     property: 'operations',
