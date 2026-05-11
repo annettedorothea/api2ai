@@ -44,6 +44,55 @@ function responseIsSuccess2xx(summary: { statusCode: string }): boolean {
     return n !== undefined && n >= 200 && n < 300;
 }
 
+function responseIsDocumentedError(summary: { statusCode: string }): boolean {
+    if (summary.statusCode === 'default') {
+        return true;
+    }
+    const n = parseStatusCodeNumeric(summary.statusCode);
+    return n !== undefined && n >= 400;
+}
+
+const MAX_DOCUMENTED_ERROR_LINES = 8;
+const MAX_ERROR_DESCRIPTION_CHARS = 80;
+
+function truncateOneLine(text: string, maxChars: number): string {
+    if (text.length <= maxChars) {
+        return text;
+    }
+    return text.slice(0, Math.max(0, maxChars - 1)) + '…';
+}
+
+/** Compact 4xx/5xx/default lines from OpenAPI (status + truncated description); no response body schemas. */
+function buildDocumentedErrorLines(details: OpenApiOperationDetails): string[] {
+    const errors = details.responses.filter(responseIsDocumentedError);
+    errors.sort((a, b) => {
+        const aDef = a.statusCode === 'default';
+        const bDef = b.statusCode === 'default';
+        if (aDef && bDef) {
+            return 0;
+        }
+        if (aDef) {
+            return 1;
+        }
+        if (bDef) {
+            return -1;
+        }
+        const na = parseStatusCodeNumeric(a.statusCode) ?? 0;
+        const nb = parseStatusCodeNumeric(b.statusCode) ?? 0;
+        return na - nb;
+    });
+    const lines: string[] = [];
+    for (const r of errors.slice(0, MAX_DOCUMENTED_ERROR_LINES)) {
+        const label = r.statusCode === 'default' ? 'default' : `HTTP ${r.statusCode}`;
+        if (isTruthyString(r.description)) {
+            lines.push(`${label} — ${truncateOneLine(r.description!.trim(), MAX_ERROR_DESCRIPTION_CHARS)}`);
+        } else {
+            lines.push(label);
+        }
+    }
+    return lines;
+}
+
 /** Plan: 200 → 201 → other 2xx with application/json+schema → any 2xx. */
 function pickSuccessResponseForSummary(details: OpenApiOperationDetails): (typeof details.responses)[0] | undefined {
     const twoxx = details.responses.filter(responseIsSuccess2xx);
@@ -89,7 +138,7 @@ function topLevelShapeLine(schema: OpenApiSchema | undefined): string | undefine
     return t ? `type: ${t}` : undefined;
 }
 
-function buildResponseParagraph(operation: Operation, details: OpenApiOperationDetails): string | undefined {
+function buildSuccessResponseParagraph(details: OpenApiOperationDetails): string {
     const resp = pickSuccessResponseForSummary(details);
     if (!resp) {
         return '(no 2xx response in OpenAPI)';
@@ -103,6 +152,16 @@ function buildResponseParagraph(operation: Operation, details: OpenApiOperationD
         lines.push(shape);
     }
     return lines.join('\n');
+}
+
+/** Success (2xx) summary plus capped documented error responses from OpenAPI. */
+function buildResponseSection(details: OpenApiOperationDetails): string {
+    const success = buildSuccessResponseParagraph(details);
+    const errLines = buildDocumentedErrorLines(details);
+    if (errLines.length === 0) {
+        return success;
+    }
+    return [success, 'Documented errors:', ...errLines].join('\n');
 }
 
 export function buildMcpDescription(operation: Operation, details: OpenApiOperationDetails, auth?: Auth): string {
@@ -135,9 +194,7 @@ export function buildMcpDescription(operation: Operation, details: OpenApiOperat
         sections.push(`Example:\n${operation.example.trim()}`);
     }
 
-    if (operation.includeResponses) {
-        sections.push(`Response:\n${buildResponseParagraph(operation, details)}`);
-    }
+    sections.push(`Response:\n${buildResponseSection(details)}`);
 
     if (auth) {
         const prefixNote =

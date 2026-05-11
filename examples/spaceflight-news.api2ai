@@ -5,54 +5,40 @@ GET "/v4/articles/" {
     toolName: "listSpaceflightArticles"
     intent: "list recent spaceflight news articles"
     example: "Get the latest 5 articles"
-    summary: "List spaceflight articles"
-    includeResponses
-}
+    summary: "List spaceflight articles"}
 
 GET "/v4/articles/{id}/" {
     toolName: "getSpaceflightArticleById"
     intent: "get one spaceflight article by id"
     example: "Get article with id 1"
-    summary: "Get article by ID"
-    includeResponses
-}
+    summary: "Get article by ID"}
 
 GET "/v4/blogs/" {
     toolName: "listSpaceflightBlogs"
     intent: "list recent spaceflight blog posts"
     example: "Get the latest 5 blog posts"
-    summary: "List spaceflight blog posts"
-    includeResponses
-}
+    summary: "List spaceflight blog posts"}
 
 GET "/v4/blogs/{id}/" {
     toolName: "getSpaceflightBlogById"
     intent: "get one spaceflight blog post by id"
     example: "Get blog post with id 1"
-    summary: "Get blog post by ID"
-    includeResponses
-}
+    summary: "Get blog post by ID"}
 
 GET "/v4/reports/" {
     toolName: "listSpaceflightReports"
     intent: "list recent spaceflight reports"
     example: "Get the latest 5 reports"
-    summary: "List spaceflight reports"
-    includeResponses
-}
+    summary: "List spaceflight reports"}
 
 GET "/v4/reports/{id}/" {
     toolName: "getSpaceflightReportById"
     intent: "get one spaceflight report by id"
     example: "Get report with id 1"
-    summary: "Get report by ID"
-    includeResponses
-}
+    summary: "Get report by ID"}
 
 GET "/v4/info/" {
     toolName: "getSpaceflightInfo"
     intent: "retrieve spaceflight API metadata and news sites"
     example: "Show API info and available news sites"
-    summary: "Spaceflight News API metadata"
-    includeResponses
-}
+    summary: "Spaceflight News API metadata"}

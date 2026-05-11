@@ -6,6 +6,5 @@ GET "/v1/search" {
     toolName: "openMeteoGeocodeSearch"
     intent: "resolve a location name to latitude and longitude coordinates"
     example: "Find coordinates for Bernstein, Burgenland, Austria"
-    includeResponses
 }
 

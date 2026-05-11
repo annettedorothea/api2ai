@@ -18,7 +18,7 @@ export const generatedTools: GeneratedTool[] = [
     {
         "toolName": "searchTmdbMovies",
         "title": "Search movies by title",
-        "description": "Intent:\nsearch TMDB movies by title\n\nAPI:\nSearch for movies by their original, translated and alternative titles.\n\nMeta:\noperationId: search-movie\n\nExample:\nFind movies named Dune\n\nRuntime auth: read API credential from environment variable TMDB_ACCESS_TOKEN; send as header \"Authorization\" (prefix applied to the secret).",
+        "description": "Intent:\nsearch TMDB movies by title\n\nAPI:\nSearch for movies by their original, translated and alternative titles.\n\nMeta:\noperationId: search-movie\n\nExample:\nFind movies named Dune\n\nResponse:\nHTTP 200\n200\nproperties (top-level): page, results, total_pages, total_results\n\nRuntime auth: read API credential from environment variable TMDB_ACCESS_TOKEN; send as header \"Authorization\" (prefix applied to the secret).",
         "method": "GET",
         "path": "/3/search/movie",
         "example": "Find movies named Dune"
@@ -26,7 +26,7 @@ export const generatedTools: GeneratedTool[] = [
     {
         "toolName": "getPopularTmdbMovies",
         "title": "Popular movies",
-        "description": "Intent:\nretrieve currently popular TMDB movies\n\nAPI:\nGet a list of movies ordered by popularity.\n\nMeta:\noperationId: movie-popular-list\n\nExample:\nShow popular movies\n\nRuntime auth: read API credential from environment variable TMDB_ACCESS_TOKEN; send as header \"Authorization\" (prefix applied to the secret).",
+        "description": "Intent:\nretrieve currently popular TMDB movies\n\nAPI:\nGet a list of movies ordered by popularity.\n\nMeta:\noperationId: movie-popular-list\n\nExample:\nShow popular movies\n\nResponse:\nHTTP 200\n200\nproperties (top-level): page, results, total_pages, total_results\n\nRuntime auth: read API credential from environment variable TMDB_ACCESS_TOKEN; send as header \"Authorization\" (prefix applied to the secret).",
         "method": "GET",
         "path": "/3/movie/popular",
         "example": "Show popular movies"
@@ -34,7 +34,7 @@ export const generatedTools: GeneratedTool[] = [
     {
         "toolName": "getTmdbMovieDetails",
         "title": "Movie details by ID",
-        "description": "Intent:\nretrieve details for a TMDB movie by id\n\nAPI:\nGet the top level details of a movie by ID.\n\nMeta:\noperationId: movie-details\n\nExample:\nGet details for movie id 693134\n\nRuntime auth: read API credential from environment variable TMDB_ACCESS_TOKEN; send as header \"Authorization\" (prefix applied to the secret).",
+        "description": "Intent:\nretrieve details for a TMDB movie by id\n\nAPI:\nGet the top level details of a movie by ID.\n\nMeta:\noperationId: movie-details\n\nExample:\nGet details for movie id 693134\n\nResponse:\nHTTP 200\n200\nproperties (top-level): adult, backdrop_path, belongs_to_collection, budget, genres, homepage, id, imdb_id, origin_country, original_language, original_title, overview, popularity, poster_path, production_companies, production_countries, release_date, revenue, runtime, spoken_languages, status, tagline, title, video, vote_average, vote_count\n\nRuntime auth: read API credential from environment variable TMDB_ACCESS_TOKEN; send as header \"Authorization\" (prefix applied to the secret).",
         "method": "GET",
         "path": "/3/movie/{movie_id}",
         "example": "Get details for movie id 693134"
@@ -42,7 +42,7 @@ export const generatedTools: GeneratedTool[] = [
     {
         "toolName": "getTmdbMovieCredits",
         "title": "Movie cast and crew",
-        "description": "Intent:\nretrieve cast and crew credits for a TMDB movie\n\nMeta:\noperationId: movie-credits\n\nExample:\nWho played in movie id 693134?\n\nRuntime auth: read API credential from environment variable TMDB_ACCESS_TOKEN; send as header \"Authorization\" (prefix applied to the secret).",
+        "description": "Intent:\nretrieve cast and crew credits for a TMDB movie\n\nMeta:\noperationId: movie-credits\n\nExample:\nWho played in movie id 693134?\n\nResponse:\nHTTP 200\n200\nproperties (top-level): cast, crew, id\n\nRuntime auth: read API credential from environment variable TMDB_ACCESS_TOKEN; send as header \"Authorization\" (prefix applied to the secret).",
         "method": "GET",
         "path": "/3/movie/{movie_id}/credits",
         "example": "Who played in movie id 693134?"
@@ -50,7 +50,7 @@ export const generatedTools: GeneratedTool[] = [
     {
         "toolName": "discoverTmdbMovies",
         "title": "Discover movies with filters",
-        "description": "Intent:\ndiscover TMDB movies using rich filters such as genre, year, and rating\n\nAPI:\nFind movies using over 30 filters and sort options.\n\nMeta:\noperationId: discover-movie\n\nExample:\nFind highly rated science fiction movies from 2024\n\nRuntime auth: read API credential from environment variable TMDB_ACCESS_TOKEN; send as header \"Authorization\" (prefix applied to the secret).",
+        "description": "Intent:\ndiscover TMDB movies using rich filters such as genre, year, and rating\n\nAPI:\nFind movies using over 30 filters and sort options.\n\nMeta:\noperationId: discover-movie\n\nExample:\nFind highly rated science fiction movies from 2024\n\nResponse:\nHTTP 200\n200\nproperties (top-level): page, results, total_pages, total_results\n\nRuntime auth: read API credential from environment variable TMDB_ACCESS_TOKEN; send as header \"Authorization\" (prefix applied to the secret).",
         "method": "GET",
         "path": "/3/discover/movie",
         "example": "Find highly rated science fiction movies from 2024"
@@ -58,7 +58,7 @@ export const generatedTools: GeneratedTool[] = [
     {
         "toolName": "getTmdbMovieGenres",
         "title": "Movie genre list",
-        "description": "Intent:\nretrieve TMDB movie genres for filtering and lookup\n\nAPI:\nGet the list of official genres for movies.\n\nMeta:\noperationId: genre-movie-list\n\nExample:\nList available movie genres\n\nRuntime auth: read API credential from environment variable TMDB_ACCESS_TOKEN; send as header \"Authorization\" (prefix applied to the secret).",
+        "description": "Intent:\nretrieve TMDB movie genres for filtering and lookup\n\nAPI:\nGet the list of official genres for movies.\n\nMeta:\noperationId: genre-movie-list\n\nExample:\nList available movie genres\n\nResponse:\nHTTP 200\n200\nproperties (top-level): genres\n\nRuntime auth: read API credential from environment variable TMDB_ACCESS_TOKEN; send as header \"Authorization\" (prefix applied to the secret).",
         "method": "GET",
         "path": "/3/genre/movie/list",
         "example": "List available movie genres"
@@ -66,7 +66,7 @@ export const generatedTools: GeneratedTool[] = [
     {
         "toolName": "getTmdbTrendingMovies",
         "title": "Trending movies",
-        "description": "Intent:\nretrieve trending TMDB movies for a selected time window\n\nAPI:\nGet the trending movies on TMDB.\n\nMeta:\noperationId: trending-movies\n\nExample:\nShow trending movies this week\n\nRuntime auth: read API credential from environment variable TMDB_ACCESS_TOKEN; send as header \"Authorization\" (prefix applied to the secret).",
+        "description": "Intent:\nretrieve trending TMDB movies for a selected time window\n\nAPI:\nGet the trending movies on TMDB.\n\nMeta:\noperationId: trending-movies\n\nExample:\nShow trending movies this week\n\nResponse:\nHTTP 200\n200\nproperties (top-level): page, results, total_pages, total_results\n\nRuntime auth: read API credential from environment variable TMDB_ACCESS_TOKEN; send as header \"Authorization\" (prefix applied to the secret).",
         "method": "GET",
         "path": "/3/trending/movie/{time_window}",
         "example": "Show trending movies this week"
@@ -74,7 +74,7 @@ export const generatedTools: GeneratedTool[] = [
     {
         "toolName": "getTmdbMovieVideos",
         "title": "Movie videos and trailers",
-        "description": "Intent:\nretrieve videos such as trailers for a TMDB movie\n\nMeta:\noperationId: movie-videos\n\nExample:\nShow trailers for movie id 693134\n\nRuntime auth: read API credential from environment variable TMDB_ACCESS_TOKEN; send as header \"Authorization\" (prefix applied to the secret).",
+        "description": "Intent:\nretrieve videos such as trailers for a TMDB movie\n\nMeta:\noperationId: movie-videos\n\nExample:\nShow trailers for movie id 693134\n\nResponse:\nHTTP 200\n200\nproperties (top-level): id, results\n\nRuntime auth: read API credential from environment variable TMDB_ACCESS_TOKEN; send as header \"Authorization\" (prefix applied to the secret).",
         "method": "GET",
         "path": "/3/movie/{movie_id}/videos",
         "example": "Show trailers for movie id 693134"
@@ -82,7 +82,7 @@ export const generatedTools: GeneratedTool[] = [
     {
         "toolName": "searchTmdbMulti",
         "title": "Multi search (movies, TV, people)",
-        "description": "Intent:\nsearch TMDB across movies, tv shows, and people\n\nAPI:\nUse multi search when you want to search for movies, TV shows and people in a single request.\n\nMeta:\noperationId: search-multi\n\nExample:\nSearch TMDB for Dune across all media types\n\nRuntime auth: read API credential from environment variable TMDB_ACCESS_TOKEN; send as header \"Authorization\" (prefix applied to the secret).",
+        "description": "Intent:\nsearch TMDB across movies, tv shows, and people\n\nAPI:\nUse multi search when you want to search for movies, TV shows and people in a single request.\n\nMeta:\noperationId: search-multi\n\nExample:\nSearch TMDB for Dune across all media types\n\nResponse:\nHTTP 200\n200\nproperties (top-level): page, results, total_pages, total_results\n\nRuntime auth: read API credential from environment variable TMDB_ACCESS_TOKEN; send as header \"Authorization\" (prefix applied to the secret).",
         "method": "GET",
         "path": "/3/search/multi",
         "example": "Search TMDB for Dune across all media types"
@@ -90,7 +90,7 @@ export const generatedTools: GeneratedTool[] = [
     {
         "toolName": "getTmdbMovieReleaseDates",
         "title": "Movie release dates",
-        "description": "Intent:\nretrieve release dates for a TMDB movie\n\nAPI:\nGet the release dates and certifications for a movie.\n\nMeta:\noperationId: movie-release-dates\n\nExample:\nWhen was movie id 693134 released?\n\nRuntime auth: read API credential from environment variable TMDB_ACCESS_TOKEN; send as header \"Authorization\" (prefix applied to the secret).",
+        "description": "Intent:\nretrieve release dates for a TMDB movie\n\nAPI:\nGet the release dates and certifications for a movie.\n\nMeta:\noperationId: movie-release-dates\n\nExample:\nWhen was movie id 693134 released?\n\nResponse:\nHTTP 200\n200\nproperties (top-level): id, results\n\nRuntime auth: read API credential from environment variable TMDB_ACCESS_TOKEN; send as header \"Authorization\" (prefix applied to the secret).",
         "method": "GET",
         "path": "/3/movie/{movie_id}/release_dates",
         "example": "When was movie id 693134 released?"

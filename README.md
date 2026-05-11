@@ -2,7 +2,7 @@
 
 `api2ai` is a PoC for turning existing OpenAPI descriptions into small, curated AI tools.
 
-The OpenAPI file stays the technical source of truth. The `.api2ai` DSL selects which endpoints should become tools and adds AI-facing metadata such as intent, examples, tool names, and optional runtime auth. Inside each HTTP operation block you can add optional **`title`**, **`summary`**, **`description`** (an empty string suppresses pulling OpenAPI text into the MCP **`API:`** section), and **`includeResponses`** alone on its own line to attach a **`Response:`** excerpt from OpenAPI success responses.
+The OpenAPI file stays the technical source of truth. The `.api2ai` DSL selects which endpoints should become tools and adds AI-facing metadata such as intent, examples, tool names, and optional runtime auth. Inside each HTTP operation block you can add optional **`title`**, **`summary`**, and **`description`** (an empty string suppresses pulling OpenAPI text into the MCP **`API:`** section). The generator always adds a compact **`Response:`** section to each tool from OpenAPI (documented success response plus up to a few documented error statuses).
 
 ```txt
 openapi "./openapi/spaceflight-news.openapi.yaml"

@@ -32,7 +32,7 @@ describe('Parsing tests', () => {
         expect(document.parseResult.value.operations[0].toolName).toBe('getAllCustomers');
     });
 
-    test('parses operation with optional overrides and includeResponses flag', async () => {
+    test('parses operation with optional overrides', async () => {
         document = await parse(`
             openapi "./petstore.openapi.yaml"
             baseUrl "https://example.com"
@@ -40,28 +40,12 @@ describe('Parsing tests', () => {
                 toolName: "listCustomers"
                 intent: "list"
                 summary: "Custom summary override"
-                includeResponses
             }
         `);
 
         expect(document.parseResult.parserErrors).toHaveLength(0);
         const op = document.parseResult.value.operations[0];
         expect(op.summary).toBe('Custom summary override');
-        expect(op.includeResponses).toBe(true);
         expect(op.title).toBeUndefined();
-    });
-
-    test('parses operation without includeResponses flag', async () => {
-        document = await parse(`
-            openapi "./petstore.openapi.yaml"
-            baseUrl "https://example.com"
-            GET "/customers" {
-                toolName: "listCustomers"
-                intent: "list"
-            }
-        `);
-
-        expect(document.parseResult.parserErrors).toHaveLength(0);
-        expect(document.parseResult.value.operations[0].includeResponses).toBeFalsy();
     });
 });

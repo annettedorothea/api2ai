@@ -22,7 +22,6 @@ Operation:
         ('title' ':' title=STRING)?
         ('summary' ':' summary=STRING)?
         ('description' ':' description=STRING)?
-        (includeResponses?='includeResponses')?
     '}';
 
 AuthLocation returns string:
