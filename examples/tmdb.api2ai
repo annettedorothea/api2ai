@@ -18,8 +18,8 @@ GET "/3/search/movie" {
 GET "/3/movie/popular" {
     toolName: "getPopularTmdbMovies"
     intent: "retrieve currently popular TMDB movies"
-    example: "Show popular movies"
     summary: "Popular movies"
+    example: "Show popular movies"
 }
 
 GET "/3/movie/{movie_id}" {
@@ -76,4 +76,25 @@ GET "/3/movie/{movie_id}/release_dates" {
     intent: "retrieve release dates for a TMDB movie"
     example: "When was movie id 693134 released?"
     summary: "Movie release dates"
+}
+
+GET "/3/movie/{movie_id}/recommendations" {
+    toolName: "getTmdbMovieRecommendations"
+    intent: "retrieve recommendations for a TMDB movie"
+    example: "Recommendations for movie id 693134"
+    summary: "Movie recommendations"
+}
+
+GET "/3/movie/{movie_id}/similar" {
+    toolName: "getTmdbMovieSimilar"
+    intent: "retrieve similar movies for a TMDB movie"
+    example: "Find similar movies to 693134"
+    summary: "Retrieve similar movies"
+}
+
+GET "/3/movie/{movie_id}/reviews" {
+    toolName: "getTmdbMovieReviews"
+    intent: "retrieve reviews for a TMDB movie"
+    example: "Reviews for movie id 693134"
+    summary: "Retrieve movie reviews"
 }

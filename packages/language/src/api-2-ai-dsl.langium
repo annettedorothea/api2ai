@@ -8,19 +8,23 @@ entry Model:
 
 Auth:
     'auth' 'apiKey' '{'
-        'in' ':' location=AuthLocation
-        'name' ':' name=STRING
-        'env' ':' env=STRING
-        ('prefix' ':' prefix=STRING)?
+        (
+              'in' ':' location=AuthLocation
+            | 'name' ':' name=STRING
+            | 'env' ':' env=STRING
+            | 'prefix' ':' prefix=STRING
+        )*
     '}';
 
 Operation:
     method=HttpMethod path=STRING '{'
-        'toolName' ':' toolName=STRING
-        'intent' ':' intent=STRING
-        ('example' ':' example=STRING)?
-        ('summary' ':' summary=STRING)?
-        ('description' ':' description=STRING)?
+        (
+              'toolName' ':' toolName=STRING
+            | 'intent' ':' intent=STRING
+            | 'example' ':' example=STRING
+            | 'summary' ':' summary=STRING
+            | 'description' ':' description=STRING
+        )*
     '}';
 
 AuthLocation returns string:

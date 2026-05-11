@@ -21,6 +21,8 @@ GET "/v4/articles/{id}/" {
 }
 ```
 
+Properties inside `{ ... }` blocks may appear in any order. For an operation, `toolName` and `intent` are required; `example`, `summary`, and `description` are optional. For `auth apiKey`, `in`, `name`, and `env` are required; `prefix` is optional. Each property may appear at most once per block.
+
 The generator writes TypeScript and ESM `.mjs` modules under [`examples/generated/tools/`](examples/generated/tools/), plus the standalone MCP entry copied to [`examples/generated/cli/`](examples/generated/cli/) (see `mcp-serve.mjs`). Those artifacts can be smoke-tested directly or exposed as MCP tools for any MCP-compatible agent or client.
 
 ## Project Layout

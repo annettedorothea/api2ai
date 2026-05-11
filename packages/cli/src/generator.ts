@@ -1,4 +1,4 @@
-import type { Model } from 'api-2-ai-dsl-language';
+import type { Model, Operation } from 'api-2-ai-dsl-language';
 import { expandToNode, toString } from 'langium/generate';
 import type { LoadedOpenApi } from 'api-2-ai-dsl-language';
 import { loadOpenApi, makeOperationLookupKey } from 'api-2-ai-dsl-language';
@@ -173,7 +173,7 @@ function resolveToolsFromLoaded(model: Model, loaded: LoadedOpenApi): ResolvedTo
             );
         }
         return {
-            toolName: operation.toolName,
+            toolName: requireToolName(operation),
             title: buildMcpTitle(operation, details),
             description: buildMcpDescription(operation, details, model.auth),
             method: operation.method,
@@ -181,6 +181,16 @@ function resolveToolsFromLoaded(model: Model, loaded: LoadedOpenApi): ResolvedTo
             example: operation.example
         };
     });
+}
+
+/** Validator-enforced invariant: a model that validates has `toolName` set. Returns trimmed text for stable keys and MCP titles. */
+function requireToolName(operation: Operation): string {
+    if (operation.toolName === undefined || operation.toolName.trim().length === 0) {
+        throw new Error(
+            `Codegen: operation ${operation.method} ${operation.path} is missing required \`toolName\`. Re-run after validation passes.`
+        );
+    }
+    return operation.toolName.trim();
 }
 
 function buildSchemasFromLoaded(model: Model, loaded: LoadedOpenApi): Record<string, JsonSchemaDict> {
@@ -191,7 +201,7 @@ function buildSchemasFromLoaded(model: Model, loaded: LoadedOpenApi): Record<str
         if (!details) {
             continue;
         }
-        out[operation.toolName] = buildToolInputSchema(details);
+        out[requireToolName(operation)] = buildToolInputSchema(details);
     }
     return out;
 }
@@ -207,7 +217,7 @@ function buildQuerySerializationFromLoaded(
         if (!details) {
             continue;
         }
-        out[operation.toolName] = buildQueryParamSerializationLookup(details);
+        out[requireToolName(operation)] = buildQueryParamSerializationLookup(details);
     }
     return out;
 }

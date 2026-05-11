@@ -63,4 +63,50 @@ describe('Parsing tests', () => {
 
         expect(document.parseResult.parserErrors.length).toBeGreaterThan(0);
     });
+
+    test('parses operation with properties in shuffled order', async () => {
+        document = await parse(`
+            openapi "./petstore.openapi.yaml"
+            baseUrl "https://example.com"
+            GET "/customers" {
+                description: "long text"
+                summary: "the title"
+                example: "Example call"
+                intent: "list"
+                toolName: "listCustomers"
+            }
+        `);
+
+        expect(document.parseResult.parserErrors).toHaveLength(0);
+        const op = document.parseResult.value.operations[0];
+        expect(op.toolName).toBe('listCustomers');
+        expect(op.intent).toBe('list');
+        expect(op.example).toBe('Example call');
+        expect(op.summary).toBe('the title');
+        expect(op.description).toBe('long text');
+    });
+
+    test('parses auth block with properties in shuffled order', async () => {
+        document = await parse(`
+            openapi "./petstore.openapi.yaml"
+            baseUrl "https://example.com"
+            auth apiKey {
+                prefix: "Bearer "
+                env: "MY_TOKEN"
+                name: "Authorization"
+                in: header
+            }
+            GET "/customers" {
+                toolName: "listCustomers"
+                intent: "list"
+            }
+        `);
+
+        expect(document.parseResult.parserErrors).toHaveLength(0);
+        const auth = document.parseResult.value.auth;
+        expect(auth?.location).toBe('header');
+        expect(auth?.name).toBe('Authorization');
+        expect(auth?.env).toBe('MY_TOKEN');
+        expect(auth?.prefix).toBe('Bearer ');
+    });
 });

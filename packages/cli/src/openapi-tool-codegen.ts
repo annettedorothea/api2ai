@@ -15,6 +15,8 @@ function joinSections(sections: string[]): string {
  * MCP tool title: derived from `summary` with a consistent fallback chain.
  * Order: DSL `summary` → OpenAPI `summary` → OpenAPI `operationId` → `toolName`.
  * Empty / whitespace-only values fall through to the next step.
+ *
+ * Pre-condition: `operation` has passed validation, so `toolName` is present.
  */
 export function buildMcpTitle(operation: Operation, details: OpenApiOperationDetails): string {
     if (isTruthyString(operation.summary)) {
@@ -26,7 +28,7 @@ export function buildMcpTitle(operation: Operation, details: OpenApiOperationDet
     if (isTruthyString(details.operationId)) {
         return details.operationId!.trim();
     }
-    return operation.toolName;
+    return operation.toolName!.trim();
 }
 
 /**
@@ -180,10 +182,11 @@ function buildResponseSection(details: OpenApiOperationDetails): string {
     return [success, 'Documented errors:', ...errLines].join('\n');
 }
 
+/** Pre-condition: `operation` has passed validation, so `intent` is present. */
 export function buildMcpDescription(operation: Operation, details: OpenApiOperationDetails, auth?: Auth): string {
     const sections: string[] = [];
 
-    sections.push(`Intent:\n${operation.intent.trim()}`);
+    sections.push(`Intent:\n${operation.intent!.trim()}`);
 
     const apiText = effectiveLongDescription(operation, details);
     if (apiText) {

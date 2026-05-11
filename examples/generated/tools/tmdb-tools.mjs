@@ -85,6 +85,30 @@ export const generatedTools = [
         "method": "GET",
         "path": "/3/movie/{movie_id}/release_dates",
         "example": "When was movie id 693134 released?"
+    },
+    {
+        "toolName": "getTmdbMovieRecommendations",
+        "title": "Movie recommendations",
+        "description": "Intent:\nretrieve recommendations for a TMDB movie\n\nMeta:\noperationId: movie-recommendations\n\nExample:\nRecommendations for movie id 693134\n\nResponse:\nHTTP 200\n200\ntype: object (no inlined properties)\n\nRuntime auth: read API credential from environment variable TMDB_ACCESS_TOKEN; send as header \"Authorization\" (prefix applied to the secret).",
+        "method": "GET",
+        "path": "/3/movie/{movie_id}/recommendations",
+        "example": "Recommendations for movie id 693134"
+    },
+    {
+        "toolName": "getTmdbMovieSimilar",
+        "title": "Retrieve similar movies",
+        "description": "Intent:\nretrieve similar movies for a TMDB movie\n\nAPI:\nGet the similar movies based on genres and keywords.\n\nMeta:\noperationId: movie-similar\n\nExample:\nFind similar movies to 693134\n\nResponse:\nHTTP 200\n200\nproperties (top-level): page, results, total_pages, total_results\n\nRuntime auth: read API credential from environment variable TMDB_ACCESS_TOKEN; send as header \"Authorization\" (prefix applied to the secret).",
+        "method": "GET",
+        "path": "/3/movie/{movie_id}/similar",
+        "example": "Find similar movies to 693134"
+    },
+    {
+        "toolName": "getTmdbMovieReviews",
+        "title": "Retrieve movie reviews",
+        "description": "Intent:\nretrieve reviews for a TMDB movie\n\nAPI:\nGet the user reviews for a movie.\n\nMeta:\noperationId: movie-reviews\n\nExample:\nReviews for movie id 693134\n\nResponse:\nHTTP 200\n200\nproperties (top-level): id, page, results, total_pages, total_results\n\nRuntime auth: read API credential from environment variable TMDB_ACCESS_TOKEN; send as header \"Authorization\" (prefix applied to the secret).",
+        "method": "GET",
+        "path": "/3/movie/{movie_id}/reviews",
+        "example": "Reviews for movie id 693134"
     }
 ];
 
@@ -727,6 +751,165 @@ export const inputSchemaByTool = {
         ],
         "additionalProperties": false,
         "description": "Arguments for invoking the generated HTTP wrapper."
+    },
+    "getTmdbMovieRecommendations": {
+        "type": "object",
+        "properties": {
+            "pathParams": {
+                "type": "object",
+                "properties": {
+                    "movie_id": {
+                        "format": "int32",
+                        "type": "integer"
+                    }
+                },
+                "required": [
+                    "movie_id"
+                ],
+                "additionalProperties": false,
+                "description": "Path parameters from OpenAPI."
+            },
+            "query": {
+                "type": "object",
+                "properties": {
+                    "language": {
+                        "default": "en-US",
+                        "type": "string"
+                    },
+                    "page": {
+                        "format": "int32",
+                        "default": 1,
+                        "type": "integer"
+                    }
+                },
+                "required": [],
+                "additionalProperties": false,
+                "description": "Query parameters from OpenAPI."
+            },
+            "headers": {
+                "type": "object",
+                "additionalProperties": {
+                    "type": "string"
+                },
+                "description": "Optional extra headers."
+            },
+            "body": {
+                "type": "object",
+                "description": "Request body JSON if applicable.",
+                "additionalProperties": true
+            }
+        },
+        "required": [
+            "pathParams"
+        ],
+        "additionalProperties": false,
+        "description": "Arguments for invoking the generated HTTP wrapper."
+    },
+    "getTmdbMovieSimilar": {
+        "type": "object",
+        "properties": {
+            "pathParams": {
+                "type": "object",
+                "properties": {
+                    "movie_id": {
+                        "format": "int32",
+                        "type": "integer"
+                    }
+                },
+                "required": [
+                    "movie_id"
+                ],
+                "additionalProperties": false,
+                "description": "Path parameters from OpenAPI."
+            },
+            "query": {
+                "type": "object",
+                "properties": {
+                    "language": {
+                        "default": "en-US",
+                        "type": "string"
+                    },
+                    "page": {
+                        "format": "int32",
+                        "default": 1,
+                        "type": "integer"
+                    }
+                },
+                "required": [],
+                "additionalProperties": false,
+                "description": "Query parameters from OpenAPI."
+            },
+            "headers": {
+                "type": "object",
+                "additionalProperties": {
+                    "type": "string"
+                },
+                "description": "Optional extra headers."
+            },
+            "body": {
+                "type": "object",
+                "description": "Request body JSON if applicable.",
+                "additionalProperties": true
+            }
+        },
+        "required": [
+            "pathParams"
+        ],
+        "additionalProperties": false,
+        "description": "Arguments for invoking the generated HTTP wrapper."
+    },
+    "getTmdbMovieReviews": {
+        "type": "object",
+        "properties": {
+            "pathParams": {
+                "type": "object",
+                "properties": {
+                    "movie_id": {
+                        "format": "int32",
+                        "type": "integer"
+                    }
+                },
+                "required": [
+                    "movie_id"
+                ],
+                "additionalProperties": false,
+                "description": "Path parameters from OpenAPI."
+            },
+            "query": {
+                "type": "object",
+                "properties": {
+                    "language": {
+                        "default": "en-US",
+                        "type": "string"
+                    },
+                    "page": {
+                        "format": "int32",
+                        "default": 1,
+                        "type": "integer"
+                    }
+                },
+                "required": [],
+                "additionalProperties": false,
+                "description": "Query parameters from OpenAPI."
+            },
+            "headers": {
+                "type": "object",
+                "additionalProperties": {
+                    "type": "string"
+                },
+                "description": "Optional extra headers."
+            },
+            "body": {
+                "type": "object",
+                "description": "Request body JSON if applicable.",
+                "additionalProperties": true
+            }
+        },
+        "required": [
+            "pathParams"
+        ],
+        "additionalProperties": false,
+        "description": "Arguments for invoking the generated HTTP wrapper."
     }
 };
 
@@ -981,7 +1164,37 @@ export const queryParamSerializationByTool = {
             "explode": true
         }
     },
-    "getTmdbMovieReleaseDates": {}
+    "getTmdbMovieReleaseDates": {},
+    "getTmdbMovieRecommendations": {
+        "language": {
+            "style": "form",
+            "explode": true
+        },
+        "page": {
+            "style": "form",
+            "explode": true
+        }
+    },
+    "getTmdbMovieSimilar": {
+        "language": {
+            "style": "form",
+            "explode": true
+        },
+        "page": {
+            "style": "form",
+            "explode": true
+        }
+    },
+    "getTmdbMovieReviews": {
+        "language": {
+            "style": "form",
+            "explode": true
+        },
+        "page": {
+            "style": "form",
+            "explode": true
+        }
+    }
 };
 
 function appendSerializedQueryParams(searchParams, toolName, query) {
