@@ -40,12 +40,27 @@ describe('Parsing tests', () => {
                 toolName: "listCustomers"
                 intent: "list"
                 summary: "Custom summary override"
+                description: ""
             }
         `);
 
         expect(document.parseResult.parserErrors).toHaveLength(0);
         const op = document.parseResult.value.operations[0];
         expect(op.summary).toBe('Custom summary override');
-        expect(op.title).toBeUndefined();
+        expect(op.description).toBe('');
+    });
+
+    test('rejects legacy `title:` field that has been removed from the DSL', async () => {
+        document = await parse(`
+            openapi "./petstore.openapi.yaml"
+            baseUrl "https://example.com"
+            GET "/customers" {
+                toolName: "listCustomers"
+                intent: "list"
+                title: "Legacy title"
+            }
+        `);
+
+        expect(document.parseResult.parserErrors.length).toBeGreaterThan(0);
     });
 });

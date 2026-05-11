@@ -19,7 +19,6 @@ Operation:
         'toolName' ':' toolName=STRING
         'intent' ':' intent=STRING
         ('example' ':' example=STRING)?
-        ('title' ':' title=STRING)?
         ('summary' ':' summary=STRING)?
         ('description' ':' description=STRING)?
     '}';

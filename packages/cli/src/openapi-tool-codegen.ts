@@ -11,24 +11,40 @@ function joinSections(sections: string[]): string {
     return sections.filter((s) => s.length > 0).join('\n\n');
 }
 
+/**
+ * MCP tool title: derived from `summary` with a consistent fallback chain.
+ * Order: DSL `summary` → OpenAPI `summary` → OpenAPI `operationId` → `toolName`.
+ * Empty / whitespace-only values fall through to the next step.
+ */
 export function buildMcpTitle(operation: Operation, details: OpenApiOperationDetails): string {
-    if (operation.title !== undefined) {
-        return operation.title;
-    }
-    if (operation.summary !== undefined) {
-        return operation.summary;
+    if (isTruthyString(operation.summary)) {
+        return operation.summary!.trim();
     }
     if (isTruthyString(details.summary)) {
         return details.summary!.trim();
     }
-    return details.operationId?.trim() ?? operation.toolName;
+    if (isTruthyString(details.operationId)) {
+        return details.operationId!.trim();
+    }
+    return operation.toolName;
+}
+
+/**
+ * Override rule: any DSL value (including `""`) wins over OpenAPI. OpenAPI text
+ * is only used when the DSL field is unset (`undefined`). An explicit empty
+ * string therefore resolves to "no text" (e.g. suppresses the `API:` section).
+ */
+function pickEffectiveText(dslValue: string | undefined, openApiValue: string | undefined): string | undefined {
+    if (dslValue !== undefined) {
+        const trimmed = dslValue.trim();
+        return trimmed.length === 0 ? undefined : trimmed;
+    }
+    const apiTrimmed = openApiValue?.trim();
+    return apiTrimmed && apiTrimmed.length > 0 ? apiTrimmed : undefined;
 }
 
 function effectiveLongDescription(operation: Operation, details: OpenApiOperationDetails): string | undefined {
-    if (operation.description !== undefined) {
-        return operation.description.trim().length === 0 ? undefined : operation.description.trim();
-    }
-    return isTruthyString(details.description) ? details.description!.trim() : undefined;
+    return pickEffectiveText(operation.description, details.description);
 }
 
 function parseStatusCodeNumeric(statusCode: string): number | undefined {

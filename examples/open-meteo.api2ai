@@ -3,13 +3,14 @@ baseUrl "https://api.open-meteo.com"
 
 // NOTE: The OpenAPI summary/description for /v1/forecast are intentionally bad
 // (see examples/openapi/open-meteo.openapi.yaml, marked with \"CRAP\").
-// This operation provides AI-friendly title/summary/description overrides for the tool.
+// The DSL `summary` here becomes the MCP tool title, and the DSL `description`
+// overrides the OpenAPI description that would otherwise feed the MCP `API:`
+// section.
 GET "/v1/forecast" {
     toolName: "openMeteoForecast"
     intent: "retrieve hourly weather forecast for coordinates"
     example: "Get hourly temperature forecast for Offenburg, Germany"
-    title: "7 day weather forecast for coordinates"
-    summary: "Retrieve hourly and daily weather data for a given latitude/longitude."
+    summary: "7 day weather forecast for coordinates"
     description: "Use this tool to get a 7 day weather forecast (hourly and daily) for specific WGS84 coordinates. Prefer small sets of hourly/daily variables to keep responses compact and focused on what the agent needs."
 }
 
