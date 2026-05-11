@@ -9,7 +9,7 @@ export const generatedTools = [
     {
         "toolName": "openMeteoForecast",
         "title": "7 day weather forecast for coordinates",
-        "description": "Intent:\nretrieve hourly weather forecast for coordinates\n\nAPI:\n7 day weather variables in hourly and daily resolution for given WGS84 latitude and longitude coordinates. Available worldwide.\n\nMeta:\ntags: Weather Forecast APIs\n\nExample:\nGet hourly temperature forecast for Offenburg, Germany\n\nResponse:\nHTTP 200\nOK\nproperties (top-level): current_weather, daily, daily_units, elevation, generationtime_ms, hourly, hourly_units, latitude, longitude, utc_offset_seconds\nDocumented errors:\nHTTP 400 — Bad Request",
+        "description": "Intent:\nretrieve hourly weather forecast for coordinates\n\nAPI:\nUse this tool to get a 7 day weather forecast (hourly and daily) for specific WGS84 coordinates. Prefer small sets of hourly/daily variables to keep responses compact and focused on what the agent needs.\n\nMeta:\ntags: Weather Forecast APIs\n\nExample:\nGet hourly temperature forecast for Offenburg, Germany\n\nResponse:\nHTTP 200\nOK\nproperties (top-level): current_weather, daily, daily_units, elevation, generationtime_ms, hourly, hourly_units, latitude, longitude, utc_offset_seconds\nDocumented errors:\nHTTP 400 — Bad Request",
         "method": "GET",
         "path": "/v1/forecast",
         "example": "Get hourly temperature forecast for Offenburg, Germany"

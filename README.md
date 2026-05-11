@@ -4,6 +4,8 @@
 
 The OpenAPI file stays the technical source of truth. The `.api2ai` DSL selects which endpoints should become tools and adds AI-facing metadata such as intent, examples, tool names, and optional runtime auth. Inside each HTTP operation block you can add optional **`title`**, **`summary`**, and **`description`** (an empty string suppresses pulling OpenAPI text into the MCP **`API:`** section). The generator always adds a compact **`Response:`** section to each tool from OpenAPI (documented success response plus up to a few documented error statuses).
 
+In the `open-meteo` example, the OpenAPI `summary` and `description` for `/v1/forecast` are intentionally poor (prefixed with `CRAP:`) to demonstrate that `.api2ai` can override OpenAPI text. The matching operation in `examples/open-meteo.api2ai` adds a better `title`, `summary`, and `description`, which are what AI tools actually see.
+
 ```txt
 openapi "./openapi/spaceflight-news.openapi.yaml"
 baseUrl "https://api.spaceflightnewsapi.net"

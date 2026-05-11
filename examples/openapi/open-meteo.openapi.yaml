@@ -18,8 +18,13 @@ paths:
     get:
       tags:
       - Weather Forecast APIs
-      summary: 7 day weather forecast for coordinates
-      description: 7 day weather variables in hourly and daily resolution for given WGS84 latitude and longitude coordinates. Available worldwide.
+      # NOTE: The following summary/description are intentionally bad to demonstrate
+      # how api2ai overrides OpenAPI text with better DSL metadata in open-meteo.api2ai.
+      summary: "CRAP: generic marketing summary, not helpful for AI tools"
+      description: >
+        CRAP: this description is intentionally vague and not tailored to prompting
+        AI agents. The api2ai DSL example overrides this with a concise, AI-friendly
+        title, summary, and description for the generated tool.
       parameters:
       - name: hourly
         in: query
