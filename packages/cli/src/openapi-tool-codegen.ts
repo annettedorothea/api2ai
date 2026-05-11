@@ -74,12 +74,12 @@ function topLevelShapeLine(schema: OpenApiSchema | undefined): string | undefine
         return undefined;
     }
     const s = schema;
-    const t = Array.isArray(s.type) ? s.type[0] : s.type;
+    const t = schemaTypeFirst(s);
     if (s.$ref || s.oneOf || s.allOf || s.anyOf) {
         return 'shape: opaque (composition or reference)';
     }
     if (t === 'array') {
-        const it = s.items ? (typeof s.items.type === 'string' ? s.items.type : 'item') : 'item';
+        const it = s.items ? (schemaTypeFirst(s.items) ?? 'item') : 'item';
         return `type: array of ${it}`;
     }
     if (t === 'object' || (!t && s.properties)) {
@@ -150,22 +150,81 @@ export function buildMcpDescription(operation: Operation, details: OpenApiOperat
     return joinSections(sections);
 }
 
-function openApiPrimitiveToJsonSchema(schema: OpenApiSchema): JsonSchemaDict {
-    const out: JsonSchemaDict = {};
-    if (schema.description) {
-        out.description = schema.description;
-    }
-    if (schema.format) {
-        out.format = schema.format;
-    }
-    if (schema.default !== undefined) {
-        out.default = schema.default;
-    }
-    if (schema.enum) {
-        out.enum = schema.enum;
-    }
+/** Stops infinite recursion when the same schema object appears again on the path (cyclic graph after dereference). */
+const CIRCULAR_SCHEMA_PLACEHOLDER: JsonSchemaDict = {
+    type: 'object',
+    description:
+        'Circular schema in OpenAPI (same object reached twice while building JSON Schema). Use a JSON object consistent with the API docs.',
+    additionalProperties: true
+};
 
-    let typeKind = typeof schema.type === 'string' ? schema.type : schema.type?.[0];
+/** Remaining `$ref` after load (e.g. circular external refs) — cannot inline without the resolved document. */
+function unresolvedRefPlaceholder(ref: string): JsonSchemaDict {
+    return {
+        type: 'object',
+        description: `OpenAPI $ref "${ref}" was not fully inlined — use a free-form JSON object if needed.`,
+        additionalProperties: true
+    };
+}
+
+/** Copy validation / annotation keywords from a dereferenced OpenAPI schema object onto the emitted JSON Schema. */
+function copyOpenApiConstraintKeywords(schema: OpenApiSchema, target: JsonSchemaDict): void {
+    const scalarKeys = [
+        'description',
+        'title',
+        'format',
+        'default',
+        'enum',
+        'const',
+        'example',
+        'minimum',
+        'maximum',
+        'exclusiveMinimum',
+        'exclusiveMaximum',
+        'multipleOf',
+        'minLength',
+        'maxLength',
+        'pattern',
+        'minItems',
+        'maxItems',
+        'uniqueItems',
+        'minProperties',
+        'maxProperties',
+        'readOnly',
+        'writeOnly',
+        'deprecated',
+        'discriminator'
+    ] as const;
+    for (const key of scalarKeys) {
+        const value = schema[key as keyof OpenApiSchema];
+        if (value !== undefined) {
+            target[key] = value as unknown;
+        }
+    }
+    const rec = schema as Record<string, unknown>;
+    for (const key of Object.keys(rec)) {
+        if (key.startsWith('x-') && rec[key] !== undefined) {
+            target[key] = rec[key];
+        }
+    }
+}
+
+function schemaTypeFirst(schema: OpenApiSchema): string | undefined {
+    const t = schema.type;
+    if (typeof t === 'string') {
+        return t;
+    }
+    if (Array.isArray(t) && t.length > 0 && typeof t[0] === 'string') {
+        return t[0];
+    }
+    return undefined;
+}
+
+function openApiPrimitiveToJsonSchema(schema: OpenApiSchema, pathStack: OpenApiSchema[]): JsonSchemaDict {
+    const out: JsonSchemaDict = {};
+    copyOpenApiConstraintKeywords(schema, out);
+
+    let typeKind = schemaTypeFirst(schema);
     if (!typeKind) {
         if (schema.properties) {
             typeKind = 'object';
@@ -175,6 +234,8 @@ function openApiPrimitiveToJsonSchema(schema: OpenApiSchema): JsonSchemaDict {
             typeKind = 'string';
         }
     }
+
+    const nextStack = [...pathStack, schema];
 
     let inner: JsonSchemaDict;
     if (typeKind === 'integer') {
@@ -187,7 +248,7 @@ function openApiPrimitiveToJsonSchema(schema: OpenApiSchema): JsonSchemaDict {
         inner = {
             ...out,
             type: 'array',
-            items: schema.items ? openApiSchemaToJsonSchema(schema.items as OpenApiSchema) : { type: 'string' }
+            items: schema.items ? openApiSchemaToJsonSchema(schema.items as OpenApiSchema, nextStack) : { type: 'string' }
         };
     } else if (typeKind === 'object') {
         const props = schema.properties ?? {};
@@ -197,18 +258,27 @@ function openApiPrimitiveToJsonSchema(schema: OpenApiSchema): JsonSchemaDict {
             if (!prop) {
                 continue;
             }
-            nested[name] = openApiSchemaToJsonSchema(prop as OpenApiSchema);
+            nested[name] = openApiSchemaToJsonSchema(prop as OpenApiSchema, nextStack);
+        }
+        let additionalProperties: boolean | JsonSchemaDict = false;
+        if (typeof schema.additionalProperties === 'boolean') {
+            additionalProperties = schema.additionalProperties;
+        } else if (schema.additionalProperties) {
+            additionalProperties = openApiSchemaToJsonSchema(schema.additionalProperties as OpenApiSchema, nextStack);
         }
         inner = {
             ...out,
             type: 'object',
             properties: nested,
             required: [...required],
-            additionalProperties:
-                typeof schema.additionalProperties === 'boolean' ? schema.additionalProperties : schema.additionalProperties ? true : false
+            additionalProperties
         };
     } else {
         inner = { ...out, type: 'string' };
+    }
+
+    if (schema.not) {
+        inner.not = openApiSchemaToJsonSchema(schema.not, nextStack);
     }
 
     if (!schema.nullable) {
@@ -218,25 +288,45 @@ function openApiPrimitiveToJsonSchema(schema: OpenApiSchema): JsonSchemaDict {
 }
 
 /** Convert OpenAPI schema subset to JSON-schema-like dict for MCP inputSchema emission. */
-function openApiSchemaToJsonSchema(schema: OpenApiSchema | undefined): JsonSchemaDict {
+function openApiSchemaToJsonSchema(schema: OpenApiSchema | undefined, pathStack: OpenApiSchema[] = []): JsonSchemaDict {
     if (!schema) {
         return { type: 'string', description: 'No schema in OpenAPI.' };
     }
+    if (pathStack.includes(schema)) {
+        return { ...CIRCULAR_SCHEMA_PLACEHOLDER };
+    }
     if (schema.$ref) {
-        return {
-            type: 'object',
-            description: 'OpenAPI $ref — use free-form JSON object.',
-            additionalProperties: true
-        };
+        return unresolvedRefPlaceholder(schema.$ref);
     }
-    if (schema.oneOf || schema.allOf || schema.anyOf) {
-        return {
-            type: 'object',
-            description: 'OpenAPI composite schema — use structured object if known.',
-            additionalProperties: true
-        };
+
+    const hasComposition =
+        (schema.oneOf !== undefined && schema.oneOf.length > 0) ||
+        (schema.anyOf !== undefined && schema.anyOf.length > 0) ||
+        (schema.allOf !== undefined && schema.allOf.length > 0);
+
+    if (hasComposition) {
+        const nextStack = [...pathStack, schema];
+        const composed: JsonSchemaDict = {};
+        copyOpenApiConstraintKeywords(schema, composed);
+        if (schema.oneOf?.length) {
+            composed.oneOf = schema.oneOf.map((branch) => openApiSchemaToJsonSchema(branch, nextStack));
+        }
+        if (schema.anyOf?.length) {
+            composed.anyOf = schema.anyOf.map((branch) => openApiSchemaToJsonSchema(branch, nextStack));
+        }
+        if (schema.allOf?.length) {
+            composed.allOf = schema.allOf.map((branch) => openApiSchemaToJsonSchema(branch, nextStack));
+        }
+        if (schema.not) {
+            composed.not = openApiSchemaToJsonSchema(schema.not, nextStack);
+        }
+        if (!schema.nullable) {
+            return composed;
+        }
+        return { anyOf: [composed, { type: 'null' }] };
     }
-    return openApiPrimitiveToJsonSchema(schema);
+
+    return openApiPrimitiveToJsonSchema(schema, pathStack);
 }
 
 /** Merge OpenAPI Parameter `description` onto the JSON schema for MCP (parameter text wins over inline schema description). */
@@ -283,7 +373,7 @@ function parameterSchemaKind(schema: OpenApiSchema | undefined): 'array' | 'obje
     if (schema.$ref || schema.oneOf || schema.allOf || schema.anyOf) {
         return 'primitive';
     }
-    let typeKind = typeof schema.type === 'string' ? schema.type : schema.type?.[0];
+    let typeKind = schemaTypeFirst(schema);
     if (!typeKind) {
         if (schema.properties) {
             typeKind = 'object';

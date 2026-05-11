@@ -2,20 +2,42 @@ import path from 'node:path';
 import SwaggerParser from '@apidevtools/swagger-parser';
 
 export type OpenApiSchema = {
-    type?: string;
+    /** OpenAPI 3.0: string; 3.1 may use an array of primitive type strings. */
+    type?: string | string[];
     description?: string;
+    title?: string;
     enum?: unknown[];
+    const?: unknown;
     default?: unknown;
     nullable?: boolean;
     format?: string;
+    /** Numeric / string constraints (JSON Schema; passed through to MCP after dereference). */
+    minimum?: number;
+    maximum?: number;
+    exclusiveMinimum?: number | boolean;
+    exclusiveMaximum?: number | boolean;
+    multipleOf?: number;
+    minLength?: number;
+    maxLength?: number;
+    pattern?: string;
+    minItems?: number;
+    maxItems?: number;
+    uniqueItems?: boolean;
+    minProperties?: number;
+    maxProperties?: number;
     items?: OpenApiSchema;
     properties?: Record<string, OpenApiSchema | undefined>;
     required?: string[];
     oneOf?: OpenApiSchema[];
     anyOf?: OpenApiSchema[];
     allOf?: OpenApiSchema[];
+    not?: OpenApiSchema;
     additionalProperties?: boolean | OpenApiSchema;
     example?: unknown;
+    readOnly?: boolean;
+    writeOnly?: boolean;
+    deprecated?: boolean;
+    discriminator?: unknown;
     $ref?: string;
 };
 

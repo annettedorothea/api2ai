@@ -35,6 +35,8 @@ export const inputSchemaByTool = {
                         "description": "City/place search text, e.g. Bernstein."
                     },
                     "count": {
+                        "minimum": 1,
+                        "maximum": 100,
                         "type": "integer",
                         "description": "Number of matches to return."
                     },
