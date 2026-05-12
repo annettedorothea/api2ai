@@ -3,15 +3,28 @@ grammar Api2AiDsl
 entry Model:
     'openapi' openapi=STRING
     'baseUrl' baseUrl=STRING
-    auth=Auth?
+    ('auth' auth=Auth)?
     (operations += Operation)*;
 
 Auth:
-    'auth' 'apiKey' '{'
+    BearerEnvAuth | BearerSealedAuth;
+
+BearerEnvAuth:
+    'bearerEnv' '{'
         (
               'in' ':' location=AuthLocation
             | 'name' ':' name=STRING
             | 'env' ':' env=STRING
+            | 'prefix' ':' prefix=STRING
+        )*
+    '}';
+
+BearerSealedAuth:
+    'bearerSealed' '{'
+        (
+              'in' ':' location=AuthLocation
+            | 'name' ':' name=STRING
+            | 'privateKeyEnv' ':' privateKeyEnv=STRING
             | 'prefix' ':' prefix=STRING
         )*
     '}';

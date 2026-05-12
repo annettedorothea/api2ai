@@ -1,4 +1,5 @@
 import type { Model, Operation } from 'api-2-ai-dsl-language';
+import { isBearerEnvAuth, isBearerSealedAuth } from 'api-2-ai-dsl-language';
 import { expandToNode, toString } from 'langium/generate';
 import type { LoadedOpenApi } from 'api-2-ai-dsl-language';
 import { loadOpenApi, makeOperationLookupKey } from 'api-2-ai-dsl-language';
@@ -201,9 +202,38 @@ function buildSchemasFromLoaded(model: Model, loaded: LoadedOpenApi): Record<str
         if (!details) {
             continue;
         }
-        out[requireToolName(operation)] = buildToolInputSchema(details);
+        const base = buildToolInputSchema(details);
+        out[requireToolName(operation)] = augmentInvokeSchemaWithSealedCredential(base, model);
     }
     return out;
+}
+
+function augmentInvokeSchemaWithSealedCredential(schema: JsonSchemaDict, model: Model): JsonSchemaDict {
+    if (!model.auth || !isBearerSealedAuth(model.auth)) {
+        return schema;
+    }
+    const existingProps = (schema.properties ?? {}) as Record<string, JsonSchemaDict>;
+    const prevRequired = Array.isArray(schema.required) ? (schema.required as string[]) : [];
+    const required = prevRequired.includes('sealedCredential') ? prevRequired : [...prevRequired, 'sealedCredential'];
+    return {
+        ...schema,
+        properties: {
+            ...existingProps,
+            sealedCredential: {
+                type: 'string',
+                description:
+                    'Base64 A2S1 sealed credential (RSA-OAEP SHA-256 + AES-256-GCM). Generate with: node examples/scripts/seal-bearer-helper.mjs seal --public-key <public.pem> --pat <token> (or --stdin)'
+            }
+        },
+        required
+    };
+}
+
+function authRuntimeKind(model: Model): 'none' | 'env' | 'sealed' {
+    if (!model.auth) {
+        return 'none';
+    }
+    return isBearerSealedAuth(model.auth) ? 'sealed' : 'env';
 }
 
 function buildQuerySerializationFromLoaded(
@@ -254,7 +284,134 @@ function mergeParallelToolData(
     };
 }
 
-function createSharedInvokeBlock(inputSchemaLiteralBody: string, querySerializationLiteralBody: string): string {
+function createSharedInvokeBlock(
+    inputSchemaLiteralBody: string,
+    querySerializationLiteralBody: string,
+    authKind: 'none' | 'env' | 'sealed'
+): string {
+    const authHelpers =
+        authKind === 'env'
+            ? `
+function resolveAuthSecret(authConfig, options) {
+    const secret = process.env[authConfig.env];
+    if (!secret) {
+        throw new Error('Missing required environment variable ' + authConfig.env + ' for API auth.');
+    }
+    return (authConfig.prefix ?? '') + secret;
+}`
+            : authKind === 'sealed'
+              ? `
+function unsealA2S1(b64, privateKeyPem) {
+    const blob = Buffer.from(String(b64).trim(), 'base64');
+    const MAGIC = Buffer.from('A2S1', 'ascii');
+    if (blob.length < MAGIC.length + 2 + 12 + 16) {
+        throw new Error('sealedCredential blob too short');
+    }
+    if (!blob.subarray(0, MAGIC.length).equals(MAGIC)) {
+        throw new Error('sealedCredential: bad magic (expected A2S1 wire format)');
+    }
+    let o = MAGIC.length;
+    const rsaLen = blob.readUInt16BE(o);
+    o += 2;
+    const rsaCipher = blob.subarray(o, o + rsaLen);
+    o += rsaLen;
+    const iv = blob.subarray(o, o + 12);
+    o += 12;
+    const aesPayload = blob.subarray(o);
+    const tag = aesPayload.subarray(aesPayload.length - 16);
+    const enc = aesPayload.subarray(0, aesPayload.length - 16);
+    const aesKey = privateDecrypt({ key: privateKeyPem, padding: 4, oaepHash: 'sha256' }, rsaCipher);
+    const decipher = createDecipheriv('aes-256-gcm', aesKey, iv, { authTagLength: 16 });
+    decipher.setAuthTag(tag);
+    return Buffer.concat([decipher.update(enc), decipher.final()]).toString('utf8');
+}
+
+function loadPrivateKeyPem(privateKeyEnv) {
+    const raw = process.env[privateKeyEnv];
+    if (!raw || !String(raw).trim()) {
+        throw new Error('Missing private key PEM in environment variable ' + privateKeyEnv + ' for bearerSealed auth.');
+    }
+    const trimmed = String(raw).trim();
+    if (trimmed.startsWith('-----BEGIN')) {
+        return trimmed;
+    }
+    const rel = trimmed.replace(/^\\.\\/+/, '');
+    const candidates = [];
+    const seen = new Set();
+    function add(p) {
+        const resolved = path.resolve(p);
+        if (!seen.has(resolved)) {
+            seen.add(resolved);
+            candidates.push(resolved);
+        }
+    }
+    add(trimmed);
+    let dir = process.cwd();
+    for (let i = 0; i < 12; i++) {
+        add(path.join(dir, rel));
+        const up = path.dirname(dir);
+        if (up === dir) {
+            break;
+        }
+        dir = up;
+    }
+    let lastErr;
+    for (const p of candidates) {
+        try {
+            return readFileSync(p, 'utf8').trim();
+        } catch (e) {
+            lastErr = e;
+        }
+    }
+    const msg = lastErr instanceof Error ? lastErr.message : String(lastErr);
+    throw new Error(
+        'Failed to read private key from path in environment variable ' +
+            privateKeyEnv +
+            ' (expected inline PEM starting with -----BEGIN, an absolute path, or a path relative to cwd / parent directories up to the workspace root): ' +
+            msg
+    );
+}
+
+function resolveAuthSecret(authConfig, options) {
+    const b64 = options?.sealedCredential;
+    if (!b64 || typeof b64 !== 'string' || !String(b64).trim()) {
+        throw new Error('InvokeOptions.sealedCredential (base64) is required for bearerSealed auth.');
+    }
+    const token = unsealA2S1(b64, loadPrivateKeyPem(authConfig.privateKeyEnv));
+    return (authConfig.prefix ?? '') + token;
+}`
+              : '';
+
+    const resolveCall =
+        authKind === 'none'
+            ? ''
+            : `
+    if (authConfig) {
+        const authValue = resolveAuthSecret(authConfig, options);
+        if (authConfig.location === 'header') {
+            requestHeaders[authConfig.name] = authValue;
+        } else {
+            url.searchParams.set(authConfig.name, authValue);
+        }
+    }`;
+
+    const auth401Block =
+        authKind === 'env'
+            ? `msg +=
+                    ' Check the credential in environment variable ' +
+                    authConfig.env +
+                    ' (' +
+                    authConfig.location +
+                    ' ' +
+                    authConfig.name +
+                    ').';`
+            : authKind === 'sealed'
+              ? `msg +=
+                    ' Check environment variable ' +
+                    authConfig.privateKeyEnv +
+                    ' (inline PEM or path to a .pem file) and pass sealedCredential (base64) on invoke.';`
+              : '';
+
     return `
 export const inputSchemaByTool = ${inputSchemaLiteralBody};
 
@@ -304,14 +461,7 @@ function appendSerializedQueryParams(searchParams, toolName, query) {
         searchParams.set(key, String(value));
     }
 }
-
-function resolveAuthValue(auth) {
-    const secret = process.env[auth.env];
-    if (!secret) {
-        throw new Error('Missing required environment variable ' + auth.env + ' for API auth.');
-    }
-    return (auth.prefix ?? '') + secret;
-}
+${authHelpers}
 
 export async function invokeTool(toolName, options = {}) {
     const tool = generatedTools.find((t) => t.toolName === toolName);
@@ -331,15 +481,7 @@ export async function invokeTool(toolName, options = {}) {
     const requestHeaders = {
         'content-type': 'application/json',
         ...(options.headers ?? {})
-    };
-    if (authConfig) {
-        const authValue = resolveAuthValue(authConfig);
-        if (authConfig.location === 'header') {
-            requestHeaders[authConfig.name] = authValue;
-        } else {
-            url.searchParams.set(authConfig.name, authValue);
-        }
-    }
+    };${resolveCall}
 
     const requestInit = {
         method: tool.method,
@@ -364,14 +506,7 @@ export async function invokeTool(toolName, options = {}) {
         if (response.status === 401) {
             msg += ' Unauthorized.';
             if (authConfig) {
-                msg +=
-                    ' Check the credential in environment variable ' +
-                    authConfig.env +
-                    ' (' +
-                    authConfig.location +
-                    ' ' +
-                    authConfig.name +
-                    ').';
+                ${auth401Block}
             } else {
                 msg += ' The API may require authentication.';
             }
@@ -404,16 +539,33 @@ function renderAuthConfig(model: Model): string {
     if (!model.auth) {
         return 'undefined';
     }
-    return JSON.stringify(
-        {
-            location: model.auth.location,
-            name: model.auth.name,
-            env: model.auth.env,
-            prefix: model.auth.prefix
-        },
-        null,
-        4
-    );
+    if (isBearerSealedAuth(model.auth)) {
+        return JSON.stringify(
+            {
+                kind: 'bearerSealed',
+                location: model.auth.location,
+                name: model.auth.name,
+                privateKeyEnv: model.auth.privateKeyEnv,
+                prefix: model.auth.prefix
+            },
+            null,
+            4
+        );
+    }
+    if (isBearerEnvAuth(model.auth)) {
+        return JSON.stringify(
+            {
+                kind: 'bearerEnv',
+                location: model.auth.location,
+                name: model.auth.name,
+                env: model.auth.env,
+                prefix: model.auth.prefix
+            },
+            null,
+            4
+        );
+    }
+    return 'undefined';
 }
 
 function renderSourceReference(source: string): string {
@@ -424,13 +576,48 @@ function renderTsModule(
     enrichedToolsLiteral: string,
     inputSchemaBlock: string,
     model: Model,
-    source: string
+    source: string,
+    authKind: 'none' | 'env' | 'sealed'
 ): string {
     const authConfigLiteral = renderAuthConfig(model);
     const sourceReference = renderSourceReference(source);
+    const cryptoImport =
+        authKind === 'sealed'
+            ? "import { createDecipheriv, privateDecrypt } from 'node:crypto';\nimport { readFileSync } from 'node:fs';\nimport path from 'node:path';\n\n"
+            : '';
+
+    const sealedInvokeField =
+        authKind === 'sealed'
+            ? `
+    /** Base64 A2S1 sealed credential (required when \`auth bearerSealed\`; matches JSON schema \`required\`). */
+    sealedCredential: string;`
+            : '';
+
+    const authDecl =
+        authKind === 'none'
+            ? 'const authConfig = undefined;'
+            : authKind === 'env'
+              ? `type AuthConfig = {
+    kind: 'bearerEnv';
+    location: 'header' | 'query';
+    name: string;
+    env: string;
+    prefix?: string;
+};
+
+const authConfig: AuthConfig | undefined = ${authConfigLiteral};`
+              : `type AuthConfig = {
+    kind: 'bearerSealed';
+    location: 'header' | 'query';
+    name: string;
+    privateKeyEnv: string;
+    prefix?: string;
+};
+
+const authConfig: AuthConfig | undefined = ${authConfigLiteral};`;
 
     const fileNode = expandToNode`
-/**
+${cryptoImport}/**
  * Generated from: ${sourceReference}
  * Referenced OpenAPI: ${model.openapi}
  */
@@ -453,17 +640,10 @@ export type InvokeOptions = {
     pathParams?: Record<string, string | number | boolean>;
     query?: Record<string, string | number | boolean | ReadonlyArray<string | number | boolean>>;
     headers?: Record<string, string>;
-    body?: unknown;
+    body?: unknown;${sealedInvokeField}
 };
 
-type AuthConfig = {
-    location: 'header' | 'query';
-    name: string;
-    env: string;
-    prefix?: string;
-};
-
-const authConfig: AuthConfig | undefined = ${authConfigLiteral};
+${authDecl}
         
 ${inputSchemaBlock}
     `.appendNewLineIfNotEmpty();
@@ -474,11 +654,16 @@ function renderJsModule(
     enrichedToolsLiteral: string,
     inputSchemaEmbedded: string,
     model: Model,
-    source: string
+    source: string,
+    authKind: 'none' | 'env' | 'sealed'
 ): string {
     const authConfigLiteral = renderAuthConfig(model);
     const sourceReference = renderSourceReference(source);
-    return `/**
+    const cryptoImport =
+        authKind === 'sealed'
+            ? "import { createDecipheriv, privateDecrypt } from 'node:crypto';\nimport { readFileSync } from 'node:fs';\nimport path from 'node:path';\n\n"
+            : '';
+    return `${cryptoImport}/**
  * Generated from: ${sourceReference}
  * Referenced OpenAPI: ${model.openapi}
  */
@@ -504,10 +689,11 @@ export async function generateOutput(model: Model, source: string, destination: 
     const schemas = buildSchemasFromLoaded(model, loaded);
     const querySerialization = buildQuerySerializationFromLoaded(model, loaded);
     const { toolsLiteral, schemasLiteral, querySerializationLiteral } = mergeParallelToolData(toolsMeta, schemas, querySerialization);
-    const invokeBlock = createSharedInvokeBlock(schemasLiteral, querySerializationLiteral);
+    const authKind = authRuntimeKind(model);
+    const invokeBlock = createSharedInvokeBlock(schemasLiteral, querySerializationLiteral, authKind);
 
-    fs.writeFileSync(tsPath, renderTsModule(toolsLiteral, invokeBlock, model, source));
-    fs.writeFileSync(jsPath, renderJsModule(toolsLiteral, invokeBlock, model, source));
+    fs.writeFileSync(tsPath, renderTsModule(toolsLiteral, invokeBlock, model, source, authKind));
+    fs.writeFileSync(jsPath, renderJsModule(toolsLiteral, invokeBlock, model, source, authKind));
 
     const cliDir = resolveGeneratedCliDir(tsPath);
     const mcpServePath = copyBundledMcpServeInto(cliDir);

@@ -113,6 +113,7 @@ export const generatedTools = [
 ];
 
 const authConfig = {
+    "kind": "bearerEnv",
     "location": "header",
     "name": "Authorization",
     "env": "TMDB_ACCESS_TOKEN",
@@ -1242,12 +1243,12 @@ function appendSerializedQueryParams(searchParams, toolName, query) {
     }
 }
 
-function resolveAuthValue(auth) {
-    const secret = process.env[auth.env];
+function resolveAuthSecret(authConfig, options) {
+    const secret = process.env[authConfig.env];
     if (!secret) {
-        throw new Error('Missing required environment variable ' + auth.env + ' for API auth.');
+        throw new Error('Missing required environment variable ' + authConfig.env + ' for API auth.');
     }
-    return (auth.prefix ?? '') + secret;
+    return (authConfig.prefix ?? '') + secret;
 }
 
 export async function invokeTool(toolName, options = {}) {
@@ -1270,7 +1271,7 @@ export async function invokeTool(toolName, options = {}) {
         ...(options.headers ?? {})
     };
     if (authConfig) {
-        const authValue = resolveAuthValue(authConfig);
+        const authValue = resolveAuthSecret(authConfig, options);
         if (authConfig.location === 'header') {
             requestHeaders[authConfig.name] = authValue;
         } else {

@@ -41,7 +41,7 @@ describe('Validating', () => {
         document = await parseValidated(`
             openapi "./petstore-mini.openapi.yaml"
             baseUrl "https://petstore3.swagger.io/api/v3"
-            auth apiKey {
+            auth bearerEnv {
                 in: header
                 name: "Authorization"
                 env: "PETSTORE_TOKEN"
@@ -60,7 +60,7 @@ describe('Validating', () => {
         document = await parseValidated(`
             openapi "./petstore-mini.openapi.yaml"
             baseUrl "https://petstore3.swagger.io/api/v3"
-            auth apiKey {
+            auth bearerEnv {
                 in: header
                 name: "Authorization"
                 env: ""
@@ -72,7 +72,7 @@ describe('Validating', () => {
         `);
 
         const diagnostics = document.diagnostics ?? [];
-        expect(diagnostics.some(d => d.message.includes('auth apiKey env must not be empty'))).toBe(true);
+        expect(diagnostics.some(d => d.message.includes('auth bearerEnv env must not be empty'))).toBe(true);
     });
 
     test('does not report OpenAPI existence for an incomplete operation before the path string', async () => {
@@ -206,11 +206,11 @@ describe('Validating', () => {
         expect(diagnostics.some((d) => d.message.includes('Operation requires `intent'))).toBe(true);
     });
 
-    test('reports auth apiKey missing required in/name/env', async () => {
+    test('reports auth bearerEnv missing required in/name/env', async () => {
         document = await parseValidated(`
             openapi "./petstore-mini.openapi.yaml"
             baseUrl "https://petstore3.swagger.io/api/v3"
-            auth apiKey {
+            auth bearerEnv {
                 prefix: "Bearer "
             }
             GET "/pet/{petId}" {
@@ -220,9 +220,9 @@ describe('Validating', () => {
         `);
 
         const diagnostics = document.diagnostics ?? [];
-        expect(diagnostics.some((d) => d.message.includes('auth apiKey requires `in'))).toBe(true);
-        expect(diagnostics.some((d) => d.message.includes('auth apiKey requires `name'))).toBe(true);
-        expect(diagnostics.some((d) => d.message.includes('auth apiKey requires `env'))).toBe(true);
+        expect(diagnostics.some((d) => d.message.includes('auth bearerEnv requires `in'))).toBe(true);
+        expect(diagnostics.some((d) => d.message.includes('auth bearerEnv requires `name'))).toBe(true);
+        expect(diagnostics.some((d) => d.message.includes('auth bearerEnv requires `env'))).toBe(true);
     });
 
     test('reports duplicate key inside operation block', async () => {
@@ -244,7 +244,7 @@ describe('Validating', () => {
         document = await parseValidated(`
             openapi "./petstore-mini.openapi.yaml"
             baseUrl "https://petstore3.swagger.io/api/v3"
-            auth apiKey {
+            auth bearerEnv {
                 in: header
                 name: "Authorization"
                 env: "MY_TOKEN"
@@ -258,6 +258,43 @@ describe('Validating', () => {
 
         const diagnostics = document.diagnostics ?? [];
         expect(diagnostics.some((d) => d.message.includes('Duplicate key "env"'))).toBe(true);
+    });
+
+    test('accepts bearerSealed auth with privateKeyEnv', async () => {
+        document = await parseValidated(`
+            openapi "./petstore-mini.openapi.yaml"
+            baseUrl "https://petstore3.swagger.io/api/v3"
+            auth bearerSealed {
+                in: header
+                name: "Authorization"
+                prefix: "Bearer "
+                privateKeyEnv: "API2AI_SEAL_PRIVATE_KEY"
+            }
+            GET "/pet/{petId}" {
+                toolName: "getPetById"
+                intent: "get one pet"
+            }
+        `);
+
+        expect(document.diagnostics ?? []).toHaveLength(0);
+    });
+
+    test('reports bearerSealed missing privateKeyEnv', async () => {
+        document = await parseValidated(`
+            openapi "./petstore-mini.openapi.yaml"
+            baseUrl "https://petstore3.swagger.io/api/v3"
+            auth bearerSealed {
+                in: header
+                name: "Authorization"
+            }
+            GET "/pet/{petId}" {
+                toolName: "getPetById"
+                intent: "get one pet"
+            }
+        `);
+
+        const diagnostics = document.diagnostics ?? [];
+        expect(diagnostics.some((d) => d.message.includes('auth bearerSealed requires `privateKeyEnv'))).toBe(true);
     });
 
     test('accepts an operation with properties in shuffled order', async () => {

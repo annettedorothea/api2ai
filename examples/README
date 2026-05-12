@@ -52,3 +52,8 @@ Diese Prompts zeigen die Kombination aus Spaceflight-Daten und Wetterdaten:
 - `api2ai Wann kam Dune 2 raus in Deutscland?` -> klappt nicht immer, bräuchte bessere Beschreibung der Parameter
 - `api2ai Wer war der Kameramann von Dune?`
 - `api2ai Mach eine Liste der Filme mit den höchsten Budgets aus 2024 mit dem jeweiligen Voting. Falls Infos vorhanden auch noch das, was sie eingespielt haben, sortiert nach Budget`
+
+## Github
+
+- `api2ai nimm token aus @github-sealed-token.txt 
+und gib mir die user infos, alle repos und details zu allen sichtbaren repos`

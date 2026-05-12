@@ -14,6 +14,7 @@
         "langium:watch": "npm run --workspace packages/language langium:watch",
         "generate:spaceflight-tools": "node ./packages/cli/bin/cli.js generate ./examples/spaceflight-news.api2ai ./examples/generated/tools/spaceflight-news-tools.ts",
         "generate:tmdb-tools": "node ./packages/cli/bin/cli.js generate ./examples/tmdb.api2ai ./examples/generated/tools/tmdb-tools.ts",
+        "generate:github-tools": "node ./packages/cli/bin/cli.js generate ./examples/github.api2ai ./examples/generated/tools/github-tools.ts",
         "generate:open-meteo-tools": "node ./packages/cli/bin/cli.js generate ./examples/open-meteo.api2ai ./examples/generated/tools/open-meteo-tools.ts",
         "generate:open-meteo-geocoding-tools": "node ./packages/cli/bin/cli.js generate ./examples/open-meteo-geocoding.api2ai ./examples/generated/tools/open-meteo-geocoding-tools.ts",
         "test": "npm run --workspace packages/language test",

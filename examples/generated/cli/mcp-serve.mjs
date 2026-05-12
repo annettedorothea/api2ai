@@ -172,10 +172,12 @@ function jsonSchemaToZod(schema) {
 }
 var queryValueUnion = z.union([primitiveUnion, z.array(primitiveUnion)]);
 var fallbackInputSchema = z.object({
+  baseUrl: z.string().optional(),
   pathParams: z.record(z.string(), primitiveUnion).optional(),
   query: z.record(z.string(), queryValueUnion).optional(),
   headers: z.record(z.string(), z.string()).optional(),
-  body: z.unknown().optional()
+  body: z.unknown().optional(),
+  sealedCredential: z.string().optional()
 });
 function asLocalModulePath(modulePath) {
   if (modulePath.startsWith("file://")) {
@@ -238,10 +240,12 @@ async function runMcpServerFromGeneratedModule(modulePath, options = {}) {
         const a = args;
         const currentModule = await loadModule();
         const result = await currentModule.invokeTool(tool.toolName, {
+          baseUrl: a.baseUrl,
           pathParams: a.pathParams,
           query: a.query,
           headers: a.headers,
-          body: a.body
+          body: a.body,
+          sealedCredential: a.sealedCredential
         });
         return {
           content: [

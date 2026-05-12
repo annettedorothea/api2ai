@@ -21,7 +21,7 @@ GET "/v4/articles/{id}/" {
 }
 ```
 
-Properties inside `{ ... }` blocks may appear in any order. For an operation, `toolName` and `intent` are required; `example`, `summary`, and `description` are optional. For `auth apiKey`, `in`, `name`, and `env` are required; `prefix` is optional. Each property may appear at most once per block.
+Properties inside `{ ... }` blocks may appear in any order. For an operation, `toolName` and `intent` are required; `example`, `summary`, and `description` are optional. For `auth bearerEnv`, `in`, `name`, and `env` are required; `prefix` is optional. For `auth bearerSealed`, `in`, `name`, and `privateKeyEnv` are required; `prefix` is optional. Each property may appear at most once per block.
 
 The generator writes TypeScript and ESM `.mjs` modules under [`examples/generated/tools/`](examples/generated/tools/), plus the standalone MCP entry copied to [`examples/generated/cli/`](examples/generated/cli/) (see `mcp-serve.mjs`). Those artifacts can be smoke-tested directly or exposed as MCP tools for any MCP-compatible agent or client.
 
@@ -49,6 +49,7 @@ npm run generate:spaceflight-tools
 npm run generate:open-meteo-tools
 npm run generate:open-meteo-geocoding-tools
 npm run generate:tmdb-tools
+npm run generate:github-tools
 ```
 
 Run a quick smoke test against Open-Meteo:
@@ -74,7 +75,7 @@ When a `.api2ai` file changes in the Extension Development Host, saving the file
 The DSL can reference API keys without embedding secret values in generated code:
 
 ```txt
-auth apiKey {
+auth bearerEnv {
     in: header
     name: "Authorization"
     env: "TMDB_ACCESS_TOKEN"
@@ -82,7 +83,18 @@ auth apiKey {
 }
 ```
 
-At runtime, the generated module reads the secret from `process.env`.
+For **sealed** credentials (PAT or other bearer secret encrypted for this MCP process), use `auth bearerSealed { … privateKeyEnv: "…" }` and pass a Base64 **A2S1** blob as `sealedCredential` on each `invokeTool` / MCP call. Keypair: `node examples/scripts/seal-bearer-helper.mjs gen-keypair --out examples/seal-keys` (see [`examples/seal-keys/README.md`](examples/seal-keys/README.md)). Seal a token with the example public key: `npm run seal:github-token --prefix examples -- --pat ghp_…` (from the repo root) or `cd examples && npm run seal:github-token -- --pat ghp_…`, or pipe to [`examples/scripts/seal-bearer-helper.mjs`](examples/scripts/seal-bearer-helper.mjs) `seal --public-key examples/seal-keys/public.pem --stdin`. See [`examples/github.api2ai`](examples/github.api2ai).
+
+```txt
+auth bearerSealed {
+    in: header
+    name: "Authorization"
+    prefix: "Bearer "
+    privateKeyEnv: "API2AI_SEAL_PRIVATE_KEY"
+}
+```
+
+At runtime, **`bearerEnv`** reads the API secret from `process.env` at the variable you name in `env`. **`bearerSealed`** resolves the private key from `process.env[privateKeyEnv]`: if the value starts with `-----BEGIN`, it is used as inline PEM; otherwise it is treated as a filesystem path (absolute, or relative to `process.cwd()` and then to each parent directory up a few levels so differing MCP working directories still resolve repo-relative paths like `examples/seal-keys/private.pem`). It then decrypts the per-call `sealedCredential` argument (see script above).
 
 For the TMDB demo, `examples/.env` documents the required `TMDB_ACCESS_TOKEN` with a dummy value. Use a real token only in your local environment, for example via `examples/.env.local` or an exported shell variable.
 

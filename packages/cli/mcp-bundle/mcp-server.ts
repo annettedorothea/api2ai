@@ -12,10 +12,13 @@ type GeneratedTool = {
 };
 
 type GeneratedInvokeOptions = {
+    baseUrl?: string;
     pathParams?: Record<string, string | number | boolean>;
     query?: Record<string, string | number | boolean | ReadonlyArray<string | number | boolean>>;
     headers?: Record<string, string>;
     body?: unknown;
+    /** bearerSealed: base64 A2S1 blob from seal-bearer-helper (passed through to generated invokeTool). */
+    sealedCredential?: string;
 };
 
 type GeneratedRuntimeModule = {
@@ -133,10 +136,12 @@ function jsonSchemaToZod(schema: unknown): z.ZodTypeAny {
 const queryValueUnion = z.union([primitiveUnion, z.array(primitiveUnion)]);
 
 const fallbackInputSchema = z.object({
+    baseUrl: z.string().optional(),
     pathParams: z.record(z.string(), primitiveUnion).optional(),
     query: z.record(z.string(), queryValueUnion).optional(),
     headers: z.record(z.string(), z.string()).optional(),
-    body: z.unknown().optional()
+    body: z.unknown().optional(),
+    sealedCredential: z.string().optional()
 });
 
 function asLocalModulePath(modulePath: string): string {
@@ -211,10 +216,12 @@ export async function runMcpServerFromGeneratedModule(modulePath: string, option
                 const a = args as GeneratedInvokeOptions;
                 const currentModule = await loadModule();
                 const result = await currentModule.invokeTool(tool.toolName, {
+                    baseUrl: a.baseUrl,
                     pathParams: a.pathParams,
                     query: a.query,
                     headers: a.headers,
-                    body: a.body
+                    body: a.body,
+                    sealedCredential: a.sealedCredential
                 });
                 return {
                     content: [

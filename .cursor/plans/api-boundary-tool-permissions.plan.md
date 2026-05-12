@@ -9,8 +9,8 @@ todos:
     content: "Bei Integration: Upstream oder BFF muss Authz hart ablehnen; Filter nur Komfort"
     status: pending
   - id: sealed-token-followup
-    content: "Wenn sealedSecret umgesetzt wird: Krypto + Generator + MCP-Schema gemäß mcp-sealed-token-auth.md"
-    status: pending
+    content: "bearerSealed umgesetzt (PoC); siehe done/github-sealed-bearer.plan.md"
+    status: completed
 isProject: false
 ---
 
@@ -50,7 +50,7 @@ flowchart LR
 
 ## Token und Tenant
 
-- **Kurzlebige Tokens** von der App (z. B. versiegelt durchgereicht, siehe [`.cursor/plans/mcp-sealed-token-auth.md`](.cursor/plans/mcp-sealed-token-auth.md)): Session/Refresh bleiben in der **App**; MCP führt **kein** OAuth-/Session-Management im Sinne von Identity (Variante „A“ aus Auth-Diskussion).
+- **Kurzlebige Tokens** von der App (z. B. versiegelt durchgereicht, siehe [done/github-sealed-bearer.plan.md](done/github-sealed-bearer.plan.md) bzw. Archiv [obsolete/mcp-sealed-token-auth.md](obsolete/mcp-sealed-token-auth.md)): Session/Refresh bleiben in der **App**; MCP führt **kein** OAuth-/Session-Management im Sinne von Identity (Variante „A“ aus Auth-Diskussion).
 - **Tenant / Host:** Was nicht im Token steckt, muss **pro Aufruf** stimmen — entweder bereits als **OpenAPI-Parameter** (Path/Query/Header) in den Tool-Args, oder (falls nötig) **laufzeitfähige `baseUrl`** / Mandanten-Host — typischerweise von der **App** mitgegeben, nicht als Session im MCP.
 
 ## BFF-Warnung
@@ -73,4 +73,4 @@ Cursor liefert **nicht** automatisch eure Produkt-Session oder Mandanten-Rechte.
 ## Referenz-Dateien im Repo
 
 - Aktuelle Auth in der DSL: [`packages/language/src/api-2-ai-dsl.langium`](packages/language/src/api-2-ai-dsl.langium)
-- Plan versiegeltes Geheimnis: [`.cursor/plans/mcp-sealed-token-auth.md`](.cursor/plans/mcp-sealed-token-auth.md)
+- Plan GitHub + sealed bearer (erledigt): [done/github-sealed-bearer.plan.md](done/github-sealed-bearer.plan.md) · Archiv: [obsolete/mcp-sealed-token-auth.md](obsolete/mcp-sealed-token-auth.md)

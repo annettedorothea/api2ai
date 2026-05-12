@@ -1004,13 +1004,6 @@ function appendSerializedQueryParams(searchParams, toolName, query) {
     }
 }
 
-function resolveAuthValue(auth) {
-    const secret = process.env[auth.env];
-    if (!secret) {
-        throw new Error('Missing required environment variable ' + auth.env + ' for API auth.');
-    }
-    return (auth.prefix ?? '') + secret;
-}
 
 export async function invokeTool(toolName, options = {}) {
     const tool = generatedTools.find((t) => t.toolName === toolName);
@@ -1031,14 +1024,6 @@ export async function invokeTool(toolName, options = {}) {
         'content-type': 'application/json',
         ...(options.headers ?? {})
     };
-    if (authConfig) {
-        const authValue = resolveAuthValue(authConfig);
-        if (authConfig.location === 'header') {
-            requestHeaders[authConfig.name] = authValue;
-        } else {
-            url.searchParams.set(authConfig.name, authValue);
-        }
-    }
 
     const requestInit = {
         method: tool.method,
@@ -1063,14 +1048,7 @@ export async function invokeTool(toolName, options = {}) {
         if (response.status === 401) {
             msg += ' Unauthorized.';
             if (authConfig) {
-                msg +=
-                    ' Check the credential in environment variable ' +
-                    authConfig.env +
-                    ' (' +
-                    authConfig.location +
-                    ' ' +
-                    authConfig.name +
-                    ').';
+                
             } else {
                 msg += ' The API may require authentication.';
             }

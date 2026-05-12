@@ -2,6 +2,9 @@
     "name": "api2ai-examples",
     "private": true,
     "type": "module",
+    "scripts": {
+        "seal:github-token": "node ./scripts/seal-bearer-helper.mjs seal --public-key ./seal-keys/public.pem"
+    },
     "dependencies": {
         "@modelcontextprotocol/sdk": "^1.29.0",
         "zod": "^4.4.3"

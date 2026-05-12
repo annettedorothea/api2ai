@@ -27,6 +27,13 @@
         "./generated/cli/mcp-serve.mjs",
         "./generated/tools/open-meteo-geocoding-tools.mjs"
       ]
+    },
+    "api2ai-github": {
+      "command": "node",
+      "args": [
+        "./generated/cli/mcp-serve.mjs",
+        "./generated/tools/github-tools.mjs"
+      ]
     }
   }
 }

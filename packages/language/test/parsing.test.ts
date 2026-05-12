@@ -3,6 +3,7 @@ import { parseHelper } from 'langium/test';
 import { beforeAll, describe, expect, test } from 'vitest';
 import { createApi2AiDslServices } from '../src/api-2-ai-dsl-module.js';
 import type { Model } from '../src/generated/ast.js';
+import { isBearerEnvAuth } from '../src/generated/ast.js';
 
 let parse: ReturnType<typeof parseHelper<Model>>;
 let document: LangiumDocument<Model> | undefined;
@@ -90,7 +91,7 @@ describe('Parsing tests', () => {
         document = await parse(`
             openapi "./petstore.openapi.yaml"
             baseUrl "https://example.com"
-            auth apiKey {
+            auth bearerEnv {
                 prefix: "Bearer "
                 env: "MY_TOKEN"
                 name: "Authorization"
@@ -104,9 +105,12 @@ describe('Parsing tests', () => {
 
         expect(document.parseResult.parserErrors).toHaveLength(0);
         const auth = document.parseResult.value.auth;
-        expect(auth?.location).toBe('header');
-        expect(auth?.name).toBe('Authorization');
-        expect(auth?.env).toBe('MY_TOKEN');
-        expect(auth?.prefix).toBe('Bearer ');
+        expect(auth && isBearerEnvAuth(auth)).toBe(true);
+        if (auth && isBearerEnvAuth(auth)) {
+            expect(auth.location).toBe('header');
+            expect(auth.name).toBe('Authorization');
+            expect(auth.env).toBe('MY_TOKEN');
+            expect(auth.prefix).toBe('Bearer ');
+        }
     });
 });

@@ -1,4 +1,5 @@
 import type { Auth, OpenApiOperationDetails, OpenApiParameterDetails, OpenApiSchema, Operation } from 'api-2-ai-dsl-language';
+import { isBearerEnvAuth, isBearerSealedAuth } from 'api-2-ai-dsl-language';
 
 /** JSON-schema-like dict emitted into generated modules / MCP. */
 export type JsonSchemaDict = Record<string, unknown>;
@@ -218,9 +219,15 @@ export function buildMcpDescription(operation: Operation, details: OpenApiOperat
     if (auth) {
         const prefixNote =
             auth.prefix !== undefined && String(auth.prefix).trim().length > 0 ? ' (prefix applied to the secret)' : '';
-        sections.push(
-            `Runtime auth: read API credential from environment variable ${auth.env}; send as ${auth.location} "${auth.name}"${prefixNote}.`
-        );
+        if (isBearerEnvAuth(auth)) {
+            sections.push(
+                `Runtime auth: read API credential from environment variable ${auth.env}; send as ${auth.location} "${auth.name}"${prefixNote}.`
+            );
+        } else if (isBearerSealedAuth(auth)) {
+            sections.push(
+                `Runtime auth: bearerSealed — decrypt tool argument sealedCredential (base64 A2S1 blob) with the private key: read inline PEM from environment variable ${auth.privateKeyEnv}, or if the value does not start with -----BEGIN, treat it as a filesystem path to a PEM file (relative paths are resolved from process.cwd() and parent directories); send as ${auth.location} "${auth.name}"${prefixNote}. Seal secrets with examples/scripts/seal-bearer-helper.mjs.`
+            );
+        }
     }
 
     return joinSections(sections);
