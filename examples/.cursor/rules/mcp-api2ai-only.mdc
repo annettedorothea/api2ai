@@ -32,6 +32,22 @@ alwaysApply: true
   - stattdessen ehrlich sagen, dass die Anfrage mit den vorliegenden **Tooldefinitionen allein** nicht zuverlaessig formuliert werden kann (optional: was im Schema **fehlt**).
 - **Ja, das ist beabsichtigt moeglich:** Der Agent soll sich hier **bewusst „schema-only“ verhalten** – keine parallele Spezifikation aus dem Repo, keine Vermutungen als Ersatz fuer fehlende Schema-Felder.
 
+## Sealed Bearer: Token-Dateien lesen
+
+Fuer Tools mit Pflichtargument **`sealedCredential`** (Runtime-Auth `bearerSealed`) darf der Agent das Geheimnis aus festen Token-Dateien im Workspace lesen — **nur** zum Befuellen von `sealedCredential`, nicht als Ersatz fuer OpenAPI-Parameter:
+
+| API / MCP | Datei (unter `examples/`) | Nutzer-Referenz |
+|-----------|---------------------------|-----------------|
+| GitHub | `github-sealed-token.txt` | `@github-sealed-token.txt` |
+
+**Vorgehen:**
+
+1. Datei lesen (Read-Tool oder vom Nutzer per `@…` angehaengt).
+2. **A2S1-Blob** uebernehmen: eine einzelne Base64-Zeile (ggf. die laengste Zeile ohne Leerzeichen); Kommentar- und Anleitungszeilen ignorieren.
+3. `sealedCredential` an **jeden** Aufruf eines `bearerSealed`-Tools der passenden API mitgeben.
+
+Diese Dateien sind die **einzige** Ausnahme vom Verbot, Repo-Dateien fuer Undokumentiertes zu nutzen; `*.api2ai`, `openapi/**` und `generated/**` bleiben fuer Parameter weiterhin tabu.
+
 - Fuege am Ende jeder Antwort in diesem Fall einen Abschnitt `Audit` hinzu, der alle MCP-Aufrufe vollstaendig listet:
   - Request: Servername, Toolname
   - Params: exakt uebergebene Parameter/Argumente

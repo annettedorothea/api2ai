@@ -163,6 +163,10 @@ Voraussetzungen: OpenAPI (oder minimale YAML) zum Staging, Staging-**Access Toke
 
 Ohne OpenAPI zuerst: minimale Spec nur für die Demo-Endpunkte schreiben (Pfade mit Staging per `curl` abgleichen).
 
+Optional in der `.api2ai` nach `baseUrl`: **`insecureEnv`** (ohne Wert) — deaktiviert TLS-Zertifikatsprüfung nur für lokales Dev (selbstsigniert/mkcert). In Produktion weglassen.
+
+**Customer portal:** OpenAPI, DSL, generated tools, and demo prompts are **not** in the repo — local guide at [`examples/customer-portal/README.md`](customer-portal/README.md) (gitignored; obtain from your team or create locally).
+
 ---
 
 ## MCP-Server in diesem Workspace

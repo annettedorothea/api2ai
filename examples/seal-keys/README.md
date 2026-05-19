@@ -24,6 +24,8 @@ From **`examples/`**:
 npm run seal:github-token -- --pat ghp_yourPatHere
 ```
 
+Seal a customer-portal JWT: see [**examples/customer-portal/README.md**](../customer-portal/README.md) (`npm run seal:token`).
+
 Pipe the token (no trailing newline in the secret is ideal):
 
 ```bash

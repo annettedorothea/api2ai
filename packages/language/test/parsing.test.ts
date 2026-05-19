@@ -87,6 +87,21 @@ describe('Parsing tests', () => {
         expect(op.description).toBe('long text');
     });
 
+    test('parses optional insecureEnv flag after baseUrl', async () => {
+        document = await parse(`
+            openapi "./petstore.openapi.yaml"
+            baseUrl "https://example.com"
+            insecureEnv
+            GET "/customers" {
+                toolName: "listCustomers"
+                intent: "list"
+            }
+        `);
+
+        expect(document.parseResult.parserErrors).toHaveLength(0);
+        expect(document.parseResult.value.insecureEnv).toBe(true);
+    });
+
     test('parses auth block with properties in shuffled order', async () => {
         document = await parse(`
             openapi "./petstore.openapi.yaml"

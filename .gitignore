@@ -15,3 +15,9 @@ syntaxes/
 examples/.env.local
 examples/seal-keys/*.pem
 *-sealed-token.txt
+examples/customer-portal-sealed-token.txt
+customer-portal.api2ai
+examples/openapi/customer-portal.openapi.yaml
+examples/generated/tools/customer-portal-tools.ts
+examples/generated/tools/customer-portal-tools.mjs
+examples/customer-portal/

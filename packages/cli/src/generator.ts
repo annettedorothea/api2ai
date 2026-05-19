@@ -176,7 +176,7 @@ function resolveToolsFromLoaded(model: Model, loaded: LoadedOpenApi): ResolvedTo
         return {
             toolName: requireToolName(operation),
             title: buildMcpTitle(operation, details),
-            description: buildMcpDescription(operation, details, model.auth),
+            description: buildMcpDescription(operation, details, model.auth, model.insecureEnv),
             method: operation.method,
             path: operation.path,
             example: operation.example
@@ -287,8 +287,16 @@ function mergeParallelToolData(
 function createSharedInvokeBlock(
     inputSchemaLiteralBody: string,
     querySerializationLiteralBody: string,
-    authKind: 'none' | 'env' | 'sealed'
+    authKind: 'none' | 'env' | 'sealed',
+    usesInsecureTls: boolean
 ): string {
+    const insecureTlsSetup = usesInsecureTls
+        ? `
+import { Agent, fetch } from 'undici';
+
+const insecureTlsDispatcher = new Agent({ connect: { rejectUnauthorized: false } });
+`
+        : '';
     const authHelpers =
         authKind === 'env'
             ? `
@@ -412,7 +420,14 @@ function resolveAuthSecret(authConfig, options) {
                     ' (inline PEM or path to a .pem file) and pass sealedCredential (base64) on invoke.';`
               : '';
 
-    return `
+    const insecureTlsFetch = usesInsecureTls
+        ? `
+    if (insecureTls) {
+        requestInit.dispatcher = insecureTlsDispatcher;
+    }`
+        : '';
+
+    return `${insecureTlsSetup}
 export const inputSchemaByTool = ${inputSchemaLiteralBody};
 
 export const queryParamSerializationByTool = ${querySerializationLiteralBody};
@@ -490,7 +505,7 @@ export async function invokeTool(toolName, options = {}) {
 
     if (options.body !== undefined && tool.method !== 'GET' && tool.method !== 'HEAD') {
         requestInit.body = JSON.stringify(options.body);
-    }
+    }${insecureTlsFetch}
 
     const response = await fetch(url, requestInit);
     if (!response.ok) {
@@ -577,7 +592,8 @@ function renderTsModule(
     inputSchemaBlock: string,
     model: Model,
     source: string,
-    authKind: 'none' | 'env' | 'sealed'
+    authKind: 'none' | 'env' | 'sealed',
+    usesInsecureTls: boolean
 ): string {
     const authConfigLiteral = renderAuthConfig(model);
     const sourceReference = renderSourceReference(source);
@@ -585,6 +601,9 @@ function renderTsModule(
         authKind === 'sealed'
             ? "import { createDecipheriv, privateDecrypt } from 'node:crypto';\nimport { readFileSync } from 'node:fs';\nimport path from 'node:path';\n\n"
             : '';
+    const insecureTlsExport = usesInsecureTls
+        ? '\nexport const insecureTls = true;\n'
+        : '\nexport const insecureTls = false;\n';
 
     const sealedInvokeField =
         authKind === 'sealed'
@@ -622,8 +641,7 @@ ${cryptoImport}/**
  * Referenced OpenAPI: ${model.openapi}
  */
 
-export const baseUrl = ${JSON.stringify(model.baseUrl)};
-
+export const baseUrl = ${JSON.stringify(model.baseUrl)};${insecureTlsExport}
 export type GeneratedTool = {
     toolName: string;
     title: string;
@@ -655,7 +673,8 @@ function renderJsModule(
     inputSchemaEmbedded: string,
     model: Model,
     source: string,
-    authKind: 'none' | 'env' | 'sealed'
+    authKind: 'none' | 'env' | 'sealed',
+    usesInsecureTls: boolean
 ): string {
     const authConfigLiteral = renderAuthConfig(model);
     const sourceReference = renderSourceReference(source);
@@ -669,6 +688,8 @@ function renderJsModule(
  */
 
 export const baseUrl = ${JSON.stringify(model.baseUrl)};
+
+export const insecureTls = ${usesInsecureTls ? 'true' : 'false'};
 
 export const generatedTools = ${enrichedToolsLiteral};
 
@@ -690,10 +711,11 @@ export async function generateOutput(model: Model, source: string, destination: 
     const querySerialization = buildQuerySerializationFromLoaded(model, loaded);
     const { toolsLiteral, schemasLiteral, querySerializationLiteral } = mergeParallelToolData(toolsMeta, schemas, querySerialization);
     const authKind = authRuntimeKind(model);
-    const invokeBlock = createSharedInvokeBlock(schemasLiteral, querySerializationLiteral, authKind);
+    const usesInsecureTls = model.insecureEnv === true;
+    const invokeBlock = createSharedInvokeBlock(schemasLiteral, querySerializationLiteral, authKind, usesInsecureTls);
 
-    fs.writeFileSync(tsPath, renderTsModule(toolsLiteral, invokeBlock, model, source, authKind));
-    fs.writeFileSync(jsPath, renderJsModule(toolsLiteral, invokeBlock, model, source, authKind));
+    fs.writeFileSync(tsPath, renderTsModule(toolsLiteral, invokeBlock, model, source, authKind, usesInsecureTls));
+    fs.writeFileSync(jsPath, renderJsModule(toolsLiteral, invokeBlock, model, source, authKind, usesInsecureTls));
 
     const cliDir = resolveGeneratedCliDir(tsPath);
     const mcpServePath = copyBundledMcpServeInto(cliDir);

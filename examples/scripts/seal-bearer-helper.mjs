@@ -6,9 +6,10 @@
  * Usage:
  *   node examples/scripts/seal-bearer-helper.mjs gen-keypair --out examples/seal-keys
  *   node examples/scripts/seal-bearer-helper.mjs seal --public-key examples/seal-keys/public.pem --pat ghp_...
- *   printf '%s' 'ghp_...' | node examples/scripts/seal-bearer-helper.mjs seal --public-key examples/seal-keys/public.pem --stdin
  *   npm run seal:github-token --prefix examples -- --pat ghp_...   (repo root)
  *   cd examples && npm run seal:github-token -- --pat ghp_...
+ *   npm run seal:token --prefix examples -- eyJ...                 (portal JWT as positional)
+ *   cd examples && npm run seal:token -- --token eyJ...
  *   node examples/scripts/seal-bearer-helper.mjs verify --private-key examples/seal-keys/private.pem --blob "<base64>"
  *
  * Prefer --stdin over --pat where possible: a PAT on the command line can appear in shell history and `ps`.
@@ -32,25 +33,41 @@ const AES_KEY_LEN = 32;
 const IV_LEN = 12;
 const TAG_LEN = 16;
 
+function readFlagValue(argv, i, flagName) {
+    const v = argv[++i];
+    if (v === undefined || v.startsWith('--')) {
+        console.error(`Missing value after ${flagName} (or value looks like another flag).`);
+        process.exit(1);
+    }
+    return v;
+}
+
 function parseArgs(argv) {
-    const out = { cmd: argv[2], flags: {} };
+    const out = { cmd: argv[2], flags: {}, positionals: [] };
     for (let i = 3; i < argv.length; i++) {
         const a = argv[i];
-        if (a === '--out') out.flags.out = argv[++i];
-        else if (a === '--public-key') out.flags.publicKey = argv[++i];
-        else if (a === '--private-key') out.flags.privateKey = argv[++i];
-        else if (a === '--pat') {
-            const v = argv[++i];
-            if (v === undefined || v.startsWith('--')) {
-                console.error('Missing value after --pat (or value looks like another flag).');
-                process.exit(1);
-            }
-            out.flags.pat = v;
-        } else if (a === '--blob') out.flags.blob = argv[++i];
-        else if (a === '--stdin') out.flags.stdin = true;
-        else {
+        if (a === '--out') {
+            out.flags.out = readFlagValue(argv, i, a);
+            i++;
+        } else if (a === '--public-key') {
+            out.flags.publicKey = readFlagValue(argv, i, a);
+            i++;
+        } else if (a === '--private-key') {
+            out.flags.privateKey = readFlagValue(argv, i, a);
+            i++;
+        } else if (a === '--pat' || a === '--token') {
+            out.flags.pat = readFlagValue(argv, i, a);
+            i++;
+        } else if (a === '--blob') {
+            out.flags.blob = readFlagValue(argv, i, a);
+            i++;
+        } else if (a === '--stdin') {
+            out.flags.stdin = true;
+        } else if (a.startsWith('--')) {
             console.error('Unknown arg:', a);
             process.exit(1);
+        } else {
+            out.positionals.push(a);
         }
     }
     return out;
@@ -146,24 +163,36 @@ function cmdGenKeypair(flags) {
     console.error(`Wrote ${pubPath} and ${privPath} (mode 600). Do not commit private.pem.`);
 }
 
-async function cmdSeal(flags) {
+async function cmdSeal(flags, positionals) {
     const pubPath = flags.publicKey;
     if (!pubPath) {
         console.error('Missing --public-key <path>');
         process.exit(1);
     }
-    if (flags.pat !== undefined && flags.stdin) {
-        console.error('Use only one of --pat or --stdin.');
+    const secretSources = [
+        flags.pat !== undefined,
+        flags.stdin,
+        positionals.length > 0
+    ].filter(Boolean).length;
+    if (secretSources > 1) {
+        console.error('Use only one of --pat/--token, a single positional secret, or --stdin.');
         process.exit(1);
     }
     const publicKeyPem = fs.readFileSync(pubPath, 'utf8');
     let secret;
     if (flags.pat !== undefined) {
         secret = String(flags.pat).trim();
+    } else if (positionals.length === 1) {
+        secret = String(positionals[0]).trim();
+    } else if (positionals.length > 1) {
+        console.error('Multiple positional secrets; pass one token or use --pat/--token once.');
+        process.exit(1);
     } else if (flags.stdin) {
         secret = await readStdinSecret();
     } else {
-        console.error('Provide the secret with --pat <token> or --stdin (pipe).');
+        console.error(
+            'Provide the secret with --pat <token>, --token <jwt>, one positional argument, or --stdin (pipe).'
+        );
         process.exit(1);
     }
     if (!secret) {
@@ -187,18 +216,22 @@ function cmdVerify(flags) {
     process.stdout.write(pt + '\n');
 }
 
-const { cmd, flags } = parseArgs(process.argv);
+const { cmd, flags, positionals } = parseArgs(process.argv);
 
 if (cmd === 'gen-keypair') {
     cmdGenKeypair(flags);
 } else if (cmd === 'seal') {
-    await cmdSeal(flags);
+    await cmdSeal(flags, positionals);
 } else if (cmd === 'verify') {
     cmdVerify(flags);
 } else {
     console.error(`Usage:
   node examples/scripts/seal-bearer-helper.mjs gen-keypair --out <dir>
-  node examples/scripts/seal-bearer-helper.mjs seal --public-key <public.pem> (--pat <token> | --stdin)
-  node examples/scripts/seal-bearer-helper.mjs verify --private-key <private.pem> --blob <base64>`);
+  node examples/scripts/seal-bearer-helper.mjs seal --public-key <public.pem> (--pat|--token <secret> | <secret> | --stdin)
+  node examples/scripts/seal-bearer-helper.mjs verify --private-key <private.pem> --blob <base64>
+
+  npm examples:
+  npm run seal:github-token -- --pat ghp_...
+  npm run seal:token -- eyJ...`);
     process.exit(1);
 }

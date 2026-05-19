@@ -184,7 +184,12 @@ function buildResponseSection(details: OpenApiOperationDetails): string {
 }
 
 /** Pre-condition: `operation` has passed validation, so `intent` is present. */
-export function buildMcpDescription(operation: Operation, details: OpenApiOperationDetails, auth?: Auth): string {
+export function buildMcpDescription(
+    operation: Operation,
+    details: OpenApiOperationDetails,
+    auth?: Auth,
+    insecureEnv?: boolean
+): string {
     const sections: string[] = [];
 
     sections.push(`Intent:\n${operation.intent!.trim()}`);
@@ -228,6 +233,12 @@ export function buildMcpDescription(operation: Operation, details: OpenApiOperat
                 `Runtime auth: bearerSealed — decrypt tool argument sealedCredential (base64 A2S1 blob) with the private key: read inline PEM from environment variable ${auth.privateKeyEnv}, or if the value does not start with -----BEGIN, treat it as a filesystem path to a PEM file (relative paths are resolved from process.cwd() and parent directories); send as ${auth.location} "${auth.name}"${prefixNote}. Seal secrets with examples/scripts/seal-bearer-helper.mjs.`
             );
         }
+    }
+
+    if (insecureEnv) {
+        sections.push(
+            'TLS: generated client disables TLS certificate verification (insecureEnv in .api2ai). Use only for local/dev endpoints with self-signed certificates.'
+        );
     }
 
     return joinSections(sections);
