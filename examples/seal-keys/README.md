@@ -1,5 +1,7 @@
 # Seal keys (local only)
 
+Vollständige Anleitung (TMDB, GitHub, Versicherungs-API): [**examples/README.md**](../README.md#sealed-bearer-github-versicherungs-api-).
+
 Generate a keypair (PEM files are **gitignored**):
 
 ```bash

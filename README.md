@@ -32,17 +32,30 @@ The generator writes TypeScript and ESM `.mjs` modules under [`examples/generate
 - `packages/extension`: Cursor/VSCode extension wrapper for the DSL.
 - `examples`: demo `.api2ai` files and OpenAPI under [`examples/openapi/`](examples/openapi/) (and peers), MCP config under [`examples/.cursor/`](examples/.cursor/), codegen output under [`examples/generated/tools/`](examples/generated/tools/) and [`examples/generated/cli/`](examples/generated/cli/).
 
-## Getting Started
+## Getting Started (Checkliste)
 
-Install dependencies and build the workspace:
+Voraussetzung: **Node.js 20+** (`node -v`).
 
-```bash
-npm install
-npm run langium:generate
-npm run build
-```
+| Schritt | Aktion |
+|--------|--------|
+| 1 | Repository klonen |
+| 2 | Im **Repository-Root:** `npm install` → `npm run langium:generate` → `npm run build` |
+| 3 | **`examples/`:** `cd examples && npm install` (MCP-SDK für die Demo-Server) |
+| 4 | **Secrets & Keys:** [examples/README.md](examples/README.md) — TMDB API-Key, Seal-Keys für `bearerSealed` (GitHub, interne APIs) |
+| 5 | **Cursor:** Workspace-Ordner **`examples`** öffnen (damit `.cursor/mcp.json` gilt) |
+| 6 | **MCP:** Einstellungen → Tools & MCP → `api2ai-*` Server aktivieren |
+| 7 | **Smoke-Test:** `npm run test:smoke` (Open-Meteo, im Root) |
+| 8 | **Chat-Test:** `api2ai wie ist das Wetter in Berlin` |
 
-Generate demo tool modules:
+Nach Änderungen an `.api2ai`: passendes `npm run generate:*` im Root, dann MCP neu laden (`Cmd+Shift+P` → MCP-Refresh oder `Developer: Reload Window`).
+
+**Neuer Rechner / Demo morgen:** dieselbe Checkliste; PEM-Keys und `.env.local` liegen nicht im Git — auf dem Arbeits-Rechner Keys neu erzeugen und Tokens neu versiegeln (siehe examples README).
+
+Weitere Docs: [docs/architecture-sketches.md](docs/architecture-sketches.md) · Demo-Prompts: [examples/README.md](examples/README.md)
+
+### Entwicklung (optional)
+
+Generierte Demos neu erzeugen:
 
 ```bash
 npm run generate:spaceflight-tools
@@ -52,23 +65,9 @@ npm run generate:tmdb-tools
 npm run generate:github-tools
 ```
 
-Run a quick smoke test against Open-Meteo:
+MCP-Prozess manuell starten: `npm run test:mcp`
 
-```bash
-npm run test:smoke
-```
-
-Start an MCP server from one generated module:
-
-```bash
-npm run test:mcp
-```
-
-For the included Cursor demo setup, either open `examples` as a workspace and use `examples/.cursor/mcp.json`, or start the `Run Extension` launch configuration, which opens the Extension Development Host with `examples` as the workspace. Enable the configured `api2ai-*` MCP servers there.
-
-To connect Cursor to the generated MCP servers, open Cursor Settings and go to `Tools & MCP` -> `Installed MCP Servers`. The servers from `examples/.cursor/mcp.json` should appear there and can be enabled or disabled individually.
-
-When a `.api2ai` file changes in the Extension Development Host, saving the file automatically regenerates the matching tool module. If you edit files outside the extension workflow, run the matching `npm run generate:*` command manually. After regeneration, reload the MCP server so the client picks up the new `.mjs` runtime. In Cursor, press `Cmd+Shift+P`, search for `MCP`, and run the available refresh/restart command. If the server list or tool schema still looks stale, run `Developer: Reload Window`.
+Extension Development Host: Launch-Konfiguration `Run Extension` (öffnet `examples` als Workspace). Beim Speichern von `.api2ai` dort regeneriert die Extension die Tools automatisch.
 
 ## Auth
 
@@ -83,7 +82,7 @@ auth bearerEnv {
 }
 ```
 
-For **sealed** credentials (PAT or other bearer secret encrypted for this MCP process), use `auth bearerSealed { … privateKeyEnv: "…" }` and pass a Base64 **A2S1** blob as `sealedCredential` on each `invokeTool` / MCP call. Keypair: `node examples/scripts/seal-bearer-helper.mjs gen-keypair --out examples/seal-keys` (see [`examples/seal-keys/README.md`](examples/seal-keys/README.md)). Seal a token with the example public key: `npm run seal:github-token --prefix examples -- --pat ghp_…` (from the repo root) or `cd examples && npm run seal:github-token -- --pat ghp_…`, or pipe to [`examples/scripts/seal-bearer-helper.mjs`](examples/scripts/seal-bearer-helper.mjs) `seal --public-key examples/seal-keys/public.pem --stdin`. See [`examples/github.api2ai`](examples/github.api2ai).
+For **sealed** credentials (PAT, staging access token, or other bearer secret encrypted for this MCP process), use `auth bearerSealed { … privateKeyEnv: "…" }` and pass a Base64 **A2S1** blob as `sealedCredential` on each `invokeTool` / MCP call. Step-by-step (keypair, seal, Versicherungs-API): [**examples/README.md**](examples/README.md) and [`examples/seal-keys/README.md`](examples/seal-keys/README.md). Example DSL: [`examples/github.api2ai`](examples/github.api2ai).
 
 ```txt
 auth bearerSealed {
@@ -96,7 +95,7 @@ auth bearerSealed {
 
 At runtime, **`bearerEnv`** reads the API secret from `process.env` at the variable you name in `env`. **`bearerSealed`** resolves the private key from `process.env[privateKeyEnv]`: if the value starts with `-----BEGIN`, it is used as inline PEM; otherwise it is treated as a filesystem path (absolute, or relative to `process.cwd()` and then to each parent directory up a few levels so differing MCP working directories still resolve repo-relative paths like `examples/seal-keys/private.pem`). It then decrypts the per-call `sealedCredential` argument (see script above).
 
-For the TMDB demo, `examples/.env` documents the required `TMDB_ACCESS_TOKEN` with a dummy value. Use a real token only in your local environment, for example via `examples/.env.local` or an exported shell variable.
+For the TMDB demo, set `TMDB_ACCESS_TOKEN` in `examples/.env.local` (see [examples/README.md](examples/README.md#tmdb-api-key-bearerenv)).
 
 ## DSL Extension Preview
 

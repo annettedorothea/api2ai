@@ -14,4 +14,4 @@ syntaxes/
 .idea
 examples/.env.local
 examples/seal-keys/*.pem
-github-sealed-token.txt
+*-sealed-token.txt
