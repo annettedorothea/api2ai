@@ -8,14 +8,14 @@ alwaysApply: true
 - Diese Regel greift nur, wenn die Nutzeranfrage mit `api2ai` beginnt.
 - Dann stelle ausschliesslich MCP-Anfragen an Server, deren Name mit `api2ai` beginnt oder `api2ai` enthaelt (z. B. `project-0-examples-api2ai-*`).
 - Nutze in diesem Fall keine anderen MCP-Server, auch wenn sie verfuegbar sind.
-- Nutze in diesem Fall keinerlei alternative Quellen ausserhalb dieser erlaubten MCP-Server:
-  - keine Websuche,
-  - kein WebFetch,
-  - keine nicht-MCP APIs als Ersatz.
-- Wenn eine solche Frage mit den erlaubten `api2ai*`-Tools nicht beantwortbar ist:
-  - sage klar, dass die Antwort aus den erlaubten Quellen nicht geliefert werden kann,
-  - fuehre keine Ersatzrecherche durch,
-  - gib keine Vermutungen oder erfundenen Details aus.
+- Nutze in diesem Fall **keine** allgemeine Recherche ausserhalb der erlaubten `api2ai*`-MCPs:
+  - **keine Websuche** (z. B. `WebSearch`),
+  - **kein WebFetch** zu URLs, die **nicht** aus einer Antwort eines erlaubten `api2ai*`-MCP-Tools in **derselben** Nutzeranfrage stammen,
+  - **keine nicht-MCP-APIs** als Ersatz fuer fehlende MCP-Endpunkte.
+- Wenn eine solche Frage mit den erlaubten `api2ai*`-Tools allein nicht beantwortbar ist:
+  - pruefe zuerst, ob die MCP-Antwort **verlinkte Quellen** liefert (z. B. `url`) und ob der Nutzer damit gemeint sein koennte (siehe Abschnitt unten),
+  - erst wenn auch das scheitert oder nicht zutrifft: klar sagen, dass die Antwort nicht geliefert werden kann,
+  - **keine** Ersatzrecherche (Suche, andere URLs, Vermutungen).
 - Bevorzuge explizit tool-basierte Antworten mit nachvollziehbarer Quelle aus den erlaubten `*api2ai*`-Servern.
 
 ## Tool-Wahl und Parameter ohne Workspace-/OpenAPI-Wissen
@@ -48,6 +48,18 @@ Fuer Tools mit Pflichtargument **`sealedCredential`** (Runtime-Auth `bearerSeale
 
 Diese Dateien sind die **einzige** Ausnahme vom Verbot, Repo-Dateien fuer Undokumentiertes zu nutzen; `*.api2ai`, `openapi/**` und `generated/**` bleiben fuer Parameter weiterhin tabu.
 
+## Quellen aus MCP-Antworten lesen
+
+- **Erlaubt:** Nach einem oder mehreren erfolgreichen Aufrufen erlaubter `api2ai*`-MCP-Tools darfst du **URLs und vergleichbare Links aus der Rohantwort** mit `WebFetch` (oder einem anderen **nicht-MCP** Lese-Tool, **kein** weiterer MCP-Server) laden, um z. B. Volltext, PDF oder Detailseiten zu holen, die der MCP selbst nicht liefert.
+- **Voraussetzungen:**
+  - Die URL muss **woertlich** in der MCP-Antwort stehen (typisch: Feld `url`, `link`, `html_url`, … — nur Felder, die im Response-Schema des genutzten Tools vorkommen).
+  - **Keine** URL raten, aus dem Gedaechtnis ergaenzen oder aus Workspace/OpenAPI konstruieren.
+  - Nur URLs abrufen, die **direkt** mit der Nutzeranfrage zusammenhaengen (z. B. „Volltext des neuesten Artikels“ → `url` des zuvor per MCP gelieferten Artikels).
+  - **Keine Websuche**, kein „aehnliche Seite finden“, kein Crawlen weiterer Links von der geladenen Seite — nur die explizit aus der MCP-Antwort uebernommene(n) URL(s).
+- **Reihenfolge:** Zuerst `api2ai*`-MCP; danach optional Quellen folgen. Nicht umgekehrt.
+- **Fehler:** Wenn `WebFetch` scheitert (Paywall, Block, Timeout), das sagen und die MCP-`url` fuer den Nutzer nennen — nicht durch Suche ersetzen.
+- **Inhalt:** Aus dem geladenen Text nur wiedergeben, was fuer die Frage noetig ist; keine erfundenen Passagen.
+
 ## Audit
 
 - Fuege am Ende jeder Antwort in diesem Fall einen Abschnitt `Audit` hinzu, der alle MCP-Aufrufe vollstaendig listet.
@@ -61,6 +73,12 @@ Diese Dateien sind die **einzige** Ausnahme vom Verbot, Repo-Dateien fuer Undoku
 - **MCP-Tool:** technischer Toolname (z. B. `openMeteoForecast`) — genau einmal, nicht als Ueberschrift wiederholen
 - **Params:** exakt uebergebene Parameter/Argumente
 - **Antwort:** relevante Rohantwort (oder Fehler)
+
+**Quellen-Follow-up (WebFetch o. a.):** Jeden Abruf einer URL aus einer MCP-Antwort zusaetzlich unter einer eigenen `###`-Ueberschrift dokumentieren (z. B. „Quelle aus MCP-Antwort laden“), mit:
+
+- **Quelle:** exakte URL (aus welchem MCP-Tool/Feld, z. B. `listSpaceflightArticles` → `results[0].url`)
+- **Methode:** z. B. `WebFetch`
+- **Ergebnis:** Kurzfassung oder Fehler (kein vollstaendiger HTML-Dump noetig)
 
 Wenn kein MCP-Request moeglich/erfolgreich war, dokumentiere das explizit.
 

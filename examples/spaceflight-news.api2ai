@@ -3,40 +3,40 @@ baseUrl "https://api.spaceflightnewsapi.net"
 
 GET "/v4/articles/" {
     toolName: "listSpaceflightArticles"
-    intent: "list recent spaceflight news articles"
+    intent: "list recent spaceflight news articles; API returns summary teaser only, full article text at each result url"
     example: "Get the latest 5 articles"
-    summary: "List spaceflight articles"
+    summary: "List spaceflight articles (teaser only; full text at response url)"
     }
 
 GET "/v4/articles/{id}/" {
     toolName: "getSpaceflightArticleById"
-    intent: "get one spaceflight article by id"
+    intent: "get one spaceflight article by id; API returns summary teaser only, full article text at url"
     example: "Get article with id 1"
-    summary: "Get article by ID"}
+    summary: "Get article by ID (teaser only; full text at response url)"}
 
 GET "/v4/blogs/" {
     toolName: "listSpaceflightBlogs"
-    intent: "list recent spaceflight blog posts"
+    intent: "list recent spaceflight blog posts; API returns summary teaser only, full post text at each result url"
     example: "Get the latest 5 blog posts"
-    summary: "List spaceflight blog posts"}
+    summary: "List spaceflight blog posts (teaser only; full text at response url)"}
 
 GET "/v4/blogs/{id}/" {
     toolName: "getSpaceflightBlogById"
-    intent: "get one spaceflight blog post by id"
+    intent: "get one spaceflight blog post by id; API returns summary teaser only, full post text at url"
     example: "Get blog post with id 1"
-    summary: "Get blog post by ID"}
+    summary: "Get blog post by ID (teaser only; full text at response url)"}
 
 GET "/v4/reports/" {
     toolName: "listSpaceflightReports"
-    intent: "list recent spaceflight reports"
+    intent: "list recent spaceflight reports; API returns summary teaser only, full report text at each result url"
     example: "Get the latest 5 reports"
-    summary: "List spaceflight reports"}
+    summary: "List spaceflight reports (teaser only; full text at response url)"}
 
 GET "/v4/reports/{id}/" {
     toolName: "getSpaceflightReportById"
-    intent: "get one spaceflight report by id"
+    intent: "get one spaceflight report by id; API returns summary teaser only, full report text at url"
     example: "Get report with id 1"
-    summary: "Get report by ID"}
+    summary: "Get report by ID (teaser only; full text at response url)"}
 
 GET "/v4/info/" {
     toolName: "getSpaceflightInfo"

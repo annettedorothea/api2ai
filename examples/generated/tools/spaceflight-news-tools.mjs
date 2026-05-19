@@ -8,48 +8,48 @@ export const baseUrl = "https://api.spaceflightnewsapi.net";
 export const generatedTools = [
     {
         "toolName": "listSpaceflightArticles",
-        "title": "List spaceflight articles",
-        "description": "Intent:\nlist recent spaceflight news articles\n\nMeta:\ntags: articles | operationId: articles_list\n\nExample:\nGet the latest 5 articles\n\nResponse:\nHTTP 200\nproperties (top-level): count, next, previous, results",
+        "title": "List spaceflight articles (teaser only; full text at response url)",
+        "description": "Intent:\nlist recent spaceflight news articles; API returns summary teaser only, full article text at each result url\n\nMeta:\ntags: articles | operationId: articles_list\n\nExample:\nGet the latest 5 articles\n\nResponse:\nHTTP 200\nproperties (top-level): count, next, previous, results",
         "method": "GET",
         "path": "/v4/articles/",
         "example": "Get the latest 5 articles"
     },
     {
         "toolName": "getSpaceflightArticleById",
-        "title": "Get article by ID",
-        "description": "Intent:\nget one spaceflight article by id\n\nMeta:\ntags: articles | operationId: articles_retrieve\n\nExample:\nGet article with id 1\n\nResponse:\nHTTP 200\nproperties (top-level): authors, events, featured, id, image_url, launches, news_site, published_at, summary, title, updated_at, url",
+        "title": "Get article by ID (teaser only; full text at response url)",
+        "description": "Intent:\nget one spaceflight article by id; API returns summary teaser only, full article text at url\n\nMeta:\ntags: articles | operationId: articles_retrieve\n\nExample:\nGet article with id 1\n\nResponse:\nHTTP 200\nproperties (top-level): authors, events, featured, id, image_url, launches, news_site, published_at, summary, title, updated_at, url",
         "method": "GET",
         "path": "/v4/articles/{id}/",
         "example": "Get article with id 1"
     },
     {
         "toolName": "listSpaceflightBlogs",
-        "title": "List spaceflight blog posts",
-        "description": "Intent:\nlist recent spaceflight blog posts\n\nMeta:\ntags: blogs | operationId: blogs_list\n\nExample:\nGet the latest 5 blog posts\n\nResponse:\nHTTP 200\nproperties (top-level): count, next, previous, results",
+        "title": "List spaceflight blog posts (teaser only; full text at response url)",
+        "description": "Intent:\nlist recent spaceflight blog posts; API returns summary teaser only, full post text at each result url\n\nMeta:\ntags: blogs | operationId: blogs_list\n\nExample:\nGet the latest 5 blog posts\n\nResponse:\nHTTP 200\nproperties (top-level): count, next, previous, results",
         "method": "GET",
         "path": "/v4/blogs/",
         "example": "Get the latest 5 blog posts"
     },
     {
         "toolName": "getSpaceflightBlogById",
-        "title": "Get blog post by ID",
-        "description": "Intent:\nget one spaceflight blog post by id\n\nMeta:\ntags: blogs | operationId: blogs_retrieve\n\nExample:\nGet blog post with id 1\n\nResponse:\nHTTP 200\nproperties (top-level): authors, events, featured, id, image_url, launches, news_site, published_at, summary, title, updated_at, url",
+        "title": "Get blog post by ID (teaser only; full text at response url)",
+        "description": "Intent:\nget one spaceflight blog post by id; API returns summary teaser only, full post text at url\n\nMeta:\ntags: blogs | operationId: blogs_retrieve\n\nExample:\nGet blog post with id 1\n\nResponse:\nHTTP 200\nproperties (top-level): authors, events, featured, id, image_url, launches, news_site, published_at, summary, title, updated_at, url",
         "method": "GET",
         "path": "/v4/blogs/{id}/",
         "example": "Get blog post with id 1"
     },
     {
         "toolName": "listSpaceflightReports",
-        "title": "List spaceflight reports",
-        "description": "Intent:\nlist recent spaceflight reports\n\nMeta:\ntags: reports | operationId: reports_list\n\nExample:\nGet the latest 5 reports\n\nResponse:\nHTTP 200\nproperties (top-level): count, next, previous, results",
+        "title": "List spaceflight reports (teaser only; full text at response url)",
+        "description": "Intent:\nlist recent spaceflight reports; API returns summary teaser only, full report text at each result url\n\nMeta:\ntags: reports | operationId: reports_list\n\nExample:\nGet the latest 5 reports\n\nResponse:\nHTTP 200\nproperties (top-level): count, next, previous, results",
         "method": "GET",
         "path": "/v4/reports/",
         "example": "Get the latest 5 reports"
     },
     {
         "toolName": "getSpaceflightReportById",
-        "title": "Get report by ID",
-        "description": "Intent:\nget one spaceflight report by id\n\nMeta:\ntags: reports | operationId: reports_retrieve\n\nExample:\nGet report with id 1\n\nResponse:\nHTTP 200\nproperties (top-level): authors, id, image_url, news_site, published_at, summary, title, updated_at, url",
+        "title": "Get report by ID (teaser only; full text at response url)",
+        "description": "Intent:\nget one spaceflight report by id; API returns summary teaser only, full report text at url\n\nMeta:\ntags: reports | operationId: reports_retrieve\n\nExample:\nGet report with id 1\n\nResponse:\nHTTP 200\nproperties (top-level): authors, id, image_url, news_site, published_at, summary, title, updated_at, url",
         "method": "GET",
         "path": "/v4/reports/{id}/",
         "example": "Get report with id 1"
