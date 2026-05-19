@@ -1,6 +1,6 @@
 # Seal keys (local only)
 
-Vollständige Anleitung (TMDB, GitHub, Versicherungs-API): [**examples/README.md**](../README.md#sealed-bearer-github-versicherungs-api-).
+Vollständige Anleitung (TMDB, GitHub, interne APIs): [**examples/README.md**](../README.md#sealed-bearer-github-interne-apis-).
 
 Generate a keypair (PEM files are **gitignored**):
 
@@ -24,7 +24,7 @@ From **`examples/`**:
 npm run seal:github-token -- --pat ghp_yourPatHere
 ```
 
-Seal a customer-portal JWT: see [**examples/customer-portal/README.md**](../customer-portal/README.md) (`npm run seal:token`).
+Seal a Bearer token for a local/BFF API: see [**examples/customer-portal/README.md**](../customer-portal/README.md) (`npm run seal:token`) or [**examples/README.md**](../README.md#eigene-api--bff-anbinden-lokal-nicht-im-repo).
 
 Pipe the token (no trailing newline in the secret is ideal):
 

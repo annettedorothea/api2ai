@@ -42,7 +42,7 @@ Voraussetzung: **Node.js 20+** (`node -v`).
 | 2 | Im **Repository-Root:** `npm install` → `npm run langium:generate` → `npm run build` |
 | 3 | **`examples/`:** `cd examples && npm install` (MCP-SDK für die Demo-Server) |
 | 4 | **Secrets & Keys:** [examples/README.md](examples/README.md) — TMDB API-Key, Seal-Keys für `bearerSealed` (GitHub, interne APIs) |
-| 5 | **Cursor:** Workspace-Ordner **`examples`** öffnen (damit `.cursor/mcp.json` gilt) |
+| 5 | **Cursor:** Workspace-Ordner **`examples`** öffnen; `cp .cursor/mcp.json.example .cursor/mcp.json` (lokal, gitignored) |
 | 6 | **MCP:** Einstellungen → Tools & MCP → `api2ai-*` Server aktivieren |
 | 7 | **Smoke-Test:** `npm run test:smoke` (Open-Meteo, im Root) |
 | 8 | **Chat-Test:** `api2ai wie ist das Wetter in Berlin` |
@@ -132,7 +132,7 @@ cursor --install-extension /pfad/zu/vscode-api2ai-0.0.1.vsix
 1. Eigenen Ordner als Workspace öffnen (z. B. nur `examples/` oder ein separates Demo-Projekt).
 2. `.api2ai` anlegen oder bearbeiten — beim **Speichern** werden `generated/tools/*` und `generated/cli/mcp-serve.mjs` erzeugt.
 3. Einmal `npm install` im Projektroot (MCP-Runtime: `@modelcontextprotocol/sdk`, `zod`), falls noch keine `package.json` existiert: legt der Generator beim ersten Generate eine minimale an.
-4. MCP-Einträge in `.cursor/mcp.json` — derzeit **manuell** (Vorlage: [examples/README.md](examples/README.md#mcp-konfiguration-cursormcpjson)).
+4. MCP: `mcp.json.example` nach `.cursor/mcp.json` kopieren und bei Bedarf erweitern — derzeit **manuell** (Vorlage: [examples/README.md](examples/README.md#mcp-konfiguration-cursormcpjson)).
 
 ## Auth
 
@@ -147,7 +147,7 @@ auth bearerEnv {
 }
 ```
 
-For **sealed** credentials (PAT, staging access token, or other bearer secret encrypted for this MCP process), use `auth bearerSealed { … privateKeyEnv: "…" }` and pass a Base64 **A2S1** blob as `sealedCredential` on each `invokeTool` / MCP call. Step-by-step (keypair, seal, Versicherungs-API): [**examples/README.md**](examples/README.md) and [`examples/seal-keys/README.md`](examples/seal-keys/README.md). Example DSL: [`examples/github.api2ai`](examples/github.api2ai).
+For **sealed** credentials (PAT, staging access token, or other bearer secret encrypted for this MCP process), use `auth bearerSealed { … privateKeyEnv: "…" }` and pass a Base64 **A2S1** blob as `sealedCredential` on each `invokeTool` / MCP call. Step-by-step (keypair, seal, internal/BFF APIs): [**examples/README.md**](examples/README.md) and [`examples/seal-keys/README.md`](examples/seal-keys/README.md). Example DSL: [`examples/github.api2ai`](examples/github.api2ai).
 
 ```txt
 auth bearerSealed {

@@ -16,9 +16,9 @@ sequenceDiagram
 
   rect rgb(245, 252, 245)
     Note over Vue, API: Normale App-Anfrage
-    Nutzer->>Vue: z.B. Verträge öffnen
-    Vue->>API: GET getContracts (Bearer Access Token)
-    API-->>Vue: Vertragsdaten
+    Nutzer->>Vue: z.B. Liste öffnen
+    Vue->>API: GET getItems (Bearer Access Token)
+    API-->>Vue: JSON-Daten
     Vue-->>Nutzer: Anzeige in UI
   end
 

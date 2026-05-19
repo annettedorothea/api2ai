@@ -1,6 +1,6 @@
 # examples — Setup, Secrets und Demo-Prompts
 
-Dieser Ordner ist der **Cursor-Workspace** für MCP-Demos: `.cursor/mcp.json`, `.api2ai`-Dateien, generierte Tools und lokale Secrets.
+Dieser Ordner ist der **Cursor-Workspace** für MCP-Demos: `.cursor/mcp.json` (lokal aus `mcp.json.example`), `.api2ai`-Dateien, generierte Tools und lokale Secrets.
 
 Ausführliche Repo-Checkliste: [README.md](../README.md#getting-started-checkliste) im Repository-Root.
 
@@ -21,7 +21,8 @@ Ausführliche Repo-Checkliste: [README.md](../README.md#getting-started-checklis
   cd examples
   npm install
   ```
-- [ ] **Secrets** (siehe unten): TMDB optional, Seal-Keys für `bearerSealed` (GitHub, Versicherungs-API, …)
+- [ ] **MCP-Konfig:** `cp .cursor/mcp.json.example .cursor/mcp.json` (Datei ist gitignored, pro Rechner/Projekt)
+- [ ] **Secrets** (siehe unten): TMDB optional, Seal-Keys für `bearerSealed` (GitHub, interne/BFF-APIs, …)
 - [ ] **Cursor:** Ordner `examples` als Workspace öffnen (nicht nur Repo-Root — sonst fehlt `.cursor/mcp.json`)
 - [ ] **MCP:** Einstellungen → Tools & MCP → Server `api2ai-*` aktivieren
 - [ ] **Test:** Chat mit `api2ai wie ist das Wetter in Berlin` (Open-Meteo, kein Token nötig)
@@ -31,9 +32,17 @@ Generierte Dateien unter `generated/` liegen im Git — Regenerieren nur nötig,
 
 ---
 
-## MCP-Konfiguration (`.cursor/mcp.json`)
+## MCP-Konfiguration (`mcp.json.example` → `mcp.json`)
 
-Nach einer **neuen** `.api2ai`-Datei oder nach Umbenennung musst du den passenden MCP-Server in [`.cursor/mcp.json`](.cursor/mcp.json) **manuell** ergänzen oder anpassen. Die Extension pflegt diese Datei **noch nicht** automatisch (geplant: Sync nach Generate).
+[`mcp.json.example`](.cursor/mcp.json.example) liegt im Git (öffentliche Demo-Server). Die aktive Datei [`.cursor/mcp.json`](.cursor/mcp.json) ist **gitignored** — umgebungs- und projektabhängig (welche APIs du anbindest).
+
+**Ersteinrichtung** (im Ordner `examples/`):
+
+```bash
+cp .cursor/mcp.json.example .cursor/mcp.json
+```
+
+Nach einer **neuen** `.api2ai`-Datei oder nach Umbenennung den passenden MCP-Server in **deiner lokalen** `.cursor/mcp.json` **manuell** ergänzen oder anpassen. Die Extension pflegt diese Datei **noch nicht** automatisch (geplant: Sync nach Generate).
 
 Vorlage pro Datei `meine-api.api2ai` (Server-ID = `api2ai-` + Dateiname ohne Endung):
 
@@ -71,7 +80,7 @@ TMDB nutzt **`auth bearerEnv`** — der Token liegt in einer Umgebungsvariable, 
 
 ---
 
-## Sealed Bearer (GitHub, Versicherungs-API, …)
+## Sealed Bearer (GitHub, interne APIs, …)
 
 Für APIs mit **`auth bearerSealed`** kommt das Geheimnis **verschlüsselt** pro Tool-Aufruf als `sealedCredential` (Format **A2S1**). Der MCP-Prozess entschlüsselt mit einem **lokalen Private Key** — das Klartext-Token steht nicht im Repo und nicht dauerhaft in der MCP-Konfiguration.
 
@@ -108,7 +117,7 @@ cd examples
 npm run seal:github-token -- --pat ghp_deinPat
 ```
 
-**Beliebiges Bearer-Token** (z. B. Staging-Token der Versicherungs-API):
+**Beliebiges Bearer-Token** (z. B. Staging-Token einer internen oder BFF-API):
 
 ```bash
 cd examples
@@ -122,7 +131,7 @@ printf '%s' 'DEIN_STAGING_ACCESS_TOKEN' | node examples/scripts/seal-bearer-help
   --public-key examples/seal-keys/public.pem --stdin
 ```
 
-Ausgabe: eine **Base64-Zeile** (A2S1-Blob). In eine Datei speichern, z. B. `insurance-sealed-token.txt` oder `github-sealed-token.txt` — Dateien `*-sealed-token.txt` sind **gitignored**.
+Ausgabe: eine **Base64-Zeile** (A2S1-Blob). In eine Datei speichern, z. B. `my-api-sealed-token.txt` oder `github-sealed-token.txt` — Dateien `*-sealed-token.txt` sind **gitignored**.
 
 Optional Verifikation:
 
@@ -136,7 +145,7 @@ node examples/scripts/seal-bearer-helper.mjs verify \
 
 - MCP-Tool-Aufruf mit Parameter **`sealedCredential`**: Inhalt der Base64-Zeile.
 - Demo-Prompt (GitHub): siehe unten — Token aus `@github-sealed-token.txt` referenzieren.
-- Für die Versicherungs-API: dasselbe Muster nach Anlegen von `insurance.api2ai` (oder Projektname) und Eintrag in `.cursor/mcp.json`.
+- Für eine interne API: dasselbe Muster nach Anlegen der `.api2ai` und Eintrag in **deiner lokalen** `.cursor/mcp.json`.
 
 ### 5. DSL-Beispiel (`bearerSealed`)
 
@@ -153,41 +162,30 @@ auth bearerSealed {
 
 ---
 
-## Versicherungs-API anbinden (interne Demo)
+## Eigene API / BFF anbinden (lokal, nicht im Repo)
 
-Voraussetzungen: OpenAPI (oder minimale YAML) zum Staging, Staging-**Access Token**, VPN/Netz vom Arbeits-Rechner falls nötig.
+**BFF** (*Backend for Frontend*): ein schlanker Backend-Dienst, den nur eure App/Agenten ansprechen — oft mit UI-tauglichen Endpunkten statt der vollen Kern-API.
 
-1. **OpenAPI** ablegen, z. B. `examples/openapi/insurance-portal.openapi.yaml` (Pfade/Schemas an eure Symfony-API anpassen).
-2. **`.api2ai`** anlegen, z. B. `examples/insurance.api2ai`:
-   - `baseUrl` auf Staging
-   - `auth bearerSealed { … }` wie oben
+Voraussetzungen: OpenAPI (oder minimale YAML) zur Ziel-API, Staging-**Access Token**, ggf. VPN/Netz vom Arbeits-Rechner.
+
+1. **OpenAPI** lokal ablegen, z. B. `examples/openapi/my-api.openapi.yaml` (gitignored oder außerhalb des Repos).
+2. **`.api2ai`** lokal anlegen, z. B. `examples/my-api.api2ai`:
+   - `baseUrl` auf Staging/Dev
+   - `auth bearerSealed { … }` wie oben (oder `bearerEnv`, falls passend)
    - **3–5 GET-Operationen** kuratieren (`toolName`, `intent`, `example`)
-3. **Generieren** (Repository-Root):
+3. **Generieren** (Repository-Root), Script in `package.json` optional:
    ```bash
-   npm run generate:insurance-tools
+   node ./packages/cli/bin/cli.js generate ./examples/my-api.api2ai ./examples/generated/tools/my-api-tools.ts
    ```
-   (Script einmal in Root-`package.json` ergänzen, sobald die Datei heißt — oder manuell:)
-   ```bash
-   node ./packages/cli/bin/cli.js generate ./examples/insurance.api2ai ./examples/generated/tools/insurance-tools.ts
-   ```
-4. **MCP** in [`.cursor/mcp.json`](.cursor/mcp.json) ergänzen:
-   ```json
-   "api2ai-insurance": {
-     "command": "node",
-     "args": [
-       "./generated/cli/mcp-serve.mjs",
-       "./generated/tools/insurance-tools.mjs"
-     ]
-   }
-   ```
-5. **Token versiegeln** (Abschnitt Sealed Bearer), Blob in `insurance-sealed-token.txt`.
+4. **MCP** in **deiner lokalen** [`.cursor/mcp.json`](.cursor/mcp.json) ergänzen (siehe Vorlage im Abschnitt MCP-Konfiguration).
+5. **Token versiegeln** (Abschnitt Sealed Bearer), Blob z. B. in `my-api-sealed-token.txt`.
 6. Cursor: Workspace `examples`, MCP reload, Test mit `api2ai …` und `sealedCredential` / Datei-Referenz.
 
 Ohne OpenAPI zuerst: minimale Spec nur für die Demo-Endpunkte schreiben (Pfade mit Staging per `curl` abgleichen).
 
 Optional in der `.api2ai` nach `baseUrl`: **`insecureEnv`** (ohne Wert) — deaktiviert TLS-Zertifikatsprüfung nur für lokales Dev (selbstsigniert/mkcert). In Produktion weglassen.
 
-**Customer portal:** OpenAPI, DSL, generated tools, and demo prompts are **not** in the repo — local guide at [`examples/customer-portal/README.md`](customer-portal/README.md) (gitignored; obtain from your team or create locally).
+**Projekt-spezifische APIs** (z. B. Kundenportal): OpenAPI, DSL, generierte Tools und Demo-Prompts **nicht** im Repo — lokale Anleitung unter [`examples/customer-portal/README.md`](customer-portal/README.md) (gitignored; vom Team beziehen oder selbst anlegen). MCP-Eintrag nur in der lokalen `mcp.json`.
 
 ---
 

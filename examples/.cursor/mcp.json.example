@@ -34,13 +34,6 @@
         "./generated/cli/mcp-serve.mjs",
         "./generated/tools/github-tools.mjs"
       ]
-    },
-    "api2ai-customer-portal": {
-      "command": "node",
-      "args": [
-        "./generated/cli/mcp-serve.mjs",
-        "./generated/tools/customer-portal-tools.mjs"
-      ]
     }
   }
 }
