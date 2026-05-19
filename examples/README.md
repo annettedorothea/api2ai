@@ -31,6 +31,28 @@ Generierte Dateien unter `generated/` liegen im Git — Regenerieren nur nötig,
 
 ---
 
+## MCP-Konfiguration (`.cursor/mcp.json`)
+
+Nach einer **neuen** `.api2ai`-Datei oder nach Umbenennung musst du den passenden MCP-Server in [`.cursor/mcp.json`](.cursor/mcp.json) **manuell** ergänzen oder anpassen. Die Extension pflegt diese Datei **noch nicht** automatisch (geplant: Sync nach Generate).
+
+Vorlage pro Datei `meine-api.api2ai` (Server-ID = `api2ai-` + Dateiname ohne Endung):
+
+```json
+"api2ai-meine-api": {
+  "command": "node",
+  "args": [
+    "./generated/cli/mcp-serve.mjs",
+    "./generated/tools/meine-api-tools.mjs"
+  ]
+}
+```
+
+Danach MCP neu laden (`Developer: Reload Window` oder MCP-Refresh in den Einstellungen).
+
+**Extension für Kollegen (ohne Monorepo):** VSIX bauen, verteilen und installieren — siehe [README.md](../README.md#extension-vsix--bauen-und-verteilen) (Artefakt: `packages/extension/vscode-api2ai-<version>.vsix`).
+
+---
+
 ## TMDB API-Key (`bearerEnv`)
 
 TMDB nutzt **`auth bearerEnv`** — der Token liegt in einer Umgebungsvariable, nicht als sealed Blob.

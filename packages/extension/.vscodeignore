@@ -1,2 +1,9 @@
 .vscode/**
 .vscode-test/**
+src/**
+tsconfig.json
+tsconfig.tsbuildinfo
+esbuild.mjs
+embed-cli-bundle.mjs
+langium-quickstart.md
+**/*.map

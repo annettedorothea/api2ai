@@ -69,6 +69,71 @@ MCP-Prozess manuell starten: `npm run test:mcp`
 
 Extension Development Host: Launch-Konfiguration `Run Extension` (öffnet `examples` als Workspace). Beim Speichern von `.api2ai` dort regeneriert die Extension die Tools automatisch.
 
+## Extension (VSIX) — bauen und verteilen
+
+Die **api2ai**-Extension (Syntax, Validation, Completion, Generate beim Speichern) liegt als VSIX-Paket vor. Kollegen brauchen dafür **kein** Klon dieses Repos — nur die VSIX-Datei und ihren eigenen Projektordner mit `.api2ai`.
+
+### Wo liegt die VSIX nach dem Build?
+
+Nach erfolgreichem Build:
+
+```text
+packages/extension/vscode-api2ai-<version>.vsix
+```
+
+Aktuell z. B. [`packages/extension/vscode-api2ai-0.0.1.vsix`](packages/extension/vscode-api2ai-0.0.1.vsix) — `<version>` entspricht `version` in [`packages/extension/package.json`](packages/extension/package.json).
+
+Die Datei ist **nicht** im Git (`*.vsix` in [`.gitignore`](.gitignore)); sie entsteht lokal beim Packen.
+
+### VSIX erstellen (Maintainer)
+
+Im **Repository-Root**, einmalig `npm install`, dann:
+
+```bash
+npm run extension:vsix
+```
+
+Das Script führt aus: `langium:generate` → `build` (inkl. eingebettetem CLI/MCP-Bundle) → `vsce package` im Workspace `packages/extension`.
+
+Nur das Paket neu bauen (wenn schon kompiliert):
+
+```bash
+npm run package:vsix -w packages/extension
+```
+
+### Verteilung an Kollegen
+
+| Weg | Hinweis |
+|-----|--------|
+| SharePoint / Teams / interner File-Share | Dateiname mit Version (`vscode-api2ai-0.0.1.vsix`) |
+| GitHub Release / Artifactory | VSIX als Release-Asset; keine Secrets im Paket |
+| E-Mail | Nur intern; Größe ca. 0,7–1 MB |
+
+**Versionierung:** Vor neuem Rollout `version` in `packages/extension/package.json` erhöhen, neu bauen, neue VSIX verteilen. Empfehlung: alte VSIX-Datei nicht überschreiben, sondern versioniert ablegen.
+
+**Nicht nötig für Kollegen:** Monorepo, `langium:generate`, Root-`npm run build` — das steckt in der VSIX.
+
+### Installation (Cursor / VS Code)
+
+1. VSIX-Datei bereitstellen (Download vom Share o. Ä.).
+2. **Cursor:** Seitenleiste **Extensions** → Menü `…` → **Install from VSIX…** (bzw. „Aus VSIX installieren…“) → VSIX wählen.
+3. **VS Code:** gleicher Menüpunkt unter Extensions.
+4. Fenster ggf. neu laden (`Developer: Reload Window`).
+
+CLI (optional):
+
+```bash
+cursor --install-extension /pfad/zu/vscode-api2ai-0.0.1.vsix
+# oder: code --install-extension …
+```
+
+### Nutzung nach der Installation
+
+1. Eigenen Ordner als Workspace öffnen (z. B. nur `examples/` oder ein separates Demo-Projekt).
+2. `.api2ai` anlegen oder bearbeiten — beim **Speichern** werden `generated/tools/*` und `generated/cli/mcp-serve.mjs` erzeugt.
+3. Einmal `npm install` im Projektroot (MCP-Runtime: `@modelcontextprotocol/sdk`, `zod`), falls noch keine `package.json` existiert: legt der Generator beim ersten Generate eine minimale an.
+4. MCP-Einträge in `.cursor/mcp.json` — derzeit **manuell** (Vorlage: [examples/README.md](examples/README.md#mcp-konfiguration-cursormcpjson)).
+
 ## Auth
 
 The DSL can reference API keys without embedding secret values in generated code:
@@ -97,9 +162,9 @@ At runtime, **`bearerEnv`** reads the API secret from `process.env` at the varia
 
 For the TMDB demo, set `TMDB_ACCESS_TOKEN` in `examples/.env.local` (see [examples/README.md](examples/README.md#tmdb-api-key-bearerenv)).
 
-## DSL Extension Preview
+## DSL Extension Preview (Entwicklung im Monorepo)
 
-To preview the language extension in Cursor/VSCode:
+Zum Debuggen der Extension **ohne** VSIX (Extension Development Host):
 
 1. Open this repository as workspace root.
 2. Run `npm install`, `npm run langium:generate`, and `npm run build`.
