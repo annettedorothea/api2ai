@@ -1,0 +1,38 @@
+sequenceDiagram
+  actor Nutzer as Nutzer
+  participant Vue as Vue-Frontend
+  participant IdP as IdP
+  participant API as Backend-API
+  participant Agent as Agent
+  participant MCP as MCP
+  participant Tools as Tools
+
+  rect rgb(245, 248, 252)
+    Note over Vue, IdP: Login (OAuth 2.0 / OIDC — Standard)
+    Nutzer->>Vue: App nutzen
+    Vue->>IdP: Login / Authorization
+    IdP-->>Vue: Access Token (Session)
+  end
+
+  rect rgb(245, 252, 245)
+    Note over Vue, API: Normale App-Anfrage
+    Nutzer->>Vue: z.B. Verträge öffnen
+    Vue->>API: GET getContracts (Bearer Access Token)
+    API-->>Vue: Vertragsdaten
+    Vue-->>Nutzer: Anzeige in UI
+  end
+
+  rect rgb(252, 248, 245)
+    Note over Vue, Tools: KI-Chat über api2ai
+    Nutzer->>Vue: Frage im KI-Chat
+    Vue->>Agent: Anfrage / Kontext + Access Token
+    Agent->>Agent: passendes Tool wählen
+    Agent->>MCP: tools/call (+ Access Token)
+    MCP->>Tools: invokeTool(..., Access Token)
+    Tools->>API: HTTP (Bearer Access Token)
+    API-->>Tools: JSON
+    Tools-->>MCP: Ergebnis
+    MCP-->>Agent: Tool-Response
+    Agent-->>Vue: Antwort für Chat
+    Vue-->>Nutzer: Ergebnis in UI
+  end

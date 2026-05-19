@@ -5,7 +5,8 @@ GET "/v4/articles/" {
     toolName: "listSpaceflightArticles"
     intent: "list recent spaceflight news articles"
     example: "Get the latest 5 articles"
-    summary: "List spaceflight articles"}
+    summary: "List spaceflight articles"
+    }
 
 GET "/v4/articles/{id}/" {
     toolName: "getSpaceflightArticleById"

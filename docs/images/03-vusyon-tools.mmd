@@ -1,0 +1,22 @@
+sequenceDiagram
+  participant User as Nutzer in Vusyon
+  participant Vusyon as Vusyon
+  participant Auth as API-Auth / IdP
+  participant MCP as MCP-Client in Vusyon
+  participant Srv as api2ai MCP Server
+  participant Mod as Generierte Tools
+  participant API as Backend-API
+
+  User->>Vusyon: Frage / Aufgabe
+  Vusyon->>Auth: Login / Token-Refresh
+  Auth-->>Vusyon: Access Token oder sealed blob
+
+  Vusyon->>MCP: tools/list, tools/call
+  MCP->>Srv: MCP-Protokoll
+  Srv->>Mod: invokeTool(...)
+  Mod->>API: HTTP laut DSL-Auth
+  API-->>Mod: JSON Response
+  Mod-->>Srv: Ergebnis
+  Srv-->>MCP: Tool-Response
+  MCP-->>Vusyon: strukturierte Daten
+  Vusyon-->>User: Antwort mit API-Daten

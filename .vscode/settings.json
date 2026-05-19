@@ -1,4 +1,5 @@
 {
+    "markdown.preview.security": "allowInsecureContent",
     "langium.config": "packages/language/langium-config.json",
     "npm.autoDetect": "off",
     "[api-2-ai-dsl]": {
