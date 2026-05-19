@@ -3,8 +3,6 @@
 Stand: Mai 2026 · PoC api2ai  
 Zweck: Präsentation — DSL, Runtime-Szenarien, Vusyon, Entwicklung mit Cursor
 
-> **Bilder in der Vorschau:** Einstellung `markdown.preview.security` = `allowInsecureContent` (Workspace + Cursor User Settings). Vorschau schließen und `Markdown: Open Preview` erneut öffnen. Falls weiterhin leer: Command Palette → `Markdown: Change Preview Security Settings` → *Allow insecure content*.
-
 ---
 
 ## 1. DSL-Projekt (Build-Zeit)
