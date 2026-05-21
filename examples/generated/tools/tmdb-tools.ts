@@ -4,6 +4,7 @@
  */
 
 export const baseUrl = "https://api.themoviedb.org";
+export const insecureTls = false;
 
 export type GeneratedTool = {
     toolName: string;
