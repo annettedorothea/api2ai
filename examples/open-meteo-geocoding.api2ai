@@ -1,6 +1,4 @@
 openapi "./openapi/open-meteo-geocoding.openapi.yaml"
-baseUrl "https://geocoding-api.open-meteo.com"
-
 
 GET "/v1/search" {
     toolName: "openMeteoGeocodeSearch"

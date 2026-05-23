@@ -3,15 +3,13 @@
  * Referenced OpenAPI: ./openapi/tmdb.openapi.json
  */
 
-export const baseUrl = "https://api.themoviedb.org";
-
 export const insecureTls = false;
 
 export const generatedTools = [
     {
         "toolName": "searchTmdbMovies",
         "title": "Search movies by title",
-        "description": "Intent:\nsearch TMDB movies by title\n\nAPI:\nSearch for movies by their original, translated and alternative titles.\n\nMeta:\noperationId: search-movie\n\nExample:\nFind movies named Dune\n\nResponse:\nHTTP 200\n200\nproperties (top-level): page, results, total_pages, total_results\n\nRuntime auth: read API credential from environment variable TMDB_ACCESS_TOKEN; send as header \"Authorization\" (prefix applied to the secret).",
+        "description": "Intent:\nsearch TMDB movies by title\n\nAPI:\nSearch for movies by their original, translated and alternative titles.\n\nMeta:\noperationId: search-movie\n\nExample:\nFind movies named Dune\n\nResponse:\nHTTP 200\n200\nproperties (top-level): page, results, total_pages, total_results\n\nRuntime auth: MCP host injects the API credential via --auth-env; send as header \"Authorization\" (prefix applied to the secret).",
         "method": "GET",
         "path": "/3/search/movie",
         "example": "Find movies named Dune"
@@ -19,7 +17,7 @@ export const generatedTools = [
     {
         "toolName": "getPopularTmdbMovies",
         "title": "Popular movies",
-        "description": "Intent:\nretrieve currently popular TMDB movies\n\nAPI:\nGet a list of movies ordered by popularity.\n\nMeta:\noperationId: movie-popular-list\n\nExample:\nShow popular movies\n\nResponse:\nHTTP 200\n200\nproperties (top-level): page, results, total_pages, total_results\n\nRuntime auth: read API credential from environment variable TMDB_ACCESS_TOKEN; send as header \"Authorization\" (prefix applied to the secret).",
+        "description": "Intent:\nretrieve currently popular TMDB movies\n\nAPI:\nGet a list of movies ordered by popularity.\n\nMeta:\noperationId: movie-popular-list\n\nExample:\nShow popular movies\n\nResponse:\nHTTP 200\n200\nproperties (top-level): page, results, total_pages, total_results\n\nRuntime auth: MCP host injects the API credential via --auth-env; send as header \"Authorization\" (prefix applied to the secret).",
         "method": "GET",
         "path": "/3/movie/popular",
         "example": "Show popular movies"
@@ -27,7 +25,7 @@ export const generatedTools = [
     {
         "toolName": "getTmdbMovieDetails",
         "title": "Movie details by ID",
-        "description": "Intent:\nretrieve details for a TMDB movie by id\n\nAPI:\nGet the top level details of a movie by ID.\n\nMeta:\noperationId: movie-details\n\nExample:\nGet details for movie id 693134\n\nResponse:\nHTTP 200\n200\nproperties (top-level): adult, backdrop_path, belongs_to_collection, budget, genres, homepage, id, imdb_id, origin_country, original_language, original_title, overview, popularity, poster_path, production_companies, production_countries, release_date, revenue, runtime, spoken_languages, status, tagline, title, video, vote_average, vote_count\n\nRuntime auth: read API credential from environment variable TMDB_ACCESS_TOKEN; send as header \"Authorization\" (prefix applied to the secret).",
+        "description": "Intent:\nretrieve details for a TMDB movie by id\n\nAPI:\nGet the top level details of a movie by ID.\n\nMeta:\noperationId: movie-details\n\nExample:\nGet details for movie id 693134\n\nResponse:\nHTTP 200\n200\nproperties (top-level): adult, backdrop_path, belongs_to_collection, budget, genres, homepage, id, imdb_id, origin_country, original_language, original_title, overview, popularity, poster_path, production_companies, production_countries, release_date, revenue, runtime, spoken_languages, status, tagline, title, video, vote_average, vote_count\n\nRuntime auth: MCP host injects the API credential via --auth-env; send as header \"Authorization\" (prefix applied to the secret).",
         "method": "GET",
         "path": "/3/movie/{movie_id}",
         "example": "Get details for movie id 693134"
@@ -35,7 +33,7 @@ export const generatedTools = [
     {
         "toolName": "getTmdbMovieCredits",
         "title": "Movie cast and crew",
-        "description": "Intent:\nretrieve cast and crew credits for a TMDB movie\n\nMeta:\noperationId: movie-credits\n\nExample:\nWho played in movie id 693134?\n\nResponse:\nHTTP 200\n200\nproperties (top-level): cast, crew, id\n\nRuntime auth: read API credential from environment variable TMDB_ACCESS_TOKEN; send as header \"Authorization\" (prefix applied to the secret).",
+        "description": "Intent:\nretrieve cast and crew credits for a TMDB movie\n\nMeta:\noperationId: movie-credits\n\nExample:\nWho played in movie id 693134?\n\nResponse:\nHTTP 200\n200\nproperties (top-level): cast, crew, id\n\nRuntime auth: MCP host injects the API credential via --auth-env; send as header \"Authorization\" (prefix applied to the secret).",
         "method": "GET",
         "path": "/3/movie/{movie_id}/credits",
         "example": "Who played in movie id 693134?"
@@ -43,7 +41,7 @@ export const generatedTools = [
     {
         "toolName": "discoverTmdbMovies",
         "title": "Discover movies with filters",
-        "description": "Intent:\ndiscover TMDB movies using rich filters such as genre, year, and rating\n\nAPI:\nFind movies using over 30 filters and sort options.\n\nMeta:\noperationId: discover-movie\n\nExample:\nFind highly rated science fiction movies from 2024\n\nResponse:\nHTTP 200\n200\nproperties (top-level): page, results, total_pages, total_results\n\nRuntime auth: read API credential from environment variable TMDB_ACCESS_TOKEN; send as header \"Authorization\" (prefix applied to the secret).",
+        "description": "Intent:\ndiscover TMDB movies using rich filters such as genre, year, and rating\n\nAPI:\nFind movies using over 30 filters and sort options.\n\nMeta:\noperationId: discover-movie\n\nExample:\nFind highly rated science fiction movies from 2024\n\nResponse:\nHTTP 200\n200\nproperties (top-level): page, results, total_pages, total_results\n\nRuntime auth: MCP host injects the API credential via --auth-env; send as header \"Authorization\" (prefix applied to the secret).",
         "method": "GET",
         "path": "/3/discover/movie",
         "example": "Find highly rated science fiction movies from 2024"
@@ -51,7 +49,7 @@ export const generatedTools = [
     {
         "toolName": "getTmdbMovieGenres",
         "title": "Movie genre list",
-        "description": "Intent:\nretrieve TMDB movie genres for filtering and lookup\n\nAPI:\nGet the list of official genres for movies.\n\nMeta:\noperationId: genre-movie-list\n\nExample:\nList available movie genres\n\nResponse:\nHTTP 200\n200\nproperties (top-level): genres\n\nRuntime auth: read API credential from environment variable TMDB_ACCESS_TOKEN; send as header \"Authorization\" (prefix applied to the secret).",
+        "description": "Intent:\nretrieve TMDB movie genres for filtering and lookup\n\nAPI:\nGet the list of official genres for movies.\n\nMeta:\noperationId: genre-movie-list\n\nExample:\nList available movie genres\n\nResponse:\nHTTP 200\n200\nproperties (top-level): genres\n\nRuntime auth: MCP host injects the API credential via --auth-env; send as header \"Authorization\" (prefix applied to the secret).",
         "method": "GET",
         "path": "/3/genre/movie/list",
         "example": "List available movie genres"
@@ -59,7 +57,7 @@ export const generatedTools = [
     {
         "toolName": "getTmdbTrendingMovies",
         "title": "Trending movies",
-        "description": "Intent:\nretrieve trending TMDB movies for a selected time window\n\nAPI:\nGet the trending movies on TMDB.\n\nMeta:\noperationId: trending-movies\n\nExample:\nShow trending movies this week\n\nResponse:\nHTTP 200\n200\nproperties (top-level): page, results, total_pages, total_results\n\nRuntime auth: read API credential from environment variable TMDB_ACCESS_TOKEN; send as header \"Authorization\" (prefix applied to the secret).",
+        "description": "Intent:\nretrieve trending TMDB movies for a selected time window\n\nAPI:\nGet the trending movies on TMDB.\n\nMeta:\noperationId: trending-movies\n\nExample:\nShow trending movies this week\n\nResponse:\nHTTP 200\n200\nproperties (top-level): page, results, total_pages, total_results\n\nRuntime auth: MCP host injects the API credential via --auth-env; send as header \"Authorization\" (prefix applied to the secret).",
         "method": "GET",
         "path": "/3/trending/movie/{time_window}",
         "example": "Show trending movies this week"
@@ -67,7 +65,7 @@ export const generatedTools = [
     {
         "toolName": "getTmdbMovieVideos",
         "title": "Movie videos and trailers",
-        "description": "Intent:\nretrieve videos such as trailers for a TMDB movie\n\nMeta:\noperationId: movie-videos\n\nExample:\nShow trailers for movie id 693134\n\nResponse:\nHTTP 200\n200\nproperties (top-level): id, results\n\nRuntime auth: read API credential from environment variable TMDB_ACCESS_TOKEN; send as header \"Authorization\" (prefix applied to the secret).",
+        "description": "Intent:\nretrieve videos such as trailers for a TMDB movie\n\nMeta:\noperationId: movie-videos\n\nExample:\nShow trailers for movie id 693134\n\nResponse:\nHTTP 200\n200\nproperties (top-level): id, results\n\nRuntime auth: MCP host injects the API credential via --auth-env; send as header \"Authorization\" (prefix applied to the secret).",
         "method": "GET",
         "path": "/3/movie/{movie_id}/videos",
         "example": "Show trailers for movie id 693134"
@@ -75,7 +73,7 @@ export const generatedTools = [
     {
         "toolName": "searchTmdbMulti",
         "title": "Multi search (movies, TV, people)",
-        "description": "Intent:\nsearch TMDB across movies, tv shows, and people\n\nAPI:\nUse multi search when you want to search for movies, TV shows and people in a single request.\n\nMeta:\noperationId: search-multi\n\nExample:\nSearch TMDB for Dune across all media types\n\nResponse:\nHTTP 200\n200\nproperties (top-level): page, results, total_pages, total_results\n\nRuntime auth: read API credential from environment variable TMDB_ACCESS_TOKEN; send as header \"Authorization\" (prefix applied to the secret).",
+        "description": "Intent:\nsearch TMDB across movies, tv shows, and people\n\nAPI:\nUse multi search when you want to search for movies, TV shows and people in a single request.\n\nMeta:\noperationId: search-multi\n\nExample:\nSearch TMDB for Dune across all media types\n\nResponse:\nHTTP 200\n200\nproperties (top-level): page, results, total_pages, total_results\n\nRuntime auth: MCP host injects the API credential via --auth-env; send as header \"Authorization\" (prefix applied to the secret).",
         "method": "GET",
         "path": "/3/search/multi",
         "example": "Search TMDB for Dune across all media types"
@@ -83,7 +81,7 @@ export const generatedTools = [
     {
         "toolName": "getTmdbMovieReleaseDates",
         "title": "Movie release dates",
-        "description": "Intent:\nretrieve release dates for a TMDB movie\n\nAPI:\nGet the release dates and certifications for a movie.\n\nMeta:\noperationId: movie-release-dates\n\nExample:\nWhen was movie id 693134 released?\n\nResponse:\nHTTP 200\n200\nproperties (top-level): id, results\n\nRuntime auth: read API credential from environment variable TMDB_ACCESS_TOKEN; send as header \"Authorization\" (prefix applied to the secret).",
+        "description": "Intent:\nretrieve release dates for a TMDB movie\n\nAPI:\nGet the release dates and certifications for a movie.\n\nMeta:\noperationId: movie-release-dates\n\nExample:\nWhen was movie id 693134 released?\n\nResponse:\nHTTP 200\n200\nproperties (top-level): id, results\n\nRuntime auth: MCP host injects the API credential via --auth-env; send as header \"Authorization\" (prefix applied to the secret).",
         "method": "GET",
         "path": "/3/movie/{movie_id}/release_dates",
         "example": "When was movie id 693134 released?"
@@ -91,7 +89,7 @@ export const generatedTools = [
     {
         "toolName": "getTmdbMovieRecommendations",
         "title": "Movie recommendations",
-        "description": "Intent:\nretrieve recommendations for a TMDB movie\n\nMeta:\noperationId: movie-recommendations\n\nExample:\nRecommendations for movie id 693134\n\nResponse:\nHTTP 200\n200\ntype: object (no inlined properties)\n\nRuntime auth: read API credential from environment variable TMDB_ACCESS_TOKEN; send as header \"Authorization\" (prefix applied to the secret).",
+        "description": "Intent:\nretrieve recommendations for a TMDB movie\n\nMeta:\noperationId: movie-recommendations\n\nExample:\nRecommendations for movie id 693134\n\nResponse:\nHTTP 200\n200\ntype: object (no inlined properties)\n\nRuntime auth: MCP host injects the API credential via --auth-env; send as header \"Authorization\" (prefix applied to the secret).",
         "method": "GET",
         "path": "/3/movie/{movie_id}/recommendations",
         "example": "Recommendations for movie id 693134"
@@ -99,7 +97,7 @@ export const generatedTools = [
     {
         "toolName": "getTmdbMovieSimilar",
         "title": "Retrieve similar movies",
-        "description": "Intent:\nretrieve similar movies for a TMDB movie\n\nAPI:\nGet the similar movies based on genres and keywords.\n\nMeta:\noperationId: movie-similar\n\nExample:\nFind similar movies to 693134\n\nResponse:\nHTTP 200\n200\nproperties (top-level): page, results, total_pages, total_results\n\nRuntime auth: read API credential from environment variable TMDB_ACCESS_TOKEN; send as header \"Authorization\" (prefix applied to the secret).",
+        "description": "Intent:\nretrieve similar movies for a TMDB movie\n\nAPI:\nGet the similar movies based on genres and keywords.\n\nMeta:\noperationId: movie-similar\n\nExample:\nFind similar movies to 693134\n\nResponse:\nHTTP 200\n200\nproperties (top-level): page, results, total_pages, total_results\n\nRuntime auth: MCP host injects the API credential via --auth-env; send as header \"Authorization\" (prefix applied to the secret).",
         "method": "GET",
         "path": "/3/movie/{movie_id}/similar",
         "example": "Find similar movies to 693134"
@@ -107,18 +105,18 @@ export const generatedTools = [
     {
         "toolName": "getTmdbMovieReviews",
         "title": "Retrieve movie reviews",
-        "description": "Intent:\nretrieve reviews for a TMDB movie\n\nAPI:\nGet the user reviews for a movie.\n\nMeta:\noperationId: movie-reviews\n\nExample:\nReviews for movie id 693134\n\nResponse:\nHTTP 200\n200\nproperties (top-level): id, page, results, total_pages, total_results\n\nRuntime auth: read API credential from environment variable TMDB_ACCESS_TOKEN; send as header \"Authorization\" (prefix applied to the secret).",
+        "description": "Intent:\nretrieve reviews for a TMDB movie\n\nAPI:\nGet the user reviews for a movie.\n\nMeta:\noperationId: movie-reviews\n\nExample:\nReviews for movie id 693134\n\nResponse:\nHTTP 200\n200\nproperties (top-level): id, page, results, total_pages, total_results\n\nRuntime auth: MCP host injects the API credential via --auth-env; send as header \"Authorization\" (prefix applied to the secret).",
         "method": "GET",
         "path": "/3/movie/{movie_id}/reviews",
         "example": "Reviews for movie id 693134"
     }
 ];
 
-const authConfig = {
-    "kind": "bearerEnv",
+export const requiresAuth = true;
+
+export const authConfig = {
     "location": "header",
     "name": "Authorization",
-    "env": "TMDB_ACCESS_TOKEN",
     "prefix": "Bearer "
 };
 
@@ -1246,11 +1244,11 @@ function appendSerializedQueryParams(searchParams, toolName, query) {
 }
 
 function resolveAuthSecret(authConfig, options) {
-    const secret = process.env[authConfig.env];
-    if (!secret) {
-        throw new Error('Missing required environment variable ' + authConfig.env + ' for API auth.');
+    const secret = options?.credential;
+    if (!secret || !String(secret).trim()) {
+        throw new Error('Missing API credential (MCP host must pass InvokeOptions.credential from --auth-env).');
     }
-    return (authConfig.prefix ?? '') + secret;
+    return (authConfig.prefix ?? '') + String(secret).trim();
 }
 
 export async function invokeTool(toolName, options = {}) {
@@ -1259,7 +1257,10 @@ export async function invokeTool(toolName, options = {}) {
         throw new Error('Unknown tool: ' + toolName);
     }
 
-    const effectiveBaseUrl = options.baseUrl ?? baseUrl;
+    if (!options.baseUrl || !String(options.baseUrl).trim()) {
+        throw new Error('Missing baseUrl (MCP host must pass InvokeOptions.baseUrl from --base-url-env).');
+    }
+    const effectiveBaseUrl = String(options.baseUrl).trim();
     const normalizedBaseUrl = effectiveBaseUrl.endsWith('/') ? effectiveBaseUrl.slice(0, -1) : effectiveBaseUrl;
     let resolvedPath = tool.path;
     for (const [key, value] of Object.entries(options.pathParams ?? {})) {
@@ -1305,9 +1306,7 @@ export async function invokeTool(toolName, options = {}) {
             msg += ' Unauthorized.';
             if (authConfig) {
                 msg +=
-                    ' Check the credential in environment variable ' +
-                    authConfig.env +
-                    ' (' +
+                    ' Check MCP host --auth-env and the configured environment variable (' +
                     authConfig.location +
                     ' ' +
                     authConfig.name +

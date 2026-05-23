@@ -38,7 +38,7 @@ async function completionAt(content: string, offset: number) {
 
 describe('Completion for operation path', () => {
     test('lists OpenAPI routes for GET', async () => {
-        const header = `\nopenapi "./petstore-mini.openapi.yaml"\nbaseUrl "https://x"\n\nGET "`;
+        const header = `\nopenapi "./petstore-mini.openapi.yaml"\n\nGET "`;
         const inner = `/pet`;
         const tail = `" {\n    toolName: "t"\n    intent: "x"\n}`;
         const content = header + inner + tail;
@@ -53,7 +53,7 @@ describe('Completion for operation path', () => {
     });
 
     test('filters POST routes by typed prefix', async () => {
-        const header = `\nopenapi "./petstore-mini.openapi.yaml"\nbaseUrl "https://x"\n\nPOST "`;
+        const header = `\nopenapi "./petstore-mini.openapi.yaml"\n\nPOST "`;
         const inner = `/pe`;
         const tail = `" {\n    toolName: "t"\n    intent: "x"\n}`;
         const content = header + inner + tail;
@@ -67,7 +67,7 @@ describe('Completion for operation path', () => {
     });
 
     test('inserts quoted paths after GET when path is not parsed yet (Ctrl+Space after verb)', async () => {
-        const header = `\nopenapi "./petstore-mini.openapi.yaml"\nbaseUrl "https://x"\n\nGET `;
+        const header = `\nopenapi "./petstore-mini.openapi.yaml"\n\nGET `;
         const content = header;
         const offset = content.length;
 
@@ -84,7 +84,7 @@ describe('Completion for operation path', () => {
     });
 
     test('lists routes when caret is on the Operation opening brace after the path', async () => {
-        const header = `\nopenapi "./petstore-mini.openapi.yaml"\nbaseUrl "https://x"\n\nGET "/pe" `;
+        const header = `\nopenapi "./petstore-mini.openapi.yaml"\n\nGET "/pe" `;
         const braceAndBody = `{\n    toolName: "t"\n    intent: "x"\n}`;
         const content = header + braceAndBody;
         const offset = content.indexOf('{');

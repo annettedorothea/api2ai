@@ -1,5 +1,4 @@
 openapi "./openapi/open-meteo.openapi.yaml"
-baseUrl "https://api.open-meteo.com"
 
 // NOTE: The OpenAPI summary/description for /v1/forecast are intentionally bad
 // (see examples/openapi/open-meteo.openapi.yaml, marked with \"CRAP\").

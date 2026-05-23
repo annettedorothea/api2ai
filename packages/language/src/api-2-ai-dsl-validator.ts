@@ -1,8 +1,7 @@
 import path from 'node:path';
 import type { ValidationAcceptor, ValidationChecks } from 'langium';
 import { CstUtils, isLeafCstNode } from 'langium';
-import type { Api2AiDslAstType, BearerEnvAuth, BearerSealedAuth, Model, Operation } from './generated/ast.js';
-import { isBearerEnvAuth, isBearerSealedAuth } from './generated/ast.js';
+import type { Api2AiDslAstType, Auth, Model, Operation } from './generated/ast.js';
 import type { Api2AiDslServices } from './api-2-ai-dsl-module.js';
 import {
     getCookieParameterMessages,
@@ -12,8 +11,7 @@ import {
 } from './openapi.js';
 
 const OPERATION_BLOCK_KEYS = ['toolName', 'intent', 'example', 'summary', 'description'] as const;
-const BEARER_ENV_BLOCK_KEYS = ['in', 'name', 'env', 'prefix'] as const;
-const BEARER_SEALED_BLOCK_KEYS = ['in', 'name', 'privateKeyEnv', 'prefix'] as const;
+const AUTH_BLOCK_KEYS = ['in', 'name', 'prefix'] as const;
 
 /**
  * Register custom validation checks.
@@ -45,71 +43,21 @@ export class Api2AiDslValidator {
             return;
         }
 
-        if (isBearerEnvAuth(auth)) {
-            this.checkBearerEnvAuth(auth, accept);
-        } else if (isBearerSealedAuth(auth)) {
-            this.checkBearerSealedAuth(auth, accept);
-        }
-    }
-
-    private checkBearerEnvAuth(auth: BearerEnvAuth, accept: ValidationAcceptor): void {
         if (auth.location === undefined) {
-            accept('error', 'auth bearerEnv requires `in: header` or `in: query`.', {
+            accept('error', 'auth requires `in: header` or `in: query`.', {
                 node: auth,
                 property: 'location'
             });
         }
         if (auth.name === undefined) {
-            accept('error', 'auth bearerEnv requires `name: "..."`.', {
+            accept('error', 'auth requires `name: "..."`.', {
                 node: auth,
                 property: 'name'
             });
         } else if (auth.name.trim().length === 0) {
-            accept('error', 'auth bearerEnv name must not be empty.', {
+            accept('error', 'auth name must not be empty.', {
                 node: auth,
                 property: 'name'
-            });
-        }
-        if (auth.env === undefined) {
-            accept('error', 'auth bearerEnv requires `env: "..."`.', {
-                node: auth,
-                property: 'env'
-            });
-        } else if (auth.env.trim().length === 0) {
-            accept('error', 'auth bearerEnv env must not be empty.', {
-                node: auth,
-                property: 'env'
-            });
-        }
-    }
-
-    private checkBearerSealedAuth(auth: BearerSealedAuth, accept: ValidationAcceptor): void {
-        if (auth.location === undefined) {
-            accept('error', 'auth bearerSealed requires `in: header` or `in: query`.', {
-                node: auth,
-                property: 'location'
-            });
-        }
-        if (auth.name === undefined) {
-            accept('error', 'auth bearerSealed requires `name: "..."`.', {
-                node: auth,
-                property: 'name'
-            });
-        } else if (auth.name.trim().length === 0) {
-            accept('error', 'auth bearerSealed name must not be empty.', {
-                node: auth,
-                property: 'name'
-            });
-        }
-        if (auth.privateKeyEnv === undefined) {
-            accept('error', 'auth bearerSealed requires `privateKeyEnv: "..."`.', {
-                node: auth,
-                property: 'privateKeyEnv'
-            });
-        } else if (auth.privateKeyEnv.trim().length === 0) {
-            accept('error', 'auth bearerSealed privateKeyEnv must not be empty.', {
-                node: auth,
-                property: 'privateKeyEnv'
             });
         }
     }
@@ -144,11 +92,7 @@ export class Api2AiDslValidator {
     private checkBlockDuplicateKeys(model: Model, accept: ValidationAcceptor): void {
         const auth = model.auth;
         if (auth) {
-            if (isBearerEnvAuth(auth)) {
-                this.reportDuplicateKeywords(auth, BEARER_ENV_BLOCK_KEYS, accept);
-            } else if (isBearerSealedAuth(auth)) {
-                this.reportDuplicateKeywords(auth, BEARER_SEALED_BLOCK_KEYS, accept);
-            }
+            this.reportDuplicateKeywords(auth, AUTH_BLOCK_KEYS, accept);
         }
         for (const operation of model.operations) {
             this.reportDuplicateKeywords(operation, OPERATION_BLOCK_KEYS, accept);
@@ -161,7 +105,7 @@ export class Api2AiDslValidator {
      * occurrence after the first one as an error.
      */
     private reportDuplicateKeywords(
-        node: Operation | BearerEnvAuth | BearerSealedAuth,
+        node: Operation | Auth,
         keywords: readonly string[],
         accept: ValidationAcceptor
     ): void {

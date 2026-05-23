@@ -3,7 +3,7 @@
  * Referenced OpenAPI: ./openapi/open-meteo-geocoding.openapi.yaml
  */
 
-export const baseUrl = "https://geocoding-api.open-meteo.com";
+export const insecureTls = false;
 
 export const generatedTools = [
     {
@@ -16,7 +16,9 @@ export const generatedTools = [
     }
 ];
 
-const authConfig = undefined;
+export const requiresAuth = false;
+
+export const authConfig = undefined;
 
 export const inputSchemaByTool = {
     "openMeteoGeocodeSearch": {
@@ -147,7 +149,10 @@ export async function invokeTool(toolName, options = {}) {
         throw new Error('Unknown tool: ' + toolName);
     }
 
-    const effectiveBaseUrl = options.baseUrl ?? baseUrl;
+    if (!options.baseUrl || !String(options.baseUrl).trim()) {
+        throw new Error('Missing baseUrl (MCP host must pass InvokeOptions.baseUrl from --base-url-env).');
+    }
+    const effectiveBaseUrl = String(options.baseUrl).trim();
     const normalizedBaseUrl = effectiveBaseUrl.endsWith('/') ? effectiveBaseUrl.slice(0, -1) : effectiveBaseUrl;
     let resolvedPath = tool.path;
     for (const [key, value] of Object.entries(options.pathParams ?? {})) {

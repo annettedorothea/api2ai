@@ -2,6 +2,7 @@ import chalk from 'chalk';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { pathToFileURL } from 'node:url';
+import { loadLocalEnvFiles } from './env.js';
 
 type InvokeArgs = {
     pathParams?: Record<string, string | number | boolean>;
@@ -12,7 +13,11 @@ type InvokeArgs = {
 
 type GeneratedRuntimeModule = {
     generatedTools: Array<{ toolName: string }>;
-    invokeTool: (toolName: string, options?: InvokeArgs) => Promise<unknown>;
+    requiresAuth?: boolean;
+    invokeTool: (
+        toolName: string,
+        options?: InvokeArgs & { baseUrl: string; credential?: string }
+    ) => Promise<unknown>;
 };
 
 function defaultSmokeArgs(toolName: string): InvokeArgs {
@@ -36,6 +41,48 @@ function defaultSmokeArgs(toolName: string): InvokeArgs {
     return {};
 }
 
+function resolveSmokeHostRuntime(modulePath: string, requiresAuth: boolean): { baseUrl: string; credential?: string } {
+    const base = path.basename(modulePath);
+    if (base.includes('tmdb')) {
+        const baseUrl = process.env.TMDB_BASE_URL?.trim();
+        const credential = process.env.TMDB_ACCESS_TOKEN?.trim();
+        if (!baseUrl) {
+            throw new Error('Set TMDB_BASE_URL (e.g. https://api.themoviedb.org) for smoke-generated.');
+        }
+        if (requiresAuth && !credential) {
+            throw new Error('Set TMDB_ACCESS_TOKEN for smoke-generated.');
+        }
+        return { baseUrl, credential };
+    }
+    if (base.includes('github')) {
+        const baseUrl = process.env.GITHUB_BASE_URL?.trim() ?? 'https://api.github.com';
+        const credential = process.env.GITHUB_TOKEN?.trim();
+        if (requiresAuth && !credential) {
+            throw new Error('Set GITHUB_TOKEN for smoke-generated.');
+        }
+        return { baseUrl, credential };
+    }
+    if (base.includes('open-meteo-geocoding')) {
+        const baseUrl =
+            process.env.OPEN_METEO_GEOCODING_BASE_URL?.trim() ?? 'https://geocoding-api.open-meteo.com';
+        return { baseUrl };
+    }
+    if (base.includes('open-meteo')) {
+        const baseUrl = process.env.OPEN_METEO_BASE_URL?.trim() ?? 'https://api.open-meteo.com';
+        return { baseUrl };
+    }
+    if (base.includes('spaceflight')) {
+        const baseUrl =
+            process.env.SPACEFLIGHT_NEWS_BASE_URL?.trim() ?? 'https://api.spaceflightnewsapi.net';
+        return { baseUrl };
+    }
+    const baseUrl = process.env.API2AI_SMOKE_BASE_URL?.trim();
+    if (!baseUrl) {
+        throw new Error('Set API2AI_SMOKE_BASE_URL for smoke-generated on this module.');
+    }
+    return { baseUrl };
+}
+
 async function importGeneratedModule(modulePath: string): Promise<GeneratedRuntimeModule> {
     if (modulePath.startsWith('file://')) {
         throw new Error('smoke-generated accepts local file paths only (no file:// URLs).');
@@ -48,15 +95,18 @@ async function importGeneratedModule(modulePath: string): Promise<GeneratedRunti
     }
     return {
         generatedTools: generatedTools as GeneratedRuntimeModule['generatedTools'],
+        requiresAuth: (imported as { requiresAuth?: unknown }).requiresAuth === true,
         invokeTool: invokeTool as GeneratedRuntimeModule['invokeTool']
     };
 }
 
 export async function runSmokeGenerated(modulePath: string, toolName: string, argsJson?: string): Promise<void> {
+    loadLocalEnvFiles([process.cwd(), path.dirname(path.resolve(modulePath))]);
+
     const generated = await importGeneratedModule(modulePath);
-    const tool = generated.generatedTools.find(item => item.toolName === toolName);
+    const tool = generated.generatedTools.find((item) => item.toolName === toolName);
     if (!tool) {
-        const available = generated.generatedTools.map(item => item.toolName).join(', ');
+        const available = generated.generatedTools.map((item) => item.toolName).join(', ');
         console.error(chalk.red(`Tool "${toolName}" not found. Available tools: ${available}`));
         process.exit(1);
     }
@@ -77,7 +127,7 @@ export async function runSmokeGenerated(modulePath: string, toolName: string, ar
         args = defaultSmokeArgs(toolName);
     }
 
-    const result = await generated.invokeTool(toolName, args);
-    console.log(chalk.green(`Smoke test passed for "${toolName}".`));
+    const hostRuntime = resolveSmokeHostRuntime(modulePath, generated.requiresAuth === true);
+    const result = await generated.invokeTool(toolName, { ...args, ...hostRuntime });
     console.log(JSON.stringify(result, null, 2));
 }

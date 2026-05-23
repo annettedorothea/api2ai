@@ -1,5 +1,4 @@
 openapi "./openapi/spaceflight-news.openapi.yaml"
-baseUrl "https://api.spaceflightnewsapi.net"
 
 GET "/v4/articles/" {
     toolName: "listSpaceflightArticles"

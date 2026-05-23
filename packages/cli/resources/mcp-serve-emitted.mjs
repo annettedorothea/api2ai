@@ -2,6 +2,7 @@
 
 // packages/cli/mcp-bundle/mcp-standalone-entry.ts
 import * as path3 from "node:path";
+import { pathToFileURL as pathToFileURL2 } from "node:url";
 
 // packages/cli/src/env.ts
 import * as fs from "node:fs";
@@ -62,13 +63,14 @@ function loadLocalEnvFiles(startDirs) {
         }
         visitedFiles.add(filePath);
         const content = fs.readFileSync(filePath, "utf-8");
+        const overrideExisting = fileName === ".env.local";
         for (const line of content.split(/\r?\n/u)) {
           const parsed = parseEnvLine(line);
           if (!parsed) {
             continue;
           }
           const [key, value] = parsed;
-          if (!protectedKeys.has(key) || loadedKeys.has(key)) {
+          if (overrideExisting || !protectedKeys.has(key) || loadedKeys.has(key)) {
             process.env[key] = value;
             loadedKeys.add(key);
           }
@@ -172,60 +174,59 @@ function jsonSchemaToZod(schema) {
 }
 var queryValueUnion = z.union([primitiveUnion, z.array(primitiveUnion)]);
 var fallbackInputSchema = z.object({
-  baseUrl: z.string().optional(),
   pathParams: z.record(z.string(), primitiveUnion).optional(),
   query: z.record(z.string(), queryValueUnion).optional(),
   headers: z.record(z.string(), z.string()).optional(),
-  body: z.unknown().optional(),
-  sealedCredential: z.string().optional()
+  body: z.unknown().optional()
 });
-function asLocalModulePath(modulePath) {
-  if (modulePath.startsWith("file://")) {
+function asLocalModulePath(modulePath2) {
+  if (modulePath2.startsWith("file://")) {
     throw new Error("mcp-serve.mjs accepts local file paths only (no file:// URLs).");
   }
-  return path2.resolve(modulePath);
+  return path2.resolve(modulePath2);
 }
-function readRuntimeModule(imported) {
-  const generatedTools = imported.generatedTools;
-  const invokeTool = imported.invokeTool;
+function readRuntimeModule(imported2) {
+  const generatedTools = imported2.generatedTools;
+  const invokeTool = imported2.invokeTool;
   if (!Array.isArray(generatedTools)) {
     throw new Error('Generated module must export "generatedTools" array.');
   }
   if (typeof invokeTool !== "function") {
     throw new Error('Generated module must export async "invokeTool" function.');
   }
-  const inputSchemaByTool = imported.inputSchemaByTool;
+  const inputSchemaByTool = imported2.inputSchemaByTool;
   return {
     generatedTools,
     invokeTool,
     inputSchemaByTool: inputSchemaByTool && typeof inputSchemaByTool === "object" && !Array.isArray(inputSchemaByTool) ? inputSchemaByTool : void 0
   };
 }
-async function importGeneratedModule(modulePath) {
-  const absolutePath = asLocalModulePath(modulePath);
-  const imported = await import(pathToFileURL(absolutePath).href);
-  if (!imported || typeof imported !== "object") {
-    throw new Error(`Generated module "${modulePath}" did not export an object.`);
+async function importGeneratedModule(modulePath2) {
+  const absolutePath = asLocalModulePath(modulePath2);
+  const imported2 = await import(pathToFileURL(absolutePath).href);
+  if (!imported2 || typeof imported2 !== "object") {
+    throw new Error(`Generated module "${modulePath2}" did not export an object.`);
   }
-  return readRuntimeModule(imported);
+  return readRuntimeModule(imported2);
 }
-async function importGeneratedModuleWithoutCache(modulePath) {
-  const absolutePath = asLocalModulePath(modulePath);
+async function importGeneratedModuleWithoutCache(modulePath2) {
+  const absolutePath = asLocalModulePath(modulePath2);
   const moduleUrl = pathToFileURL(absolutePath);
   moduleUrl.searchParams.set("t", `${Date.now()}`);
-  const imported = await import(moduleUrl.href);
-  if (!imported || typeof imported !== "object") {
-    throw new Error(`Generated module "${modulePath}" did not export an object.`);
+  const imported2 = await import(moduleUrl.href);
+  if (!imported2 || typeof imported2 !== "object") {
+    throw new Error(`Generated module "${modulePath2}" did not export an object.`);
   }
-  return readRuntimeModule(imported);
+  return readRuntimeModule(imported2);
 }
-async function runMcpServerFromGeneratedModule(modulePath, options = {}) {
-  const generated = await importGeneratedModule(modulePath);
-  const loadModule = options.reloadModulePerRequest ? () => importGeneratedModuleWithoutCache(modulePath) : () => importGeneratedModule(modulePath);
+async function runMcpServerFromGeneratedModule(modulePath2, options) {
+  const generated = await importGeneratedModule(modulePath2);
+  const loadModule = options.reloadModulePerRequest ? () => importGeneratedModuleWithoutCache(modulePath2) : () => importGeneratedModule(modulePath2);
   const server = new McpServer({
     name: "api2ai-generated-tools",
     version: "0.1.0"
   });
+  const { baseUrl, credential } = options.hostRuntime;
   for (const tool of generated.generatedTools) {
     const rawSchema = generated.inputSchemaByTool?.[tool.toolName];
     const inputSchema = rawSchema !== void 0 ? jsonSchemaToZod(rawSchema) : fallbackInputSchema;
@@ -240,12 +241,12 @@ async function runMcpServerFromGeneratedModule(modulePath, options = {}) {
         const a = args;
         const currentModule = await loadModule();
         const result = await currentModule.invokeTool(tool.toolName, {
-          baseUrl: a.baseUrl,
+          baseUrl,
+          credential,
           pathParams: a.pathParams,
           query: a.query,
           headers: a.headers,
-          body: a.body,
-          sealedCredential: a.sealedCredential
+          body: a.body
         });
         return {
           content: [
@@ -262,11 +263,75 @@ async function runMcpServerFromGeneratedModule(modulePath, options = {}) {
   await server.connect(transport);
 }
 
-// packages/cli/mcp-bundle/mcp-standalone-entry.ts
-var modPath = process.argv[2];
-if (!modPath) {
-  console.error("Usage: node mcp-serve.mjs <path-to-*-tools.mjs>");
-  process.exit(1);
+// packages/cli/mcp-bundle/parse-host-args.ts
+function parseMcpServeArgv(argv) {
+  const positional = [];
+  let baseUrlEnv;
+  let authEnv;
+  for (let i = 0; i < argv.length; i++) {
+    const arg = argv[i];
+    if (arg === "--base-url-env") {
+      baseUrlEnv = argv[++i];
+      if (!baseUrlEnv) {
+        throw new Error("Missing value after --base-url-env");
+      }
+      continue;
+    }
+    if (arg === "--auth-env") {
+      authEnv = argv[++i];
+      if (!authEnv) {
+        throw new Error("Missing value after --auth-env");
+      }
+      continue;
+    }
+    if (arg.startsWith("-")) {
+      throw new Error(`Unknown option: ${arg}`);
+    }
+    positional.push(arg);
+  }
+  const modulePath2 = positional[0];
+  if (!modulePath2) {
+    throw new Error("Usage: node mcp-serve.mjs <path-to-*-tools.mjs> --base-url-env VAR [--auth-env VAR]");
+  }
+  if (!baseUrlEnv) {
+    throw new Error("Required: --base-url-env <ENV_VAR_NAME>");
+  }
+  return {
+    modulePath: modulePath2,
+    hostConfig: {
+      baseUrlEnv,
+      authEnv
+    }
+  };
 }
-loadLocalEnvFiles([process.cwd(), path3.dirname(path3.resolve(modPath))]);
-await runMcpServerFromGeneratedModule(modPath);
+function validateHostConfigAtStartup(hostConfig2, requiresAuth2) {
+  const baseUrl = process.env[hostConfig2.baseUrlEnv]?.trim();
+  if (!baseUrl) {
+    throw new Error(
+      `Environment variable "${hostConfig2.baseUrlEnv}" is missing or empty (required by --base-url-env).`
+    );
+  }
+  if (!requiresAuth2) {
+    return { baseUrl };
+  }
+  if (!hostConfig2.authEnv) {
+    throw new Error("Generated tools require auth; pass --auth-env <ENV_VAR_NAME> on the MCP host.");
+  }
+  const credential = process.env[hostConfig2.authEnv]?.trim();
+  if (!credential) {
+    throw new Error(
+      `Environment variable "${hostConfig2.authEnv}" is missing or empty (required by --auth-env).`
+    );
+  }
+  return { baseUrl, credential };
+}
+
+// packages/cli/mcp-bundle/mcp-standalone-entry.ts
+var { modulePath, hostConfig } = parseMcpServeArgv(process.argv.slice(2));
+loadLocalEnvFiles([process.cwd(), path3.dirname(path3.resolve(modulePath))]);
+var imported = await import(pathToFileURL2(path3.resolve(modulePath)).href);
+var requiresAuth = imported.requiresAuth === true;
+var hostRuntime = validateHostConfigAtStartup(hostConfig, requiresAuth);
+var authPart = hostConfig.authEnv ? ` authEnv=${hostConfig.authEnv}` : "";
+console.error(`[mcp] baseUrlEnv=${hostConfig.baseUrlEnv}${authPart}`);
+await runMcpServerFromGeneratedModule(modulePath, { hostRuntime });

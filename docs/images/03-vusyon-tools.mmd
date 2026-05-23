@@ -9,7 +9,7 @@ sequenceDiagram
 
   User->>Vusyon: Frage / Aufgabe
   Vusyon->>Auth: Login / Token-Refresh
-  Auth-->>Vusyon: Access Token oder sealed blob
+  Auth-->>Vusyon: Access Token (Host env)
 
   Vusyon->>MCP: tools/list, tools/call
   MCP->>Srv: MCP-Protokoll

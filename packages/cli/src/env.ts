@@ -65,13 +65,14 @@ export function loadLocalEnvFiles(startDirs: string[]): string[] {
                 }
                 visitedFiles.add(filePath);
                 const content = fs.readFileSync(filePath, 'utf-8');
+                const overrideExisting = fileName === '.env.local';
                 for (const line of content.split(/\r?\n/u)) {
                     const parsed = parseEnvLine(line);
                     if (!parsed) {
                         continue;
                     }
                     const [key, value] = parsed;
-                    if (!protectedKeys.has(key) || loadedKeys.has(key)) {
+                    if (overrideExisting || !protectedKeys.has(key) || loadedKeys.has(key)) {
                         process.env[key] = value;
                         loadedKeys.add(key);
                     }

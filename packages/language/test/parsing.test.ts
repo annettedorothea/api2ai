@@ -3,7 +3,7 @@ import { parseHelper } from 'langium/test';
 import { beforeAll, describe, expect, test } from 'vitest';
 import { createApi2AiDslServices } from '../src/api-2-ai-dsl-module.js';
 import type { Model } from '../src/generated/ast.js';
-import { isBearerEnvAuth } from '../src/generated/ast.js';
+import { isAuth } from '../src/generated/ast.js';
 
 let parse: ReturnType<typeof parseHelper<Model>>;
 let document: LangiumDocument<Model> | undefined;
@@ -17,7 +17,6 @@ describe('Parsing tests', () => {
     test('parses minimal api2ai model with one operation', async () => {
         document = await parse(`
             openapi "./petstore.openapi.yaml"
-            baseUrl "https://petstore3.swagger.io/api/v3"
             GET "/customers" {
                 toolName: "getAllCustomers"
                 intent: "get all customers"
@@ -26,7 +25,6 @@ describe('Parsing tests', () => {
 
         expect(document.parseResult.parserErrors).toHaveLength(0);
         expect(document.parseResult.value.openapi).toBe('./petstore.openapi.yaml');
-        expect(document.parseResult.value.baseUrl).toBe('https://petstore3.swagger.io/api/v3');
         expect(document.parseResult.value.operations).toHaveLength(1);
         expect(document.parseResult.value.operations[0].method).toBe('GET');
         expect(document.parseResult.value.operations[0].path).toBe('/customers');
@@ -36,7 +34,6 @@ describe('Parsing tests', () => {
     test('parses operation with optional overrides', async () => {
         document = await parse(`
             openapi "./petstore.openapi.yaml"
-            baseUrl "https://example.com"
             GET "/customers" {
                 toolName: "listCustomers"
                 intent: "list"
@@ -54,7 +51,6 @@ describe('Parsing tests', () => {
     test('rejects legacy `title:` field that has been removed from the DSL', async () => {
         document = await parse(`
             openapi "./petstore.openapi.yaml"
-            baseUrl "https://example.com"
             GET "/customers" {
                 toolName: "listCustomers"
                 intent: "list"
@@ -68,7 +64,6 @@ describe('Parsing tests', () => {
     test('parses operation with properties in shuffled order', async () => {
         document = await parse(`
             openapi "./petstore.openapi.yaml"
-            baseUrl "https://example.com"
             GET "/customers" {
                 description: "long text"
                 summary: "the title"
@@ -87,10 +82,9 @@ describe('Parsing tests', () => {
         expect(op.description).toBe('long text');
     });
 
-    test('parses optional insecureEnv flag after baseUrl', async () => {
+    test('parses optional insecureEnv flag', async () => {
         document = await parse(`
             openapi "./petstore.openapi.yaml"
-            baseUrl "https://example.com"
             insecureEnv
             GET "/customers" {
                 toolName: "listCustomers"
@@ -105,10 +99,8 @@ describe('Parsing tests', () => {
     test('parses auth block with properties in shuffled order', async () => {
         document = await parse(`
             openapi "./petstore.openapi.yaml"
-            baseUrl "https://example.com"
-            auth bearerEnv {
+            auth {
                 prefix: "Bearer "
-                env: "MY_TOKEN"
                 name: "Authorization"
                 in: header
             }
@@ -120,11 +112,10 @@ describe('Parsing tests', () => {
 
         expect(document.parseResult.parserErrors).toHaveLength(0);
         const auth = document.parseResult.value.auth;
-        expect(auth && isBearerEnvAuth(auth)).toBe(true);
-        if (auth && isBearerEnvAuth(auth)) {
+        expect(auth && isAuth(auth)).toBe(true);
+        if (auth && isAuth(auth)) {
             expect(auth.location).toBe('header');
             expect(auth.name).toBe('Authorization');
-            expect(auth.env).toBe('MY_TOKEN');
             expect(auth.prefix).toBe('Bearer ');
         }
     });

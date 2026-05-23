@@ -27,7 +27,6 @@ describe('Validating', () => {
     test('accepts an operation that exists in referenced OpenAPI 3.x', async () => {
         document = await parseValidated(`
             openapi "./petstore-mini.openapi.yaml"
-            baseUrl "https://petstore3.swagger.io/api/v3"
             GET "/pet/{petId}" {
                 toolName: "getPetById"
                 intent: "get one pet"
@@ -37,14 +36,12 @@ describe('Validating', () => {
         expect(document.diagnostics ?? []).toHaveLength(0);
     });
 
-    test('accepts api key auth metadata without secret values', async () => {
+    test('accepts auth metadata without secret values', async () => {
         document = await parseValidated(`
             openapi "./petstore-mini.openapi.yaml"
-            baseUrl "https://petstore3.swagger.io/api/v3"
-            auth bearerEnv {
+            auth {
                 in: header
                 name: "Authorization"
-                env: "PETSTORE_TOKEN"
                 prefix: "Bearer "
             }
             GET "/pet/{petId}" {
@@ -56,14 +53,12 @@ describe('Validating', () => {
         expect(document.diagnostics ?? []).toHaveLength(0);
     });
 
-    test('reports an error for empty auth env names', async () => {
+    test('reports an error for empty auth name', async () => {
         document = await parseValidated(`
             openapi "./petstore-mini.openapi.yaml"
-            baseUrl "https://petstore3.swagger.io/api/v3"
-            auth bearerEnv {
+            auth {
                 in: header
-                name: "Authorization"
-                env: ""
+                name: ""
             }
             GET "/pet/{petId}" {
                 toolName: "getPetById"
@@ -72,18 +67,17 @@ describe('Validating', () => {
         `);
 
         const diagnostics = document.diagnostics ?? [];
-        expect(diagnostics.some(d => d.message.includes('auth bearerEnv env must not be empty'))).toBe(true);
+        expect(diagnostics.some((d) => d.message.includes('auth name must not be empty'))).toBe(true);
     });
 
     test('does not report OpenAPI existence for an incomplete operation before the path string', async () => {
         document = await parseValidated(`
             openapi "./petstore-mini.openapi.yaml"
-            baseUrl "https://petstore3.swagger.io/api/v3"
             GET 
         `);
 
         const diagnostics = document.diagnostics ?? [];
-        expect(diagnostics.some(d => d.message.includes('does not exist in the referenced OpenAPI 3.x spec'))).toBe(
+        expect(diagnostics.some((d) => d.message.includes('does not exist in the referenced OpenAPI 3.x spec'))).toBe(
             false
         );
     });
@@ -91,7 +85,6 @@ describe('Validating', () => {
     test('reports an error for unknown method+path', async () => {
         document = await parseValidated(`
             openapi "./petstore-mini.openapi.yaml"
-            baseUrl "https://petstore3.swagger.io/api/v3"
             DELETE "/customers" {
                 toolName: "deleteCustomer"
                 intent: "delete customer"
@@ -99,13 +92,14 @@ describe('Validating', () => {
         `);
 
         const diagnostics = document.diagnostics ?? [];
-        expect(diagnostics.some(d => d.message.includes('does not exist in the referenced OpenAPI 3.x spec'))).toBe(true);
+        expect(diagnostics.some((d) => d.message.includes('does not exist in the referenced OpenAPI 3.x spec'))).toBe(
+            true
+        );
     });
 
     test('reports an error for duplicate tool names', async () => {
         document = await parseValidated(`
             openapi "./petstore-mini.openapi.yaml"
-            baseUrl "https://petstore3.swagger.io/api/v3"
             GET "/pet/{petId}" {
                 toolName: "petTool"
                 intent: "first"
@@ -117,13 +111,12 @@ describe('Validating', () => {
         `);
 
         const diagnostics = document.diagnostics ?? [];
-        expect(diagnostics.some(d => d.message.includes('must be unique'))).toBe(true);
+        expect(diagnostics.some((d) => d.message.includes('must be unique'))).toBe(true);
     });
 
     test('reports an error when two tool names differ only by surrounding whitespace', async () => {
         document = await parseValidated(`
             openapi "./petstore-mini.openapi.yaml"
-            baseUrl "https://petstore3.swagger.io/api/v3"
             GET "/pet/{petId}" {
                 toolName: "petTool"
                 intent: "first"
@@ -141,7 +134,6 @@ describe('Validating', () => {
     test('reports an error for non OpenAPI 3.x specs', async () => {
         document = await parseValidated(`
             openapi "./swagger2.openapi.yaml"
-            baseUrl "https://petstore3.swagger.io/api/v3"
             GET "/pet/{petId}" {
                 toolName: "getPetById"
                 intent: "get one pet"
@@ -149,13 +141,12 @@ describe('Validating', () => {
         `);
 
         const diagnostics = document.diagnostics ?? [];
-        expect(diagnostics.some(d => d.message.includes('Cannot load OpenAPI document'))).toBe(true);
+        expect(diagnostics.some((d) => d.message.includes('Cannot load OpenAPI document'))).toBe(true);
     });
 
     test('reports unsupported style/explode serialization as DSL error', async () => {
         document = await parseValidated(`
             openapi "./unsupported-style.openapi.yaml"
-            baseUrl "https://petstore3.swagger.io/api/v3"
             GET "/pets" {
                 toolName: "listPets"
                 intent: "list pets by filter object"
@@ -163,16 +154,15 @@ describe('Validating', () => {
         `);
 
         const diagnostics = document.diagnostics ?? [];
-        expect(diagnostics.some(d => d.message.includes('supports query style "form" only'))).toBe(true);
+        expect(diagnostics.some((d) => d.message.includes('supports query style "form" only'))).toBe(true);
     });
 
     test('reports cookie parameters as unsupported for generated invoke', async () => {
         document = await parseValidated(`
             openapi "./cookie-param.openapi.yaml"
-            baseUrl "https://example.com"
             GET "/session" {
                 toolName: "getSession"
-                intent: "get session"
+                intent: "get one pet"
             }
         `);
 
@@ -183,7 +173,6 @@ describe('Validating', () => {
     test('reports operation missing required toolName', async () => {
         document = await parseValidated(`
             openapi "./petstore-mini.openapi.yaml"
-            baseUrl "https://petstore3.swagger.io/api/v3"
             GET "/pet/{petId}" {
                 intent: "get one pet"
             }
@@ -196,7 +185,6 @@ describe('Validating', () => {
     test('reports operation missing required intent', async () => {
         document = await parseValidated(`
             openapi "./petstore-mini.openapi.yaml"
-            baseUrl "https://petstore3.swagger.io/api/v3"
             GET "/pet/{petId}" {
                 toolName: "getPetById"
             }
@@ -206,11 +194,10 @@ describe('Validating', () => {
         expect(diagnostics.some((d) => d.message.includes('Operation requires `intent'))).toBe(true);
     });
 
-    test('reports auth bearerEnv missing required in/name/env', async () => {
+    test('reports auth missing required in/name', async () => {
         document = await parseValidated(`
             openapi "./petstore-mini.openapi.yaml"
-            baseUrl "https://petstore3.swagger.io/api/v3"
-            auth bearerEnv {
+            auth {
                 prefix: "Bearer "
             }
             GET "/pet/{petId}" {
@@ -220,15 +207,13 @@ describe('Validating', () => {
         `);
 
         const diagnostics = document.diagnostics ?? [];
-        expect(diagnostics.some((d) => d.message.includes('auth bearerEnv requires `in'))).toBe(true);
-        expect(diagnostics.some((d) => d.message.includes('auth bearerEnv requires `name'))).toBe(true);
-        expect(diagnostics.some((d) => d.message.includes('auth bearerEnv requires `env'))).toBe(true);
+        expect(diagnostics.some((d) => d.message.includes('auth requires `in: header`'))).toBe(true);
+        expect(diagnostics.some((d) => d.message.includes('auth requires `name'))).toBe(true);
     });
 
     test('reports duplicate key inside operation block', async () => {
         document = await parseValidated(`
             openapi "./petstore-mini.openapi.yaml"
-            baseUrl "https://petstore3.swagger.io/api/v3"
             GET "/pet/{petId}" {
                 toolName: "getPetById"
                 intent: "get one pet"
@@ -243,12 +228,10 @@ describe('Validating', () => {
     test('reports duplicate key inside auth block', async () => {
         document = await parseValidated(`
             openapi "./petstore-mini.openapi.yaml"
-            baseUrl "https://petstore3.swagger.io/api/v3"
-            auth bearerEnv {
+            auth {
                 in: header
                 name: "Authorization"
-                env: "MY_TOKEN"
-                env: "OTHER_TOKEN"
+                name: "X-Other"
             }
             GET "/pet/{petId}" {
                 toolName: "getPetById"
@@ -257,50 +240,12 @@ describe('Validating', () => {
         `);
 
         const diagnostics = document.diagnostics ?? [];
-        expect(diagnostics.some((d) => d.message.includes('Duplicate key "env"'))).toBe(true);
-    });
-
-    test('accepts bearerSealed auth with privateKeyEnv', async () => {
-        document = await parseValidated(`
-            openapi "./petstore-mini.openapi.yaml"
-            baseUrl "https://petstore3.swagger.io/api/v3"
-            auth bearerSealed {
-                in: header
-                name: "Authorization"
-                prefix: "Bearer "
-                privateKeyEnv: "API2AI_SEAL_PRIVATE_KEY"
-            }
-            GET "/pet/{petId}" {
-                toolName: "getPetById"
-                intent: "get one pet"
-            }
-        `);
-
-        expect(document.diagnostics ?? []).toHaveLength(0);
-    });
-
-    test('reports bearerSealed missing privateKeyEnv', async () => {
-        document = await parseValidated(`
-            openapi "./petstore-mini.openapi.yaml"
-            baseUrl "https://petstore3.swagger.io/api/v3"
-            auth bearerSealed {
-                in: header
-                name: "Authorization"
-            }
-            GET "/pet/{petId}" {
-                toolName: "getPetById"
-                intent: "get one pet"
-            }
-        `);
-
-        const diagnostics = document.diagnostics ?? [];
-        expect(diagnostics.some((d) => d.message.includes('auth bearerSealed requires `privateKeyEnv'))).toBe(true);
+        expect(diagnostics.some((d) => d.message.includes('Duplicate key "name"'))).toBe(true);
     });
 
     test('accepts an operation with properties in shuffled order', async () => {
         document = await parseValidated(`
             openapi "./petstore-mini.openapi.yaml"
-            baseUrl "https://petstore3.swagger.io/api/v3"
             GET "/pet/{petId}" {
                 description: "details"
                 summary: "the title"

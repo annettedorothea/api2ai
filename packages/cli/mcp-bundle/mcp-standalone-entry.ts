@@ -3,14 +3,20 @@
  * Not invoked via cli.js — bundled standalone for end-user MCP hosts.
  */
 import * as path from 'node:path';
+import { pathToFileURL } from 'node:url';
 import { loadLocalEnvFiles } from '../src/env.js';
 import { runMcpServerFromGeneratedModule } from './mcp-server.js';
+import { parseMcpServeArgv, validateHostConfigAtStartup } from './parse-host-args.js';
 
-const modPath = process.argv[2];
-if (!modPath) {
-    console.error('Usage: node mcp-serve.mjs <path-to-*-tools.mjs>');
-    process.exit(1);
-}
+const { modulePath, hostConfig } = parseMcpServeArgv(process.argv.slice(2));
 
-loadLocalEnvFiles([process.cwd(), path.dirname(path.resolve(modPath))]);
-await runMcpServerFromGeneratedModule(modPath);
+loadLocalEnvFiles([process.cwd(), path.dirname(path.resolve(modulePath))]);
+
+const imported = await import(pathToFileURL(path.resolve(modulePath)).href);
+const requiresAuth = (imported as { requiresAuth?: unknown }).requiresAuth === true;
+const hostRuntime = validateHostConfigAtStartup(hostConfig, requiresAuth);
+
+const authPart = hostConfig.authEnv ? ` authEnv=${hostConfig.authEnv}` : '';
+console.error(`[mcp] baseUrlEnv=${hostConfig.baseUrlEnv}${authPart}`);
+
+await runMcpServerFromGeneratedModule(modulePath, { hostRuntime });

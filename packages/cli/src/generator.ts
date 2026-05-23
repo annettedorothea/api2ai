@@ -1,5 +1,4 @@
 import type { Model, Operation } from 'api-2-ai-dsl-language';
-import { isBearerEnvAuth, isBearerSealedAuth } from 'api-2-ai-dsl-language';
 import { expandToNode, toString } from 'langium/generate';
 import type { LoadedOpenApi } from 'api-2-ai-dsl-language';
 import { loadOpenApi, makeOperationLookupKey } from 'api-2-ai-dsl-language';
@@ -203,37 +202,13 @@ function buildSchemasFromLoaded(model: Model, loaded: LoadedOpenApi): Record<str
             continue;
         }
         const base = buildToolInputSchema(details);
-        out[requireToolName(operation)] = augmentInvokeSchemaWithSealedCredential(base, model);
+        out[requireToolName(operation)] = base;
     }
     return out;
 }
 
-function augmentInvokeSchemaWithSealedCredential(schema: JsonSchemaDict, model: Model): JsonSchemaDict {
-    if (!model.auth || !isBearerSealedAuth(model.auth)) {
-        return schema;
-    }
-    const existingProps = (schema.properties ?? {}) as Record<string, JsonSchemaDict>;
-    const prevRequired = Array.isArray(schema.required) ? (schema.required as string[]) : [];
-    const required = prevRequired.includes('sealedCredential') ? prevRequired : [...prevRequired, 'sealedCredential'];
-    return {
-        ...schema,
-        properties: {
-            ...existingProps,
-            sealedCredential: {
-                type: 'string',
-                description:
-                    'Base64 A2S1 sealed credential (RSA-OAEP SHA-256 + AES-256-GCM). Generate with: node examples/scripts/seal-bearer-helper.mjs seal --public-key <public.pem> --pat <token> (or --stdin)'
-            }
-        },
-        required
-    };
-}
-
-function authRuntimeKind(model: Model): 'none' | 'env' | 'sealed' {
-    if (!model.auth) {
-        return 'none';
-    }
-    return isBearerSealedAuth(model.auth) ? 'sealed' : 'env';
+function authRuntimeKind(model: Model): 'none' | 'credential' {
+    return model.auth ? 'credential' : 'none';
 }
 
 function buildQuerySerializationFromLoaded(
@@ -287,7 +262,7 @@ function mergeParallelToolData(
 function createSharedInvokeBlock(
     inputSchemaLiteralBody: string,
     querySerializationLiteralBody: string,
-    authKind: 'none' | 'env' | 'sealed',
+    authKind: 'none' | 'credential',
     usesInsecureTls: boolean
 ): string {
     const insecureTlsSetup = usesInsecureTls
@@ -298,97 +273,16 @@ const insecureTlsDispatcher = new Agent({ connect: { rejectUnauthorized: false }
 `
         : '';
     const authHelpers =
-        authKind === 'env'
+        authKind === 'credential'
             ? `
 function resolveAuthSecret(authConfig, options) {
-    const secret = process.env[authConfig.env];
-    if (!secret) {
-        throw new Error('Missing required environment variable ' + authConfig.env + ' for API auth.');
+    const secret = options?.credential;
+    if (!secret || !String(secret).trim()) {
+        throw new Error('Missing API credential (MCP host must pass InvokeOptions.credential from --auth-env).');
     }
-    return (authConfig.prefix ?? '') + secret;
+    return (authConfig.prefix ?? '') + String(secret).trim();
 }`
-            : authKind === 'sealed'
-              ? `
-function unsealA2S1(b64, privateKeyPem) {
-    const blob = Buffer.from(String(b64).trim(), 'base64');
-    const MAGIC = Buffer.from('A2S1', 'ascii');
-    if (blob.length < MAGIC.length + 2 + 12 + 16) {
-        throw new Error('sealedCredential blob too short');
-    }
-    if (!blob.subarray(0, MAGIC.length).equals(MAGIC)) {
-        throw new Error('sealedCredential: bad magic (expected A2S1 wire format)');
-    }
-    let o = MAGIC.length;
-    const rsaLen = blob.readUInt16BE(o);
-    o += 2;
-    const rsaCipher = blob.subarray(o, o + rsaLen);
-    o += rsaLen;
-    const iv = blob.subarray(o, o + 12);
-    o += 12;
-    const aesPayload = blob.subarray(o);
-    const tag = aesPayload.subarray(aesPayload.length - 16);
-    const enc = aesPayload.subarray(0, aesPayload.length - 16);
-    const aesKey = privateDecrypt({ key: privateKeyPem, padding: 4, oaepHash: 'sha256' }, rsaCipher);
-    const decipher = createDecipheriv('aes-256-gcm', aesKey, iv, { authTagLength: 16 });
-    decipher.setAuthTag(tag);
-    return Buffer.concat([decipher.update(enc), decipher.final()]).toString('utf8');
-}
-
-function loadPrivateKeyPem(privateKeyEnv) {
-    const raw = process.env[privateKeyEnv];
-    if (!raw || !String(raw).trim()) {
-        throw new Error('Missing private key PEM in environment variable ' + privateKeyEnv + ' for bearerSealed auth.');
-    }
-    const trimmed = String(raw).trim();
-    if (trimmed.startsWith('-----BEGIN')) {
-        return trimmed;
-    }
-    const rel = trimmed.replace(/^\\.\\/+/, '');
-    const candidates = [];
-    const seen = new Set();
-    function add(p) {
-        const resolved = path.resolve(p);
-        if (!seen.has(resolved)) {
-            seen.add(resolved);
-            candidates.push(resolved);
-        }
-    }
-    add(trimmed);
-    let dir = process.cwd();
-    for (let i = 0; i < 12; i++) {
-        add(path.join(dir, rel));
-        const up = path.dirname(dir);
-        if (up === dir) {
-            break;
-        }
-        dir = up;
-    }
-    let lastErr;
-    for (const p of candidates) {
-        try {
-            return readFileSync(p, 'utf8').trim();
-        } catch (e) {
-            lastErr = e;
-        }
-    }
-    const msg = lastErr instanceof Error ? lastErr.message : String(lastErr);
-    throw new Error(
-        'Failed to read private key from path in environment variable ' +
-            privateKeyEnv +
-            ' (expected inline PEM starting with -----BEGIN, an absolute path, or a path relative to cwd / parent directories up to the workspace root): ' +
-            msg
-    );
-}
-
-function resolveAuthSecret(authConfig, options) {
-    const b64 = options?.sealedCredential;
-    if (!b64 || typeof b64 !== 'string' || !String(b64).trim()) {
-        throw new Error('InvokeOptions.sealedCredential (base64) is required for bearerSealed auth.');
-    }
-    const token = unsealA2S1(b64, loadPrivateKeyPem(authConfig.privateKeyEnv));
-    return (authConfig.prefix ?? '') + token;
-}`
-              : '';
+            : '';
 
     const resolveCall =
         authKind === 'none'
@@ -404,21 +298,14 @@ function resolveAuthSecret(authConfig, options) {
     }`;
 
     const auth401Block =
-        authKind === 'env'
+        authKind === 'credential'
             ? `msg +=
-                    ' Check the credential in environment variable ' +
-                    authConfig.env +
-                    ' (' +
+                    ' Check MCP host --auth-env and the configured environment variable (' +
                     authConfig.location +
                     ' ' +
                     authConfig.name +
                     ').';`
-            : authKind === 'sealed'
-              ? `msg +=
-                    ' Check environment variable ' +
-                    authConfig.privateKeyEnv +
-                    ' (inline PEM or path to a .pem file) and pass sealedCredential (base64) on invoke.';`
-              : '';
+            : '';
 
     const insecureTlsFetch = usesInsecureTls
         ? `
@@ -484,7 +371,10 @@ export async function invokeTool(toolName, options = {}) {
         throw new Error('Unknown tool: ' + toolName);
     }
 
-    const effectiveBaseUrl = options.baseUrl ?? baseUrl;
+    if (!options.baseUrl || !String(options.baseUrl).trim()) {
+        throw new Error('Missing baseUrl (MCP host must pass InvokeOptions.baseUrl from --base-url-env).');
+    }
+    const effectiveBaseUrl = String(options.baseUrl).trim();
     const normalizedBaseUrl = effectiveBaseUrl.endsWith('/') ? effectiveBaseUrl.slice(0, -1) : effectiveBaseUrl;
     let resolvedPath = tool.path;
     for (const [key, value] of Object.entries(options.pathParams ?? {})) {
@@ -554,33 +444,15 @@ function renderAuthConfig(model: Model): string {
     if (!model.auth) {
         return 'undefined';
     }
-    if (isBearerSealedAuth(model.auth)) {
-        return JSON.stringify(
-            {
-                kind: 'bearerSealed',
-                location: model.auth.location,
-                name: model.auth.name,
-                privateKeyEnv: model.auth.privateKeyEnv,
-                prefix: model.auth.prefix
-            },
-            null,
-            4
-        );
-    }
-    if (isBearerEnvAuth(model.auth)) {
-        return JSON.stringify(
-            {
-                kind: 'bearerEnv',
-                location: model.auth.location,
-                name: model.auth.name,
-                env: model.auth.env,
-                prefix: model.auth.prefix
-            },
-            null,
-            4
-        );
-    }
-    return 'undefined';
+    return JSON.stringify(
+        {
+            location: model.auth.location,
+            name: model.auth.name,
+            prefix: model.auth.prefix
+        },
+        null,
+        4
+    );
 }
 
 function renderSourceReference(source: string): string {
@@ -592,56 +464,30 @@ function renderTsModule(
     inputSchemaBlock: string,
     model: Model,
     source: string,
-    authKind: 'none' | 'env' | 'sealed',
+    authKind: 'none' | 'credential',
     usesInsecureTls: boolean
 ): string {
     const authConfigLiteral = renderAuthConfig(model);
     const sourceReference = renderSourceReference(source);
-    const cryptoImport =
-        authKind === 'sealed'
-            ? "import { createDecipheriv, privateDecrypt } from 'node:crypto';\nimport { readFileSync } from 'node:fs';\nimport path from 'node:path';\n\n"
-            : '';
     const insecureTlsExport = usesInsecureTls
         ? '\nexport const insecureTls = true;\n'
         : '\nexport const insecureTls = false;\n';
 
-    const sealedInvokeField =
-        authKind === 'sealed'
-            ? `
-    /** Base64 A2S1 sealed credential (required when \`auth bearerSealed\`; matches JSON schema \`required\`). */
-    sealedCredential: string;`
-            : '';
-
-    const authDecl =
-        authKind === 'none'
-            ? 'const authConfig = undefined;'
-            : authKind === 'env'
-              ? `type AuthConfig = {
-    kind: 'bearerEnv';
+    const authDecl = `type AuthConfig = {
     location: 'header' | 'query';
     name: string;
-    env: string;
     prefix?: string;
 };
 
-const authConfig: AuthConfig | undefined = ${authConfigLiteral};`
-              : `type AuthConfig = {
-    kind: 'bearerSealed';
-    location: 'header' | 'query';
-    name: string;
-    privateKeyEnv: string;
-    prefix?: string;
-};
-
-const authConfig: AuthConfig | undefined = ${authConfigLiteral};`;
+export const requiresAuth = ${model.auth ? 'true' : 'false'};
+export const authConfig: AuthConfig | undefined = ${authConfigLiteral};`;
 
     const fileNode = expandToNode`
-${cryptoImport}/**
+/**
  * Generated from: ${sourceReference}
  * Referenced OpenAPI: ${model.openapi}
  */
-
-export const baseUrl = ${JSON.stringify(model.baseUrl)};${insecureTlsExport}
+${insecureTlsExport}
 export type GeneratedTool = {
     toolName: string;
     title: string;
@@ -654,11 +500,14 @@ export type GeneratedTool = {
 export const generatedTools: GeneratedTool[] = ${enrichedToolsLiteral};
 
 export type InvokeOptions = {
-    baseUrl?: string;
+    /** Set by MCP host from --base-url-env (required for every invoke). */
+    baseUrl: string;
+    /** Raw API secret; set by MCP host from --auth-env when requiresAuth is true. */
+    credential?: string;
     pathParams?: Record<string, string | number | boolean>;
     query?: Record<string, string | number | boolean | ReadonlyArray<string | number | boolean>>;
     headers?: Record<string, string>;
-    body?: unknown;${sealedInvokeField}
+    body?: unknown;
 };
 
 ${authDecl}
@@ -673,27 +522,22 @@ function renderJsModule(
     inputSchemaEmbedded: string,
     model: Model,
     source: string,
-    authKind: 'none' | 'env' | 'sealed',
+    authKind: 'none' | 'credential',
     usesInsecureTls: boolean
 ): string {
-    const authConfigLiteral = renderAuthConfig(model);
     const sourceReference = renderSourceReference(source);
-    const cryptoImport =
-        authKind === 'sealed'
-            ? "import { createDecipheriv, privateDecrypt } from 'node:crypto';\nimport { readFileSync } from 'node:fs';\nimport path from 'node:path';\n\n"
-            : '';
-    return `${cryptoImport}/**
+    return `/**
  * Generated from: ${sourceReference}
  * Referenced OpenAPI: ${model.openapi}
  */
-
-export const baseUrl = ${JSON.stringify(model.baseUrl)};
 
 export const insecureTls = ${usesInsecureTls ? 'true' : 'false'};
 
 export const generatedTools = ${enrichedToolsLiteral};
 
-const authConfig = ${authConfigLiteral};
+export const requiresAuth = ${model.auth ? 'true' : 'false'};
+
+export const authConfig = ${renderAuthConfig(model)};
 
 ${inputSchemaEmbedded}
 `;

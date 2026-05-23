@@ -12,7 +12,6 @@ In the `open-meteo` example, the OpenAPI `summary` and `description` for `/v1/fo
 
 ```txt
 openapi "./openapi/spaceflight-news.openapi.yaml"
-baseUrl "https://api.spaceflightnewsapi.net"
 
 GET "/v4/articles/{id}/" {
     toolName: "getSpaceflightArticleById"
@@ -21,9 +20,17 @@ GET "/v4/articles/{id}/" {
 }
 ```
 
-Properties inside `{ ... }` blocks may appear in any order. For an operation, `toolName` and `intent` are required; `example`, `summary`, and `description` are optional. For `auth bearerEnv`, `in`, `name`, and `env` are required; `prefix` is optional. For `auth bearerSealed`, `in`, `name`, and `privateKeyEnv` are required; `prefix` is optional. Each property may appear at most once per block.
+Properties inside `{ ... }` blocks may appear in any order. For an operation, `toolName` and `intent` are required; `example`, `summary`, and `description` are optional. For `auth { … }`, `in` and `name` are required; `prefix` is optional. Each property may appear at most once per block. Base URL and API secrets are **not** in the DSL — configure them in the MCP host (`mcp.json` `env` + `mcp-serve.mjs` flags).
 
 The generator writes TypeScript and ESM `.mjs` modules under [`examples/generated/tools/`](examples/generated/tools/), plus the standalone MCP entry copied to [`examples/generated/cli/`](examples/generated/cli/) (see `mcp-serve.mjs`). Those artifacts can be smoke-tested directly or exposed as MCP tools for any MCP-compatible agent or client.
+
+## Scope of this PoC (product boundary)
+
+This repository focuses on **build-time** value: OpenAPI → curated MCP tools via the `.api2ai` DSL and the CLI generator.
+
+**In scope:** local **stdio** MCP (`mcp-serve.mjs`). The DSL describes **what** to call and **how** auth headers are shaped (`auth { in, name, prefix? }`). The MCP host supplies **where** (base URL) and **credentials** via `--base-url-env` / `--auth-env` and `mcp.json` `env` — secrets never belong in chat or generated tool schemas.
+
+**Out of scope for the open PoC:** hosted **HTTP** MCP servers, **OAuth / IdP login** flows with Cursor Connect, token lifecycle, and production hardening. Those are a separate **runtime / integration** product (build your own MCP host, or a commercial license for a managed endpoint). Archived design notes: [`.cursor/plans/obsolete/dsl-http-oauth-passthrough.plan.md`](.cursor/plans/obsolete/dsl-http-oauth-passthrough.plan.md).
 
 ## Project Layout
 
@@ -41,15 +48,15 @@ Voraussetzung: **Node.js 20+** (`node -v`).
 | 1 | Repository klonen |
 | 2 | Im **Repository-Root:** `npm install` → `npm run langium:generate` → `npm run build` |
 | 3 | **`examples/`:** `cd examples && npm install` (MCP-SDK für die Demo-Server) |
-| 4 | **Secrets & Keys:** [examples/README.md](examples/README.md) — TMDB API-Key, Seal-Keys für `bearerSealed` (GitHub, interne APIs) |
-| 5 | **Cursor:** Workspace-Ordner **`examples`** öffnen; `cp .cursor/mcp.json.example .cursor/mcp.json` (lokal, gitignored) |
+| 4 | **Secrets:** [examples/README.md](examples/README.md) — TMDB/GitHub tokens in `mcp.json` `env` (oder `.env.local`) |
+| 5 | **Cursor:** Workspace-Ordner **`examples`** öffnen (enthält [`.cursor/mcp.json`](examples/.cursor/mcp.json) ohne Secrets) |
 | 6 | **MCP:** Einstellungen → Tools & MCP → `api2ai-*` Server aktivieren |
 | 7 | **Smoke-Test:** `npm run test:smoke` (Open-Meteo, im Root) |
 | 8 | **Chat-Test:** `api2ai wie ist das Wetter in Berlin` |
 
 Nach Änderungen an `.api2ai`: passendes `npm run generate:*` im Root, dann MCP neu laden (`Cmd+Shift+P` → MCP-Refresh oder `Developer: Reload Window`).
 
-**Neuer Rechner / Demo morgen:** dieselbe Checkliste; PEM-Keys und `.env.local` liegen nicht im Git — auf dem Arbeits-Rechner Keys neu erzeugen und Tokens neu versiegeln (siehe examples README).
+**Neuer Rechner / Demo morgen:** dieselbe Checkliste; `.env.local` / `mcp.json` liegen nicht im Git — Tokens lokal setzen (siehe examples README).
 
 Weitere Docs: [docs/architecture-sketches.md](docs/architecture-sketches.md) · Demo-Prompts: [examples/README.md](examples/README.md)
 
@@ -132,35 +139,21 @@ cursor --install-extension /pfad/zu/vscode-api2ai-0.0.1.vsix
 1. Eigenen Ordner als Workspace öffnen (z. B. nur `examples/` oder ein separates Demo-Projekt).
 2. `.api2ai` anlegen oder bearbeiten — beim **Speichern** werden `generated/tools/*` und `generated/cli/mcp-serve.mjs` erzeugt.
 3. Einmal `npm install` im Projektroot (MCP-Runtime: `@modelcontextprotocol/sdk`, `zod`), falls noch keine `package.json` existiert: legt der Generator beim ersten Generate eine minimale an.
-4. MCP: `mcp.json.example` nach `.cursor/mcp.json` kopieren und bei Bedarf erweitern — derzeit **manuell** (Vorlage: [examples/README.md](examples/README.md#mcp-konfiguration-cursormcpjson)).
+4. MCP: [`.cursor/mcp.json`](examples/.cursor/mcp.json) bei Bedarf erweitern (neue APIs manuell ergänzen; siehe [examples/README.md](examples/README.md#mcp-konfiguration-cursormcpjson)).
 
-## Auth
+## Auth and runtime config
 
-The DSL can reference API keys without embedding secret values in generated code:
+The DSL declares auth **shape** only (no env var names, no secrets):
 
 ```txt
-auth bearerEnv {
+auth {
     in: header
     name: "Authorization"
-    env: "TMDB_ACCESS_TOKEN"
     prefix: "Bearer "
 }
 ```
 
-For **sealed** credentials (PAT, staging access token, or other bearer secret encrypted for this MCP process), use `auth bearerSealed { … privateKeyEnv: "…" }` and pass a Base64 **A2S1** blob as `sealedCredential` on each `invokeTool` / MCP call. Step-by-step (keypair, seal, internal/BFF APIs): [**examples/README.md**](examples/README.md) and [`examples/seal-keys/README.md`](examples/seal-keys/README.md). Example DSL: [`examples/github.api2ai`](examples/github.api2ai).
-
-```txt
-auth bearerSealed {
-    in: header
-    name: "Authorization"
-    prefix: "Bearer "
-    privateKeyEnv: "API2AI_SEAL_PRIVATE_KEY"
-}
-```
-
-At runtime, **`bearerEnv`** reads the API secret from `process.env` at the variable you name in `env`. **`bearerSealed`** resolves the private key from `process.env[privateKeyEnv]`: if the value starts with `-----BEGIN`, it is used as inline PEM; otherwise it is treated as a filesystem path (absolute, or relative to `process.cwd()` and then to each parent directory up a few levels so differing MCP working directories still resolve repo-relative paths like `examples/seal-keys/private.pem`). It then decrypts the per-call `sealedCredential` argument (see script above).
-
-For the TMDB demo, set `TMDB_ACCESS_TOKEN` in `examples/.env.local` (see [examples/README.md](examples/README.md#tmdb-api-key-bearerenv)).
+The MCP host reads base URLs from `mcp.json` `env` and secrets from `.env.local` (via `--auth-env`). See [examples/.cursor/mcp.json](examples/.cursor/mcp.json). Example DSL with auth: [`examples/tmdb.api2ai`](examples/tmdb.api2ai), [`examples/github.api2ai`](examples/github.api2ai).
 
 ## DSL Extension Preview (Entwicklung im Monorepo)
 

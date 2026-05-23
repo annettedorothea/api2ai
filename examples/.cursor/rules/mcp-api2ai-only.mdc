@@ -18,6 +18,21 @@ alwaysApply: true
   - **keine** Ersatzrecherche (Suche, andere URLs, Vermutungen).
 - Bevorzuge explizit tool-basierte Antworten mit nachvollziehbarer Quelle aus den erlaubten `*api2ai*`-Servern.
 
+## Schnell abbrechen bei fehlenden oder defekten MCP-Tools
+
+- **Ziel:** Kein langes Herumprobieren (andere Server-Namen, Repo/`generated/**`, Shell-CLI, `.env`, parallele Projektpfade), wenn die `api2ai*`-MCPs in dieser Session nicht nutzbar sind.
+- **Vor dem ersten Aufruf (optional, ein Schritt):** Pruefen, ob fuer den benoetigten `serverName` aus `examples/.cursor/mcp.json` unter `mcps/` ein Ordner `project-*-api2ai-*` mit passenden Tool-Descriptors existiert. Fehlt er komplett: sofort abbrechen (kein MCP-Aufruf noetig).
+- **Nach dem ersten fehlgeschlagenen `CallMcpTool` fuer die Anfrage** — typische Signale:
+  - `Tool … not found` / leere „available tools“-Liste,
+  - Server/Tool existiert nicht in der Session,
+  - Auth-/Verbindungsfehler ohne erkennbare Behebung im Chat,
+  - wiederholter identischer Fehler beim zweiten Versuch mit gleichem Tool.
+- **Dann sofort stoppen** (max. **ein** gezielter MCP-Aufruf pro betroffenem Server, kein zweiter Versuch mit anderem Identifier, kein `api2ai-tmdb` vs. `project-0-examples-api2ai-tmdb` durchprobieren):
+  - **Keine** Websuche, kein WebFetch, keine direkte API, kein `invokeTool`/CLI aus `generated/**`, kein Lesen von `.env*` oder Tokens.
+  - **Keine** langen Diagnose-Abschnitte oder Workarounds in derselben Antwort.
+- **Nutzer-Nachricht (kurz, auf Deutsch):** klar sagen, dass die Antwort **ohne laufende `api2ai*`-MCP-Tools** nicht geliefert werden kann; welcher **`serverName`** aus `mcp.json` fehlt oder fehlschlug; **konkrete Schritte** (z. B. MCP in Cursor Settings aktivieren, `examples/.cursor/mcp.json` pruefen, Server neu starten, Token in `.env.local` fuer auth-pflichtige Server). Danach **aufhoeren** — keine inhaltliche Antwort aus Gedaechtnis.
+- **Audit:** den fehlgeschlagenen (oder entfallenen) Versuch trotzdem dokumentieren; keine weiteren MCP-Eintraege erfinden.
+
 ## Tool-Wahl und Parameter ohne Workspace-/OpenAPI-Wissen
 
 - Zum Testen soll ein Agent nur anhand der **bereitgestellten MCP-Tool-Informationen** (Toolname, Beschreibung/Intent, **JSON Schema** fuer Argumente wie sie fuer die jeweiligen `*api2ai*`-Tools ausgeliefert werden) arbeiten.
@@ -31,22 +46,6 @@ alwaysApply: true
   - keinen Aufruf mit aus dem Gedaechtnis/OpenAPI rekonstruierten Feldern fuellen,
   - stattdessen ehrlich sagen, dass die Anfrage mit den vorliegenden **Tooldefinitionen allein** nicht zuverlaessig formuliert werden kann (optional: was im Schema **fehlt**).
 - **Ja, das ist beabsichtigt moeglich:** Der Agent soll sich hier **bewusst „schema-only“ verhalten** – keine parallele Spezifikation aus dem Repo, keine Vermutungen als Ersatz fuer fehlende Schema-Felder.
-
-## Sealed Bearer: Token-Dateien lesen
-
-Fuer Tools mit Pflichtargument **`sealedCredential`** (Runtime-Auth `bearerSealed`) darf der Agent das Geheimnis aus festen Token-Dateien im Workspace lesen — **nur** zum Befuellen von `sealedCredential`, nicht als Ersatz fuer OpenAPI-Parameter:
-
-| API / MCP | Datei (unter `examples/`) | Nutzer-Referenz |
-|-----------|---------------------------|-----------------|
-| GitHub | `github-sealed-token.txt` | `@github-sealed-token.txt` |
-
-**Vorgehen:**
-
-1. Datei lesen (Read-Tool oder vom Nutzer per `@…` angehaengt).
-2. **A2S1-Blob** uebernehmen: eine einzelne Base64-Zeile (ggf. die laengste Zeile ohne Leerzeichen); Kommentar- und Anleitungszeilen ignorieren.
-3. `sealedCredential` an **jeden** Aufruf eines `bearerSealed`-Tools der passenden API mitgeben.
-
-Diese Dateien sind die **einzige** Ausnahme vom Verbot, Repo-Dateien fuer Undokumentiertes zu nutzen; `*.api2ai`, `openapi/**` und `generated/**` bleiben fuer Parameter weiterhin tabu.
 
 ## Quellen aus MCP-Antworten lesen
 
@@ -82,6 +81,6 @@ Diese Dateien sind die **einzige** Ausnahme vom Verbot, Repo-Dateien fuer Undoku
 
 Wenn kein MCP-Request moeglich/erfolgreich war, dokumentiere das explizit.
 
-**Benennung:** „MCP-Server“ und „MCP-Tool“ verwenden — nicht nur „Server“/„Tool“. Der MCP-Server ist der `serverName`-Eintrag in der lokalen `examples/.cursor/mcp.json` (Vorlage: `mcp.json.example`).
+**Benennung:** „MCP-Server“ und „MCP-Tool“ verwenden — nicht nur „Server“/„Tool“. Der MCP-Server ist der `serverName`-Eintrag in `examples/.cursor/mcp.json`.
 
 **MCP-Server-Name im Audit:** Immer **`serverName`** (z. B. `api2ai-open-meteo`), **nicht** den Cursor-`serverIdentifier` (`project-0-examples-…`). Identifier nur auf Nachfrage in Klammern.

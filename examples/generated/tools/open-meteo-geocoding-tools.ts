@@ -3,7 +3,7 @@
  * Referenced OpenAPI: ./openapi/open-meteo-geocoding.openapi.yaml
  */
 
-export const baseUrl = "https://geocoding-api.open-meteo.com";
+export const insecureTls = false;
 
 export type GeneratedTool = {
     toolName: string;
@@ -26,14 +26,24 @@ export const generatedTools: GeneratedTool[] = [
 ];
 
 export type InvokeOptions = {
-    baseUrl?: string;
+    /** Set by MCP host from --base-url-env (required for every invoke). */
+    baseUrl: string;
+    /** Raw API secret; set by MCP host from --auth-env when requiresAuth is true. */
+    credential?: string;
     pathParams?: Record<string, string | number | boolean>;
     query?: Record<string, string | number | boolean | ReadonlyArray<string | number | boolean>>;
     headers?: Record<string, string>;
     body?: unknown;
 };
 
-const authConfig = undefined;
+type AuthConfig = {
+    location: 'header' | 'query';
+    name: string;
+    prefix?: string;
+};
+
+export const requiresAuth = false;
+export const authConfig: AuthConfig | undefined = undefined;
         
 export const inputSchemaByTool = {
     "openMeteoGeocodeSearch": {
@@ -164,7 +174,10 @@ export async function invokeTool(toolName, options = {}) {
         throw new Error('Unknown tool: ' + toolName);
     }
 
-    const effectiveBaseUrl = options.baseUrl ?? baseUrl;
+    if (!options.baseUrl || !String(options.baseUrl).trim()) {
+        throw new Error('Missing baseUrl (MCP host must pass InvokeOptions.baseUrl from --base-url-env).');
+    }
+    const effectiveBaseUrl = String(options.baseUrl).trim();
     const normalizedBaseUrl = effectiveBaseUrl.endsWith('/') ? effectiveBaseUrl.slice(0, -1) : effectiveBaseUrl;
     let resolvedPath = tool.path;
     for (const [key, value] of Object.entries(options.pathParams ?? {})) {

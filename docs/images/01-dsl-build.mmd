@@ -23,6 +23,6 @@ flowchart TB
   subgraph meta["Pro Tool-Definition"]
     M1["toolName · intent · example"]
     M2["summary/description → MCP-Titel & Beschreibung"]
-    M3["auth bearerEnv / bearerSealed"]
+    M3["auth { in, name, prefix? }"]
   end
   DSL --> meta

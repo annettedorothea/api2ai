@@ -1,17 +1,15 @@
 openapi "./openapi/github-user-min.openapi.yaml"
-baseUrl "https://api.github.com"
 
-auth bearerSealed {
+auth {
     in: header
     name: "Authorization"
     prefix: "Bearer "
-    privateKeyEnv: "API2AI_SEAL_PRIVATE_KEY"
 }
 
 GET "/user" {
     toolName: "getGitHubAuthenticatedUser"
     intent: "return the GitHub user profile for the authenticated PAT; use to confirm which account the token represents before calling repo-scoped tools"
-    example: "No path or query parameters — only sealedCredential"
+    example: "No path or query parameters"
     summary: "Get the authenticated user"
 }
 

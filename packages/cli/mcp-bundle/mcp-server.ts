@@ -12,13 +12,12 @@ type GeneratedTool = {
 };
 
 type GeneratedInvokeOptions = {
-    baseUrl?: string;
+    baseUrl: string;
+    credential?: string;
     pathParams?: Record<string, string | number | boolean>;
     query?: Record<string, string | number | boolean | ReadonlyArray<string | number | boolean>>;
     headers?: Record<string, string>;
     body?: unknown;
-    /** bearerSealed: base64 A2S1 blob from seal-bearer-helper (passed through to generated invokeTool). */
-    sealedCredential?: string;
 };
 
 type GeneratedRuntimeModule = {
@@ -27,8 +26,14 @@ type GeneratedRuntimeModule = {
     inputSchemaByTool?: Record<string, unknown>;
 };
 
+export type McpHostRuntime = {
+    baseUrl: string;
+    credential?: string;
+};
+
 type RunMcpServerOptions = {
     reloadModulePerRequest?: boolean;
+    hostRuntime: McpHostRuntime;
 };
 
 const primitiveUnion = z.union([z.string(), z.number(), z.boolean()]);
@@ -136,12 +141,10 @@ function jsonSchemaToZod(schema: unknown): z.ZodTypeAny {
 const queryValueUnion = z.union([primitiveUnion, z.array(primitiveUnion)]);
 
 const fallbackInputSchema = z.object({
-    baseUrl: z.string().optional(),
     pathParams: z.record(z.string(), primitiveUnion).optional(),
     query: z.record(z.string(), queryValueUnion).optional(),
     headers: z.record(z.string(), z.string()).optional(),
-    body: z.unknown().optional(),
-    sealedCredential: z.string().optional()
+    body: z.unknown().optional()
 });
 
 function asLocalModulePath(modulePath: string): string {
@@ -191,7 +194,10 @@ async function importGeneratedModuleWithoutCache(modulePath: string): Promise<Ge
     return readRuntimeModule(imported as Record<string, unknown>);
 }
 
-export async function runMcpServerFromGeneratedModule(modulePath: string, options: RunMcpServerOptions = {}): Promise<void> {
+export async function runMcpServerFromGeneratedModule(
+    modulePath: string,
+    options: RunMcpServerOptions
+): Promise<void> {
     const generated = await importGeneratedModule(modulePath);
     const loadModule = options.reloadModulePerRequest
         ? () => importGeneratedModuleWithoutCache(modulePath)
@@ -200,6 +206,8 @@ export async function runMcpServerFromGeneratedModule(modulePath: string, option
         name: 'api2ai-generated-tools',
         version: '0.1.0'
     });
+
+    const { baseUrl, credential } = options.hostRuntime;
 
     for (const tool of generated.generatedTools) {
         const rawSchema = generated.inputSchemaByTool?.[tool.toolName];
@@ -213,15 +221,15 @@ export async function runMcpServerFromGeneratedModule(modulePath: string, option
                 inputSchema
             },
             async (args) => {
-                const a = args as GeneratedInvokeOptions;
+                const a = args as Omit<GeneratedInvokeOptions, 'baseUrl' | 'credential'>;
                 const currentModule = await loadModule();
                 const result = await currentModule.invokeTool(tool.toolName, {
-                    baseUrl: a.baseUrl,
+                    baseUrl,
+                    credential,
                     pathParams: a.pathParams,
                     query: a.query,
                     headers: a.headers,
-                    body: a.body,
-                    sealedCredential: a.sealedCredential
+                    body: a.body
                 });
                 return {
                     content: [
