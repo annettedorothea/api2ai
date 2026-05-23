@@ -12,6 +12,8 @@ export type GeneratedTool = {
     method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' | 'HEAD' | 'OPTIONS' | 'TRACE';
     path: string;
     example?: string;
+    /** When true, no auth header or fromJwt binding (e.g. login). */
+    public?: boolean;
 };
 
 export const generatedTools: GeneratedTool[] = [
@@ -21,7 +23,8 @@ export const generatedTools: GeneratedTool[] = [
         "description": "Intent:\nretrieve hourly weather forecast for coordinates\n\nAPI:\nUse this tool to get a 7 day weather forecast (hourly and daily) for specific WGS84 coordinates. Prefer small sets of hourly/daily variables to keep responses compact and focused on what the agent needs.\n\nMeta:\ntags: Weather Forecast APIs\n\nExample:\nGet hourly temperature forecast for Offenburg, Germany\n\nResponse:\nHTTP 200\nOK\nproperties (top-level): current_weather, daily, daily_units, elevation, generationtime_ms, hourly, hourly_units, latitude, longitude, utc_offset_seconds\nDocumented errors:\nHTTP 400 — Bad Request",
         "method": "GET",
         "path": "/v1/forecast",
-        "example": "Get hourly temperature forecast for Offenburg, Germany"
+        "example": "Get hourly temperature forecast for Offenburg, Germany",
+        "public": false
     }
 ];
 
@@ -40,6 +43,7 @@ type AuthConfig = {
     location: 'header' | 'query';
     name: string;
     prefix?: string;
+    fromJwt?: string;
 };
 
 export const requiresAuth = false;
@@ -307,8 +311,11 @@ export async function invokeTool(toolName, options = {}) {
     }
     const effectiveBaseUrl = String(options.baseUrl).trim();
     const normalizedBaseUrl = effectiveBaseUrl.endsWith('/') ? effectiveBaseUrl.slice(0, -1) : effectiveBaseUrl;
+    const pathParams = !tool.public && authConfig?.fromJwt
+        ? resolvePathParamsWithFromJwt(authConfig, options)
+        : { ...(options.pathParams ?? {}) };
     let resolvedPath = tool.path;
-    for (const [key, value] of Object.entries(options.pathParams ?? {})) {
+    for (const [key, value] of Object.entries(pathParams)) {
         resolvedPath = resolvedPath.split('{' + key + '}').join(encodeURIComponent(String(value)));
     }
 
@@ -341,9 +348,9 @@ export async function invokeTool(toolName, options = {}) {
         let msg = 'HTTP ' + response.status + ' while invoking ' + tool.toolName + '.';
         if (response.status === 401) {
             msg += ' Unauthorized.';
-            if (authConfig) {
+            if (authConfig && !tool.public) {
                 
-            } else {
+            } else if (!tool.public) {
                 msg += ' The API may require authentication.';
             }
         } else if (response.status === 403) {

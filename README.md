@@ -1,14 +1,16 @@
 # api2ai
 
-`api2ai` is a PoC for turning existing OpenAPI descriptions into small, curated AI tools.
+**api2ai** curates OpenAPI operations into MCP tools: an **`.api2ai` DSL** selects endpoints and adds AI-facing metadata (intent, examples, tool names, optional auth). A **code generator** (CLI + extension on save) emits tool modules and a stdio MCP host. The language stack is built with **[Langium](https://langium.org/)** (grammar, validation, completion).
 
-The OpenAPI file stays the technical source of truth. The `.api2ai` DSL selects which endpoints should become tools and adds AI-facing metadata such as intent, examples, tool names, and optional runtime auth. Inside each HTTP operation block you can add an optional **`summary`** and **`description`**:
+> **Links:** Paths below are relative to **this repository** (`api2ai/`). Open the **`api2ai`** folder as your workspace (not only the parent `MCP/` folder), so clicks land in the right repo.
 
-- The **MCP tool title** is derived from `summary` with a consistent fallback chain: DSL `summary` → OpenAPI `summary` → OpenAPI `operationId` → `toolName`. The first non-empty value wins.
-- The **MCP `API:` section** uses `description`. Any DSL value wins over OpenAPI, including the empty string — `description: ""` suppresses the section entirely. OpenAPI's `description` is only used when the DSL field is omitted.
-- The generator always adds a compact **`Response:`** section to each tool from OpenAPI (documented success response plus up to a few documented error statuses).
+Sibling project: [db2ai](https://github.com/annettedorothea/db2ai) (PostgreSQL → MCP).
 
-In the `open-meteo` example, the OpenAPI `summary` and `description` for `/v1/forecast` are intentionally poor (prefixed with `CRAP:`) to demonstrate that `.api2ai` can override OpenAPI text. The matching operation in `examples/open-meteo.api2ai` adds a better `summary` (used as the tool title) and `description`, which are what AI tools actually see.
+Keywords: **DSL** · **OpenAPI** · **code generator** · **MCP** · **Langium**
+
+## DSL at a glance
+
+From [`./examples/spaceflight-news.api2ai`](./examples/spaceflight-news.api2ai) — OpenAPI path, then per operation a block with tool metadata:
 
 ```txt
 openapi "./openapi/spaceflight-news.openapi.yaml"
@@ -20,159 +22,93 @@ GET "/v4/articles/{id}/" {
 }
 ```
 
-Properties inside `{ ... }` blocks may appear in any order. For an operation, `toolName` and `intent` are required; `example`, `summary`, and `description` are optional. For `auth { … }`, `in` and `name` are required; `prefix` is optional. Each property may appear at most once per block. Base URL and API secrets are **not** in the DSL — configure them in the MCP host (`mcp.json` `env` + `mcp-serve.mjs` flags).
+`toolName` and `intent` are required; `example`, `summary`, and `description` are optional. Base URL and API keys are **not** in the DSL — configure them in the MCP host (`mcp.json` / env). More demos: [`./examples/`](./examples/).
 
-The generator writes TypeScript and ESM `.mjs` modules under [`examples/generated/tools/`](examples/generated/tools/), plus the standalone MCP entry copied to [`examples/generated/cli/`](examples/generated/cli/) (see `mcp-serve.mjs`). Those artifacts can be smoke-tested directly or exposed as MCP tools for any MCP-compatible agent or client.
+## Examples
 
-## Scope of this PoC (product boundary)
+Demos, MCP config, and walkthrough: **[`./examples/`](./examples/)** — see **[`./examples/README.md`](./examples/README.md)**.
 
-This repository focuses on **build-time** value: OpenAPI → curated MCP tools via the `.api2ai` DSL and the CLI generator.
+## Getting started (DSL / monorepo)
 
-**In scope:** local **stdio** MCP (`mcp-serve.mjs`). The DSL describes **what** to call and **how** auth headers are shaped (`auth { in, name, prefix? }`). The MCP host supplies **where** (base URL) and **credentials** via `--base-url-env` / `--auth-env` and `mcp.json` `env` — secrets never belong in chat or generated tool schemas.
+Prerequisite: **Node.js 20+**.
 
-**Out of scope for the open PoC:** hosted **HTTP** MCP servers, **OAuth / IdP login** flows with Cursor Connect, token lifecycle, and production hardening. Those are a separate **runtime / integration** product (build your own MCP host, or a commercial license for a managed endpoint). Archived design notes: [`.cursor/plans/obsolete/dsl-http-oauth-passthrough.plan.md`](.cursor/plans/obsolete/dsl-http-oauth-passthrough.plan.md).
+- Clone the repo
+- Repository root: `npm install` → `npm run langium:generate` → `npm run build`
+- Open the **`api2ai`** repository root in Cursor/VS Code
+- Edit or create a `.api2ai` file (e.g. under `./examples/`)
+- **Extension dev:** Run and Debug → **Run api2ai Extension** (opens `examples/` in an Extension Development Host; save regenerates tools)
+- **CLI only:** `node ./packages/cli/bin/cli.js generate <file.api2ai> <out-tools.ts>` then `npm run build` if needed
 
-## Project Layout
+Details for running MCP demos and chat tests: **[`./examples/README.md`](./examples/README.md)** (not duplicated here).
 
-- `packages/language`: Langium grammar, AST generation, validation, and completion support.
-- `packages/cli`: CLI generator, smoke runner, and generated-module MCP server.
-- `packages/extension`: Cursor/VSCode extension wrapper for the DSL.
-- `examples`: demo `.api2ai` files and OpenAPI under [`examples/openapi/`](examples/openapi/) (and peers), MCP config under [`examples/.cursor/`](examples/.cursor/), codegen output under [`examples/generated/tools/`](examples/generated/tools/) and [`examples/generated/cli/`](examples/generated/cli/).
+## Project layout
 
-## Getting Started (Checkliste)
+| Path | Role |
+|------|------|
+| `packages/language` | Langium grammar, validation, OpenAPI linking |
+| `packages/cli` | `generate`, smoke tests, MCP bundle |
+| `packages/extension` | VS Code / Cursor extension (VSIX) |
+| `examples/` | Sample `.api2ai`, OpenAPI, generated tools, `.cursor/mcp.json` |
 
-Voraussetzung: **Node.js 20+** (`node -v`).
+Package notes: [`./packages/language/README.md`](./packages/language/README.md) · [`./packages/cli/README.md`](./packages/cli/README.md)
 
-| Schritt | Aktion |
-|--------|--------|
-| 1 | Repository klonen |
-| 2 | Im **Repository-Root:** `npm install` → `npm run langium:generate` → `npm run build` |
-| 3 | **`examples/`:** `cd examples && npm install` (MCP-SDK für die Demo-Server) |
-| 4 | **Secrets:** [examples/README.md](examples/README.md) — TMDB/GitHub tokens in `mcp.json` `env` (oder `.env.local`) |
-| 5 | **Cursor:** Workspace-Ordner **`examples`** öffnen (enthält [`.cursor/mcp.json`](examples/.cursor/mcp.json) ohne Secrets) |
-| 6 | **MCP:** Einstellungen → Tools & MCP → `api2ai-*` Server aktivieren |
-| 7 | **Smoke-Test:** `npm run test:smoke` (Open-Meteo, im Root) |
-| 8 | **Chat-Test:** `api2ai wie ist das Wetter in Berlin` |
+## npm scripts (repository root)
 
-Nach Änderungen an `.api2ai`: passendes `npm run generate:*` im Root, dann MCP neu laden (`Cmd+Shift+P` → MCP-Refresh oder `Developer: Reload Window`).
+| Script | Purpose |
+|--------|---------|
+| `langium:generate` | Regenerate Langium AST/grammar from `packages/language` |
+| `langium:watch` | Watch grammar and regenerate on change |
+| `build` | TypeScript build (workspaces) + `bundle:mcp-runtime` |
+| `build:clean` | `clean` then `build` |
+| `watch` | TypeScript watch on the monorepo build graph |
+| `clean` | Clean all workspace build outputs |
+| `bundle:mcp-runtime` | Bundle standalone `mcp-serve` into `packages/cli/resources/` |
+| `generate:*` | Regenerate a bundled example under `examples/generated/tools/` |
+| `test` | Language package unit tests |
+| `test:smoke` | Smoke-call one generated Open-Meteo tool |
+| `test:smoke:tmdb` | Smoke TMDB search (needs env/token) |
+| `test:smoke:mock-api` | Smoke mock-api `listCustomerOrders` |
+| `test:mcp` | Start MCP server manually (Open-Meteo) |
 
-**Neuer Rechner / Demo morgen:** dieselbe Checkliste; `.env.local` / `mcp.json` liegen nicht im Git — Tokens lokal setzen (siehe examples README).
+Example generators: `generate:spaceflight-tools`, `generate:open-meteo-tools`, `generate:open-meteo-geocoding-tools`, `generate:tmdb-tools`, `generate:github-tools`, `generate:mock-api-tools`.
 
-Weitere Docs: [docs/architecture-sketches.md](docs/architecture-sketches.md) · Demo-Prompts: [examples/README.md](examples/README.md)
+## Launch configurations ([`./.vscode/launch.json`](./.vscode/launch.json))
 
-### Entwicklung (optional)
+| Configuration | What it does |
+|---------------|----------------|
+| **Run api2ai Extension** | Extension Development Host with workspace `examples/`. Pre-launch task **Build api-2-ai-dsl**. |
+| **api2ai: completion debug log** | Same host; sets `API2AI_DSL_DEBUG_COMPLETION=1` for completion tracing. |
+| **Attach: api2ai Language Server (6009)** | Attach debugger to the language server (port 6009). |
 
-Generierte Demos neu erzeugen:
+Pre-launch task **Build api-2-ai-dsl** in [`./.vscode/tasks.json`](./.vscode/tasks.json) (`langium:generate` + `build`).
 
-```bash
-npm run generate:spaceflight-tools
-npm run generate:open-meteo-tools
-npm run generate:open-meteo-geocoding-tools
-npm run generate:tmdb-tools
-npm run generate:github-tools
-```
+## Extension (VSIX)
 
-MCP-Prozess manuell starten: `npm run test:mcp`
-
-Extension Development Host: Launch-Konfiguration `Run Extension` (öffnet `examples` als Workspace). Beim Speichern von `.api2ai` dort regeneriert die Extension die Tools automatisch.
-
-## Extension (VSIX) — bauen und verteilen
-
-Die **api2ai**-Extension (Syntax, Validation, Completion, Generate beim Speichern) liegt als VSIX-Paket vor. Kollegen brauchen dafür **kein** Klon dieses Repos — nur die VSIX-Datei und ihren eigenen Projektordner mit `.api2ai`.
-
-### Wo liegt die VSIX nach dem Build?
-
-Nach erfolgreichem Build:
-
-```text
-packages/extension/vscode-api2ai-<version>.vsix
-```
-
-Aktuell z. B. [`packages/extension/vscode-api2ai-0.0.1.vsix`](packages/extension/vscode-api2ai-0.0.1.vsix) — `<version>` entspricht `version` in [`packages/extension/package.json`](packages/extension/package.json).
-
-Die Datei ist **nicht** im Git (`*.vsix` in [`.gitignore`](.gitignore)); sie entsteht lokal beim Packen.
-
-### VSIX erstellen (Maintainer)
-
-Im **Repository-Root**, einmalig `npm install`, dann:
+Build (maintainers), in **`packages/extension/`**:
 
 ```bash
 npm run extension:vsix
 ```
 
-Das Script führt aus: `langium:generate` → `build` (inkl. eingebettetem CLI/MCP-Bundle) → `vsce package` im Workspace `packages/extension`.
+→ `./packages/extension/vscode-api2ai-<version>.vsix` (**version** from [`./packages/extension/package.json`](./packages/extension/package.json); gitignored via `*.vsix`).
 
-Nur das Paket neu bauen (wenn schon kompiliert):
+From repo root: `npm run extension:vsix -w packages/extension`
 
-```bash
-npm run package:vsix -w packages/extension
-```
+### Install in Cursor / VS Code (test)
 
-### Verteilung an Kollegen
+1. `Cmd+Shift+P` → **`Install from VSIX`** or **`vsix`**
+2. **`Extensions: Install from VSIX`**
+3. Select `./packages/extension/vscode-api2ai-<version>.vsix`
+4. **`Developer: Reload Window`**
 
-| Weg | Hinweis |
-|-----|--------|
-| SharePoint / Teams / interner File-Share | Dateiname mit Version (`vscode-api2ai-0.0.1.vsix`) |
-| GitHub Release / Artifactory | VSIX als Release-Asset; keine Secrets im Paket |
-| E-Mail | Nur intern; Größe ca. 0,7–1 MB |
-
-**Versionierung:** Vor neuem Rollout `version` in `packages/extension/package.json` erhöhen, neu bauen, neue VSIX verteilen. Empfehlung: alte VSIX-Datei nicht überschreiben, sondern versioniert ablegen.
-
-**Nicht nötig für Kollegen:** Monorepo, `langium:generate`, Root-`npm run build` — das steckt in der VSIX.
-
-### Installation (Cursor / VS Code)
-
-1. VSIX-Datei bereitstellen (Download vom Share o. Ä.).
-2. **Cursor:** Seitenleiste **Extensions** → Menü `…` → **Install from VSIX…** (bzw. „Aus VSIX installieren…“) → VSIX wählen.
-3. **VS Code:** gleicher Menüpunkt unter Extensions.
-4. Fenster ggf. neu laden (`Developer: Reload Window`).
-
-CLI (optional):
+Alternatively drag the `.vsix` into the Extensions panel, or:
 
 ```bash
-cursor --install-extension /pfad/zu/vscode-api2ai-0.0.1.vsix
-# oder: code --install-extension …
+cursor --install-extension "/absolute/path/to/api2ai/packages/extension/vscode-api2ai-0.0.1.vsix"
 ```
 
-### Nutzung nach der Installation
+Extension details: [`./packages/extension/README.md`](./packages/extension/README.md) (includes icon in VSIX).
 
-1. Eigenen Ordner als Workspace öffnen (z. B. nur `examples/` oder ein separates Demo-Projekt).
-2. `.api2ai` anlegen oder bearbeiten — beim **Speichern** werden `generated/tools/*` und `generated/cli/mcp-serve.mjs` erzeugt.
-3. Einmal `npm install` im Projektroot (MCP-Runtime: `@modelcontextprotocol/sdk`, `zod`), falls noch keine `package.json` existiert: legt der Generator beim ersten Generate eine minimale an.
-4. MCP: [`.cursor/mcp.json`](examples/.cursor/mcp.json) bei Bedarf erweitern (neue APIs manuell ergänzen; siehe [examples/README.md](examples/README.md#mcp-konfiguration-cursormcpjson)).
+## License
 
-## Auth and runtime config
-
-The DSL declares auth **shape** only (no env var names, no secrets):
-
-```txt
-auth {
-    in: header
-    name: "Authorization"
-    prefix: "Bearer "
-}
-```
-
-The MCP host reads base URLs from `mcp.json` `env` and secrets from `.env.local` (via `--auth-env`). See [examples/.cursor/mcp.json](examples/.cursor/mcp.json). Example DSL with auth: [`examples/tmdb.api2ai`](examples/tmdb.api2ai), [`examples/github.api2ai`](examples/github.api2ai).
-
-## DSL Extension Preview (Entwicklung im Monorepo)
-
-Zum Debuggen der Extension **ohne** VSIX (Extension Development Host):
-
-1. Open this repository as workspace root.
-2. Run `npm install`, `npm run langium:generate`, and `npm run build`.
-3. Open Run and Debug and start the `Run Extension` launch configuration.
-4. Open or create a `.api2ai` file in the Extension Development Host.
-
-Available debug launch configurations:
-
-- `Run Extension`: starts an Extension Development Host with `examples` as the workspace.
-- `Run Extension (completion debug log)`: same as `Run Extension`, but enables completion debug logging.
-- `Attach to Language Server`: attaches the debugger to the language server on port `6009`.
-
-Useful development commands:
-
-```bash
-npm run langium:watch
-npm run watch
-```
+MIT — see [`./LICENSE`](./LICENSE).

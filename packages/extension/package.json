@@ -1,8 +1,14 @@
 {
     "name": "vscode-api2ai",
-    "description": "The extension specific package",
-    "version": "0.0.1",
     "displayName": "api2ai",
+    "description": "Language support and code generation for the .api2ai DSL (OpenAPI → MCP tools).",
+    "version": "0.0.1",
+    "publisher": "api2ai",
+    "license": "MIT",
+    "icon": "icon.png",
+    "author": {
+        "name": "Annette Pohl"
+    },
     "type": "module",
     "engines": {
         "vscode": "^1.67.0"
@@ -45,7 +51,7 @@
         "build:clean": "npm run clean && npm run build",
         "watch": "npm run build:prepare && npm run embed-cli:onetime && concurrently -n tsc,esbuild -c blue,yellow \"tsc -b tsconfig.json --watch\" \"node esbuild.mjs --watch\"",
         "embed-cli:onetime": "node embed-cli-bundle.mjs",
-        "package:vsix": "vsce package --allow-missing-repository --skip-license"
+        "extension:vsix": "npm run langium:generate --prefix ../.. && npm run build --prefix ../.. && shx cp ../../LICENSE LICENSE && npx @vscode/vsce package --allow-missing-repository --no-rewrite-relative-links && shx rm -f LICENSE"
     },
     "dependencies": {
         "api-2-ai-dsl-language": "0.0.1",
