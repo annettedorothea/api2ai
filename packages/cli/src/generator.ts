@@ -150,6 +150,7 @@ export type ResolvedToolCodegen = {
     method: Model['operations'][number]['method'];
     path: string;
     example?: string;
+    public: boolean;
 };
 
 function ensureParentDir(destination: string): void {
@@ -178,7 +179,8 @@ function resolveToolsFromLoaded(model: Model, loaded: LoadedOpenApi): ResolvedTo
             description: buildMcpDescription(operation, details, model.auth, model.insecureEnv),
             method: operation.method,
             path: operation.path,
-            example: operation.example
+            example: operation.example,
+            public: operation.public === true
         };
     });
 }
@@ -201,7 +203,10 @@ function buildSchemasFromLoaded(model: Model, loaded: LoadedOpenApi): Record<str
         if (!details) {
             continue;
         }
-        const base = buildToolInputSchema(details);
+        const jwtBound = model.auth?.fromJwt?.trim();
+        const omitJwtPath =
+            operation.public === true ? undefined : jwtBound && jwtBound.length > 0 ? jwtBound : undefined;
+        const base = buildToolInputSchema(details, omitJwtPath);
         out[requireToolName(operation)] = base;
     }
     return out;
@@ -263,7 +268,8 @@ function createSharedInvokeBlock(
     inputSchemaLiteralBody: string,
     querySerializationLiteralBody: string,
     authKind: 'none' | 'credential',
-    usesInsecureTls: boolean
+    usesInsecureTls: boolean,
+    usesFromJwt: boolean
 ): string {
     const insecureTlsSetup = usesInsecureTls
         ? `
@@ -272,6 +278,41 @@ import { Agent, fetch } from 'undici';
 const insecureTlsDispatcher = new Agent({ connect: { rejectUnauthorized: false } });
 `
         : '';
+    const jwtHelpers = usesFromJwt
+        ? `
+function decodeJwtPayload(token) {
+    const parts = String(token).trim().split('.');
+    if (parts.length !== 3) {
+        throw new Error('fromJwt: credential is not a JWT (expected three dot-separated segments).');
+    }
+    let b64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+    while (b64.length % 4 !== 0) {
+        b64 += '=';
+    }
+    return JSON.parse(Buffer.from(b64, 'base64').toString('utf8'));
+}
+
+function resolvePathParamsWithFromJwt(authConfig, options) {
+    const base = { ...(options.pathParams ?? {}) };
+    const claim = authConfig?.fromJwt;
+    if (!claim) {
+        return base;
+    }
+    const credential = options?.credential;
+    if (!credential || !String(credential).trim()) {
+        throw new Error('fromJwt requires InvokeOptions.credential (MCP host --auth-env).');
+    }
+    const payload = decodeJwtPayload(credential);
+    const value = payload[claim];
+    if (value === undefined || value === null || String(value).trim() === '') {
+        throw new Error('fromJwt: JWT payload missing claim "' + claim + '".');
+    }
+    base[claim] = String(value).trim();
+    return base;
+}
+`
+        : '';
+
     const authHelpers =
         authKind === 'credential'
             ? `
@@ -288,7 +329,7 @@ function resolveAuthSecret(authConfig, options) {
         authKind === 'none'
             ? ''
             : `
-    if (authConfig) {
+    if (authConfig && !tool.public) {
         const authValue = resolveAuthSecret(authConfig, options);
         if (authConfig.location === 'header') {
             requestHeaders[authConfig.name] = authValue;
@@ -363,7 +404,7 @@ function appendSerializedQueryParams(searchParams, toolName, query) {
         searchParams.set(key, String(value));
     }
 }
-${authHelpers}
+${jwtHelpers}${authHelpers}
 
 export async function invokeTool(toolName, options = {}) {
     const tool = generatedTools.find((t) => t.toolName === toolName);
@@ -376,8 +417,11 @@ export async function invokeTool(toolName, options = {}) {
     }
     const effectiveBaseUrl = String(options.baseUrl).trim();
     const normalizedBaseUrl = effectiveBaseUrl.endsWith('/') ? effectiveBaseUrl.slice(0, -1) : effectiveBaseUrl;
+    const pathParams = !tool.public && authConfig?.fromJwt
+        ? resolvePathParamsWithFromJwt(authConfig, options)
+        : { ...(options.pathParams ?? {}) };
     let resolvedPath = tool.path;
-    for (const [key, value] of Object.entries(options.pathParams ?? {})) {
+    for (const [key, value] of Object.entries(pathParams)) {
         resolvedPath = resolvedPath.split('{' + key + '}').join(encodeURIComponent(String(value)));
     }
 
@@ -410,9 +454,9 @@ export async function invokeTool(toolName, options = {}) {
         let msg = 'HTTP ' + response.status + ' while invoking ' + tool.toolName + '.';
         if (response.status === 401) {
             msg += ' Unauthorized.';
-            if (authConfig) {
+            if (authConfig && !tool.public) {
                 ${auth401Block}
-            } else {
+            } else if (!tool.public) {
                 msg += ' The API may require authentication.';
             }
         } else if (response.status === 403) {
@@ -448,7 +492,8 @@ function renderAuthConfig(model: Model): string {
         {
             location: model.auth.location,
             name: model.auth.name,
-            prefix: model.auth.prefix
+            prefix: model.auth.prefix,
+            fromJwt: model.auth.fromJwt
         },
         null,
         4
@@ -477,9 +522,10 @@ function renderTsModule(
     location: 'header' | 'query';
     name: string;
     prefix?: string;
+    fromJwt?: string;
 };
 
-export const requiresAuth = ${model.auth ? 'true' : 'false'};
+export const requiresAuth = ${model.auth && model.operations.some((op) => !op.public) ? 'true' : 'false'};
 export const authConfig: AuthConfig | undefined = ${authConfigLiteral};`;
 
     const fileNode = expandToNode`
@@ -495,6 +541,8 @@ export type GeneratedTool = {
     method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' | 'HEAD' | 'OPTIONS' | 'TRACE';
     path: string;
     example?: string;
+    /** When true, no auth header or fromJwt binding (e.g. login). */
+    public?: boolean;
 };
 
 export const generatedTools: GeneratedTool[] = ${enrichedToolsLiteral};
@@ -535,7 +583,7 @@ export const insecureTls = ${usesInsecureTls ? 'true' : 'false'};
 
 export const generatedTools = ${enrichedToolsLiteral};
 
-export const requiresAuth = ${model.auth ? 'true' : 'false'};
+export const requiresAuth = ${model.auth && model.operations.some((op) => !op.public) ? 'true' : 'false'};
 
 export const authConfig = ${renderAuthConfig(model)};
 
@@ -556,7 +604,14 @@ export async function generateOutput(model: Model, source: string, destination: 
     const { toolsLiteral, schemasLiteral, querySerializationLiteral } = mergeParallelToolData(toolsMeta, schemas, querySerialization);
     const authKind = authRuntimeKind(model);
     const usesInsecureTls = model.insecureEnv === true;
-    const invokeBlock = createSharedInvokeBlock(schemasLiteral, querySerializationLiteral, authKind, usesInsecureTls);
+    const usesFromJwt = Boolean(model.auth?.fromJwt?.trim());
+    const invokeBlock = createSharedInvokeBlock(
+        schemasLiteral,
+        querySerializationLiteral,
+        authKind,
+        usesInsecureTls,
+        usesFromJwt
+    );
 
     fs.writeFileSync(tsPath, renderTsModule(toolsLiteral, invokeBlock, model, source, authKind, usesInsecureTls));
     fs.writeFileSync(jsPath, renderJsModule(toolsLiteral, invokeBlock, model, source, authKind, usesInsecureTls));

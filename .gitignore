@@ -13,7 +13,6 @@ syntaxes/
 *.vsix
 .idea
 examples/.env.local
-examples/customer-portal-sealed-token.txt
 examples/customer-portal.api2ai
 examples/openapi/customer-portal.openapi.yaml
 examples/generated/tools/customer-portal-tools.ts

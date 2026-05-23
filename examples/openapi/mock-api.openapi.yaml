@@ -1,0 +1,99 @@
+openapi: 3.0.3
+info:
+  title: api2ai Mock API
+  description: Local demo API for JWT auth, fromJwt, and public login.
+  version: 0.1.0
+servers:
+  - url: http://127.0.0.1:3847
+paths:
+  /login/{customerId}:
+    post:
+      operationId: login-customer
+      summary: Login customer
+      description: Issues a short-lived HS256 JWT with claim customerId. No authentication required.
+      parameters:
+        - name: customerId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Access token
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - access_token
+                properties:
+                  access_token:
+                    type: string
+        "404":
+          description: Unknown customer
+    get:
+      operationId: login-customer-get
+      summary: Login customer (GET, for scripts)
+      description: Same as POST login; kept for curl and get-token.mjs.
+      parameters:
+        - name: customerId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Access token
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - access_token
+                properties:
+                  access_token:
+                    type: string
+  /orders/{customerId}:
+    get:
+      operationId: list-customer-orders
+      summary: List orders for customer
+      description: Requires Bearer JWT; customerId in path must match JWT claim.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: customerId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Order list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  customerId:
+                    type: string
+                  orders:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        orderId:
+                          type: string
+                        product:
+                          type: string
+                        amount:
+                          type: number
+        "401":
+          description: Missing or invalid token
+        "403":
+          description: Token customerId does not match path
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT

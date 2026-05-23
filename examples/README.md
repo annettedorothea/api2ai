@@ -82,6 +82,21 @@ Echte Keys nie committen. Der Agent sieht **kein** Credential-Feld in den MCP-To
 
 ---
 
+## JWT / `fromJwt` Demo (`mock-api`)
+
+Lokale Demo-API unter [`mock-api/`](mock-api/) — JWT mit Claim `customerId`, Tool `listCustomerOrders` ohne `customerId` im Schema.
+
+1. `cd examples && npm run demo:mock-api` (stop with `npm run demo:mock-api:kill`)
+2. `node mock-api/get-token.mjs alice` → Token in `.env.local` als `MOCK_API_ACCESS_TOKEN`
+3. Root: `npm run generate:mock-api-tools`
+4. MCP-Server `api2ai-mock-api` aktivieren, reload
+5. Optional: `api2ai login as alice` (public MCP tool `login`) — or use `get-token.mjs`
+6. Prompt: `api2ai list my orders` (needs `MOCK_API_ACCESS_TOKEN` in `.env.local`)
+
+Details: [`mock-api/README.md`](mock-api/README.md). DSL: [`mock-api.api2ai`](mock-api.api2ai) (`public` on login, `fromJwt` on orders).
+
+---
+
 ## Eigene API / BFF anbinden (lokal, nicht im Repo)
 
 **BFF** (*Backend for Frontend*): ein schlanker Backend-Dienst, den nur eure App/Agenten ansprechen — oft mit UI-tauglichen Endpunkten statt der vollen Kern-API.
@@ -117,6 +132,7 @@ Optional in der `.api2ai`: `**insecureEnv`** (ohne Wert) — deaktiviert TLS-Zer
 | `api2ai-spaceflight-news`     | —          | `SPACEFLIGHT_NEWS_BASE_URL`                    |
 | `api2ai-tmdb`                 | ja         | `TMDB_BASE_URL`, `TMDB_ACCESS_TOKEN`           |
 | `api2ai-github`               | ja         | `GITHUB_BASE_URL`, `GITHUB_TOKEN`              |
+| `api2ai-mock-api`             | ja + fromJwt | `MOCK_API_BASE_URL`, `MOCK_API_ACCESS_TOKEN` |
 
 
 ---

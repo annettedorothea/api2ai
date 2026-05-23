@@ -63,6 +63,20 @@
       "env": {
         "GITHUB_BASE_URL": "https://api.github.com"
       }
+    },
+    "api2ai-mock-api": {
+      "command": "node",
+      "args": [
+        "./generated/cli/mcp-serve.mjs",
+        "./generated/tools/mock-api-tools.mjs",
+        "--base-url-env",
+        "MOCK_API_BASE_URL",
+        "--auth-env",
+        "MOCK_API_ACCESS_TOKEN"
+      ],
+      "env": {
+        "MOCK_API_BASE_URL": "http://127.0.0.1:3847"
+      }
     }
   }
 }

@@ -220,11 +220,17 @@ export function buildMcpDescription(
 
     sections.push(`Response:\n${buildResponseSection(details)}`);
 
-    if (auth) {
+    if (operation.public === true) {
+        sections.push('Runtime: public endpoint — no Authorization header or MCP credential required.');
+    } else if (auth) {
         const prefixNote =
             auth.prefix !== undefined && String(auth.prefix).trim().length > 0 ? ' (prefix applied to the secret)' : '';
+        const fromJwtNote =
+            auth.fromJwt !== undefined && auth.fromJwt.trim().length > 0
+                ? ` Path parameter "${auth.fromJwt.trim()}" is derived from that JWT claim; do not pass it in tool arguments.`
+                : '';
         sections.push(
-            `Runtime auth: MCP host injects the API credential via --auth-env; send as ${auth.location} "${auth.name}"${prefixNote}.`
+            `Runtime auth: MCP host injects the API credential via --auth-env; send as ${auth.location} "${auth.name}"${prefixNote}.${fromJwtNote}`
         );
     }
 
@@ -524,14 +530,19 @@ function parametersByLocation(parameters: OpenApiParameterDetails[]): {
 }
 
 /** Outer MCP tool input: pathParams | query | headers | body buckets. */
-export function buildToolInputSchema(details: OpenApiOperationDetails): JsonSchemaDict {
+export function buildToolInputSchema(
+    details: OpenApiOperationDetails,
+    jwtBoundPathParam?: string
+): JsonSchemaDict {
     const { path, query, headers } = parametersByLocation(details.parameters);
 
-    const pathEntries = path.map((p) => ({
-        name: p.name,
-        schema: parameterPropertySchema(p),
-        required: true
-    }));
+    const pathEntries = path
+        .filter((p) => jwtBoundPathParam === undefined || p.name !== jwtBoundPathParam)
+        .map((p) => ({
+            name: p.name,
+            schema: parameterPropertySchema(p),
+            required: true
+        }));
     const queryEntries = query.map((p) => ({
         name: p.name,
         schema: parameterPropertySchema(p),

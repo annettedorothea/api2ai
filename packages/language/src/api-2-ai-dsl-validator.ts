@@ -10,8 +10,8 @@ import {
     makeOperationLookupKey
 } from './openapi.js';
 
-const OPERATION_BLOCK_KEYS = ['toolName', 'intent', 'example', 'summary', 'description'] as const;
-const AUTH_BLOCK_KEYS = ['in', 'name', 'prefix'] as const;
+const OPERATION_BLOCK_KEYS = ['toolName', 'intent', 'example', 'summary', 'description', 'public'] as const;
+const AUTH_BLOCK_KEYS = ['in', 'name', 'prefix', 'fromJwt'] as const;
 
 /**
  * Register custom validation checks.
@@ -58,6 +58,12 @@ export class Api2AiDslValidator {
             accept('error', 'auth name must not be empty.', {
                 node: auth,
                 property: 'name'
+            });
+        }
+        if (auth.fromJwt !== undefined && auth.fromJwt.trim().length === 0) {
+            accept('error', 'auth fromJwt must not be empty.', {
+                node: auth,
+                property: 'fromJwt'
             });
         }
     }

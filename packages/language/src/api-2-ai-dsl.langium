@@ -12,6 +12,7 @@ Auth:
               'in' ':' location=AuthLocation
             | 'name' ':' name=STRING
             | 'prefix' ':' prefix=STRING
+            | 'fromJwt' ':' fromJwt=STRING
         )*
     '}';
 
@@ -23,6 +24,7 @@ Operation:
             | 'example' ':' example=STRING
             | 'summary' ':' summary=STRING
             | 'description' ':' description=STRING
+            | public?='public'
         )*
     '}';
 

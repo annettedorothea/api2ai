@@ -1,0 +1,23 @@
+openapi "./openapi/mock-api.openapi.yaml"
+
+auth {
+    in: header
+    name: "Authorization"
+    prefix: "Bearer "
+    fromJwt: "customerId"
+}
+
+GET "/orders/{customerId}" {
+    toolName: "listCustomerOrders"
+    intent: "list orders for the authenticated customer from the JWT"
+    example: "List my orders"
+    summary: "List customer orders"
+}
+
+POST "/login/{customerId}" {
+    toolName: "login"
+    intent: "login the customer"
+    example: "Login"
+    summary: "Login customer"
+    public
+}

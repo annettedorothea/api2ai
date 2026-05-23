@@ -119,4 +119,37 @@ describe('Parsing tests', () => {
             expect(auth.prefix).toBe('Bearer ');
         }
     });
+
+    test('parses auth block with fromJwt', async () => {
+        document = await parse(`
+            openapi "./petstore.openapi.yaml"
+            auth {
+                in: header
+                name: "Authorization"
+                prefix: "Bearer "
+                fromJwt: "customerId"
+            }
+            GET "/orders/{customerId}" {
+                toolName: "listOrders"
+                intent: "list"
+            }
+        `);
+
+        expect(document.parseResult.parserErrors).toHaveLength(0);
+        expect(document.parseResult.value.auth?.fromJwt).toBe('customerId');
+    });
+
+    test('parses public flag on operation', async () => {
+        document = await parse(`
+            openapi "./petstore.openapi.yaml"
+            POST "/login/{id}" {
+                toolName: "login"
+                intent: "login"
+                public
+            }
+        `);
+
+        expect(document.parseResult.parserErrors).toHaveLength(0);
+        expect(document.parseResult.value.operations[0].public).toBe(true);
+    });
 });

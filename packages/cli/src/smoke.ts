@@ -76,6 +76,16 @@ function resolveSmokeHostRuntime(modulePath: string, requiresAuth: boolean): { b
             process.env.SPACEFLIGHT_NEWS_BASE_URL?.trim() ?? 'https://api.spaceflightnewsapi.net';
         return { baseUrl };
     }
+    if (base.includes('mock-api-tools')) {
+        const baseUrl = process.env.MOCK_API_BASE_URL?.trim() ?? 'http://127.0.0.1:3847';
+        const credential = process.env.MOCK_API_ACCESS_TOKEN?.trim();
+        if (requiresAuth && !credential) {
+            throw new Error(
+                'Set MOCK_API_ACCESS_TOKEN (run: node examples/mock-api/get-token.mjs alice) and start demo:mock-api.'
+            );
+        }
+        return { baseUrl, credential };
+    }
     const baseUrl = process.env.API2AI_SMOKE_BASE_URL?.trim();
     if (!baseUrl) {
         throw new Error('Set API2AI_SMOKE_BASE_URL for smoke-generated on this module.');

@@ -243,6 +243,24 @@ describe('Validating', () => {
         expect(diagnostics.some((d) => d.message.includes('Duplicate key "name"'))).toBe(true);
     });
 
+    test('reports empty fromJwt', async () => {
+        document = await parseValidated(`
+            openapi "./petstore-mini.openapi.yaml"
+            auth {
+                in: header
+                name: "Authorization"
+                fromJwt: ""
+            }
+            GET "/pet/{petId}" {
+                toolName: "getPetById"
+                intent: "get one pet"
+            }
+        `);
+
+        const diagnostics = document.diagnostics ?? [];
+        expect(diagnostics.some((d) => d.message.includes('auth fromJwt must not be empty'))).toBe(true);
+    });
+
     test('accepts an operation with properties in shuffled order', async () => {
         document = await parseValidated(`
             openapi "./petstore-mini.openapi.yaml"
