@@ -2,8 +2,6 @@
 
 **api2ai** curates OpenAPI operations into MCP tools: an **`.api2ai` DSL** selects endpoints and adds AI-facing metadata (intent, examples, tool names, optional auth). A **code generator** (CLI + extension on save) emits tool modules and a stdio MCP host. The language stack is built with **[Langium](https://langium.org/)** (grammar, validation, completion).
 
-> **Links:** Paths below are relative to **this repository** (`api2ai/`). Open the **`api2ai`** folder as your workspace (not only the parent `MCP/` folder), so clicks land in the right repo.
-
 Sibling project: [db2ai](https://github.com/annettedorothea/db2ai) (PostgreSQL → MCP).
 
 Keywords: **DSL** · **OpenAPI** · **code generator** · **MCP** · **Langium**
