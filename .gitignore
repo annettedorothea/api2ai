@@ -12,9 +12,11 @@ syntaxes/
 *.tsbuildinfo
 *.vsix
 .idea
-examples/.env.local
-examples/customer-portal.api2ai
-examples/openapi/customer-portal.openapi.yaml
-examples/generated/tools/customer-portal-tools.ts
-examples/generated/tools/customer-portal-tools.mjs
-examples/customer-portal/
+packages/extension/demos/.env
+packages/extension/demos/.env.local
+packages/extension/demos/customer-portal.api2ai
+packages/extension/demos/openapi/customer-portal.openapi.yaml
+packages/extension/demos/generated/tools/customer-portal-tools.ts
+packages/extension/demos/generated/tools/customer-portal-tools.mjs
+packages/extension/demos/customer-portal/
+packages/extension/demos/node_modules/

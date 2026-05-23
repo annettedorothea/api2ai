@@ -81,7 +81,7 @@ function resolveSmokeHostRuntime(modulePath: string, requiresAuth: boolean): { b
         const credential = process.env.MOCK_API_ACCESS_TOKEN?.trim();
         if (requiresAuth && !credential) {
             throw new Error(
-                'Set MOCK_API_ACCESS_TOKEN (run: node examples/mock-api/get-token.mjs alice) and start demo:mock-api.'
+                'Set MOCK_API_ACCESS_TOKEN (run: node mock-api/get-token.mjs alice in the demo workspace) and start demo:mock-api.'
             );
         }
         return { baseUrl, credential };

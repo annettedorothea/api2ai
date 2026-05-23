@@ -1,6 +1,6 @@
 # Command-line interface (CLI)
 
-Thin wrapper around the Langium-backed language plus the **`generate`** pipeline that emits TypeScript, ESM `.mjs`, bundled tooling metadata, and a copy of the standalone MCP host into `examples/generated/cli/` when you generate from repo examples.
+Thin wrapper around the Langium-backed language plus the **`generate`** pipeline that emits TypeScript, ESM `.mjs`, bundled tooling metadata, and a copy of the standalone MCP host into `packages/extension/demos/generated/cli/` when you generate from bundled demos.
 
 Langium’s Minilogo CLI guide is still a useful reference for the shared patterns: [customizing the CLI](https://langium.org/docs/learn/minilogo/customizing_cli/).
 
@@ -25,4 +25,4 @@ node ./packages/cli/bin/cli.js generate <source.api2ai> <dest-tools.ts>
 node ./packages/cli/bin/cli.js smoke-generated <path-to-*-tools.mjs> <toolName> [argsJson]
 ```
 
-Prefer the root `package.json` scripts (`generate:*`, `test:smoke`, `test:mcp`) for the bundled examples.
+Prefer `npm run generate:*` or `generate:all` in **[`../extension/demos/`](../extension/demos/)** for the bundled demos. Root `test:smoke` / `test:mcp` use `packages/extension/demos/generated/`.

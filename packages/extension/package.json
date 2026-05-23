@@ -36,11 +36,15 @@
         "commands": [{
             "command": "api2ai.generateTools",
             "title": "Generate tool code (.ts + .mjs + MCP host)"
+        }, {
+            "command": "api2ai.createDemoWorkspace",
+            "title": "api2ai: Create demo workspace (MCP examples)"
         }]
     },
     "activationEvents": [
         "onLanguage:api-2-ai-dsl",
-        "onCommand:api2ai.generateTools"
+        "onCommand:api2ai.generateTools",
+        "onCommand:api2ai.createDemoWorkspace"
     ],
     "main": "./out/extension/main.cjs",
     "scripts": {

@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * Fetch JWT for a demo customer: node get-token.mjs alice
- * Set MOCK_API_ACCESS_TOKEN in examples/.env.local to use with MCP.
+ * Set MOCK_API_ACCESS_TOKEN in .env.local to use with MCP.
  */
 const customerId = process.argv[2];
 if (!customerId) {

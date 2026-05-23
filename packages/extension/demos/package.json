@@ -1,0 +1,21 @@
+{
+    "name": "api2ai-demos",
+    "private": true,
+    "type": "module",
+    "scripts": {
+        "demo:mock-api": "node ./mock-api/server.mjs",
+        "demo:mock-api:kill": "node ./mock-api/kill-server.mjs",
+        "generate:spaceflight-tools": "node ./scripts/generate.mjs spaceflight-news.api2ai generated/tools/spaceflight-news-tools.ts",
+        "generate:tmdb-tools": "node ./scripts/generate.mjs tmdb.api2ai generated/tools/tmdb-tools.ts",
+        "generate:github-tools": "node ./scripts/generate.mjs github.api2ai generated/tools/github-tools.ts",
+        "generate:open-meteo-tools": "node ./scripts/generate.mjs open-meteo.api2ai generated/tools/open-meteo-tools.ts",
+        "generate:open-meteo-geocoding-tools": "node ./scripts/generate.mjs open-meteo-geocoding.api2ai generated/tools/open-meteo-geocoding-tools.ts",
+        "generate:mock-api-tools": "node ./scripts/generate.mjs mock-api.api2ai generated/tools/mock-api-tools.ts",
+        "generate:all": "npm run generate:open-meteo-tools && npm run generate:open-meteo-geocoding-tools && npm run generate:spaceflight-tools && npm run generate:tmdb-tools && npm run generate:github-tools && npm run generate:mock-api-tools"
+    },
+    "dependencies": {
+        "@modelcontextprotocol/sdk": "^1.29.0",
+        "undici": "^7.0.0",
+        "zod": "^4.4.3"
+    }
+}

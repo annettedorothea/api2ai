@@ -21,7 +21,7 @@ alwaysApply: true
 ## Schnell abbrechen bei fehlenden oder defekten MCP-Tools
 
 - **Ziel:** Kein langes Herumprobieren (andere Server-Namen, Repo/`generated/**`, Shell-CLI, `.env`, parallele Projektpfade), wenn die `api2ai*`-MCPs in dieser Session nicht nutzbar sind.
-- **Vor dem ersten Aufruf (optional, ein Schritt):** Pruefen, ob fuer den benoetigten `serverName` aus `examples/.cursor/mcp.json` unter `mcps/` ein Ordner `project-*-api2ai-*` mit passenden Tool-Descriptors existiert. Fehlt er komplett: sofort abbrechen (kein MCP-Aufruf noetig).
+- **Vor dem ersten Aufruf (optional, ein Schritt):** Pruefen, ob fuer den benoetigten `serverName` aus `.cursor/mcp.json` unter `mcps/` ein Ordner `project-*-api2ai-*` mit passenden Tool-Descriptors existiert. Fehlt er komplett: sofort abbrechen (kein MCP-Aufruf noetig).
 - **Nach dem ersten fehlgeschlagenen `CallMcpTool` fuer die Anfrage** — typische Signale:
   - `Tool … not found` / leere „available tools“-Liste,
   - Server/Tool existiert nicht in der Session,
@@ -30,7 +30,7 @@ alwaysApply: true
 - **Dann sofort stoppen** (max. **ein** gezielter MCP-Aufruf pro betroffenem Server, kein zweiter Versuch mit anderem Identifier, kein `api2ai-tmdb` vs. `project-0-examples-api2ai-tmdb` durchprobieren):
   - **Keine** Websuche, kein WebFetch, keine direkte API, kein `invokeTool`/CLI aus `generated/**`, kein Lesen von `.env*` oder Tokens.
   - **Keine** langen Diagnose-Abschnitte oder Workarounds in derselben Antwort.
-- **Nutzer-Nachricht (kurz, auf Deutsch):** klar sagen, dass die Antwort **ohne laufende `api2ai*`-MCP-Tools** nicht geliefert werden kann; welcher **`serverName`** aus `mcp.json` fehlt oder fehlschlug; **konkrete Schritte** (z. B. MCP in Cursor Settings aktivieren, `examples/.cursor/mcp.json` pruefen, Server neu starten, Token in `.env.local` fuer auth-pflichtige Server). Danach **aufhoeren** — keine inhaltliche Antwort aus Gedaechtnis.
+- **Nutzer-Nachricht (kurz, auf Deutsch):** klar sagen, dass die Antwort **ohne laufende `api2ai*`-MCP-Tools** nicht geliefert werden kann; welcher **`serverName`** aus `mcp.json` fehlt oder fehlschlug; **konkrete Schritte** (z. B. MCP in Cursor Settings aktivieren, `.cursor/mcp.json` pruefen, Server neu starten, Token in `.env.local` fuer auth-pflichtige Server). Danach **aufhoeren** — keine inhaltliche Antwort aus Gedaechtnis.
 - **Audit:** den fehlgeschlagenen (oder entfallenen) Versuch trotzdem dokumentieren; keine weiteren MCP-Eintraege erfinden.
 
 ## Tool-Wahl und Parameter ohne Workspace-/OpenAPI-Wissen
@@ -39,7 +39,7 @@ alwaysApply: true
 - Bei `api2ai`-Anfragen **kein Workspace-Wissen** zur Beantwortung oder zur Konstruktion von Tool-Aufrufen nutzen, **insbesondere nicht**:
   - OpenAPI-/Swagger-Dateien im Repo (`openapi/**`, eingebettete Specs),
   - `*.api2ai`-Quelldateien,
-  - `examples/generated/**` oder andere generierte Helferskripte als „Dokumentation“ fuer Parameter,
+  - `generated/**` oder andere generierte Helferskripte als „Dokumentation“ fuer Parameter,
   - README oder anderer Repo-Code, um **undokumentierte** Query-/Path-Parameter zu erraten oder API-Verhalten zu erschliessen.
 - **Erlaubt** bleibt: MCP-Descriptors lesen/pruefen (Schema vor Toolaufruf, wie ohnehin verlangt).
 - Sind Parameter oder Endpunkt-Verhalten aus dem MCP-Schema **nicht** ableitbar:
@@ -81,6 +81,6 @@ alwaysApply: true
 
 Wenn kein MCP-Request moeglich/erfolgreich war, dokumentiere das explizit.
 
-**Benennung:** „MCP-Server“ und „MCP-Tool“ verwenden — nicht nur „Server“/„Tool“. Der MCP-Server ist der `serverName`-Eintrag in `examples/.cursor/mcp.json`.
+**Benennung:** „MCP-Server“ und „MCP-Tool“ verwenden — nicht nur „Server“/„Tool“. Der MCP-Server ist der `serverName`-Eintrag in `.cursor/mcp.json`.
 
 **MCP-Server-Name im Audit:** Immer **`serverName`** (z. B. `api2ai-open-meteo`), **nicht** den Cursor-`serverIdentifier` (`project-0-examples-…`). Identifier nur auf Nachfrage in Klammern.

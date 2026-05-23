@@ -7,3 +7,8 @@ esbuild.mjs
 embed-cli-bundle.mjs
 langium-quickstart.md
 **/*.map
+demos/node_modules/**
+demos/generated/**
+demos/package-lock.json
+demos/.env
+demos/.env.local

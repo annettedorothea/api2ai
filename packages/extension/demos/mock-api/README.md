@@ -5,7 +5,6 @@ Runs on **http://127.0.0.1:3847** (override with `MOCK_API_PORT`).
 ## Start
 
 ```bash
-cd examples
 npm run demo:mock-api
 ```
 
@@ -21,7 +20,7 @@ npm run demo:mock-api:kill
 node mock-api/get-token.mjs alice
 ```
 
-Add to `examples/.env.local`:
+Add to `.env.local`:
 
 ```env
 MOCK_API_ACCESS_TOKEN=<paste token>
@@ -38,7 +37,7 @@ curl -s -H "Authorization: Bearer <token>" "http://127.0.0.1:3847/orders/alice"
 
 ## MCP
 
-After `npm run generate:mock-api-tools` from repo root, enable `api2ai-mock-api` in `.cursor/mcp.json` and reload MCP.
+After `npm run generate:mock-api-tools`, enable `api2ai-mock-api` in `.cursor/mcp.json` and reload MCP.
 
 - **`login`** (`public`) — `pathParams.customerId` → returns `access_token` (no Bearer required)
 - **`listCustomerOrders`** — no `customerId` in schema; taken from JWT via `fromJwt` (set token in `.env.local` first)

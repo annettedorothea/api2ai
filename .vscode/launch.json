@@ -7,7 +7,7 @@
             "request": "launch",
             "preLaunchTask": "Build api-2-ai-dsl",
             "args": [
-                "${workspaceFolder}/examples",
+                "${workspaceFolder}/packages/extension/demos",
                 "--extensionDevelopmentPath=${workspaceFolder}/packages/extension"
             ],
             "sourceMaps": true,
@@ -37,7 +37,7 @@
             "hidden": true,
             "preLaunchTask": "Build api-2-ai-dsl",
             "args": [
-                "${workspaceFolder}/examples",
+                "${workspaceFolder}/packages/extension/demos",
                 "--extensionDevelopmentPath=${workspaceFolder}/packages/extension"
             ],
             "env": { "API2AI_DSL_DEBUG_COMPLETION": "1" },
