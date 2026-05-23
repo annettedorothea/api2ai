@@ -1,7 +1,7 @@
 {
     "extends": "../../tsconfig.json",
     "compilerOptions": {
-        "rootDir": "src",
+        "rootDir": ".",
         "outDir": "out",
         "declarationDir": "out"
     },
@@ -11,7 +11,9 @@
         }
     ],
     "include": [
-        "src/**/*.ts"
+        "src/**/*.ts",
+        "mcp-bundle/**/*.ts",
+        "test/**/*.ts"
     ],
     "exclude": [
         "src/vscode-bundle-cli-entry.ts"

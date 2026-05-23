@@ -12,6 +12,8 @@ export type GeneratedTool = {
     method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' | 'HEAD' | 'OPTIONS' | 'TRACE';
     path: string;
     example?: string;
+    /** When true, no auth header or fromJwt binding (e.g. login). */
+    public?: boolean;
 };
 
 export const generatedTools: GeneratedTool[] = [
@@ -21,15 +23,13 @@ export const generatedTools: GeneratedTool[] = [
         "description": "Intent:\nresolve a location name to latitude and longitude coordinates\n\nMeta:\noperationId: searchLocationByName\n\nExample:\nFind coordinates for Bernstein, Burgenland, Austria\n\nResponse:\nHTTP 200\nOK",
         "method": "GET",
         "path": "/v1/search",
-        "example": "Find coordinates for Bernstein, Burgenland, Austria"
+        "example": "Find coordinates for Bernstein, Burgenland, Austria",
+        "public": false
     }
 ];
 
 export type InvokeOptions = {
-    /** Set by MCP host from --base-url-env (required for every invoke). */
-    baseUrl: string;
-    /** Raw API secret; set by MCP host from --auth-env when requiresAuth is true. */
-    credential?: string;
+    /** MCP tool arguments only (not visible to the agent: host base URL, credential, JWT via resolveHostContext). */
     pathParams?: Record<string, string | number | boolean>;
     query?: Record<string, string | number | boolean | ReadonlyArray<string | number | boolean>>;
     headers?: Record<string, string>;
@@ -40,66 +40,67 @@ type AuthConfig = {
     location: 'header' | 'query';
     name: string;
     prefix?: string;
+    fromJwt?: string;
 };
 
 export const requiresAuth = false;
 export const authConfig: AuthConfig | undefined = undefined;
-        
-export const inputSchemaByTool = {
-    "openMeteoGeocodeSearch": {
-        "type": "object",
-        "properties": {
-            "pathParams": {
-                "type": "object",
-                "additionalProperties": true,
-                "description": "No path parameters."
-            },
-            "query": {
-                "type": "object",
-                "properties": {
-                    "name": {
-                        "type": "string",
-                        "description": "City/place search text, e.g. Bernstein."
-                    },
-                    "count": {
-                        "minimum": 1,
-                        "maximum": 100,
-                        "type": "integer",
-                        "description": "Number of matches to return."
-                    },
-                    "language": {
-                        "type": "string",
-                        "description": "Language code for result names, e.g. de or en."
-                    },
-                    "countryCode": {
-                        "type": "string",
-                        "description": "ISO country code filter, e.g. AT."
-                    }
-                },
-                "required": [
-                    "name"
-                ],
-                "additionalProperties": false,
-                "description": "Query parameters from OpenAPI."
-            },
-            "headers": {
-                "type": "object",
-                "additionalProperties": {
-                    "type": "string"
-                },
-                "description": "Optional extra headers."
-            },
-            "body": {
-                "type": "object",
-                "description": "Request body JSON if applicable.",
-                "additionalProperties": true
-            }
-        },
-        "required": [],
-        "additionalProperties": false,
-        "description": "Arguments for invoking the generated HTTP wrapper."
-    }
+
+export const mcpServerName = "open-meteo-geocoding-tools";
+export const mcpServerVersion = "0.0.1";
+
+import * as z from 'zod/v4';
+
+const __api2aiPrimitiveUnion = z.union([z.string(), z.number(), z.boolean()]);
+const __api2aiQueryValueUnion = z.union([__api2aiPrimitiveUnion, z.array(__api2aiPrimitiveUnion)]);
+
+export const inputZodByTool = {
+    "openMeteoGeocodeSearch": z.object({ "pathParams": z.record(z.string(), __api2aiPrimitiveUnion).describe("No path parameters.").optional(), "query": z.object({ "name": z.string().describe("City/place search text, e.g. Bernstein."), "count": z.number().describe("Number of matches to return.").optional(), "language": z.string().describe("Language code for result names, e.g. de or en.").optional(), "countryCode": z.string().describe("ISO country code filter, e.g. AT.").optional() }).strict().describe("Query parameters from OpenAPI.").optional(), "headers": z.record(z.string(), z.string()).describe("Optional extra headers.").optional(), "body": z.record(z.string(), __api2aiPrimitiveUnion).describe("Request body JSON if applicable.").optional() }).strict().describe("Arguments for invoking the generated HTTP wrapper.")
 };
+
+export const MCP_HOST_BASE_URL_ENV_KEY = 'API2AI_MCP_BASE_URL_ENV_KEY';
+export const MCP_HOST_AUTH_ENV_KEY = 'API2AI_MCP_AUTH_ENV_KEY';
+
+function decodeJwtPayloadUnsafe(token) {
+    const parts = String(token).trim().split('.');
+    if (parts.length !== 3) {
+        throw new Error('credential is not a JWT (expected three dot-separated segments).');
+    }
+    let b64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+    while (b64.length % 4 !== 0) {
+        b64 += '=';
+    }
+    return JSON.parse(Buffer.from(b64, 'base64').toString('utf8'));
+}
+
+/** Host session (base URL, credential, decoded JWT). Re-reads env on every call — dev only, no signature verify. */
+export function resolveHostContext() {
+    const baseUrlKey = process.env[MCP_HOST_BASE_URL_ENV_KEY]?.trim();
+    const baseUrl = baseUrlKey ? process.env[baseUrlKey]?.trim() : undefined;
+    if (!baseUrl) {
+        throw new Error(
+            'Missing host base URL. Pass --base-url-env on mcp-serve.mjs and set the variable (or use smoke-generated).'
+        );
+    }
+
+    const authKey = process.env[MCP_HOST_AUTH_ENV_KEY]?.trim();
+    let credential = authKey ? process.env[authKey]?.trim() : undefined;
+    credential = credential || undefined;
+
+    let jwt;
+    if (credential) {
+        const segments = String(credential).trim().split('.');
+        if (segments.length === 3) {
+            try {
+                jwt = decodeJwtPayloadUnsafe(credential);
+            } catch {
+                jwt = undefined;
+            }
+        }
+    }
+
+    return { baseUrl, credential, jwt };
+}
 
 export const queryParamSerializationByTool = {
     "openMeteoGeocodeSearch": {
@@ -168,19 +169,20 @@ function appendSerializedQueryParams(searchParams, toolName, query) {
 }
 
 
-export async function invokeTool(toolName, options = {}) {
+export async function invokeTool(toolName, options = {}, hostContext) {
     const tool = generatedTools.find((t) => t.toolName === toolName);
     if (!tool) {
         throw new Error('Unknown tool: ' + toolName);
     }
 
-    if (!options.baseUrl || !String(options.baseUrl).trim()) {
-        throw new Error('Missing baseUrl (MCP host must pass InvokeOptions.baseUrl from --base-url-env).');
-    }
-    const effectiveBaseUrl = String(options.baseUrl).trim();
-    const normalizedBaseUrl = effectiveBaseUrl.endsWith('/') ? effectiveBaseUrl.slice(0, -1) : effectiveBaseUrl;
+    const host = hostContext ?? resolveHostContext();
+    const { baseUrl, credential, jwt } = host;
+    const normalizedBaseUrl = baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl;
+    const pathParams = !tool.public && authConfig?.fromJwt
+        ? resolvePathParamsWithFromJwt(authConfig, options.pathParams, jwt)
+        : { ...(options.pathParams ?? {}) };
     let resolvedPath = tool.path;
-    for (const [key, value] of Object.entries(options.pathParams ?? {})) {
+    for (const [key, value] of Object.entries(pathParams)) {
         resolvedPath = resolvedPath.split('{' + key + '}').join(encodeURIComponent(String(value)));
     }
 
@@ -213,9 +215,9 @@ export async function invokeTool(toolName, options = {}) {
         let msg = 'HTTP ' + response.status + ' while invoking ' + tool.toolName + '.';
         if (response.status === 401) {
             msg += ' Unauthorized.';
-            if (authConfig) {
+            if (authConfig && !tool.public) {
                 
-            } else {
+            } else if (!tool.public) {
                 msg += ' The API may require authentication.';
             }
         } else if (response.status === 403) {

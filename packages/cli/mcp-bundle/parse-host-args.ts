@@ -1,7 +1,4 @@
-export type McpHostConfig = {
-    baseUrlEnv: string;
-    authEnv?: string;
-};
+import type { McpHostConfig } from './mcp-host-env.js';
 
 export function parseMcpServeArgv(argv: string[]): { modulePath: string; hostConfig: McpHostConfig } {
     const positional: string[] = [];
@@ -47,10 +44,7 @@ export function parseMcpServeArgv(argv: string[]): { modulePath: string; hostCon
     };
 }
 
-export function validateHostConfigAtStartup(
-    hostConfig: McpHostConfig,
-    requiresAuth: boolean
-): { baseUrl: string; credential?: string } {
+export function validateHostConfigAtStartup(hostConfig: McpHostConfig, requiresAuth: boolean): void {
     const baseUrl = process.env[hostConfig.baseUrlEnv]?.trim();
     if (!baseUrl) {
         throw new Error(
@@ -59,7 +53,7 @@ export function validateHostConfigAtStartup(
     }
 
     if (!requiresAuth) {
-        return { baseUrl };
+        return;
     }
 
     if (!hostConfig.authEnv) {
@@ -72,6 +66,4 @@ export function validateHostConfigAtStartup(
             `Environment variable "${hostConfig.authEnv}" is missing or empty (required by --auth-env).`
         );
     }
-
-    return { baseUrl, credential };
 }

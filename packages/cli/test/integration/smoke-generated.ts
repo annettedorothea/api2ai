@@ -2,7 +2,8 @@ import chalk from 'chalk';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { pathToFileURL } from 'node:url';
-import { loadLocalEnvFiles } from './env.js';
+import { loadLocalEnvFiles } from '../../mcp-bundle/env.js';
+import { applySmokeHostEnv } from './smoke-host-env.js';
 
 type InvokeArgs = {
     pathParams?: Record<string, string | number | boolean>;
@@ -14,10 +15,7 @@ type InvokeArgs = {
 type GeneratedRuntimeModule = {
     generatedTools: Array<{ toolName: string }>;
     requiresAuth?: boolean;
-    invokeTool: (
-        toolName: string,
-        options?: InvokeArgs & { baseUrl: string; credential?: string }
-    ) => Promise<unknown>;
+    invokeTool: (toolName: string, options?: InvokeArgs) => Promise<unknown>;
 };
 
 function defaultSmokeArgs(toolName: string): InvokeArgs {
@@ -110,6 +108,7 @@ async function importGeneratedModule(modulePath: string): Promise<GeneratedRunti
     };
 }
 
+/** Integration smoke: one direct invokeTool call on a generated *-tools.mjs (no MCP stdio). */
 export async function runSmokeGenerated(modulePath: string, toolName: string, argsJson?: string): Promise<void> {
     loadLocalEnvFiles([process.cwd(), path.dirname(path.resolve(modulePath))]);
 
@@ -138,6 +137,7 @@ export async function runSmokeGenerated(modulePath: string, toolName: string, ar
     }
 
     const hostRuntime = resolveSmokeHostRuntime(modulePath, generated.requiresAuth === true);
-    const result = await generated.invokeTool(toolName, { ...args, ...hostRuntime });
+    applySmokeHostEnv(hostRuntime);
+    const result = await generated.invokeTool(toolName, args);
     console.log(JSON.stringify(result, null, 2));
 }

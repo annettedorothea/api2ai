@@ -3,12 +3,12 @@ import { Command } from 'commander';
 import * as url from 'node:url';
 import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
-import { runSmokeGenerated } from './smoke.js';
-import { loadLocalEnvFiles } from './env.js';
+import { runSmokeGenerated } from '../test/integration/smoke-generated.js';
+import { loadLocalEnvFiles } from '../mcp-bundle/env.js';
 import { generateAction } from './generate-command.js';
 const __dirname = url.fileURLToPath(new URL('.', import.meta.url));
 
-const packagePath = path.resolve(__dirname, '..', 'package.json');
+const packagePath = path.resolve(__dirname, '..', '..', 'package.json');
 const packageContent = await fs.readFile(packagePath, 'utf-8');
 
 export const smokeGeneratedAction = async (generatedModulePath: string, toolName: string, argsJson?: string): Promise<void> => {

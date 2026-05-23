@@ -7,6 +7,10 @@ import * as path from 'node:path';
 import * as url from 'node:url';
 import { extractDestinationAndName } from './util.js';
 import {
+    emitGeneratedZodPreamble,
+    emitInputZodByToolExport
+} from './json-schema-to-zod-codegen.js';
+import {
     buildMcpDescription,
     buildMcpTitle,
     buildQueryParamSerializationLookup,
@@ -50,20 +54,24 @@ function resolveBootstrapProjectRootFromSource(api2aiSourcePath: string): string
     return path.dirname(path.resolve(api2aiSourcePath));
 }
 
-function resolveBundledMcpServeSourcePath(): string {
+function resolveCliPackageRoot(): string {
     const embed = resolveEmbedHomeDirectory();
     if (embed) {
-        return path.join(embed, 'resources', 'mcp-serve-emitted.mjs');
+        return embed;
     }
-    return path.resolve(__generatorDirname, '..', 'resources', 'mcp-serve-emitted.mjs');
+    const oneUp = path.resolve(__generatorDirname, '..');
+    if (fs.existsSync(path.join(oneUp, 'package.json'))) {
+        return oneUp;
+    }
+    return path.resolve(__generatorDirname, '..', '..');
+}
+
+function resolveBundledMcpServeSourcePath(): string {
+    return path.join(resolveCliPackageRoot(), 'resources', 'mcp-serve-emitted.mjs');
 }
 
 function resolveCliPackageJsonPathForVersions(): string {
-    const embed = resolveEmbedHomeDirectory();
-    if (embed) {
-        return path.join(embed, 'package.json');
-    }
-    return path.resolve(__generatorDirname, '..', 'package.json');
+    return path.join(resolveCliPackageRoot(), 'package.json');
 }
 
 function copyBundledMcpServeInto(cliDir: string): string {
@@ -81,14 +89,92 @@ function copyBundledMcpServeInto(cliDir: string): string {
     return dest;
 }
 
-function readCliVersionsForBootstrap(): { sdk: string; zod: string } {
+function readCliPackageJson(): { version: string; dependencies?: Record<string, string> } {
     const p = resolveCliPackageJsonPathForVersions();
     const raw = fs.readFileSync(p, 'utf-8');
-    const pkg = JSON.parse(raw) as { dependencies?: Record<string, string> };
+    const pkg = JSON.parse(raw) as { version?: string; dependencies?: Record<string, string> };
+    return {
+        version: typeof pkg.version === 'string' ? pkg.version : '0.0.1',
+        dependencies: pkg.dependencies
+    };
+}
+
+function readCliVersionsForBootstrap(): { sdk: string; zod: string } {
+    const pkg = readCliPackageJson();
     return {
         sdk: pkg.dependencies?.['@modelcontextprotocol/sdk'] ?? '^1.29.0',
         zod: pkg.dependencies?.zod ?? '^4.4.3'
     };
+}
+
+function resolveMcpServerIdentityFromDestination(destinationTsPath: string): { name: string; version: string } {
+    const pkg = readCliPackageJson();
+    return {
+        name: path.parse(destinationTsPath).name,
+        version: pkg.version
+    };
+}
+
+function renderMcpServerIdentityExports(name: string, version: string): string {
+    return `export const mcpServerName = ${JSON.stringify(name)};
+export const mcpServerVersion = ${JSON.stringify(version)};
+`;
+}
+
+function renderMcpHostEnvBlock(authKind: 'none' | 'credential'): string {
+    const authCheck =
+        authKind === 'credential'
+            ? `
+    if (!credential) {
+        throw new Error(
+            'Missing host credential. Pass --auth-env on mcp-serve.mjs and set the variable (re-read on every tool call).'
+        );
+    }`
+            : `
+    credential = credential || undefined;`;
+    return `export const MCP_HOST_BASE_URL_ENV_KEY = 'API2AI_MCP_BASE_URL_ENV_KEY';
+export const MCP_HOST_AUTH_ENV_KEY = 'API2AI_MCP_AUTH_ENV_KEY';
+
+function decodeJwtPayloadUnsafe(token) {
+    const parts = String(token).trim().split('.');
+    if (parts.length !== 3) {
+        throw new Error('credential is not a JWT (expected three dot-separated segments).');
+    }
+    let b64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+    while (b64.length % 4 !== 0) {
+        b64 += '=';
+    }
+    return JSON.parse(Buffer.from(b64, 'base64').toString('utf8'));
+}
+
+/** Host session (base URL, credential, decoded JWT). Re-reads env on every call — dev only, no signature verify. */
+export function resolveHostContext() {
+    const baseUrlKey = process.env[MCP_HOST_BASE_URL_ENV_KEY]?.trim();
+    const baseUrl = baseUrlKey ? process.env[baseUrlKey]?.trim() : undefined;
+    if (!baseUrl) {
+        throw new Error(
+            'Missing host base URL. Pass --base-url-env on mcp-serve.mjs and set the variable (or use smoke-generated).'
+        );
+    }
+
+    const authKey = process.env[MCP_HOST_AUTH_ENV_KEY]?.trim();
+    let credential = authKey ? process.env[authKey]?.trim() : undefined;${authCheck}
+
+    let jwt;
+    if (credential) {
+        const segments = String(credential).trim().split('.');
+        if (segments.length === 3) {
+            try {
+                jwt = decodeJwtPayloadUnsafe(credential);
+            } catch {
+                jwt = undefined;
+            }
+        }
+    }
+
+    return { baseUrl, credential, jwt };
+}
+`;
 }
 
 function warnIfPackageJsonMissingMcpDeps(packageJsonDir: string): void {
@@ -243,7 +329,11 @@ function mergeParallelToolData(
     toolsMeta: ResolvedToolCodegen[],
     schemas: Record<string, JsonSchemaDict>,
     querySerialization: Record<string, Record<string, { style: string; explode: boolean }>>
-): { toolsLiteral: string; schemasLiteral: string; querySerializationLiteral: string } {
+): {
+    toolsLiteral: string;
+    orderedSchemas: Record<string, JsonSchemaDict>;
+    querySerializationLiteral: string;
+} {
     const toolsLiteral = serializeJsonForModule(toolsMeta);
     const orderedSchemas: Record<string, JsonSchemaDict> = {};
     const orderedQuerySerialization: Record<string, Record<string, { style: string; explode: boolean }>> = {};
@@ -260,13 +350,16 @@ function mergeParallelToolData(
     }
     return {
         toolsLiteral,
-        schemasLiteral: serializeJsonForModule(orderedSchemas),
+        orderedSchemas,
         querySerializationLiteral: serializeJsonForModule(orderedQuerySerialization)
     };
 }
 
+function buildInputZodBlock(orderedSchemas: Record<string, JsonSchemaDict>): string {
+    return `${emitGeneratedZodPreamble()}\n${emitInputZodByToolExport(orderedSchemas)}\n`;
+}
+
 function createSharedInvokeBlock(
-    inputSchemaLiteralBody: string,
     querySerializationLiteralBody: string,
     authKind: 'none' | 'credential',
     usesInsecureTls: boolean,
@@ -281,30 +374,16 @@ const insecureTlsDispatcher = new Agent({ connect: { rejectUnauthorized: false }
         : '';
     const jwtHelpers = usesFromJwt
         ? `
-function decodeJwtPayload(token) {
-    const parts = String(token).trim().split('.');
-    if (parts.length !== 3) {
-        throw new Error('fromJwt: credential is not a JWT (expected three dot-separated segments).');
-    }
-    let b64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
-    while (b64.length % 4 !== 0) {
-        b64 += '=';
-    }
-    return JSON.parse(Buffer.from(b64, 'base64').toString('utf8'));
-}
-
-function resolvePathParamsWithFromJwt(authConfig, options) {
-    const base = { ...(options.pathParams ?? {}) };
+function resolvePathParamsWithFromJwt(authConfig, pathParams, jwt) {
+    const base = { ...(pathParams ?? {}) };
     const claim = authConfig?.fromJwt;
     if (!claim) {
         return base;
     }
-    const credential = options?.credential;
-    if (!credential || !String(credential).trim()) {
-        throw new Error('fromJwt requires InvokeOptions.credential (MCP host --auth-env).');
+    if (!jwt || typeof jwt !== 'object') {
+        throw new Error('fromJwt requires a JWT in host context (set --auth-env to a JWT).');
     }
-    const payload = decodeJwtPayload(credential);
-    const value = payload[claim];
+    const value = jwt[claim];
     if (value === undefined || value === null || String(value).trim() === '') {
         throw new Error('fromJwt: JWT payload missing claim "' + claim + '".');
     }
@@ -317,12 +396,11 @@ function resolvePathParamsWithFromJwt(authConfig, options) {
     const authHelpers =
         authKind === 'credential'
             ? `
-function resolveAuthSecret(authConfig, options) {
-    const secret = options?.credential;
-    if (!secret || !String(secret).trim()) {
-        throw new Error('Missing API credential (MCP host must pass InvokeOptions.credential from --auth-env).');
+function resolveAuthSecret(authConfig, credential) {
+    if (!credential || !String(credential).trim()) {
+        throw new Error('Missing host credential (MCP host --auth-env).');
     }
-    return (authConfig.prefix ?? '') + String(secret).trim();
+    return (authConfig.prefix ?? '') + String(credential).trim();
 }`
             : '';
 
@@ -331,7 +409,7 @@ function resolveAuthSecret(authConfig, options) {
             ? ''
             : `
     if (authConfig && !tool.public) {
-        const authValue = resolveAuthSecret(authConfig, options);
+        const authValue = resolveAuthSecret(authConfig, credential);
         if (authConfig.location === 'header') {
             requestHeaders[authConfig.name] = authValue;
         } else {
@@ -342,7 +420,7 @@ function resolveAuthSecret(authConfig, options) {
     const auth401Block =
         authKind === 'credential'
             ? `msg +=
-                    ' Check MCP host --auth-env and the configured environment variable (' +
+                    ' Check MCP host --auth-env (' +
                     authConfig.location +
                     ' ' +
                     authConfig.name +
@@ -357,8 +435,6 @@ function resolveAuthSecret(authConfig, options) {
         : '';
 
     return `${insecureTlsSetup}
-export const inputSchemaByTool = ${inputSchemaLiteralBody};
-
 export const queryParamSerializationByTool = ${querySerializationLiteralBody};
 
 function appendSerializedQueryParams(searchParams, toolName, query) {
@@ -407,19 +483,17 @@ function appendSerializedQueryParams(searchParams, toolName, query) {
 }
 ${jwtHelpers}${authHelpers}
 
-export async function invokeTool(toolName, options = {}) {
+export async function invokeTool(toolName, options = {}, hostContext) {
     const tool = generatedTools.find((t) => t.toolName === toolName);
     if (!tool) {
         throw new Error('Unknown tool: ' + toolName);
     }
 
-    if (!options.baseUrl || !String(options.baseUrl).trim()) {
-        throw new Error('Missing baseUrl (MCP host must pass InvokeOptions.baseUrl from --base-url-env).');
-    }
-    const effectiveBaseUrl = String(options.baseUrl).trim();
-    const normalizedBaseUrl = effectiveBaseUrl.endsWith('/') ? effectiveBaseUrl.slice(0, -1) : effectiveBaseUrl;
+    const host = hostContext ?? resolveHostContext();
+    const { baseUrl, credential, jwt } = host;
+    const normalizedBaseUrl = baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl;
     const pathParams = !tool.public && authConfig?.fromJwt
-        ? resolvePathParamsWithFromJwt(authConfig, options)
+        ? resolvePathParamsWithFromJwt(authConfig, options.pathParams, jwt)
         : { ...(options.pathParams ?? {}) };
     let resolvedPath = tool.path;
     for (const [key, value] of Object.entries(pathParams)) {
@@ -507,7 +581,8 @@ function renderSourceReference(source: string): string {
 
 function renderTsModule(
     enrichedToolsLiteral: string,
-    inputSchemaBlock: string,
+    mcpServerIdentityBlock: string,
+    toolRuntimeBlock: string,
     model: Model,
     source: string,
     authKind: 'none' | 'credential',
@@ -549,10 +624,7 @@ export type GeneratedTool = {
 export const generatedTools: GeneratedTool[] = ${enrichedToolsLiteral};
 
 export type InvokeOptions = {
-    /** Set by MCP host from --base-url-env (required for every invoke). */
-    baseUrl: string;
-    /** Raw API secret; set by MCP host from --auth-env when requiresAuth is true. */
-    credential?: string;
+    /** MCP tool arguments only (not visible to the agent: host base URL, credential, JWT via resolveHostContext). */
     pathParams?: Record<string, string | number | boolean>;
     query?: Record<string, string | number | boolean | ReadonlyArray<string | number | boolean>>;
     headers?: Record<string, string>;
@@ -560,15 +632,17 @@ export type InvokeOptions = {
 };
 
 ${authDecl}
-        
-${inputSchemaBlock}
+
+${mcpServerIdentityBlock}
+${toolRuntimeBlock}
     `.appendNewLineIfNotEmpty();
     return toString(fileNode);
 }
 
 function renderJsModule(
     enrichedToolsLiteral: string,
-    inputSchemaEmbedded: string,
+    mcpServerIdentityBlock: string,
+    toolRuntimeBlock: string,
     model: Model,
     source: string,
     authKind: 'none' | 'credential',
@@ -588,7 +662,8 @@ export const requiresAuth = ${model.auth && model.operations.some((op) => !op.pu
 
 export const authConfig = ${renderAuthConfig(model)};
 
-${inputSchemaEmbedded}
+${mcpServerIdentityBlock}
+${toolRuntimeBlock}
 `;
 }
 
@@ -602,20 +677,32 @@ export async function generateOutput(model: Model, source: string, destination: 
     const toolsMeta = resolveToolsFromLoaded(model, loaded);
     const schemas = buildSchemasFromLoaded(model, loaded);
     const querySerialization = buildQuerySerializationFromLoaded(model, loaded);
-    const { toolsLiteral, schemasLiteral, querySerializationLiteral } = mergeParallelToolData(toolsMeta, schemas, querySerialization);
+    const { toolsLiteral, orderedSchemas, querySerializationLiteral } = mergeParallelToolData(
+        toolsMeta,
+        schemas,
+        querySerialization
+    );
     const authKind = authRuntimeKind(model);
     const usesInsecureTls = model.insecureEnv === true;
     const usesFromJwt = Boolean(model.auth?.fromJwt?.trim());
-    const invokeBlock = createSharedInvokeBlock(
-        schemasLiteral,
+    const mcpServerIdentity = resolveMcpServerIdentityFromDestination(tsPath);
+    const mcpServerIdentityBlock = renderMcpServerIdentityExports(mcpServerIdentity.name, mcpServerIdentity.version);
+    const mcpHostEnvBlock = renderMcpHostEnvBlock(authKind);
+    const toolRuntimeBlock = `${buildInputZodBlock(orderedSchemas)}\n${mcpHostEnvBlock}\n${createSharedInvokeBlock(
         querySerializationLiteral,
         authKind,
         usesInsecureTls,
         usesFromJwt
-    );
+    )}`;
 
-    fs.writeFileSync(tsPath, renderTsModule(toolsLiteral, invokeBlock, model, source, authKind, usesInsecureTls));
-    fs.writeFileSync(jsPath, renderJsModule(toolsLiteral, invokeBlock, model, source, authKind, usesInsecureTls));
+    fs.writeFileSync(
+        tsPath,
+        renderTsModule(toolsLiteral, mcpServerIdentityBlock, toolRuntimeBlock, model, source, authKind, usesInsecureTls)
+    );
+    fs.writeFileSync(
+        jsPath,
+        renderJsModule(toolsLiteral, mcpServerIdentityBlock, toolRuntimeBlock, model, source, authKind, usesInsecureTls)
+    );
 
     const cliDir = resolveGeneratedCliDir(tsPath);
     const mcpServePath = copyBundledMcpServeInto(cliDir);

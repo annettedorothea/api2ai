@@ -4,19 +4,26 @@
  */
 import * as path from 'node:path';
 import { pathToFileURL } from 'node:url';
-import { loadLocalEnvFiles } from '../src/env.js';
-import { runMcpServerFromGeneratedModule } from './mcp-server.js';
+import { loadLocalEnvFiles } from './env.js';
+import { applyMcpHostEnvKeys } from './mcp-host-env.js';
+import { runMcpServerFromImportedModule } from './mcp-server.js';
 import { parseMcpServeArgv, validateHostConfigAtStartup } from './parse-host-args.js';
 
 const { modulePath, hostConfig } = parseMcpServeArgv(process.argv.slice(2));
 
-loadLocalEnvFiles([process.cwd(), path.dirname(path.resolve(modulePath))]);
+const moduleDir = path.dirname(path.resolve(modulePath));
+const envDirs = [process.cwd(), moduleDir];
+loadLocalEnvFiles(envDirs);
+applyMcpHostEnvKeys(hostConfig, envDirs);
 
 const imported = await import(pathToFileURL(path.resolve(modulePath)).href);
+if (!imported || typeof imported !== 'object') {
+    throw new Error(`Generated module "${modulePath}" did not export an object.`);
+}
 const requiresAuth = (imported as { requiresAuth?: unknown }).requiresAuth === true;
-const hostRuntime = validateHostConfigAtStartup(hostConfig, requiresAuth);
+validateHostConfigAtStartup(hostConfig, requiresAuth);
 
 const authPart = hostConfig.authEnv ? ` authEnv=${hostConfig.authEnv}` : '';
-console.error(`[mcp] baseUrlEnv=${hostConfig.baseUrlEnv}${authPart}`);
+console.error(`[mcp] baseUrlEnv=${hostConfig.baseUrlEnv}${authPart} (host context refreshed each tool call)`);
 
-await runMcpServerFromGeneratedModule(modulePath, { hostRuntime });
+await runMcpServerFromImportedModule(imported as Record<string, unknown>);

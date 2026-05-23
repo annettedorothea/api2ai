@@ -11,9 +11,11 @@ Langium’s Minilogo CLI guide is still a useful reference for the shared patter
 - [src/main.ts](./src/main.ts) – Commander setup: `generate`, `smoke-generated`.
 - [src/generate-command.ts](./src/generate-command.ts) – wiring for the generate command.
 - [src/generator.ts](./src/generator.ts) – writes generated tool modules and copies the bundled MCP entry.
-- [src/smoke.ts](./src/smoke.ts) – `smoke-generated` runner.
+- [test/integration/smoke-generated.ts](./test/integration/smoke-generated.ts) – integration smoke runner (`smoke-generated` CLI command).
+- [test/README.md](./test/README.md) – how smoke vs `test:mcp` differ.
 - [src/openapi-tool-codegen.ts](./src/openapi-tool-codegen.ts) – OpenAPI-derived input schemas for tools.
-- [src/util.ts](./src/util.ts), [src/env.ts](./src/env.ts) – helpers and optional `.env` loading for smoke runs.
+- [src/util.ts](./src/util.ts) – helpers.
+- [mcp-bundle/env.ts](./mcp-bundle/env.ts) – optional `.env` loading for MCP host and smoke.
 - [mcp-bundle/](./mcp-bundle/) – MCP server implementation; root `npm run bundle:mcp-runtime` produces [resources/mcp-serve-emitted.mjs](./resources/mcp-serve-emitted.mjs), which the generator copies next to generated outputs.
 
 ## Commands

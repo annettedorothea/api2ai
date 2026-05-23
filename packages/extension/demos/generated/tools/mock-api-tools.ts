@@ -38,10 +38,7 @@ export const generatedTools: GeneratedTool[] = [
 ];
 
 export type InvokeOptions = {
-    /** Set by MCP host from --base-url-env (required for every invoke). */
-    baseUrl: string;
-    /** Raw API secret; set by MCP host from --auth-env when requiresAuth is true. */
-    credential?: string;
+    /** MCP tool arguments only (not visible to the agent: host base URL, credential, JWT via resolveHostContext). */
     pathParams?: Record<string, string | number | boolean>;
     query?: Record<string, string | number | boolean | ReadonlyArray<string | number | boolean>>;
     headers?: Record<string, string>;
@@ -62,79 +59,67 @@ export const authConfig: AuthConfig | undefined = {
     "prefix": "Bearer ",
     "fromJwt": "customerId"
 };
-        
-export const inputSchemaByTool = {
-    "listCustomerOrders": {
-        "type": "object",
-        "properties": {
-            "pathParams": {
-                "type": "object",
-                "additionalProperties": true,
-                "description": "No path parameters."
-            },
-            "query": {
-                "type": "object",
-                "additionalProperties": true,
-                "description": "Optional query overrides."
-            },
-            "headers": {
-                "type": "object",
-                "additionalProperties": {
-                    "type": "string"
-                },
-                "description": "Optional extra headers."
-            },
-            "body": {
-                "type": "object",
-                "description": "Request body JSON if applicable.",
-                "additionalProperties": true
-            }
-        },
-        "required": [],
-        "additionalProperties": false,
-        "description": "Arguments for invoking the generated HTTP wrapper."
-    },
-    "login": {
-        "type": "object",
-        "properties": {
-            "pathParams": {
-                "type": "object",
-                "properties": {
-                    "customerId": {
-                        "type": "string"
-                    }
-                },
-                "required": [
-                    "customerId"
-                ],
-                "additionalProperties": false,
-                "description": "Path parameters from OpenAPI."
-            },
-            "query": {
-                "type": "object",
-                "additionalProperties": true,
-                "description": "Optional query overrides."
-            },
-            "headers": {
-                "type": "object",
-                "additionalProperties": {
-                    "type": "string"
-                },
-                "description": "Optional extra headers."
-            },
-            "body": {
-                "type": "object",
-                "description": "Request body JSON if applicable.",
-                "additionalProperties": true
-            }
-        },
-        "required": [
-            "pathParams"
-        ],
-        "additionalProperties": false,
-        "description": "Arguments for invoking the generated HTTP wrapper."
-    }
+
+export const mcpServerName = "mock-api-tools";
+export const mcpServerVersion = "0.0.1";
+
+import * as z from 'zod/v4';
+
+const __api2aiPrimitiveUnion = z.union([z.string(), z.number(), z.boolean()]);
+const __api2aiQueryValueUnion = z.union([__api2aiPrimitiveUnion, z.array(__api2aiPrimitiveUnion)]);
+
+export const inputZodByTool = {
+    "listCustomerOrders": z.object({ "pathParams": z.record(z.string(), __api2aiPrimitiveUnion).describe("No path parameters.").optional(), "query": z.record(z.string(), __api2aiPrimitiveUnion).describe("Optional query overrides.").optional(), "headers": z.record(z.string(), z.string()).describe("Optional extra headers.").optional(), "body": z.record(z.string(), __api2aiPrimitiveUnion).describe("Request body JSON if applicable.").optional() }).strict().describe("Arguments for invoking the generated HTTP wrapper."),
+    "login": z.object({ "pathParams": z.object({ "customerId": z.string() }).strict().describe("Path parameters from OpenAPI."), "query": z.record(z.string(), __api2aiPrimitiveUnion).describe("Optional query overrides.").optional(), "headers": z.record(z.string(), z.string()).describe("Optional extra headers.").optional(), "body": z.record(z.string(), __api2aiPrimitiveUnion).describe("Request body JSON if applicable.").optional() }).strict().describe("Arguments for invoking the generated HTTP wrapper.")
 };
+
+export const MCP_HOST_BASE_URL_ENV_KEY = 'API2AI_MCP_BASE_URL_ENV_KEY';
+export const MCP_HOST_AUTH_ENV_KEY = 'API2AI_MCP_AUTH_ENV_KEY';
+
+function decodeJwtPayloadUnsafe(token) {
+    const parts = String(token).trim().split('.');
+    if (parts.length !== 3) {
+        throw new Error('credential is not a JWT (expected three dot-separated segments).');
+    }
+    let b64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+    while (b64.length % 4 !== 0) {
+        b64 += '=';
+    }
+    return JSON.parse(Buffer.from(b64, 'base64').toString('utf8'));
+}
+
+/** Host session (base URL, credential, decoded JWT). Re-reads env on every call — dev only, no signature verify. */
+export function resolveHostContext() {
+    const baseUrlKey = process.env[MCP_HOST_BASE_URL_ENV_KEY]?.trim();
+    const baseUrl = baseUrlKey ? process.env[baseUrlKey]?.trim() : undefined;
+    if (!baseUrl) {
+        throw new Error(
+            'Missing host base URL. Pass --base-url-env on mcp-serve.mjs and set the variable (or use smoke-generated).'
+        );
+    }
+
+    const authKey = process.env[MCP_HOST_AUTH_ENV_KEY]?.trim();
+    let credential = authKey ? process.env[authKey]?.trim() : undefined;
+    if (!credential) {
+        throw new Error(
+            'Missing host credential. Pass --auth-env on mcp-serve.mjs and set the variable (re-read on every tool call).'
+        );
+    }
+
+    let jwt;
+    if (credential) {
+        const segments = String(credential).trim().split('.');
+        if (segments.length === 3) {
+            try {
+                jwt = decodeJwtPayloadUnsafe(credential);
+            } catch {
+                jwt = undefined;
+            }
+        }
+    }
+
+    return { baseUrl, credential, jwt };
+}
 
 export const queryParamSerializationByTool = {
     "listCustomerOrders": {},
@@ -186,30 +171,16 @@ function appendSerializedQueryParams(searchParams, toolName, query) {
     }
 }
 
-function decodeJwtPayload(token) {
-    const parts = String(token).trim().split('.');
-    if (parts.length !== 3) {
-        throw new Error('fromJwt: credential is not a JWT (expected three dot-separated segments).');
-    }
-    let b64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
-    while (b64.length % 4 !== 0) {
-        b64 += '=';
-    }
-    return JSON.parse(Buffer.from(b64, 'base64').toString('utf8'));
-}
-
-function resolvePathParamsWithFromJwt(authConfig, options) {
-    const base = { ...(options.pathParams ?? {}) };
+function resolvePathParamsWithFromJwt(authConfig, pathParams, jwt) {
+    const base = { ...(pathParams ?? {}) };
     const claim = authConfig?.fromJwt;
     if (!claim) {
         return base;
     }
-    const credential = options?.credential;
-    if (!credential || !String(credential).trim()) {
-        throw new Error('fromJwt requires InvokeOptions.credential (MCP host --auth-env).');
+    if (!jwt || typeof jwt !== 'object') {
+        throw new Error('fromJwt requires a JWT in host context (set --auth-env to a JWT).');
     }
-    const payload = decodeJwtPayload(credential);
-    const value = payload[claim];
+    const value = jwt[claim];
     if (value === undefined || value === null || String(value).trim() === '') {
         throw new Error('fromJwt: JWT payload missing claim "' + claim + '".');
     }
@@ -217,27 +188,24 @@ function resolvePathParamsWithFromJwt(authConfig, options) {
     return base;
 }
 
-function resolveAuthSecret(authConfig, options) {
-    const secret = options?.credential;
-    if (!secret || !String(secret).trim()) {
-        throw new Error('Missing API credential (MCP host must pass InvokeOptions.credential from --auth-env).');
+function resolveAuthSecret(authConfig, credential) {
+    if (!credential || !String(credential).trim()) {
+        throw new Error('Missing host credential (MCP host --auth-env).');
     }
-    return (authConfig.prefix ?? '') + String(secret).trim();
+    return (authConfig.prefix ?? '') + String(credential).trim();
 }
 
-export async function invokeTool(toolName, options = {}) {
+export async function invokeTool(toolName, options = {}, hostContext) {
     const tool = generatedTools.find((t) => t.toolName === toolName);
     if (!tool) {
         throw new Error('Unknown tool: ' + toolName);
     }
 
-    if (!options.baseUrl || !String(options.baseUrl).trim()) {
-        throw new Error('Missing baseUrl (MCP host must pass InvokeOptions.baseUrl from --base-url-env).');
-    }
-    const effectiveBaseUrl = String(options.baseUrl).trim();
-    const normalizedBaseUrl = effectiveBaseUrl.endsWith('/') ? effectiveBaseUrl.slice(0, -1) : effectiveBaseUrl;
+    const host = hostContext ?? resolveHostContext();
+    const { baseUrl, credential, jwt } = host;
+    const normalizedBaseUrl = baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl;
     const pathParams = !tool.public && authConfig?.fromJwt
-        ? resolvePathParamsWithFromJwt(authConfig, options)
+        ? resolvePathParamsWithFromJwt(authConfig, options.pathParams, jwt)
         : { ...(options.pathParams ?? {}) };
     let resolvedPath = tool.path;
     for (const [key, value] of Object.entries(pathParams)) {
@@ -251,7 +219,7 @@ export async function invokeTool(toolName, options = {}) {
         ...(options.headers ?? {})
     };
     if (authConfig && !tool.public) {
-        const authValue = resolveAuthSecret(authConfig, options);
+        const authValue = resolveAuthSecret(authConfig, credential);
         if (authConfig.location === 'header') {
             requestHeaders[authConfig.name] = authValue;
         } else {
@@ -283,7 +251,7 @@ export async function invokeTool(toolName, options = {}) {
             msg += ' Unauthorized.';
             if (authConfig && !tool.public) {
                 msg +=
-                    ' Check MCP host --auth-env and the configured environment variable (' +
+                    ' Check MCP host --auth-env (' +
                     authConfig.location +
                     ' ' +
                     authConfig.name +

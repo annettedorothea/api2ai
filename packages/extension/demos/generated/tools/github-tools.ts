@@ -12,6 +12,8 @@ export type GeneratedTool = {
     method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' | 'HEAD' | 'OPTIONS' | 'TRACE';
     path: string;
     example?: string;
+    /** When true, no auth header or fromJwt binding (e.g. login). */
+    public?: boolean;
 };
 
 export const generatedTools: GeneratedTool[] = [
@@ -21,7 +23,8 @@ export const generatedTools: GeneratedTool[] = [
         "description": "Intent:\nreturn the GitHub user profile for the authenticated PAT; use to confirm which account the token represents before calling repo-scoped tools\n\nAPI:\nRequires a user PAT with at least read:user (classic) or equivalent fine-grained scope.\n\nMeta:\noperationId: get-authenticated-user\n\nExample:\nNo path or query parameters\n\nResponse:\nHTTP 200\nOK\ntype: object (no inlined properties)\nDocumented errors:\nHTTP 401 — Unauthorized\nHTTP 403 — Forbidden (rate limit or insufficient token scope)\n\nRuntime auth: MCP host injects the API credential via --auth-env; send as header \"Authorization\" (prefix applied to the secret).",
         "method": "GET",
         "path": "/user",
-        "example": "No path or query parameters"
+        "example": "No path or query parameters",
+        "public": false
     },
     {
         "toolName": "listGitHubUserRepos",
@@ -29,7 +32,8 @@ export const generatedTools: GeneratedTool[] = [
         "description": "Intent:\nlist repositories the authenticated PAT can access; use to find owner/repo and to debug 404 on GET /repos/{owner}/{repo}\n\nAPI:\nLists repositories the authenticated user has **direct** access to (your own repos, collaborations, org repos the token can see).\n\n**Classic PAT:** use scope `repo` if you need private repositories; without it, private repos may be omitted or single-repo `GET /repos/{owner}/{repo}` can return **404** (GitHub hides existence of private repos you cannot read).\n\n**Fine-grained PAT:** grant **Repository permissions** (e.g. Metadata read) on each repository or via organization/team rules; missing scope often surfaces as **404** on `GET /repos/{owner}/{repo}`, not 403.\n\nPrefer this endpoint to discover `owner`/`repo` names before calling `GET /repos/{owner}/{repo}`.\n\nMeta:\noperationId: list-repositories-for-the-authenticated-user\n\nExample:\nFirst page, 10 per page: query per_page=10 page=1\n\nResponse:\nHTTP 200\nOK — array of repository objects\ntype: array of object\nDocumented errors:\nHTTP 401 — Unauthorized\nHTTP 403 — Forbidden (rate limit or insufficient token)\n\nRuntime auth: MCP host injects the API credential via --auth-env; send as header \"Authorization\" (prefix applied to the secret).",
         "method": "GET",
         "path": "/user/repos",
-        "example": "First page, 10 per page: query per_page=10 page=1"
+        "example": "First page, 10 per page: query per_page=10 page=1",
+        "public": false
     },
     {
         "toolName": "getGitHubRepository",
@@ -37,15 +41,13 @@ export const generatedTools: GeneratedTool[] = [
         "description": "Intent:\nfetch GitHub repository metadata when the PAT can read the repo\n\nAPI:\nReturns metadata for one repository.\n\n**404 on private repos:** GitHub often returns **404 Not Found** (not 403) when the repo is private and the token **cannot** read it, or when `owner`/`repo` is wrong — this avoids leaking whether a private repo exists.\n\nIf you are sure the PAT should have access: verify the token in the MCP host (`--auth-env` / `GITHUB_TOKEN`), PAT type (classic `repo` vs fine-grained repo access), exact `owner`/`repo` spelling, and try `GET /user/repos` to confirm the repo appears in the list for this token.\n\nMeta:\noperationId: get-a-repository\n\nExample:\nGet public repo octocat/Hello-World\n\nResponse:\nHTTP 200\nOK\ntype: object (no inlined properties)\nDocumented errors:\nHTTP 404 — Not Found (e.g. private repo or no access)\n\nRuntime auth: MCP host injects the API credential via --auth-env; send as header \"Authorization\" (prefix applied to the secret).",
         "method": "GET",
         "path": "/repos/{owner}/{repo}",
-        "example": "Get public repo octocat/Hello-World"
+        "example": "Get public repo octocat/Hello-World",
+        "public": false
     }
 ];
 
 export type InvokeOptions = {
-    /** Set by MCP host from --base-url-env (required for every invoke). */
-    baseUrl: string;
-    /** Raw API secret; set by MCP host from --auth-env when requiresAuth is true. */
-    credential?: string;
+    /** MCP tool arguments only (not visible to the agent: host base URL, credential, JWT via resolveHostContext). */
     pathParams?: Record<string, string | number | boolean>;
     query?: Record<string, string | number | boolean | ReadonlyArray<string | number | boolean>>;
     headers?: Record<string, string>;
@@ -56,6 +58,7 @@ type AuthConfig = {
     location: 'header' | 'query';
     name: string;
     prefix?: string;
+    fromJwt?: string;
 };
 
 export const requiresAuth = true;
@@ -64,139 +67,68 @@ export const authConfig: AuthConfig | undefined = {
     "name": "Authorization",
     "prefix": "Bearer "
 };
-        
-export const inputSchemaByTool = {
-    "getGitHubAuthenticatedUser": {
-        "type": "object",
-        "properties": {
-            "pathParams": {
-                "type": "object",
-                "additionalProperties": true,
-                "description": "No path parameters."
-            },
-            "query": {
-                "type": "object",
-                "additionalProperties": true,
-                "description": "Optional query overrides."
-            },
-            "headers": {
-                "type": "object",
-                "additionalProperties": {
-                    "type": "string"
-                },
-                "description": "Optional extra headers."
-            },
-            "body": {
-                "type": "object",
-                "description": "Request body JSON if applicable.",
-                "additionalProperties": true
-            }
-        },
-        "required": [],
-        "additionalProperties": false,
-        "description": "Arguments for invoking the generated HTTP wrapper."
-    },
-    "listGitHubUserRepos": {
-        "type": "object",
-        "properties": {
-            "pathParams": {
-                "type": "object",
-                "additionalProperties": true,
-                "description": "No path parameters."
-            },
-            "query": {
-                "type": "object",
-                "properties": {
-                    "type": {
-                        "default": "all",
-                        "enum": [
-                            "all",
-                            "owner",
-                            "member"
-                        ],
-                        "type": "string",
-                        "description": "`all` (default), `owner` (repos owned by user), or `member` (repos user is member of but does not own)."
-                    },
-                    "per_page": {
-                        "default": 30,
-                        "minimum": 1,
-                        "maximum": 100,
-                        "type": "integer",
-                        "description": "Results per page (max 100)."
-                    },
-                    "page": {
-                        "default": 1,
-                        "minimum": 1,
-                        "type": "integer",
-                        "description": "Page number of results."
-                    }
-                },
-                "required": [],
-                "additionalProperties": false,
-                "description": "Query parameters from OpenAPI."
-            },
-            "headers": {
-                "type": "object",
-                "additionalProperties": {
-                    "type": "string"
-                },
-                "description": "Optional extra headers."
-            },
-            "body": {
-                "type": "object",
-                "description": "Request body JSON if applicable.",
-                "additionalProperties": true
-            }
-        },
-        "required": [],
-        "additionalProperties": false,
-        "description": "Arguments for invoking the generated HTTP wrapper."
-    },
-    "getGitHubRepository": {
-        "type": "object",
-        "properties": {
-            "pathParams": {
-                "type": "object",
-                "properties": {
-                    "owner": {
-                        "type": "string"
-                    },
-                    "repo": {
-                        "type": "string"
-                    }
-                },
-                "required": [
-                    "owner",
-                    "repo"
-                ],
-                "additionalProperties": false,
-                "description": "Path parameters from OpenAPI."
-            },
-            "query": {
-                "type": "object",
-                "additionalProperties": true,
-                "description": "Optional query overrides."
-            },
-            "headers": {
-                "type": "object",
-                "additionalProperties": {
-                    "type": "string"
-                },
-                "description": "Optional extra headers."
-            },
-            "body": {
-                "type": "object",
-                "description": "Request body JSON if applicable.",
-                "additionalProperties": true
-            }
-        },
-        "required": [
-            "pathParams"
-        ],
-        "additionalProperties": false,
-        "description": "Arguments for invoking the generated HTTP wrapper."
-    }
+
+export const mcpServerName = "github-tools";
+export const mcpServerVersion = "0.0.1";
+
+import * as z from 'zod/v4';
+
+const __api2aiPrimitiveUnion = z.union([z.string(), z.number(), z.boolean()]);
+const __api2aiQueryValueUnion = z.union([__api2aiPrimitiveUnion, z.array(__api2aiPrimitiveUnion)]);
+
+export const inputZodByTool = {
+    "getGitHubAuthenticatedUser": z.object({ "pathParams": z.record(z.string(), __api2aiPrimitiveUnion).describe("No path parameters.").optional(), "query": z.record(z.string(), __api2aiPrimitiveUnion).describe("Optional query overrides.").optional(), "headers": z.record(z.string(), z.string()).describe("Optional extra headers.").optional(), "body": z.record(z.string(), __api2aiPrimitiveUnion).describe("Request body JSON if applicable.").optional() }).strict().describe("Arguments for invoking the generated HTTP wrapper."),
+    "listGitHubUserRepos": z.object({ "pathParams": z.record(z.string(), __api2aiPrimitiveUnion).describe("No path parameters.").optional(), "query": z.object({ "type": z.union([z.literal("all"), z.literal("owner"), z.literal("member")]).describe("`all` (default), `owner` (repos owned by user), or `member` (repos user is member of but does not own).").optional(), "per_page": z.number().describe("Results per page (max 100).").optional(), "page": z.number().describe("Page number of results.").optional() }).strict().describe("Query parameters from OpenAPI.").optional(), "headers": z.record(z.string(), z.string()).describe("Optional extra headers.").optional(), "body": z.record(z.string(), __api2aiPrimitiveUnion).describe("Request body JSON if applicable.").optional() }).strict().describe("Arguments for invoking the generated HTTP wrapper."),
+    "getGitHubRepository": z.object({ "pathParams": z.object({ "owner": z.string(), "repo": z.string() }).strict().describe("Path parameters from OpenAPI."), "query": z.record(z.string(), __api2aiPrimitiveUnion).describe("Optional query overrides.").optional(), "headers": z.record(z.string(), z.string()).describe("Optional extra headers.").optional(), "body": z.record(z.string(), __api2aiPrimitiveUnion).describe("Request body JSON if applicable.").optional() }).strict().describe("Arguments for invoking the generated HTTP wrapper.")
 };
+
+export const MCP_HOST_BASE_URL_ENV_KEY = 'API2AI_MCP_BASE_URL_ENV_KEY';
+export const MCP_HOST_AUTH_ENV_KEY = 'API2AI_MCP_AUTH_ENV_KEY';
+
+function decodeJwtPayloadUnsafe(token) {
+    const parts = String(token).trim().split('.');
+    if (parts.length !== 3) {
+        throw new Error('credential is not a JWT (expected three dot-separated segments).');
+    }
+    let b64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+    while (b64.length % 4 !== 0) {
+        b64 += '=';
+    }
+    return JSON.parse(Buffer.from(b64, 'base64').toString('utf8'));
+}
+
+/** Host session (base URL, credential, decoded JWT). Re-reads env on every call — dev only, no signature verify. */
+export function resolveHostContext() {
+    const baseUrlKey = process.env[MCP_HOST_BASE_URL_ENV_KEY]?.trim();
+    const baseUrl = baseUrlKey ? process.env[baseUrlKey]?.trim() : undefined;
+    if (!baseUrl) {
+        throw new Error(
+            'Missing host base URL. Pass --base-url-env on mcp-serve.mjs and set the variable (or use smoke-generated).'
+        );
+    }
+
+    const authKey = process.env[MCP_HOST_AUTH_ENV_KEY]?.trim();
+    let credential = authKey ? process.env[authKey]?.trim() : undefined;
+    if (!credential) {
+        throw new Error(
+            'Missing host credential. Pass --auth-env on mcp-serve.mjs and set the variable (re-read on every tool call).'
+        );
+    }
+
+    let jwt;
+    if (credential) {
+        const segments = String(credential).trim().split('.');
+        if (segments.length === 3) {
+            try {
+                jwt = decodeJwtPayloadUnsafe(credential);
+            } catch {
+                jwt = undefined;
+            }
+        }
+    }
+
+    return { baseUrl, credential, jwt };
+}
 
 export const queryParamSerializationByTool = {
     "getGitHubAuthenticatedUser": {},
@@ -262,27 +194,27 @@ function appendSerializedQueryParams(searchParams, toolName, query) {
     }
 }
 
-function resolveAuthSecret(authConfig, options) {
-    const secret = options?.credential;
-    if (!secret || !String(secret).trim()) {
-        throw new Error('Missing API credential (MCP host must pass InvokeOptions.credential from --auth-env).');
+function resolveAuthSecret(authConfig, credential) {
+    if (!credential || !String(credential).trim()) {
+        throw new Error('Missing host credential (MCP host --auth-env).');
     }
-    return (authConfig.prefix ?? '') + String(secret).trim();
+    return (authConfig.prefix ?? '') + String(credential).trim();
 }
 
-export async function invokeTool(toolName, options = {}) {
+export async function invokeTool(toolName, options = {}, hostContext) {
     const tool = generatedTools.find((t) => t.toolName === toolName);
     if (!tool) {
         throw new Error('Unknown tool: ' + toolName);
     }
 
-    if (!options.baseUrl || !String(options.baseUrl).trim()) {
-        throw new Error('Missing baseUrl (MCP host must pass InvokeOptions.baseUrl from --base-url-env).');
-    }
-    const effectiveBaseUrl = String(options.baseUrl).trim();
-    const normalizedBaseUrl = effectiveBaseUrl.endsWith('/') ? effectiveBaseUrl.slice(0, -1) : effectiveBaseUrl;
+    const host = hostContext ?? resolveHostContext();
+    const { baseUrl, credential, jwt } = host;
+    const normalizedBaseUrl = baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl;
+    const pathParams = !tool.public && authConfig?.fromJwt
+        ? resolvePathParamsWithFromJwt(authConfig, options.pathParams, jwt)
+        : { ...(options.pathParams ?? {}) };
     let resolvedPath = tool.path;
-    for (const [key, value] of Object.entries(options.pathParams ?? {})) {
+    for (const [key, value] of Object.entries(pathParams)) {
         resolvedPath = resolvedPath.split('{' + key + '}').join(encodeURIComponent(String(value)));
     }
 
@@ -292,8 +224,8 @@ export async function invokeTool(toolName, options = {}) {
         'content-type': 'application/json',
         ...(options.headers ?? {})
     };
-    if (authConfig) {
-        const authValue = resolveAuthSecret(authConfig, options);
+    if (authConfig && !tool.public) {
+        const authValue = resolveAuthSecret(authConfig, credential);
         if (authConfig.location === 'header') {
             requestHeaders[authConfig.name] = authValue;
         } else {
@@ -323,14 +255,14 @@ export async function invokeTool(toolName, options = {}) {
         let msg = 'HTTP ' + response.status + ' while invoking ' + tool.toolName + '.';
         if (response.status === 401) {
             msg += ' Unauthorized.';
-            if (authConfig) {
+            if (authConfig && !tool.public) {
                 msg +=
-                    ' Check MCP host --auth-env and the configured environment variable (' +
+                    ' Check MCP host --auth-env (' +
                     authConfig.location +
                     ' ' +
                     authConfig.name +
                     ').';
-            } else {
+            } else if (!tool.public) {
                 msg += ' The API may require authentication.';
             }
         } else if (response.status === 403) {

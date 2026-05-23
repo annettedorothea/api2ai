@@ -3,149 +3,52 @@ import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import * as path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import * as z from 'zod/v4';
+import { loadLocalEnvFiles } from './env.js';
+import { MCP_HOST_ENV_DIRS, type McpHostAuthContext } from './mcp-host-env.js';
 
 type GeneratedTool = {
     toolName: string;
-    /** Present on well-formed generated modules; absent or non-string must not crash MCP registration. */
     title?: string;
     description: string;
 };
 
-type GeneratedInvokeOptions = {
-    baseUrl: string;
-    credential?: string;
-    pathParams?: Record<string, string | number | boolean>;
-    query?: Record<string, string | number | boolean | ReadonlyArray<string | number | boolean>>;
-    headers?: Record<string, string>;
-    body?: unknown;
-};
-
 type GeneratedRuntimeModule = {
     generatedTools: GeneratedTool[];
-    invokeTool: (toolName: string, options?: GeneratedInvokeOptions) => Promise<unknown>;
-    inputSchemaByTool?: Record<string, unknown>;
+    resolveHostContext: () => McpHostAuthContext;
+    invokeTool: (
+        toolName: string,
+        args?: Record<string, unknown>,
+        hostContext?: McpHostAuthContext
+    ) => Promise<unknown>;
+    inputZodByTool?: Record<string, z.ZodTypeAny>;
+    mcpServerName?: string;
+    mcpServerVersion?: string;
 };
 
-export type McpHostRuntime = {
-    baseUrl: string;
-    credential?: string;
-};
-
-type RunMcpServerOptions = {
-    reloadModulePerRequest?: boolean;
-    hostRuntime: McpHostRuntime;
-};
-
-const primitiveUnion = z.union([z.string(), z.number(), z.boolean()]);
-
-/** JSON-schema `enum` arrays are resolved at runtime; avoid `z.enum()` which expects a literal tuple type in typings. */
-function zodPicklist(strings: readonly string[]): z.ZodTypeAny {
-    if (strings.length === 0) {
-        return z.never();
+function requireMcpServerIdentity(generated: GeneratedRuntimeModule): { name: string; version: string } {
+    const name = generated.mcpServerName?.trim();
+    const version = generated.mcpServerVersion?.trim();
+    if (!name) {
+        throw new Error('Generated module must export "mcpServerName". Regenerate tool code.');
     }
-    if (strings.length === 1) {
-        return z.literal(strings[0]!);
+    if (!version) {
+        throw new Error('Generated module must export "mcpServerVersion". Regenerate tool code.');
     }
-    const literals = strings.map((v) => z.literal(v));
-    return z.union(literals as unknown as [z.ZodTypeAny, z.ZodTypeAny, ...z.ZodTypeAny[]]);
+    return { name, version };
 }
 
-function isFiniteNumber(value: unknown): value is number {
-    return typeof value === 'number' && Number.isFinite(value);
+function requireInputZodSchema(inputZodByTool: Record<string, z.ZodTypeAny> | undefined, toolName: string): z.ZodTypeAny {
+    if (!inputZodByTool) {
+        throw new Error('Generated module must export "inputZodByTool". Regenerate tool code.');
+    }
+    const schema = inputZodByTool[toolName];
+    if (!schema) {
+        throw new Error(
+            `Generated module inputZodByTool has no schema for tool "${toolName}". Regenerate tool code.`
+        );
+    }
+    return schema;
 }
-
-/** Like `zodPicklist` for numeric `enum` on `type: number` / `type: integer` schemas. */
-function zodNumericPicklist(values: readonly number[]): z.ZodTypeAny {
-    if (values.length === 0) {
-        return z.never();
-    }
-    if (values.length === 1) {
-        return z.literal(values[0]!);
-    }
-    const literals = values.map((v) => z.literal(v));
-    return z.union(literals as unknown as [z.ZodTypeAny, z.ZodTypeAny, ...z.ZodTypeAny[]]);
-}
-
-/** Maps JSON-schema-like objects emitted by codegen into Zod for MCP registerTool. */
-function jsonSchemaToZod(schema: unknown): z.ZodTypeAny {
-    if (schema === null || typeof schema !== 'object') {
-        return z.unknown();
-    }
-    const s = schema as Record<string, unknown>;
-
-    if (Array.isArray(s.anyOf)) {
-        const parts = s.anyOf.map((p) => jsonSchemaToZod(p));
-        if (parts.length === 0) {
-            return z.never();
-        }
-        if (parts.length === 1) {
-            return parts[0]!;
-        }
-        return z.union(parts as [z.ZodTypeAny, z.ZodTypeAny, ...z.ZodTypeAny[]]);
-    }
-
-    if (s.type === 'object' && s.properties !== undefined && typeof s.properties === 'object' && !Array.isArray(s.properties)) {
-        const props = s.properties as Record<string, unknown>;
-        const required = new Set(Array.isArray(s.required) ? (s.required as unknown[]).filter((x): x is string => typeof x === 'string') : []);
-        const shape: Record<string, z.ZodTypeAny> = {};
-        for (const [key, propSchema] of Object.entries(props)) {
-            let inner = jsonSchemaToZod(propSchema);
-            if (!required.has(key)) {
-                inner = inner.optional();
-            }
-            shape[key] = inner;
-        }
-        let obj = z.object(shape);
-        if (s.additionalProperties === false) {
-            obj = obj.strict();
-        }
-        return obj;
-    }
-
-    if (s.type === 'array') {
-        const items = jsonSchemaToZod(s.items);
-        return z.array(items);
-    }
-
-    if (s.type === 'string') {
-        if (Array.isArray(s.enum) && s.enum.length >= 1 && s.enum.every((e) => typeof e === 'string')) {
-            return zodPicklist(s.enum as string[]);
-        }
-        return z.string();
-    }
-
-    if (s.type === 'number' || s.type === 'integer') {
-        if (Array.isArray(s.enum) && s.enum.length >= 1 && s.enum.every(isFiniteNumber)) {
-            return zodNumericPicklist(s.enum);
-        }
-        return z.number();
-    }
-
-    if (s.type === 'boolean') {
-        return z.boolean();
-    }
-
-    // Buckets with loose object + additionalProperties mapping
-    if (s.type === 'object' && s.additionalProperties === true) {
-        return z.record(z.string(), primitiveUnion);
-    }
-
-    if (s.type === 'object' && typeof s.additionalProperties === 'object' && s.additionalProperties !== null && !Array.isArray(s.additionalProperties)) {
-        const valueType = jsonSchemaToZod(s.additionalProperties);
-        return z.record(z.string(), valueType as z.ZodTypeAny);
-    }
-
-    return z.unknown();
-}
-
-const queryValueUnion = z.union([primitiveUnion, z.array(primitiveUnion)]);
-
-const fallbackInputSchema = z.object({
-    pathParams: z.record(z.string(), primitiveUnion).optional(),
-    query: z.record(z.string(), queryValueUnion).optional(),
-    headers: z.record(z.string(), z.string()).optional(),
-    body: z.unknown().optional()
-});
 
 function asLocalModulePath(modulePath: string): string {
     if (modulePath.startsWith('file://')) {
@@ -157,61 +60,54 @@ function asLocalModulePath(modulePath: string): string {
 function readRuntimeModule(imported: Record<string, unknown>): GeneratedRuntimeModule {
     const generatedTools = imported.generatedTools;
     const invokeTool = imported.invokeTool;
+    const resolveHostContext = imported.resolveHostContext;
     if (!Array.isArray(generatedTools)) {
         throw new Error('Generated module must export "generatedTools" array.');
     }
     if (typeof invokeTool !== 'function') {
         throw new Error('Generated module must export async "invokeTool" function.');
     }
-    const inputSchemaByTool = imported.inputSchemaByTool;
+    if (typeof resolveHostContext !== 'function') {
+        throw new Error('Generated module must export "resolveHostContext". Regenerate tool code.');
+    }
+    const inputZodByTool = imported.inputZodByTool;
+    const mcpServerName = imported.mcpServerName;
+    const mcpServerVersion = imported.mcpServerVersion;
     return {
         generatedTools: generatedTools as GeneratedTool[],
+        resolveHostContext: resolveHostContext as GeneratedRuntimeModule['resolveHostContext'],
         invokeTool: invokeTool as GeneratedRuntimeModule['invokeTool'],
-        inputSchemaByTool:
-            inputSchemaByTool && typeof inputSchemaByTool === 'object' && !Array.isArray(inputSchemaByTool)
-                ? (inputSchemaByTool as Record<string, unknown>)
-                : undefined
+        inputZodByTool:
+            inputZodByTool && typeof inputZodByTool === 'object' && !Array.isArray(inputZodByTool)
+                ? (inputZodByTool as Record<string, z.ZodTypeAny>)
+                : undefined,
+        mcpServerName: typeof mcpServerName === 'string' ? mcpServerName : undefined,
+        mcpServerVersion: typeof mcpServerVersion === 'string' ? mcpServerVersion : undefined
     };
 }
 
-async function importGeneratedModule(modulePath: string): Promise<GeneratedRuntimeModule> {
-    const absolutePath = asLocalModulePath(modulePath);
-    const imported = await import(pathToFileURL(absolutePath).href);
-    if (!imported || typeof imported !== 'object') {
-        throw new Error(`Generated module "${modulePath}" did not export an object.`);
+function reloadEnvFilesForDev(): void {
+    const raw = process.env[MCP_HOST_ENV_DIRS];
+    if (!raw?.trim()) {
+        return;
     }
-    return readRuntimeModule(imported as Record<string, unknown>);
+    try {
+        const dirs = JSON.parse(raw) as unknown;
+        if (Array.isArray(dirs) && dirs.every((d) => typeof d === 'string')) {
+            loadLocalEnvFiles(dirs);
+        }
+    } catch {
+        // ignore malformed config
+    }
 }
 
-async function importGeneratedModuleWithoutCache(modulePath: string): Promise<GeneratedRuntimeModule> {
-    const absolutePath = asLocalModulePath(modulePath);
-    const moduleUrl = pathToFileURL(absolutePath);
-    moduleUrl.searchParams.set('t', `${Date.now()}`);
-    const imported = await import(moduleUrl.href);
-    if (!imported || typeof imported !== 'object') {
-        throw new Error(`Generated module "${modulePath}" did not export an object.`);
-    }
-    return readRuntimeModule(imported as Record<string, unknown>);
-}
-
-export async function runMcpServerFromGeneratedModule(
-    modulePath: string,
-    options: RunMcpServerOptions
-): Promise<void> {
-    const generated = await importGeneratedModule(modulePath);
-    const loadModule = options.reloadModulePerRequest
-        ? () => importGeneratedModuleWithoutCache(modulePath)
-        : () => importGeneratedModule(modulePath);
-    const server = new McpServer({
-        name: 'api2ai-generated-tools',
-        version: '0.1.0'
-    });
-
-    const { baseUrl, credential } = options.hostRuntime;
+export async function runMcpServerFromImportedModule(imported: Record<string, unknown>): Promise<void> {
+    const generated = readRuntimeModule(imported);
+    const { name, version } = requireMcpServerIdentity(generated);
+    const server = new McpServer({ name, version });
 
     for (const tool of generated.generatedTools) {
-        const rawSchema = generated.inputSchemaByTool?.[tool.toolName];
-        const inputSchema = rawSchema !== undefined ? jsonSchemaToZod(rawSchema) : fallbackInputSchema;
+        const inputSchema = requireInputZodSchema(generated.inputZodByTool, tool.toolName);
 
         server.registerTool(
             tool.toolName,
@@ -221,16 +117,13 @@ export async function runMcpServerFromGeneratedModule(
                 inputSchema
             },
             async (args) => {
-                const a = args as Omit<GeneratedInvokeOptions, 'baseUrl' | 'credential'>;
-                const currentModule = await loadModule();
-                const result = await currentModule.invokeTool(tool.toolName, {
-                    baseUrl,
-                    credential,
-                    pathParams: a.pathParams,
-                    query: a.query,
-                    headers: a.headers,
-                    body: a.body
-                });
+                reloadEnvFilesForDev();
+                const hostContext = generated.resolveHostContext();
+                const result = await generated.invokeTool(
+                    tool.toolName,
+                    (args ?? {}) as Record<string, unknown>,
+                    hostContext
+                );
                 return {
                     content: [
                         {
@@ -245,4 +138,13 @@ export async function runMcpServerFromGeneratedModule(
 
     const transport = new StdioServerTransport();
     await server.connect(transport);
+}
+
+export async function runMcpServerFromGeneratedModule(modulePath: string): Promise<void> {
+    const absolutePath = asLocalModulePath(modulePath);
+    const imported = await import(pathToFileURL(absolutePath).href);
+    if (!imported || typeof imported !== 'object') {
+        throw new Error(`Generated module "${modulePath}" did not export an object.`);
+    }
+    await runMcpServerFromImportedModule(imported as Record<string, unknown>);
 }

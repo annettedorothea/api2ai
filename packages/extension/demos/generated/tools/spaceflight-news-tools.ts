@@ -12,6 +12,8 @@ export type GeneratedTool = {
     method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' | 'HEAD' | 'OPTIONS' | 'TRACE';
     path: string;
     example?: string;
+    /** When true, no auth header or fromJwt binding (e.g. login). */
+    public?: boolean;
 };
 
 export const generatedTools: GeneratedTool[] = [
@@ -21,7 +23,8 @@ export const generatedTools: GeneratedTool[] = [
         "description": "Intent:\nlist recent spaceflight news articles; API returns summary teaser only, full article text at each result url\n\nMeta:\ntags: articles | operationId: articles_list\n\nExample:\nGet the latest 5 articles\n\nResponse:\nHTTP 200\nproperties (top-level): count, next, previous, results",
         "method": "GET",
         "path": "/v4/articles/",
-        "example": "Get the latest 5 articles"
+        "example": "Get the latest 5 articles",
+        "public": false
     },
     {
         "toolName": "getSpaceflightArticleById",
@@ -29,7 +32,8 @@ export const generatedTools: GeneratedTool[] = [
         "description": "Intent:\nget one spaceflight article by id; API returns summary teaser only, full article text at url\n\nMeta:\ntags: articles | operationId: articles_retrieve\n\nExample:\nGet article with id 1\n\nResponse:\nHTTP 200\nproperties (top-level): authors, events, featured, id, image_url, launches, news_site, published_at, summary, title, updated_at, url",
         "method": "GET",
         "path": "/v4/articles/{id}/",
-        "example": "Get article with id 1"
+        "example": "Get article with id 1",
+        "public": false
     },
     {
         "toolName": "listSpaceflightBlogs",
@@ -37,7 +41,8 @@ export const generatedTools: GeneratedTool[] = [
         "description": "Intent:\nlist recent spaceflight blog posts; API returns summary teaser only, full post text at each result url\n\nMeta:\ntags: blogs | operationId: blogs_list\n\nExample:\nGet the latest 5 blog posts\n\nResponse:\nHTTP 200\nproperties (top-level): count, next, previous, results",
         "method": "GET",
         "path": "/v4/blogs/",
-        "example": "Get the latest 5 blog posts"
+        "example": "Get the latest 5 blog posts",
+        "public": false
     },
     {
         "toolName": "getSpaceflightBlogById",
@@ -45,7 +50,8 @@ export const generatedTools: GeneratedTool[] = [
         "description": "Intent:\nget one spaceflight blog post by id; API returns summary teaser only, full post text at url\n\nMeta:\ntags: blogs | operationId: blogs_retrieve\n\nExample:\nGet blog post with id 1\n\nResponse:\nHTTP 200\nproperties (top-level): authors, events, featured, id, image_url, launches, news_site, published_at, summary, title, updated_at, url",
         "method": "GET",
         "path": "/v4/blogs/{id}/",
-        "example": "Get blog post with id 1"
+        "example": "Get blog post with id 1",
+        "public": false
     },
     {
         "toolName": "listSpaceflightReports",
@@ -53,7 +59,8 @@ export const generatedTools: GeneratedTool[] = [
         "description": "Intent:\nlist recent spaceflight reports; API returns summary teaser only, full report text at each result url\n\nMeta:\ntags: reports | operationId: reports_list\n\nExample:\nGet the latest 5 reports\n\nResponse:\nHTTP 200\nproperties (top-level): count, next, previous, results",
         "method": "GET",
         "path": "/v4/reports/",
-        "example": "Get the latest 5 reports"
+        "example": "Get the latest 5 reports",
+        "public": false
     },
     {
         "toolName": "getSpaceflightReportById",
@@ -61,7 +68,8 @@ export const generatedTools: GeneratedTool[] = [
         "description": "Intent:\nget one spaceflight report by id; API returns summary teaser only, full report text at url\n\nMeta:\ntags: reports | operationId: reports_retrieve\n\nExample:\nGet report with id 1\n\nResponse:\nHTTP 200\nproperties (top-level): authors, id, image_url, news_site, published_at, summary, title, updated_at, url",
         "method": "GET",
         "path": "/v4/reports/{id}/",
-        "example": "Get report with id 1"
+        "example": "Get report with id 1",
+        "public": false
     },
     {
         "toolName": "getSpaceflightInfo",
@@ -69,15 +77,13 @@ export const generatedTools: GeneratedTool[] = [
         "description": "Intent:\nretrieve spaceflight API metadata and news sites\n\nMeta:\ntags: info | operationId: info_retrieve\n\nExample:\nShow API info and available news sites\n\nResponse:\nHTTP 200\nproperties (top-level): news_sites, version",
         "method": "GET",
         "path": "/v4/info/",
-        "example": "Show API info and available news sites"
+        "example": "Show API info and available news sites",
+        "public": false
     }
 ];
 
 export type InvokeOptions = {
-    /** Set by MCP host from --base-url-env (required for every invoke). */
-    baseUrl: string;
-    /** Raw API secret; set by MCP host from --auth-env when requiresAuth is true. */
-    credential?: string;
+    /** MCP tool arguments only (not visible to the agent: host base URL, credential, JWT via resolveHostContext). */
     pathParams?: Record<string, string | number | boolean>;
     query?: Record<string, string | number | boolean | ReadonlyArray<string | number | boolean>>;
     headers?: Record<string, string>;
@@ -88,610 +94,73 @@ type AuthConfig = {
     location: 'header' | 'query';
     name: string;
     prefix?: string;
+    fromJwt?: string;
 };
 
 export const requiresAuth = false;
 export const authConfig: AuthConfig | undefined = undefined;
-        
-export const inputSchemaByTool = {
-    "listSpaceflightArticles": {
-        "type": "object",
-        "properties": {
-            "pathParams": {
-                "type": "object",
-                "additionalProperties": true,
-                "description": "No path parameters."
-            },
-            "query": {
-                "type": "object",
-                "properties": {
-                    "event": {
-                        "type": "array",
-                        "items": {
-                            "type": "integer"
-                        },
-                        "description": "Search for all documents related to a specific event using its Launch Library 2 ID."
-                    },
-                    "has_event": {
-                        "type": "boolean",
-                        "description": "Get all documents that have a related event."
-                    },
-                    "has_launch": {
-                        "type": "boolean",
-                        "description": "Get all documents that have a related launch."
-                    },
-                    "is_featured": {
-                        "type": "boolean",
-                        "description": "Get all documents that are featured."
-                    },
-                    "launch": {
-                        "type": "array",
-                        "items": {
-                            "format": "uuid",
-                            "type": "string"
-                        },
-                        "description": "Search for all documents related to a specific launch using its Launch Library 2 ID."
-                    },
-                    "limit": {
-                        "type": "integer",
-                        "description": "Number of results to return per page."
-                    },
-                    "news_site": {
-                        "type": "string",
-                        "description": "Search for documents with a news_site__name present in a list of comma-separated values. Case insensitive."
-                    },
-                    "news_site_exclude": {
-                        "type": "string",
-                        "description": "Search for documents with a news_site__name not present in a list of comma-separated values. Case insensitive."
-                    },
-                    "offset": {
-                        "type": "integer",
-                        "description": "The initial index from which to return the results."
-                    },
-                    "ordering": {
-                        "type": "array",
-                        "items": {
-                            "enum": [
-                                "-published_at",
-                                "-updated_at",
-                                "published_at",
-                                "updated_at"
-                            ],
-                            "type": "string"
-                        },
-                        "description": "Order the result on `published_at, -published_at, updated_at, -updated_at`.\n\n* `published_at` - Published at\n* `-published_at` - Published at (descending)\n* `updated_at` - Updated at\n* `-updated_at` - Updated at (descending)"
-                    },
-                    "published_at_gt": {
-                        "format": "date-time",
-                        "type": "string",
-                        "description": "Get all documents published after a given ISO8601 timestamp (excluded)."
-                    },
-                    "published_at_gte": {
-                        "format": "date-time",
-                        "type": "string",
-                        "description": "Get all documents published after a given ISO8601 timestamp (included)."
-                    },
-                    "published_at_lt": {
-                        "format": "date-time",
-                        "type": "string",
-                        "description": "Get all documents published before a given ISO8601 timestamp (excluded)."
-                    },
-                    "published_at_lte": {
-                        "format": "date-time",
-                        "type": "string",
-                        "description": "Get all documents published before a given ISO8601 timestamp (included)."
-                    },
-                    "search": {
-                        "type": "string",
-                        "description": "Search for documents with a specific phrase in the title or summary."
-                    },
-                    "summary_contains": {
-                        "type": "string",
-                        "description": "Search for all documents with a specific phrase in the summary."
-                    },
-                    "summary_contains_all": {
-                        "type": "string",
-                        "description": "Search for documents with a summary containing all keywords from comma-separated values."
-                    },
-                    "summary_contains_one": {
-                        "type": "string",
-                        "description": "Search for documents with a summary containing at least one keyword from comma-separated values."
-                    },
-                    "title_contains": {
-                        "type": "string",
-                        "description": "Search for all documents with a specific phrase in the title."
-                    },
-                    "title_contains_all": {
-                        "type": "string",
-                        "description": "Search for documents with a title containing all keywords from comma-separated values."
-                    },
-                    "title_contains_one": {
-                        "type": "string",
-                        "description": "Search for documents with a title containing at least one keyword from comma-separated values."
-                    },
-                    "updated_at_gt": {
-                        "format": "date-time",
-                        "type": "string",
-                        "description": "Get all documents updated after a given ISO8601 timestamp (excluded)."
-                    },
-                    "updated_at_gte": {
-                        "format": "date-time",
-                        "type": "string",
-                        "description": "Get all documents updated after a given ISO8601 timestamp (included)."
-                    },
-                    "updated_at_lt": {
-                        "format": "date-time",
-                        "type": "string",
-                        "description": "Get all documents updated before a given ISO8601 timestamp (excluded)."
-                    },
-                    "updated_at_lte": {
-                        "format": "date-time",
-                        "type": "string",
-                        "description": "Get all documents updated before a given ISO8601 timestamp (included)."
-                    }
-                },
-                "required": [],
-                "additionalProperties": false,
-                "description": "Query parameters from OpenAPI."
-            },
-            "headers": {
-                "type": "object",
-                "additionalProperties": {
-                    "type": "string"
-                },
-                "description": "Optional extra headers."
-            },
-            "body": {
-                "type": "object",
-                "description": "Request body JSON if applicable.",
-                "additionalProperties": true
-            }
-        },
-        "required": [],
-        "additionalProperties": false,
-        "description": "Arguments for invoking the generated HTTP wrapper."
-    },
-    "getSpaceflightArticleById": {
-        "type": "object",
-        "properties": {
-            "pathParams": {
-                "type": "object",
-                "properties": {
-                    "id": {
-                        "type": "integer",
-                        "description": "A unique integer value identifying this article."
-                    }
-                },
-                "required": [
-                    "id"
-                ],
-                "additionalProperties": false,
-                "description": "Path parameters from OpenAPI."
-            },
-            "query": {
-                "type": "object",
-                "additionalProperties": true,
-                "description": "Optional query overrides."
-            },
-            "headers": {
-                "type": "object",
-                "additionalProperties": {
-                    "type": "string"
-                },
-                "description": "Optional extra headers."
-            },
-            "body": {
-                "type": "object",
-                "description": "Request body JSON if applicable.",
-                "additionalProperties": true
-            }
-        },
-        "required": [
-            "pathParams"
-        ],
-        "additionalProperties": false,
-        "description": "Arguments for invoking the generated HTTP wrapper."
-    },
-    "listSpaceflightBlogs": {
-        "type": "object",
-        "properties": {
-            "pathParams": {
-                "type": "object",
-                "additionalProperties": true,
-                "description": "No path parameters."
-            },
-            "query": {
-                "type": "object",
-                "properties": {
-                    "event": {
-                        "type": "array",
-                        "items": {
-                            "type": "integer"
-                        },
-                        "description": "Search for all documents related to a specific event using its Launch Library 2 ID."
-                    },
-                    "has_event": {
-                        "type": "boolean",
-                        "description": "Get all documents that have a related event."
-                    },
-                    "has_launch": {
-                        "type": "boolean",
-                        "description": "Get all documents that have a related launch."
-                    },
-                    "is_featured": {
-                        "type": "boolean",
-                        "description": "Get all documents that are featured."
-                    },
-                    "launch": {
-                        "type": "array",
-                        "items": {
-                            "format": "uuid",
-                            "type": "string"
-                        },
-                        "description": "Search for all documents related to a specific launch using its Launch Library 2 ID."
-                    },
-                    "limit": {
-                        "type": "integer",
-                        "description": "Number of results to return per page."
-                    },
-                    "news_site": {
-                        "type": "string",
-                        "description": "Search for documents with a news_site__name present in a list of comma-separated values. Case insensitive."
-                    },
-                    "news_site_exclude": {
-                        "type": "string",
-                        "description": "Search for documents with a news_site__name not present in a list of comma-separated values. Case insensitive."
-                    },
-                    "offset": {
-                        "type": "integer",
-                        "description": "The initial index from which to return the results."
-                    },
-                    "ordering": {
-                        "type": "array",
-                        "items": {
-                            "enum": [
-                                "-published_at",
-                                "-updated_at",
-                                "published_at",
-                                "updated_at"
-                            ],
-                            "type": "string"
-                        },
-                        "description": "Order the result on `published_at, -published_at, updated_at, -updated_at`.\n\n* `published_at` - Published at\n* `-published_at` - Published at (descending)\n* `updated_at` - Updated at\n* `-updated_at` - Updated at (descending)"
-                    },
-                    "published_at_gt": {
-                        "format": "date-time",
-                        "type": "string",
-                        "description": "Get all documents published after a given ISO8601 timestamp (excluded)."
-                    },
-                    "published_at_gte": {
-                        "format": "date-time",
-                        "type": "string",
-                        "description": "Get all documents published after a given ISO8601 timestamp (included)."
-                    },
-                    "published_at_lt": {
-                        "format": "date-time",
-                        "type": "string",
-                        "description": "Get all documents published before a given ISO8601 timestamp (excluded)."
-                    },
-                    "published_at_lte": {
-                        "format": "date-time",
-                        "type": "string",
-                        "description": "Get all documents published before a given ISO8601 timestamp (included)."
-                    },
-                    "search": {
-                        "type": "string",
-                        "description": "Search for documents with a specific phrase in the title or summary."
-                    },
-                    "summary_contains": {
-                        "type": "string",
-                        "description": "Search for all documents with a specific phrase in the summary."
-                    },
-                    "summary_contains_all": {
-                        "type": "string",
-                        "description": "Search for documents with a summary containing all keywords from comma-separated values."
-                    },
-                    "summary_contains_one": {
-                        "type": "string",
-                        "description": "Search for documents with a summary containing at least one keyword from comma-separated values."
-                    },
-                    "title_contains": {
-                        "type": "string",
-                        "description": "Search for all documents with a specific phrase in the title."
-                    },
-                    "title_contains_all": {
-                        "type": "string",
-                        "description": "Search for documents with a title containing all keywords from comma-separated values."
-                    },
-                    "title_contains_one": {
-                        "type": "string",
-                        "description": "Search for documents with a title containing at least one keyword from comma-separated values."
-                    },
-                    "updated_at_gt": {
-                        "format": "date-time",
-                        "type": "string",
-                        "description": "Get all documents updated after a given ISO8601 timestamp (excluded)."
-                    },
-                    "updated_at_gte": {
-                        "format": "date-time",
-                        "type": "string",
-                        "description": "Get all documents updated after a given ISO8601 timestamp (included)."
-                    },
-                    "updated_at_lt": {
-                        "format": "date-time",
-                        "type": "string",
-                        "description": "Get all documents updated before a given ISO8601 timestamp (excluded)."
-                    },
-                    "updated_at_lte": {
-                        "format": "date-time",
-                        "type": "string",
-                        "description": "Get all documents updated before a given ISO8601 timestamp (included)."
-                    }
-                },
-                "required": [],
-                "additionalProperties": false,
-                "description": "Query parameters from OpenAPI."
-            },
-            "headers": {
-                "type": "object",
-                "additionalProperties": {
-                    "type": "string"
-                },
-                "description": "Optional extra headers."
-            },
-            "body": {
-                "type": "object",
-                "description": "Request body JSON if applicable.",
-                "additionalProperties": true
-            }
-        },
-        "required": [],
-        "additionalProperties": false,
-        "description": "Arguments for invoking the generated HTTP wrapper."
-    },
-    "getSpaceflightBlogById": {
-        "type": "object",
-        "properties": {
-            "pathParams": {
-                "type": "object",
-                "properties": {
-                    "id": {
-                        "type": "integer",
-                        "description": "A unique integer value identifying this blog."
-                    }
-                },
-                "required": [
-                    "id"
-                ],
-                "additionalProperties": false,
-                "description": "Path parameters from OpenAPI."
-            },
-            "query": {
-                "type": "object",
-                "additionalProperties": true,
-                "description": "Optional query overrides."
-            },
-            "headers": {
-                "type": "object",
-                "additionalProperties": {
-                    "type": "string"
-                },
-                "description": "Optional extra headers."
-            },
-            "body": {
-                "type": "object",
-                "description": "Request body JSON if applicable.",
-                "additionalProperties": true
-            }
-        },
-        "required": [
-            "pathParams"
-        ],
-        "additionalProperties": false,
-        "description": "Arguments for invoking the generated HTTP wrapper."
-    },
-    "listSpaceflightReports": {
-        "type": "object",
-        "properties": {
-            "pathParams": {
-                "type": "object",
-                "additionalProperties": true,
-                "description": "No path parameters."
-            },
-            "query": {
-                "type": "object",
-                "properties": {
-                    "limit": {
-                        "type": "integer",
-                        "description": "Number of results to return per page."
-                    },
-                    "news_site": {
-                        "type": "string",
-                        "description": "Search for documents with a news_site__name present in a list of comma-separated values. Case insensitive."
-                    },
-                    "news_site_exclude": {
-                        "type": "string",
-                        "description": "Search for documents with a news_site__name not present in a list of comma-separated values. Case insensitive."
-                    },
-                    "offset": {
-                        "type": "integer",
-                        "description": "The initial index from which to return the results."
-                    },
-                    "ordering": {
-                        "type": "array",
-                        "items": {
-                            "enum": [
-                                "-published_at",
-                                "-updated_at",
-                                "published_at",
-                                "updated_at"
-                            ],
-                            "type": "string"
-                        },
-                        "description": "Order the result on `published_at, -published_at, updated_at, -updated_at`.\n\n* `published_at` - Published at\n* `-published_at` - Published at (descending)\n* `updated_at` - Updated at\n* `-updated_at` - Updated at (descending)"
-                    },
-                    "published_at_gt": {
-                        "format": "date-time",
-                        "type": "string",
-                        "description": "Get all documents published after a given ISO8601 timestamp (excluded)."
-                    },
-                    "published_at_gte": {
-                        "format": "date-time",
-                        "type": "string",
-                        "description": "Get all documents published after a given ISO8601 timestamp (included)."
-                    },
-                    "published_at_lt": {
-                        "format": "date-time",
-                        "type": "string",
-                        "description": "Get all documents published before a given ISO8601 timestamp (excluded)."
-                    },
-                    "published_at_lte": {
-                        "format": "date-time",
-                        "type": "string",
-                        "description": "Get all documents published before a given ISO8601 timestamp (included)."
-                    },
-                    "search": {
-                        "type": "string",
-                        "description": "Search for documents with a specific phrase in the title or summary."
-                    },
-                    "summary_contains": {
-                        "type": "string",
-                        "description": "Search for all documents with a specific phrase in the summary."
-                    },
-                    "summary_contains_all": {
-                        "type": "string",
-                        "description": "Search for documents with a summary containing all keywords from comma-separated values."
-                    },
-                    "summary_contains_one": {
-                        "type": "string",
-                        "description": "Search for documents with a summary containing at least one keyword from comma-separated values."
-                    },
-                    "title_contains": {
-                        "type": "string",
-                        "description": "Search for all documents with a specific phrase in the title."
-                    },
-                    "title_contains_all": {
-                        "type": "string",
-                        "description": "Search for documents with a title containing all keywords from comma-separated values."
-                    },
-                    "title_contains_one": {
-                        "type": "string",
-                        "description": "Search for documents with a title containing at least one keyword from comma-separated values."
-                    },
-                    "updated_at_gt": {
-                        "format": "date-time",
-                        "type": "string",
-                        "description": "Get all documents updated after a given ISO8601 timestamp (excluded)."
-                    },
-                    "updated_at_gte": {
-                        "format": "date-time",
-                        "type": "string",
-                        "description": "Get all documents updated after a given ISO8601 timestamp (included)."
-                    },
-                    "updated_at_lt": {
-                        "format": "date-time",
-                        "type": "string",
-                        "description": "Get all documents updated before a given ISO8601 timestamp (excluded)."
-                    },
-                    "updated_at_lte": {
-                        "format": "date-time",
-                        "type": "string",
-                        "description": "Get all documents updated before a given ISO8601 timestamp (included)."
-                    }
-                },
-                "required": [],
-                "additionalProperties": false,
-                "description": "Query parameters from OpenAPI."
-            },
-            "headers": {
-                "type": "object",
-                "additionalProperties": {
-                    "type": "string"
-                },
-                "description": "Optional extra headers."
-            },
-            "body": {
-                "type": "object",
-                "description": "Request body JSON if applicable.",
-                "additionalProperties": true
-            }
-        },
-        "required": [],
-        "additionalProperties": false,
-        "description": "Arguments for invoking the generated HTTP wrapper."
-    },
-    "getSpaceflightReportById": {
-        "type": "object",
-        "properties": {
-            "pathParams": {
-                "type": "object",
-                "properties": {
-                    "id": {
-                        "type": "integer",
-                        "description": "A unique integer value identifying this report."
-                    }
-                },
-                "required": [
-                    "id"
-                ],
-                "additionalProperties": false,
-                "description": "Path parameters from OpenAPI."
-            },
-            "query": {
-                "type": "object",
-                "additionalProperties": true,
-                "description": "Optional query overrides."
-            },
-            "headers": {
-                "type": "object",
-                "additionalProperties": {
-                    "type": "string"
-                },
-                "description": "Optional extra headers."
-            },
-            "body": {
-                "type": "object",
-                "description": "Request body JSON if applicable.",
-                "additionalProperties": true
-            }
-        },
-        "required": [
-            "pathParams"
-        ],
-        "additionalProperties": false,
-        "description": "Arguments for invoking the generated HTTP wrapper."
-    },
-    "getSpaceflightInfo": {
-        "type": "object",
-        "properties": {
-            "pathParams": {
-                "type": "object",
-                "additionalProperties": true,
-                "description": "No path parameters."
-            },
-            "query": {
-                "type": "object",
-                "additionalProperties": true,
-                "description": "Optional query overrides."
-            },
-            "headers": {
-                "type": "object",
-                "additionalProperties": {
-                    "type": "string"
-                },
-                "description": "Optional extra headers."
-            },
-            "body": {
-                "type": "object",
-                "description": "Request body JSON if applicable.",
-                "additionalProperties": true
-            }
-        },
-        "required": [],
-        "additionalProperties": false,
-        "description": "Arguments for invoking the generated HTTP wrapper."
-    }
+
+export const mcpServerName = "spaceflight-news-tools";
+export const mcpServerVersion = "0.0.1";
+
+import * as z from 'zod/v4';
+
+const __api2aiPrimitiveUnion = z.union([z.string(), z.number(), z.boolean()]);
+const __api2aiQueryValueUnion = z.union([__api2aiPrimitiveUnion, z.array(__api2aiPrimitiveUnion)]);
+
+export const inputZodByTool = {
+    "listSpaceflightArticles": z.object({ "pathParams": z.record(z.string(), __api2aiPrimitiveUnion).describe("No path parameters.").optional(), "query": z.object({ "event": z.array(z.number()).describe("Search for all documents related to a specific event using its Launch Library 2 ID.").optional(), "has_event": z.boolean().describe("Get all documents that have a related event.").optional(), "has_launch": z.boolean().describe("Get all documents that have a related launch.").optional(), "is_featured": z.boolean().describe("Get all documents that are featured.").optional(), "launch": z.array(z.string()).describe("Search for all documents related to a specific launch using its Launch Library 2 ID.").optional(), "limit": z.number().describe("Number of results to return per page.").optional(), "news_site": z.string().describe("Search for documents with a news_site__name present in a list of comma-separated values. Case insensitive.").optional(), "news_site_exclude": z.string().describe("Search for documents with a news_site__name not present in a list of comma-separated values. Case insensitive.").optional(), "offset": z.number().describe("The initial index from which to return the results.").optional(), "ordering": z.array(z.union([z.literal("-published_at"), z.literal("-updated_at"), z.literal("published_at"), z.literal("updated_at")])).describe("Order the result on `published_at, -published_at, updated_at, -updated_at`.\n\n* `published_at` - Published at\n* `-published_at` - Published at (descending)\n* `updated_at` - Updated at\n* `-updated_at` - Updated at (descending)").optional(), "published_at_gt": z.string().describe("Get all documents published after a given ISO8601 timestamp (excluded).").optional(), "published_at_gte": z.string().describe("Get all documents published after a given ISO8601 timestamp (included).").optional(), "published_at_lt": z.string().describe("Get all documents published before a given ISO8601 timestamp (excluded).").optional(), "published_at_lte": z.string().describe("Get all documents published before a given ISO8601 timestamp (included).").optional(), "search": z.string().describe("Search for documents with a specific phrase in the title or summary.").optional(), "summary_contains": z.string().describe("Search for all documents with a specific phrase in the summary.").optional(), "summary_contains_all": z.string().describe("Search for documents with a summary containing all keywords from comma-separated values.").optional(), "summary_contains_one": z.string().describe("Search for documents with a summary containing at least one keyword from comma-separated values.").optional(), "title_contains": z.string().describe("Search for all documents with a specific phrase in the title.").optional(), "title_contains_all": z.string().describe("Search for documents with a title containing all keywords from comma-separated values.").optional(), "title_contains_one": z.string().describe("Search for documents with a title containing at least one keyword from comma-separated values.").optional(), "updated_at_gt": z.string().describe("Get all documents updated after a given ISO8601 timestamp (excluded).").optional(), "updated_at_gte": z.string().describe("Get all documents updated after a given ISO8601 timestamp (included).").optional(), "updated_at_lt": z.string().describe("Get all documents updated before a given ISO8601 timestamp (excluded).").optional(), "updated_at_lte": z.string().describe("Get all documents updated before a given ISO8601 timestamp (included).").optional() }).strict().describe("Query parameters from OpenAPI.").optional(), "headers": z.record(z.string(), z.string()).describe("Optional extra headers.").optional(), "body": z.record(z.string(), __api2aiPrimitiveUnion).describe("Request body JSON if applicable.").optional() }).strict().describe("Arguments for invoking the generated HTTP wrapper."),
+    "getSpaceflightArticleById": z.object({ "pathParams": z.object({ "id": z.number().describe("A unique integer value identifying this article.") }).strict().describe("Path parameters from OpenAPI."), "query": z.record(z.string(), __api2aiPrimitiveUnion).describe("Optional query overrides.").optional(), "headers": z.record(z.string(), z.string()).describe("Optional extra headers.").optional(), "body": z.record(z.string(), __api2aiPrimitiveUnion).describe("Request body JSON if applicable.").optional() }).strict().describe("Arguments for invoking the generated HTTP wrapper."),
+    "listSpaceflightBlogs": z.object({ "pathParams": z.record(z.string(), __api2aiPrimitiveUnion).describe("No path parameters.").optional(), "query": z.object({ "event": z.array(z.number()).describe("Search for all documents related to a specific event using its Launch Library 2 ID.").optional(), "has_event": z.boolean().describe("Get all documents that have a related event.").optional(), "has_launch": z.boolean().describe("Get all documents that have a related launch.").optional(), "is_featured": z.boolean().describe("Get all documents that are featured.").optional(), "launch": z.array(z.string()).describe("Search for all documents related to a specific launch using its Launch Library 2 ID.").optional(), "limit": z.number().describe("Number of results to return per page.").optional(), "news_site": z.string().describe("Search for documents with a news_site__name present in a list of comma-separated values. Case insensitive.").optional(), "news_site_exclude": z.string().describe("Search for documents with a news_site__name not present in a list of comma-separated values. Case insensitive.").optional(), "offset": z.number().describe("The initial index from which to return the results.").optional(), "ordering": z.array(z.union([z.literal("-published_at"), z.literal("-updated_at"), z.literal("published_at"), z.literal("updated_at")])).describe("Order the result on `published_at, -published_at, updated_at, -updated_at`.\n\n* `published_at` - Published at\n* `-published_at` - Published at (descending)\n* `updated_at` - Updated at\n* `-updated_at` - Updated at (descending)").optional(), "published_at_gt": z.string().describe("Get all documents published after a given ISO8601 timestamp (excluded).").optional(), "published_at_gte": z.string().describe("Get all documents published after a given ISO8601 timestamp (included).").optional(), "published_at_lt": z.string().describe("Get all documents published before a given ISO8601 timestamp (excluded).").optional(), "published_at_lte": z.string().describe("Get all documents published before a given ISO8601 timestamp (included).").optional(), "search": z.string().describe("Search for documents with a specific phrase in the title or summary.").optional(), "summary_contains": z.string().describe("Search for all documents with a specific phrase in the summary.").optional(), "summary_contains_all": z.string().describe("Search for documents with a summary containing all keywords from comma-separated values.").optional(), "summary_contains_one": z.string().describe("Search for documents with a summary containing at least one keyword from comma-separated values.").optional(), "title_contains": z.string().describe("Search for all documents with a specific phrase in the title.").optional(), "title_contains_all": z.string().describe("Search for documents with a title containing all keywords from comma-separated values.").optional(), "title_contains_one": z.string().describe("Search for documents with a title containing at least one keyword from comma-separated values.").optional(), "updated_at_gt": z.string().describe("Get all documents updated after a given ISO8601 timestamp (excluded).").optional(), "updated_at_gte": z.string().describe("Get all documents updated after a given ISO8601 timestamp (included).").optional(), "updated_at_lt": z.string().describe("Get all documents updated before a given ISO8601 timestamp (excluded).").optional(), "updated_at_lte": z.string().describe("Get all documents updated before a given ISO8601 timestamp (included).").optional() }).strict().describe("Query parameters from OpenAPI.").optional(), "headers": z.record(z.string(), z.string()).describe("Optional extra headers.").optional(), "body": z.record(z.string(), __api2aiPrimitiveUnion).describe("Request body JSON if applicable.").optional() }).strict().describe("Arguments for invoking the generated HTTP wrapper."),
+    "getSpaceflightBlogById": z.object({ "pathParams": z.object({ "id": z.number().describe("A unique integer value identifying this blog.") }).strict().describe("Path parameters from OpenAPI."), "query": z.record(z.string(), __api2aiPrimitiveUnion).describe("Optional query overrides.").optional(), "headers": z.record(z.string(), z.string()).describe("Optional extra headers.").optional(), "body": z.record(z.string(), __api2aiPrimitiveUnion).describe("Request body JSON if applicable.").optional() }).strict().describe("Arguments for invoking the generated HTTP wrapper."),
+    "listSpaceflightReports": z.object({ "pathParams": z.record(z.string(), __api2aiPrimitiveUnion).describe("No path parameters.").optional(), "query": z.object({ "limit": z.number().describe("Number of results to return per page.").optional(), "news_site": z.string().describe("Search for documents with a news_site__name present in a list of comma-separated values. Case insensitive.").optional(), "news_site_exclude": z.string().describe("Search for documents with a news_site__name not present in a list of comma-separated values. Case insensitive.").optional(), "offset": z.number().describe("The initial index from which to return the results.").optional(), "ordering": z.array(z.union([z.literal("-published_at"), z.literal("-updated_at"), z.literal("published_at"), z.literal("updated_at")])).describe("Order the result on `published_at, -published_at, updated_at, -updated_at`.\n\n* `published_at` - Published at\n* `-published_at` - Published at (descending)\n* `updated_at` - Updated at\n* `-updated_at` - Updated at (descending)").optional(), "published_at_gt": z.string().describe("Get all documents published after a given ISO8601 timestamp (excluded).").optional(), "published_at_gte": z.string().describe("Get all documents published after a given ISO8601 timestamp (included).").optional(), "published_at_lt": z.string().describe("Get all documents published before a given ISO8601 timestamp (excluded).").optional(), "published_at_lte": z.string().describe("Get all documents published before a given ISO8601 timestamp (included).").optional(), "search": z.string().describe("Search for documents with a specific phrase in the title or summary.").optional(), "summary_contains": z.string().describe("Search for all documents with a specific phrase in the summary.").optional(), "summary_contains_all": z.string().describe("Search for documents with a summary containing all keywords from comma-separated values.").optional(), "summary_contains_one": z.string().describe("Search for documents with a summary containing at least one keyword from comma-separated values.").optional(), "title_contains": z.string().describe("Search for all documents with a specific phrase in the title.").optional(), "title_contains_all": z.string().describe("Search for documents with a title containing all keywords from comma-separated values.").optional(), "title_contains_one": z.string().describe("Search for documents with a title containing at least one keyword from comma-separated values.").optional(), "updated_at_gt": z.string().describe("Get all documents updated after a given ISO8601 timestamp (excluded).").optional(), "updated_at_gte": z.string().describe("Get all documents updated after a given ISO8601 timestamp (included).").optional(), "updated_at_lt": z.string().describe("Get all documents updated before a given ISO8601 timestamp (excluded).").optional(), "updated_at_lte": z.string().describe("Get all documents updated before a given ISO8601 timestamp (included).").optional() }).strict().describe("Query parameters from OpenAPI.").optional(), "headers": z.record(z.string(), z.string()).describe("Optional extra headers.").optional(), "body": z.record(z.string(), __api2aiPrimitiveUnion).describe("Request body JSON if applicable.").optional() }).strict().describe("Arguments for invoking the generated HTTP wrapper."),
+    "getSpaceflightReportById": z.object({ "pathParams": z.object({ "id": z.number().describe("A unique integer value identifying this report.") }).strict().describe("Path parameters from OpenAPI."), "query": z.record(z.string(), __api2aiPrimitiveUnion).describe("Optional query overrides.").optional(), "headers": z.record(z.string(), z.string()).describe("Optional extra headers.").optional(), "body": z.record(z.string(), __api2aiPrimitiveUnion).describe("Request body JSON if applicable.").optional() }).strict().describe("Arguments for invoking the generated HTTP wrapper."),
+    "getSpaceflightInfo": z.object({ "pathParams": z.record(z.string(), __api2aiPrimitiveUnion).describe("No path parameters.").optional(), "query": z.record(z.string(), __api2aiPrimitiveUnion).describe("Optional query overrides.").optional(), "headers": z.record(z.string(), z.string()).describe("Optional extra headers.").optional(), "body": z.record(z.string(), __api2aiPrimitiveUnion).describe("Request body JSON if applicable.").optional() }).strict().describe("Arguments for invoking the generated HTTP wrapper.")
 };
+
+export const MCP_HOST_BASE_URL_ENV_KEY = 'API2AI_MCP_BASE_URL_ENV_KEY';
+export const MCP_HOST_AUTH_ENV_KEY = 'API2AI_MCP_AUTH_ENV_KEY';
+
+function decodeJwtPayloadUnsafe(token) {
+    const parts = String(token).trim().split('.');
+    if (parts.length !== 3) {
+        throw new Error('credential is not a JWT (expected three dot-separated segments).');
+    }
+    let b64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+    while (b64.length % 4 !== 0) {
+        b64 += '=';
+    }
+    return JSON.parse(Buffer.from(b64, 'base64').toString('utf8'));
+}
+
+/** Host session (base URL, credential, decoded JWT). Re-reads env on every call — dev only, no signature verify. */
+export function resolveHostContext() {
+    const baseUrlKey = process.env[MCP_HOST_BASE_URL_ENV_KEY]?.trim();
+    const baseUrl = baseUrlKey ? process.env[baseUrlKey]?.trim() : undefined;
+    if (!baseUrl) {
+        throw new Error(
+            'Missing host base URL. Pass --base-url-env on mcp-serve.mjs and set the variable (or use smoke-generated).'
+        );
+    }
+
+    const authKey = process.env[MCP_HOST_AUTH_ENV_KEY]?.trim();
+    let credential = authKey ? process.env[authKey]?.trim() : undefined;
+    credential = credential || undefined;
+
+    let jwt;
+    if (credential) {
+        const segments = String(credential).trim().split('.');
+        if (segments.length === 3) {
+            try {
+                jwt = decodeJwtPayloadUnsafe(credential);
+            } catch {
+                jwt = undefined;
+            }
+        }
+    }
+
+    return { baseUrl, credential, jwt };
+}
 
 export const queryParamSerializationByTool = {
     "listSpaceflightArticles": {
@@ -1032,19 +501,20 @@ function appendSerializedQueryParams(searchParams, toolName, query) {
 }
 
 
-export async function invokeTool(toolName, options = {}) {
+export async function invokeTool(toolName, options = {}, hostContext) {
     const tool = generatedTools.find((t) => t.toolName === toolName);
     if (!tool) {
         throw new Error('Unknown tool: ' + toolName);
     }
 
-    if (!options.baseUrl || !String(options.baseUrl).trim()) {
-        throw new Error('Missing baseUrl (MCP host must pass InvokeOptions.baseUrl from --base-url-env).');
-    }
-    const effectiveBaseUrl = String(options.baseUrl).trim();
-    const normalizedBaseUrl = effectiveBaseUrl.endsWith('/') ? effectiveBaseUrl.slice(0, -1) : effectiveBaseUrl;
+    const host = hostContext ?? resolveHostContext();
+    const { baseUrl, credential, jwt } = host;
+    const normalizedBaseUrl = baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl;
+    const pathParams = !tool.public && authConfig?.fromJwt
+        ? resolvePathParamsWithFromJwt(authConfig, options.pathParams, jwt)
+        : { ...(options.pathParams ?? {}) };
     let resolvedPath = tool.path;
-    for (const [key, value] of Object.entries(options.pathParams ?? {})) {
+    for (const [key, value] of Object.entries(pathParams)) {
         resolvedPath = resolvedPath.split('{' + key + '}').join(encodeURIComponent(String(value)));
     }
 
@@ -1077,9 +547,9 @@ export async function invokeTool(toolName, options = {}) {
         let msg = 'HTTP ' + response.status + ' while invoking ' + tool.toolName + '.';
         if (response.status === 401) {
             msg += ' Unauthorized.';
-            if (authConfig) {
+            if (authConfig && !tool.public) {
                 
-            } else {
+            } else if (!tool.public) {
                 msg += ' The API may require authentication.';
             }
         } else if (response.status === 403) {
