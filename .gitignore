@@ -20,3 +20,4 @@ packages/extension/demos/generated/tools/customer-portal-tools.ts
 packages/extension/demos/generated/tools/customer-portal-tools.mjs
 packages/extension/demos/customer-portal/
 packages/extension/demos/node_modules/
+packages/extension/demos/tmp/

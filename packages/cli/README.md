@@ -25,4 +25,4 @@ node ./packages/cli/bin/cli.js generate <source.api2ai> <dest-tools.ts>
 node ./packages/cli/bin/cli.js smoke-generated <path-to-*-tools.mjs> <toolName> [argsJson]
 ```
 
-Prefer `npm run generate:*` or `generate:all` in **[`../extension/demos/`](../extension/demos/)** for the bundled demos. Root `test:smoke` / `test:mcp` use `packages/extension/demos/generated/`.
+Prefer `npm run generate:*` or `generate:all` in **[`../extension/demos/`](../extension/demos/)** for the bundled demos. Root `test:smoke` / `test:mcp` use [`../extension/demos/generated/`](../extension/demos/generated/).

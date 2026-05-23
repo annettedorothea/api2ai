@@ -12,3 +12,4 @@ demos/generated/**
 demos/package-lock.json
 demos/.env
 demos/.env.local
+demos/tmp/**
