@@ -7,12 +7,14 @@
     },
     "references": [
         {
+            "path": "../../../core2ai/packages/mcp-host/tsconfig.json"
+        },
+        {
             "path": "../language/tsconfig.src.json"
         }
     ],
     "include": [
         "src/**/*.ts",
-        "mcp-bundle/**/*.ts",
         "test/**/*.ts"
     ],
     "exclude": [

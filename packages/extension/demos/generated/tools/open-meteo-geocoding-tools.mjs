@@ -33,8 +33,23 @@ export const inputZodByTool = {
     "openMeteoGeocodeSearch": z.object({ "pathParams": z.record(z.string(), __api2aiPrimitiveUnion).describe("No path parameters.").optional(), "query": z.object({ "name": z.string().describe("City/place search text, e.g. Bernstein."), "count": z.number().describe("Number of matches to return.").optional(), "language": z.string().describe("Language code for result names, e.g. de or en.").optional(), "countryCode": z.string().describe("ISO country code filter, e.g. AT.").optional() }).strict().describe("Query parameters from OpenAPI.").optional(), "headers": z.record(z.string(), z.string()).describe("Optional extra headers.").optional(), "body": z.record(z.string(), __api2aiPrimitiveUnion).describe("Request body JSON if applicable.").optional() }).strict().describe("Arguments for invoking the generated HTTP wrapper.")
 };
 
-export const MCP_HOST_BASE_URL_ENV_KEY = 'API2AI_MCP_BASE_URL_ENV_KEY';
-export const MCP_HOST_AUTH_ENV_KEY = 'API2AI_MCP_AUTH_ENV_KEY';
+const META_BASE_URL_ENV_KEY = 'MCP_HOST_BASE_URL_ENV_KEY';
+const META_AUTH_ENV_KEY = 'MCP_HOST_AUTH_ENV_KEY';
+const META_ENV_DIRS = 'MCP_HOST_ENV_DIRS';
+
+function applyHostEnvKeys(hostConfig, envDirs) {
+    process.env[META_BASE_URL_ENV_KEY] = hostConfig.baseUrlEnv;
+    if (hostConfig.authEnv) {
+        process.env[META_AUTH_ENV_KEY] = hostConfig.authEnv;
+    } else {
+        delete process.env[META_AUTH_ENV_KEY];
+    }
+    if (envDirs.length > 0) {
+        process.env[META_ENV_DIRS] = JSON.stringify(envDirs);
+    } else {
+        delete process.env[META_ENV_DIRS];
+    }
+}
 
 function decodeJwtPayloadUnsafe(token) {
     const parts = String(token).trim().split('.');
@@ -48,34 +63,107 @@ function decodeJwtPayloadUnsafe(token) {
     return JSON.parse(Buffer.from(b64, 'base64').toString('utf8'));
 }
 
-/** Host session (base URL, credential, decoded JWT). Re-reads env on every call — dev only, no signature verify. */
-export function resolveHostContext() {
-    const baseUrlKey = process.env[MCP_HOST_BASE_URL_ENV_KEY]?.trim();
-    const baseUrl = baseUrlKey ? process.env[baseUrlKey]?.trim() : undefined;
-    if (!baseUrl) {
-        throw new Error(
-            'Missing host base URL. Pass --base-url-env on mcp-serve.mjs and set the variable (or use smoke-generated).'
-        );
-    }
+export const mcpHostAdapter = {
+    configureFromArgv(argv, envDirs) {
+        let baseUrlEnv;
+        let authEnv;
+        for (let i = 0; i < argv.length; i++) {
+            const arg = argv[i];
+            if (arg === '--base-url-env') {
+                baseUrlEnv = argv[++i];
+                if (!baseUrlEnv) {
+                    throw new Error('Missing value after --base-url-env');
+                }
+                continue;
+            }
+            if (arg === '--auth-env') {
+                authEnv = argv[++i];
+                if (!authEnv) {
+                    throw new Error('Missing value after --auth-env');
+                }
+                continue;
+            }
+            if (arg.startsWith('-')) {
+                throw new Error('Unknown option: ' + arg);
+            }
+            throw new Error('Unexpected positional argument: ' + arg);
+        }
+        if (!baseUrlEnv) {
+            throw new Error('Required: --base-url-env <ENV_VAR_NAME>');
+        }
+        applyHostEnvKeys({ baseUrlEnv, authEnv }, envDirs);
+    },
 
-    const authKey = process.env[MCP_HOST_AUTH_ENV_KEY]?.trim();
-    let credential = authKey ? process.env[authKey]?.trim() : undefined;
-    credential = credential || undefined;
+    validateAtStartup(requiresAuth) {
+        const baseUrlEnvName = process.env[META_BASE_URL_ENV_KEY]?.trim();
+        if (!baseUrlEnvName) {
+            throw new Error('Host base URL env key is not configured.');
+        }
+        const baseUrl = process.env[baseUrlEnvName]?.trim();
+        if (!baseUrl) {
+            throw new Error(
+                'Environment variable "' + baseUrlEnvName + '" is missing or empty (required by --base-url-env).'
+            );
+        }
+        if (!requiresAuth) {
+            return;
+        }
+        const authEnvName = process.env[META_AUTH_ENV_KEY]?.trim();
+        if (!authEnvName) {
+            throw new Error('Generated tools require auth; pass --auth-env <ENV_VAR_NAME> on the MCP host.');
+        }
+        const credential = process.env[authEnvName]?.trim();
+        if (!credential) {
+            throw new Error(
+                'Environment variable "' + authEnvName + '" is missing or empty (required by --auth-env).'
+            );
+        }
+    },
 
-    let jwt;
-    if (credential) {
-        const segments = String(credential).trim().split('.');
-        if (segments.length === 3) {
-            try {
-                jwt = decodeJwtPayloadUnsafe(credential);
-            } catch {
-                jwt = undefined;
+    resolveHostContext() {
+        const baseUrlKey = process.env[META_BASE_URL_ENV_KEY]?.trim();
+        const baseUrl = baseUrlKey ? process.env[baseUrlKey]?.trim() : undefined;
+        if (!baseUrl) {
+            throw new Error(
+                'Missing host base URL. Pass --base-url-env on mcp-serve.mjs and set the variable (or use smoke-generated).'
+            );
+        }
+
+        const authKey = process.env[META_AUTH_ENV_KEY]?.trim();
+        let credential = authKey ? process.env[authKey]?.trim() : undefined;
+        credential = credential || undefined;
+
+        let jwt;
+        if (credential) {
+            const segments = String(credential).trim().split('.');
+            if (segments.length === 3) {
+                try {
+                    jwt = decodeJwtPayloadUnsafe(credential);
+                } catch {
+                    jwt = undefined;
+                }
             }
         }
-    }
 
-    return { baseUrl, credential, jwt };
-}
+        return { baseUrl, credential, jwt };
+    },
+
+    envDirsForReload() {
+        const raw = process.env[META_ENV_DIRS];
+        if (!raw?.trim()) {
+            return [];
+        }
+        try {
+            const dirs = JSON.parse(raw);
+            if (Array.isArray(dirs) && dirs.every((d) => typeof d === 'string')) {
+                return dirs;
+            }
+        } catch {
+            // ignore malformed config
+        }
+        return [];
+    }
+};
 
 export const queryParamSerializationByTool = {
     "openMeteoGeocodeSearch": {
@@ -150,7 +238,7 @@ export async function invokeTool(toolName, options = {}, hostContext) {
         throw new Error('Unknown tool: ' + toolName);
     }
 
-    const host = hostContext ?? resolveHostContext();
+    const host = hostContext ?? mcpHostAdapter.resolveHostContext();
     const { baseUrl, credential, jwt } = host;
     const normalizedBaseUrl = baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl;
     const pathParams = !tool.public && authConfig?.fromJwt

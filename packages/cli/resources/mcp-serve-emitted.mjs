@@ -1,10 +1,10 @@
 #!/usr/bin/env node
 
-// packages/cli/mcp-bundle/mcp-standalone-entry.ts
+// ../core2ai/packages/mcp-host/src/mcp-standalone-entry.ts
 import * as path2 from "node:path";
 import { pathToFileURL } from "node:url";
 
-// packages/cli/mcp-bundle/env.ts
+// ../core2ai/packages/mcp-host/src/env.ts
 import * as fs from "node:fs";
 import * as path from "node:path";
 var LOCAL_ENV_FILES = [".env", ".env.local"];
@@ -82,30 +82,56 @@ function loadLocalEnvFiles(startDirs) {
   return loadedFiles;
 }
 
-// packages/cli/mcp-bundle/mcp-host-env.ts
-var MCP_HOST_BASE_URL_ENV_KEY = "API2AI_MCP_BASE_URL_ENV_KEY";
-var MCP_HOST_AUTH_ENV_KEY = "API2AI_MCP_AUTH_ENV_KEY";
-var MCP_HOST_ENV_DIRS = "API2AI_MCP_ENV_DIRS";
-function applyMcpHostEnvKeys(hostConfig2, envDirs2) {
-  process.env[MCP_HOST_BASE_URL_ENV_KEY] = hostConfig2.baseUrlEnv;
-  if (hostConfig2.authEnv) {
-    process.env[MCP_HOST_AUTH_ENV_KEY] = hostConfig2.authEnv;
-  } else {
-    delete process.env[MCP_HOST_AUTH_ENV_KEY];
+// ../core2ai/packages/mcp-host/src/mcp-host-adapter.ts
+function readMcpHostAdapter(imported2) {
+  const adapter = imported2.mcpHostAdapter;
+  if (!adapter || typeof adapter !== "object") {
+    throw new Error('Generated module must export "mcpHostAdapter". Regenerate tool code.');
   }
-  if (envDirs2.length > 0) {
-    process.env[MCP_HOST_ENV_DIRS] = JSON.stringify(envDirs2);
-  } else {
-    delete process.env[MCP_HOST_ENV_DIRS];
+  const a = adapter;
+  if (typeof a.configureFromArgv !== "function") {
+    throw new Error("mcpHostAdapter.configureFromArgv is required. Regenerate tool code.");
   }
+  if (typeof a.validateAtStartup !== "function") {
+    throw new Error("mcpHostAdapter.validateAtStartup is required. Regenerate tool code.");
+  }
+  if (typeof a.resolveHostContext !== "function") {
+    throw new Error("mcpHostAdapter.resolveHostContext is required. Regenerate tool code.");
+  }
+  if (typeof a.envDirsForReload !== "function") {
+    throw new Error("mcpHostAdapter.envDirsForReload is required. Regenerate tool code.");
+  }
+  return a;
+}
+function readGeneratedModule(imported2) {
+  const generatedTools = imported2.generatedTools;
+  const invokeTool = imported2.invokeTool;
+  if (!Array.isArray(generatedTools)) {
+    throw new Error('Generated module must export "generatedTools" array.');
+  }
+  if (typeof invokeTool !== "function") {
+    throw new Error('Generated module must export async "invokeTool" function.');
+  }
+  const inputZodByTool = imported2.inputZodByTool;
+  const mcpServerName = imported2.mcpServerName;
+  const mcpServerVersion = imported2.mcpServerVersion;
+  return {
+    adapter: readMcpHostAdapter(imported2),
+    generatedTools,
+    invokeTool,
+    inputZodByTool: inputZodByTool && typeof inputZodByTool === "object" && !Array.isArray(inputZodByTool) ? inputZodByTool : void 0,
+    mcpServerName: typeof mcpServerName === "string" ? mcpServerName : void 0,
+    mcpServerVersion: typeof mcpServerVersion === "string" ? mcpServerVersion : void 0,
+    requiresAuth: imported2.requiresAuth === true
+  };
 }
 
-// packages/cli/mcp-bundle/mcp-server.ts
+// ../core2ai/packages/mcp-host/src/mcp-server.ts
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
-function requireMcpServerIdentity(generated) {
-  const name = generated.mcpServerName?.trim();
-  const version = generated.mcpServerVersion?.trim();
+function requireMcpServerIdentity(generated2) {
+  const name = generated2.mcpServerName?.trim();
+  const version = generated2.mcpServerVersion?.trim();
   if (!name) {
     throw new Error('Generated module must export "mcpServerName". Regenerate tool code.');
   }
@@ -119,57 +145,24 @@ function requireInputZodSchema(inputZodByTool, toolName) {
     throw new Error('Generated module must export "inputZodByTool". Regenerate tool code.');
   }
   const schema = inputZodByTool[toolName];
-  if (!schema) {
+  if (!schema || typeof schema !== "object") {
     throw new Error(
       `Generated module inputZodByTool has no schema for tool "${toolName}". Regenerate tool code.`
     );
   }
   return schema;
 }
-function readRuntimeModule(imported2) {
-  const generatedTools = imported2.generatedTools;
-  const invokeTool = imported2.invokeTool;
-  const resolveHostContext = imported2.resolveHostContext;
-  if (!Array.isArray(generatedTools)) {
-    throw new Error('Generated module must export "generatedTools" array.');
-  }
-  if (typeof invokeTool !== "function") {
-    throw new Error('Generated module must export async "invokeTool" function.');
-  }
-  if (typeof resolveHostContext !== "function") {
-    throw new Error('Generated module must export "resolveHostContext". Regenerate tool code.');
-  }
-  const inputZodByTool = imported2.inputZodByTool;
-  const mcpServerName = imported2.mcpServerName;
-  const mcpServerVersion = imported2.mcpServerVersion;
-  return {
-    generatedTools,
-    resolveHostContext,
-    invokeTool,
-    inputZodByTool: inputZodByTool && typeof inputZodByTool === "object" && !Array.isArray(inputZodByTool) ? inputZodByTool : void 0,
-    mcpServerName: typeof mcpServerName === "string" ? mcpServerName : void 0,
-    mcpServerVersion: typeof mcpServerVersion === "string" ? mcpServerVersion : void 0
-  };
-}
-function reloadEnvFilesForDev() {
-  const raw = process.env[MCP_HOST_ENV_DIRS];
-  if (!raw?.trim()) {
-    return;
-  }
-  try {
-    const dirs = JSON.parse(raw);
-    if (Array.isArray(dirs) && dirs.every((d) => typeof d === "string")) {
-      loadLocalEnvFiles(dirs);
-    }
-  } catch {
+function reloadEnvFilesForDev(generated2) {
+  const dirs = generated2.adapter.envDirsForReload();
+  if (dirs.length > 0) {
+    loadLocalEnvFiles(dirs);
   }
 }
-async function runMcpServerFromImportedModule(imported2) {
-  const generated = readRuntimeModule(imported2);
-  const { name, version } = requireMcpServerIdentity(generated);
+async function runMcpServer(generated2) {
+  const { name, version } = requireMcpServerIdentity(generated2);
   const server = new McpServer({ name, version });
-  for (const tool of generated.generatedTools) {
-    const inputSchema = requireInputZodSchema(generated.inputZodByTool, tool.toolName);
+  for (const tool of generated2.generatedTools) {
+    const inputSchema = requireInputZodSchema(generated2.inputZodByTool, tool.toolName);
     server.registerTool(
       tool.toolName,
       {
@@ -178,9 +171,9 @@ async function runMcpServerFromImportedModule(imported2) {
         inputSchema
       },
       async (args) => {
-        reloadEnvFilesForDev();
-        const hostContext = generated.resolveHostContext();
-        const result = await generated.invokeTool(
+        reloadEnvFilesForDev(generated2);
+        const hostContext = generated2.adapter.resolveHostContext();
+        const result = await generated2.invokeTool(
           tool.toolName,
           args ?? {},
           hostContext
@@ -200,80 +193,20 @@ async function runMcpServerFromImportedModule(imported2) {
   await server.connect(transport);
 }
 
-// packages/cli/mcp-bundle/parse-host-args.ts
-function parseMcpServeArgv(argv) {
-  const positional = [];
-  let baseUrlEnv;
-  let authEnv;
-  for (let i = 0; i < argv.length; i++) {
-    const arg = argv[i];
-    if (arg === "--base-url-env") {
-      baseUrlEnv = argv[++i];
-      if (!baseUrlEnv) {
-        throw new Error("Missing value after --base-url-env");
-      }
-      continue;
-    }
-    if (arg === "--auth-env") {
-      authEnv = argv[++i];
-      if (!authEnv) {
-        throw new Error("Missing value after --auth-env");
-      }
-      continue;
-    }
-    if (arg.startsWith("-")) {
-      throw new Error(`Unknown option: ${arg}`);
-    }
-    positional.push(arg);
-  }
-  const modulePath2 = positional[0];
-  if (!modulePath2) {
-    throw new Error("Usage: node mcp-serve.mjs <path-to-*-tools.mjs> --base-url-env VAR [--auth-env VAR]");
-  }
-  if (!baseUrlEnv) {
-    throw new Error("Required: --base-url-env <ENV_VAR_NAME>");
-  }
-  return {
-    modulePath: modulePath2,
-    hostConfig: {
-      baseUrlEnv,
-      authEnv
-    }
-  };
+// ../core2ai/packages/mcp-host/src/mcp-standalone-entry.ts
+var argv = process.argv.slice(2);
+var modulePath = argv[0];
+if (!modulePath) {
+  throw new Error("Usage: node mcp-serve.mjs <path-to-*-tools.mjs> [host options...]");
 }
-function validateHostConfigAtStartup(hostConfig2, requiresAuth2) {
-  const baseUrl = process.env[hostConfig2.baseUrlEnv]?.trim();
-  if (!baseUrl) {
-    throw new Error(
-      `Environment variable "${hostConfig2.baseUrlEnv}" is missing or empty (required by --base-url-env).`
-    );
-  }
-  if (!requiresAuth2) {
-    return;
-  }
-  if (!hostConfig2.authEnv) {
-    throw new Error("Generated tools require auth; pass --auth-env <ENV_VAR_NAME> on the MCP host.");
-  }
-  const credential = process.env[hostConfig2.authEnv]?.trim();
-  if (!credential) {
-    throw new Error(
-      `Environment variable "${hostConfig2.authEnv}" is missing or empty (required by --auth-env).`
-    );
-  }
-}
-
-// packages/cli/mcp-bundle/mcp-standalone-entry.ts
-var { modulePath, hostConfig } = parseMcpServeArgv(process.argv.slice(2));
-var moduleDir = path2.dirname(path2.resolve(modulePath));
-var envDirs = [process.cwd(), moduleDir];
+var envDirs = [process.cwd(), path2.dirname(path2.resolve(modulePath))];
 loadLocalEnvFiles(envDirs);
-applyMcpHostEnvKeys(hostConfig, envDirs);
 var imported = await import(pathToFileURL(path2.resolve(modulePath)).href);
 if (!imported || typeof imported !== "object") {
   throw new Error(`Generated module "${modulePath}" did not export an object.`);
 }
-var requiresAuth = imported.requiresAuth === true;
-validateHostConfigAtStartup(hostConfig, requiresAuth);
-var authPart = hostConfig.authEnv ? ` authEnv=${hostConfig.authEnv}` : "";
-console.error(`[mcp] baseUrlEnv=${hostConfig.baseUrlEnv}${authPart} (host context refreshed each tool call)`);
-await runMcpServerFromImportedModule(imported);
+var generated = readGeneratedModule(imported);
+generated.adapter.configureFromArgv(argv.slice(1), envDirs);
+generated.adapter.validateAtStartup(generated.requiresAuth === true);
+console.error("[mcp] host context refreshed each tool call");
+await runMcpServer(generated);

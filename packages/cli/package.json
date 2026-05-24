@@ -9,7 +9,6 @@
     },
     "files": [
         "bin",
-        "mcp-bundle",
         "out",
         "resources",
         "src"
@@ -24,6 +23,7 @@
         "test": "vitest run"
     },
     "dependencies": {
+        "@core2ai/mcp-host": "file:../../../core2ai/packages/mcp-host",
         "@modelcontextprotocol/sdk": "^1.29.0",
         "api-2-ai-dsl-language": "0.0.1",
         "chalk": "~5.3.0",

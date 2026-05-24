@@ -13,7 +13,7 @@ npm run test:smoke
 npm run test:smoke:tmdb
 npm run test:smoke:mock-api
 
-# MCP stdio host + generated tools (separate from smoke-generated)
+# MCP stdio host + generated tools (starts server on stdio; Ctrl+C to stop)
 npm run test:mcp
 ```
 

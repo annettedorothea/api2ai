@@ -2,7 +2,7 @@ import chalk from 'chalk';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { pathToFileURL } from 'node:url';
-import { loadLocalEnvFiles } from '../../mcp-bundle/env.js';
+import { loadLocalEnvFiles, readGeneratedModule } from '@core2ai/mcp-host';
 import { applySmokeHostEnv } from './smoke-host-env.js';
 
 type InvokeArgs = {
@@ -10,12 +10,6 @@ type InvokeArgs = {
     query?: Record<string, string | number | boolean | ReadonlyArray<string | number | boolean>>;
     headers?: Record<string, string>;
     body?: unknown;
-};
-
-type GeneratedRuntimeModule = {
-    generatedTools: Array<{ toolName: string }>;
-    requiresAuth?: boolean;
-    invokeTool: (toolName: string, options?: InvokeArgs) => Promise<unknown>;
 };
 
 function defaultSmokeArgs(toolName: string): InvokeArgs {
@@ -91,28 +85,20 @@ function resolveSmokeHostRuntime(modulePath: string, requiresAuth: boolean): { b
     return { baseUrl };
 }
 
-async function importGeneratedModule(modulePath: string): Promise<GeneratedRuntimeModule> {
+/** Integration smoke: one direct invokeTool call on a generated *-tools.mjs (no MCP stdio). */
+export async function runSmokeGenerated(modulePath: string, toolName: string, argsJson?: string): Promise<void> {
+    const envDirs = [process.cwd(), path.dirname(path.resolve(modulePath))];
+    loadLocalEnvFiles(envDirs);
+
     if (modulePath.startsWith('file://')) {
         throw new Error('smoke-generated accepts local file paths only (no file:// URLs).');
     }
     const imported = await import(pathToFileURL(path.resolve(modulePath)).href);
-    const generatedTools = (imported as { generatedTools?: unknown }).generatedTools;
-    const invokeTool = (imported as { invokeTool?: unknown }).invokeTool;
-    if (!Array.isArray(generatedTools) || typeof invokeTool !== 'function') {
-        throw new Error(`Generated module "${modulePath}" is missing required exports (generatedTools, invokeTool).`);
+    if (!imported || typeof imported !== 'object') {
+        throw new Error(`Generated module "${modulePath}" did not export an object.`);
     }
-    return {
-        generatedTools: generatedTools as GeneratedRuntimeModule['generatedTools'],
-        requiresAuth: (imported as { requiresAuth?: unknown }).requiresAuth === true,
-        invokeTool: invokeTool as GeneratedRuntimeModule['invokeTool']
-    };
-}
+    const generated = readGeneratedModule(imported as Record<string, unknown>);
 
-/** Integration smoke: one direct invokeTool call on a generated *-tools.mjs (no MCP stdio). */
-export async function runSmokeGenerated(modulePath: string, toolName: string, argsJson?: string): Promise<void> {
-    loadLocalEnvFiles([process.cwd(), path.dirname(path.resolve(modulePath))]);
-
-    const generated = await importGeneratedModule(modulePath);
     const tool = generated.generatedTools.find((item) => item.toolName === toolName);
     if (!tool) {
         const available = generated.generatedTools.map((item) => item.toolName).join(', ');
@@ -137,7 +123,7 @@ export async function runSmokeGenerated(modulePath: string, toolName: string, ar
     }
 
     const hostRuntime = resolveSmokeHostRuntime(modulePath, generated.requiresAuth === true);
-    applySmokeHostEnv(hostRuntime);
+    applySmokeHostEnv(generated.adapter, hostRuntime, envDirs);
     const result = await generated.invokeTool(toolName, args);
     console.log(JSON.stringify(result, null, 2));
 }
