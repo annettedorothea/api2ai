@@ -4,7 +4,6 @@ auth {
     in: header
     name: "Authorization"
     prefix: "Bearer "
-    fromJwt: "customerId"
 }
 
 GET "/user" {
