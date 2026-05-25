@@ -2,10 +2,10 @@ import type { Model, Operation } from 'api-2-ai-dsl-language';
 import { expandToNode, toString } from 'langium/generate';
 import type { LoadedOpenApi } from 'api-2-ai-dsl-language';
 import { loadOpenApi, makeOperationLookupKey } from 'api-2-ai-dsl-language';
+import { extractDestinationAndName } from '@core2ai/codegen';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import * as url from 'node:url';
-import { extractDestinationAndName } from './util.js';
 import {
     emitGeneratedZodPreamble,
     emitInputZodByToolExport

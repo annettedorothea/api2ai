@@ -23,6 +23,7 @@
         "test": "vitest run"
     },
     "dependencies": {
+        "@core2ai/codegen": "file:../../../core2ai/packages/codegen",
         "@core2ai/mcp-host": "file:../../../core2ai/packages/mcp-host",
         "@modelcontextprotocol/sdk": "^1.29.0",
         "api-2-ai-dsl-language": "0.0.1",
