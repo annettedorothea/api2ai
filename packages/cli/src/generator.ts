@@ -4,18 +4,20 @@ import { loadOpenApi, makeOperationLookupKey } from 'api-2-ai-dsl-language';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import * as url from 'node:url';
-import { buildInputZodBlock } from '@core2ai/codegen';
-import { renderMcpHostAdapterBlock } from './generator/host-adapter-render.js';
-import { createSharedInvokeBlock } from './generator/invoke-render.js';
-import { renderJsModule, renderMcpServerIdentityExports, renderTsModule } from './generator/module-render.js';
 import {
+    buildInputZodBlock,
     copyBundledMcpServeInto,
     ensureParentDir,
+    formatGeneratedFilesWithPrettier,
     resolveBootstrapProjectRootFromSource,
     resolveGeneratedCliDir,
     resolveMcpServerIdentityFromDestination,
-    writeMinimalPackageJsonIfAbsent
-} from './generator/project-bootstrap.js';
+    writeMinimalPackageJsonIfAbsent,
+    type ProjectBootstrapConfig
+} from '@core2ai/codegen';
+import { renderMcpHostAdapterBlock } from './generator/host-adapter-render.js';
+import { createSharedInvokeBlock } from './generator/invoke-render.js';
+import { renderJsModule, renderMcpServerIdentityExports, renderTsModule } from './generator/module-render.js';
 import {
     buildMcpDescription,
     buildMcpTitle,
@@ -42,6 +44,32 @@ function bundleSafeGeneratorImplementationDir(): string {
 }
 
 const __generatorDirname = bundleSafeGeneratorImplementationDir();
+
+function createBootstrapConfig(): ProjectBootstrapConfig {
+    return {
+        generatorImplementationDir: __generatorDirname,
+        embedHomeEnv: 'API2AI_EMBED_HOME',
+        fallbackProjectName: 'api2ai-project',
+        requiredRuntimeDeps: ['@modelcontextprotocol/sdk', 'zod'],
+        dependencyVersionFallbacks: {
+            '@modelcontextprotocol/sdk': '^1.29.0',
+            zod: '^4.4.3'
+        },
+        resolvePackageRoot(dir) {
+            const oneUp = path.resolve(dir, '..');
+            if (fs.existsSync(path.join(oneUp, 'package.json'))) {
+                return oneUp;
+            }
+            return path.resolve(dir, '..', '..');
+        },
+        bundledMcpMissingMessage(src) {
+            return `Bundled MCP host missing (${src}). Run npm run bundle:mcp-runtime from the workspace root.`;
+        },
+        missingDepsMessage(pjsonPath, missing) {
+            return `[generate] "${pjsonPath}": install MCP runtime dependencies: ${missing.join(', ')} (npm install), then generated/cli/mcp-serve.mjs can run.`;
+        }
+    };
+}
 
 export type ResolvedToolCodegen = {
     toolName: string;
@@ -163,6 +191,7 @@ function mergeParallelToolData(
 
 export async function generateOutput(model: Model, source: string, destination: string): Promise<GeneratedOutputFiles> {
     ensureParentDir(destination);
+    const bootstrapConfig = createBootstrapConfig();
     const parsed = path.parse(destination);
     const tsPath = parsed.ext === '.ts' ? destination : path.join(parsed.dir, `${parsed.name}.ts`);
     const jsPath = path.join(parsed.dir, `${parsed.name}.mjs`);
@@ -179,7 +208,7 @@ export async function generateOutput(model: Model, source: string, destination: 
     const authKind = authRuntimeKind(model);
     const usesInsecureTls = model.insecureEnv === true;
     const usesFromJwt = Boolean(model.auth?.fromJwt?.trim());
-    const mcpServerIdentity = resolveMcpServerIdentityFromDestination(tsPath, __generatorDirname);
+    const mcpServerIdentity = resolveMcpServerIdentityFromDestination(tsPath, bootstrapConfig);
     const mcpServerIdentityBlock = renderMcpServerIdentityExports(mcpServerIdentity.name, mcpServerIdentity.version);
     const mcpHostAdapterBlock = renderMcpHostAdapterBlock(authKind);
     const toolRuntimeBlock = `${buildInputZodBlock(orderedSchemas)}\n${mcpHostAdapterBlock}\n${createSharedInvokeBlock(
@@ -197,10 +226,11 @@ export async function generateOutput(model: Model, source: string, destination: 
         jsPath,
         renderJsModule(toolsLiteral, mcpServerIdentityBlock, toolRuntimeBlock, model, source, authKind, usesInsecureTls)
     );
+    await formatGeneratedFilesWithPrettier([tsPath, jsPath]);
 
     const cliDir = resolveGeneratedCliDir(tsPath);
-    const mcpServePath = copyBundledMcpServeInto(cliDir, __generatorDirname);
-    writeMinimalPackageJsonIfAbsent(resolveBootstrapProjectRootFromSource(source), __generatorDirname);
+    const mcpServePath = copyBundledMcpServeInto(cliDir, bootstrapConfig);
+    writeMinimalPackageJsonIfAbsent(resolveBootstrapProjectRootFromSource(source), bootstrapConfig);
 
     return { tsPath, jsPath, mcpServePath };
 }
