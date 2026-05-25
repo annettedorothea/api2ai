@@ -1,6 +1,6 @@
 import type { Model } from 'api-2-ai-dsl-language';
 import { createApi2AiDslServices } from 'api-2-ai-dsl-language';
-import { extractAstNode } from '@core2ai/codegen';
+import { extractAstNode } from '@core2ai/core/codegen';
 import chalk from 'chalk';
 import { generateOutput } from './generator.js';
 import { NodeFileSystem } from 'langium/node';

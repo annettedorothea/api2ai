@@ -1,4 +1,4 @@
-import { runMcpStdioSmoke } from '@core2ai/mcp-host';
+import { runMcpStdioSmoke } from '@core2ai/core/mcp-host';
 import { spawn, type ChildProcess } from 'node:child_process';
 import * as fs from 'node:fs/promises';
 import * as net from 'node:net';

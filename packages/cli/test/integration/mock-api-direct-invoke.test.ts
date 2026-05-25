@@ -1,4 +1,4 @@
-import { readGeneratedModule } from '@core2ai/mcp-host';
+import { readGeneratedModule } from '@core2ai/core/mcp-host';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { spawn, type ChildProcess } from 'node:child_process';
 import * as fs from 'node:fs/promises';

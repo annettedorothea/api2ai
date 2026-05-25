@@ -1,4 +1,4 @@
-import type { McpHostAdapter } from '@core2ai/mcp-host';
+import type { McpHostAdapter } from '@core2ai/core/mcp-host';
 
 /** Fixed env var names for api2ai smoke (direct values via configureFromArgv). */
 const SMOKE_BASE_URL_ENV = 'MCP_HOST_BASE_URL';

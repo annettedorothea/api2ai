@@ -17,7 +17,7 @@ Langium’s Minilogo CLI guide is still a useful reference for the shared patter
 - [test/README.md](./test/README.md) – how smoke vs `test:mcp` differ.
 - [src/openapi-tool-codegen.ts](./src/openapi-tool-codegen.ts) – OpenAPI-derived input schemas for tools.
 - [src/util.ts](./src/util.ts) – helpers.
-- [resources/mcp-serve-emitted.mjs](./resources/mcp-serve-emitted.mjs) – bundled MCP host from `@core2ai/mcp-host` (`npm run bundle:mcp-runtime`); copied to `generated/cli/mcp-serve.mjs` on generate.
+- [resources/mcp-serve-emitted.mjs](./resources/mcp-serve-emitted.mjs) – bundled MCP host from `@core2ai/core/mcp-host` (`npm run bundle:mcp-runtime`); copied to `generated/cli/mcp-serve.mjs` on generate.
 - DSL-specific host logic lives in generated `mcpHostAdapter` inside each `*-tools.mjs`.
 
 ## Commands

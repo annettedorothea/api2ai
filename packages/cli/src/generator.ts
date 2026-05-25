@@ -14,7 +14,7 @@ import {
     resolveMcpServerIdentityFromDestination,
     writeMinimalPackageJsonIfAbsent,
     type ProjectBootstrapConfig
-} from '@core2ai/codegen';
+} from '@core2ai/core/codegen';
 import { renderMcpHostAdapterBlock } from './generator/host-adapter-render.js';
 import { createSharedInvokeBlock } from './generator/invoke-render.js';
 import { renderJsModule, renderMcpServerIdentityExports, renderTsModule } from './generator/module-render.js';
