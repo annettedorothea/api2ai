@@ -25,10 +25,10 @@ Prerequisite: **Node.js 20+** and the **api2ai** extension.
 1. Open **this folder** as the workspace (so `.cursor/mcp.json` applies).
 2. `npm install`
 3. Generate tool code:
-   ```bash
-   npm run generate:all
-   ```
-   Or one API: `npm run generate:open-meteo-tools`, etc. (see [`./package.json`](./package.json)). Alternative: save each `.api2ai` or Command Palette → **Generate tool code**.
+    ```bash
+    npm run generate:all
+    ```
+    Or one API: `npm run generate:open-meteo-tools`, etc. (see [`./package.json`](./package.json)). Alternative: save each `.api2ai` or Command Palette → **Generate tool code**.
 4. **Secrets:** copy [`.env.example`](./.env.example) to `./.env.local` and set `TMDB_ACCESS_TOKEN`, `GITHUB_TOKEN`, … (`.env.local` is gitignored)
 5. **Cursor:** Settings → **Tools & MCP** → enable `api2ai-*` → reload MCP.
 
@@ -51,13 +51,13 @@ Details: [`./mock-api/README.md`](./mock-api/README.md).
 1. Workspace = this folder, MCP servers **on**.
 2. Prompts with prefix **`api2ai`** ([`./.cursor/rules/mcp-api2ai-only.mdc`](./.cursor/rules/mcp-api2ai-only.mdc)).
 
-| API | Prompt (no token unless noted) |
-|-----|--------------------------------|
-| Open-Meteo | `api2ai wie ist das Wetter in Berlin` |
-| Spaceflight | `api2ai was ist die naechste SpaceX Mission` |
-| TMDB | `api2ai suche Filme mit dem Titel Dune` (token required) |
-| GitHub | `api2ai gib mir die user infos und meine repos` (PAT required) |
-| mock-api | `api2ai list my orders` (after token / login demo) |
+| API         | Prompt (no token unless noted)                                 |
+| ----------- | -------------------------------------------------------------- |
+| Open-Meteo  | `api2ai wie ist das Wetter in Berlin`                          |
+| Spaceflight | `api2ai was ist die naechste SpaceX Mission`                   |
+| TMDB        | `api2ai suche Filme mit dem Titel Dune` (token required)       |
+| GitHub      | `api2ai gib mir die user infos und meine repos` (PAT required) |
+| mock-api    | `api2ai list my orders` (after token / login demo)             |
 
 After editing `.api2ai`: save, **Generate tool code**, or `npm run generate:…`, then reload MCP.
 
@@ -67,14 +67,14 @@ After editing `.api2ai`: save, **Generate tool code**, or `npm run generate:…`
 
 ## MCP servers
 
-| Server | Auth | Host `env` |
-|--------|------|------------|
-| `api2ai-open-meteo` | — | `OPEN_METEO_BASE_URL` |
-| `api2ai-open-meteo-geocoding` | — | `OPEN_METEO_GEOCODING_BASE_URL` |
-| `api2ai-spaceflight-news` | — | `SPACEFLIGHT_NEWS_BASE_URL` |
-| `api2ai-tmdb` | Bearer | `TMDB_BASE_URL`, `TMDB_ACCESS_TOKEN` |
-| `api2ai-github` | Bearer | `GITHUB_BASE_URL`, `GITHUB_TOKEN` |
-| `api2ai-mock-api` | Bearer + JWT | `MOCK_API_BASE_URL`, `MOCK_API_ACCESS_TOKEN` |
+| Server                        | Auth         | Host `env`                                   |
+| ----------------------------- | ------------ | -------------------------------------------- |
+| `api2ai-open-meteo`           | —            | `OPEN_METEO_BASE_URL`                        |
+| `api2ai-open-meteo-geocoding` | —            | `OPEN_METEO_GEOCODING_BASE_URL`              |
+| `api2ai-spaceflight-news`     | —            | `SPACEFLIGHT_NEWS_BASE_URL`                  |
+| `api2ai-tmdb`                 | Bearer       | `TMDB_BASE_URL`, `TMDB_ACCESS_TOKEN`         |
+| `api2ai-github`               | Bearer       | `GITHUB_BASE_URL`, `GITHUB_TOKEN`            |
+| `api2ai-mock-api`             | Bearer + JWT | `MOCK_API_BASE_URL`, `MOCK_API_ACCESS_TOKEN` |
 
 ## Demo prompts
 

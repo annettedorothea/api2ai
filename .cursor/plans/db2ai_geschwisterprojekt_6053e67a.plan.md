@@ -2,21 +2,21 @@
 name: db2ai Geschwisterprojekt
 overview: Neues Langium-Monorepo `db2ai` als Geschwister von `api2ai` unter `/Users/annette/Documents/Projekte/MCP/`, strukturell analog aber mit minimaler DB-DSL und leerem `examples/`. Ein Multi-Root-Workspace im Parent ermöglicht gemeinsames Arbeiten; eine Launch-Konfiguration startet den Extension Development Host mit beiden Extensions und beiden Example-Bäumen.
 todos:
-  - id: parent-workspace
-    content: "Schritt 1 (jetzt): MCP/mcp-dsls.code-workspace, MCP/.vscode, MCP/.cursor/plans/ + Platzhalter db2ai/ — du öffnest den Workspace, dann weiter"
-    status: completed
-  - id: scaffold-db2ai
-    content: db2ai Monorepo unter MCP/db2ai anlegen (language/cli/extension, minimale Grammar .db2ai, leeres examples/, READMEs/docs)
-    status: pending
-  - id: wire-build
-    content: langium-config, generate, build, vitest-Smoke; CLI stub; Extension ohne MCP-Codegen
-    status: pending
-  - id: debug-ports
-    content: db2ai LSP auf Port 6010; Attach-Config dokumentieren
-    status: pending
-  - id: verify-dual
-    content: "Manuell: Parent-Workspace → F5 → beide Sprachen + beide examples-Bäume im Extension Development Host"
-    status: pending
+    - id: parent-workspace
+      content: 'Schritt 1 (jetzt): MCP/mcp-dsls.code-workspace, MCP/.vscode, MCP/.cursor/plans/ + Platzhalter db2ai/ — du öffnest den Workspace, dann weiter'
+      status: completed
+    - id: scaffold-db2ai
+      content: db2ai Monorepo unter MCP/db2ai anlegen (language/cli/extension, minimale Grammar .db2ai, leeres examples/, READMEs/docs)
+      status: pending
+    - id: wire-build
+      content: langium-config, generate, build, vitest-Smoke; CLI stub; Extension ohne MCP-Codegen
+      status: pending
+    - id: debug-ports
+      content: db2ai LSP auf Port 6010; Attach-Config dokumentieren
+      status: pending
+    - id: verify-dual
+      content: 'Manuell: Parent-Workspace → F5 → beide Sprachen + beide examples-Bäume im Extension Development Host'
+      status: pending
 isProject: false
 ---
 
@@ -24,11 +24,11 @@ isProject: false
 
 ## Zielbild
 
-| Aspekt | [api2ai](api2ai) (bestehend) | [db2ai](db2ai) (neu) |
-|--------|------------------------------|----------------------|
-| Eingabe | OpenAPI + `.api2ai` | Relationale DB + `.db2ai` |
-| Ausgabe (später) | MCP-Tools aus HTTP-Ops | MCP-Tools aus DB-Schema/Queries |
-| PoC-Stand | voll | **Skelett**: Grammar, LSP, Extension, leere Examples |
+| Aspekt           | [api2ai](api2ai) (bestehend) | [db2ai](db2ai) (neu)                                 |
+| ---------------- | ---------------------------- | ---------------------------------------------------- |
+| Eingabe          | OpenAPI + `.api2ai`          | Relationale DB + `.db2ai`                            |
+| Ausgabe (später) | MCP-Tools aus HTTP-Ops       | MCP-Tools aus DB-Schema/Queries                      |
+| PoC-Stand        | voll                         | **Skelett**: Grammar, LSP, Extension, leere Examples |
 
 Pfad: **`/Users/annette/Documents/Projekte/MCP/db2ai`** (Geschwister von `api2ai`, nicht darin verschachtelt).
 
@@ -69,11 +69,11 @@ flowchart TB
 
 ```json
 {
-  "folders": [
-    { "name": "api2ai", "path": "api2ai" },
-    { "name": "db2ai", "path": "db2ai" }
-  ],
-  "settings": {}
+    "folders": [
+        { "name": "api2ai", "path": "api2ai" },
+        { "name": "db2ai", "path": "db2ai" }
+    ],
+    "settings": {}
 }
 ```
 
@@ -93,27 +93,27 @@ VS Code/Cursor unterstützen **mehrere** `--extensionDevelopmentPath` in einer `
 
 ```json
 {
-  "version": "0.2.0",
-  "configurations": [
-    {
-      "name": "Run Both DSL Extensions",
-      "type": "extensionHost",
-      "request": "launch",
-      "preLaunchTask": "Build all DSLs",
-      "args": [
-        "${workspaceFolder}/mcp-dsls.code-workspace",
-        "--extensionDevelopmentPath=${workspaceFolder}/api2ai/packages/extension",
-        "--extensionDevelopmentPath=${workspaceFolder}/db2ai/packages/extension"
-      ],
-      "sourceMaps": true,
-      "outFiles": [
-        "${workspaceFolder}/api2ai/packages/language/out/**/*.js",
-        "${workspaceFolder}/api2ai/packages/extension/out/**/*.js",
-        "${workspaceFolder}/db2ai/packages/language/out/**/*.js",
-        "${workspaceFolder}/db2ai/packages/extension/out/**/*.js"
-      ]
-    }
-  ]
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Run Both DSL Extensions",
+            "type": "extensionHost",
+            "request": "launch",
+            "preLaunchTask": "Build all DSLs",
+            "args": [
+                "${workspaceFolder}/mcp-dsls.code-workspace",
+                "--extensionDevelopmentPath=${workspaceFolder}/api2ai/packages/extension",
+                "--extensionDevelopmentPath=${workspaceFolder}/db2ai/packages/extension"
+            ],
+            "sourceMaps": true,
+            "outFiles": [
+                "${workspaceFolder}/api2ai/packages/language/out/**/*.js",
+                "${workspaceFolder}/api2ai/packages/extension/out/**/*.js",
+                "${workspaceFolder}/db2ai/packages/language/out/**/*.js",
+                "${workspaceFolder}/db2ai/packages/extension/out/**/*.js"
+            ]
+        }
+    ]
 }
 ```
 
@@ -121,26 +121,26 @@ Zugehörige [`tasks.json`](/Users/annette/Documents/Projekte/MCP/.vscode/tasks.j
 
 ```json
 {
-  "version": "2.0.0",
-  "tasks": [
-    {
-      "label": "Build all DSLs",
-      "dependsOn": ["Build api2ai", "Build db2ai"],
-      "dependsOrder": "parallel"
-    },
-    {
-      "label": "Build api2ai",
-      "type": "shell",
-      "options": { "cwd": "${workspaceFolder}/api2ai" },
-      "command": "npm run langium:generate && npm run build"
-    },
-    {
-      "label": "Build db2ai",
-      "type": "shell",
-      "options": { "cwd": "${workspaceFolder}/db2ai" },
-      "command": "npm run langium:generate && npm run build"
-    }
-  ]
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Build all DSLs",
+            "dependsOn": ["Build api2ai", "Build db2ai"],
+            "dependsOrder": "parallel"
+        },
+        {
+            "label": "Build api2ai",
+            "type": "shell",
+            "options": { "cwd": "${workspaceFolder}/api2ai" },
+            "command": "npm run langium:generate && npm run build"
+        },
+        {
+            "label": "Build db2ai",
+            "type": "shell",
+            "options": { "cwd": "${workspaceFolder}/db2ai" },
+            "command": "npm run langium:generate && npm run build"
+        }
+    ]
 }
 ```
 
@@ -148,11 +148,11 @@ Zugehörige [`tasks.json`](/Users/annette/Documents/Projekte/MCP/.vscode/tasks.j
 
 **Wichtige Anpassungen gegenüber api2ai allein:**
 
-| Thema | Maßnahme |
-|-------|----------|
-| LSP-Debug-Port | api2ai nutzt Port **6009** ([`packages/extension/src/extension/main.ts`](api2ai/packages/extension/src/extension/main.ts)). db2ai: **`DEBUG_SOCKET=6010`** in eigener Launch-Env oder Default in db2ai-Extension |
-| Language-IDs | `api-2-ai-dsl` vs. `db-2-ai-dsl` — keine Kollision |
-| Pro Projekt weiter F5 | In `api2ai/.vscode/launch.json` bleibt **Run Extension** (öffnet nur `api2ai/examples`) — unverändert nutzbar |
+| Thema                 | Maßnahme                                                                                                                                                                                                         |
+| --------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| LSP-Debug-Port        | api2ai nutzt Port **6009** ([`packages/extension/src/extension/main.ts`](api2ai/packages/extension/src/extension/main.ts)). db2ai: **`DEBUG_SOCKET=6010`** in eigener Launch-Env oder Default in db2ai-Extension |
+| Language-IDs          | `api-2-ai-dsl` vs. `db-2-ai-dsl` — keine Kollision                                                                                                                                                               |
+| Pro Projekt weiter F5 | In `api2ai/.vscode/launch.json` bleibt **Run Extension** (öffnet nur `api2ai/examples`) — unverändert nutzbar                                                                                                    |
 
 **Einschränkung:** Das startet den **Extension Development Host** (Debug-Fenster), nicht „eine zweite Cursor-Hauptinstanz“. Für normales Editieren reicht ein Fenster mit `mcp-dsls.code-workspace`; F5 öffnet das zweite Fenster mit beiden DSLs — genau das übliche Langium-Muster, skaliert auf zwei Extensions.
 
@@ -218,13 +218,13 @@ Optional eine Datei [`examples/hello.db2ai`](db2ai/examples/hello.db2ai) als ein
 
 ### Umbenennungen (systematisch)
 
-| api2ai | db2ai |
-|--------|-------|
-| `Api2AiDsl` | `Db2AiDsl` |
-| `api-2-ai-dsl` | `db-2-ai-dsl` |
-| `.api2ai` | `.db2ai` |
+| api2ai                  | db2ai                  |
+| ----------------------- | ---------------------- |
+| `Api2AiDsl`             | `Db2AiDsl`             |
+| `api-2-ai-dsl`          | `db-2-ai-dsl`          |
+| `.api2ai`               | `.db2ai`               |
 | `api-2-ai-dsl-language` | `db-2-ai-dsl-language` |
-| `vscode-api2ai` | `vscode-db2ai` |
+| `vscode-api2ai`         | `vscode-db2ai`         |
 
 CLI/Extension: **kein** `bundle:mcp-runtime`, **kein** `embed-cli-bundle` im ersten Schritt (oder leerer Stub), damit der Skelett-Build schnell grün ist.
 
@@ -245,15 +245,15 @@ Nach jeder Änderung außerhalb `examples/`: `npm run langium:generate && npm ru
 
 Anlegen unter `/Users/annette/Documents/Projekte/MCP/`:
 
-| Datei/Ordner | Inhalt |
-|--------------|--------|
-| `mcp-dsls.code-workspace` | Multi-Root: `api2ai` + `db2ai` (Platzhalter) |
-| `.vscode/launch.json` | Zunächst **Run api2ai Extension** (funktioniert sofort); **Run Both DSL Extensions** vorbereitet, aktiv sobald `db2ai/packages/extension` existiert |
-| `.vscode/tasks.json` | `Build api2ai` sofort; `Build db2ai` mit Hinweis/fehlendem Ordner bis Phase 2 |
-| `.vscode/extensions.json` | `langium.langium-vscode` empfehlen |
-| `README.md` (Parent) | Kurz: Workspace öffnen, Plan unter `.cursor/plans/` |
-| `db2ai/README.md` | Platzhalter: „Projekt folgt in Phase 2“ |
-| `.cursor/plans/db2ai_geschwisterprojekt_6053e67a.plan.md` | **Kopie** dieses Plans (Hauptreferenz im Parent-Workspace) |
+| Datei/Ordner                                              | Inhalt                                                                                                                                              |
+| --------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `mcp-dsls.code-workspace`                                 | Multi-Root: `api2ai` + `db2ai` (Platzhalter)                                                                                                        |
+| `.vscode/launch.json`                                     | Zunächst **Run api2ai Extension** (funktioniert sofort); **Run Both DSL Extensions** vorbereitet, aktiv sobald `db2ai/packages/extension` existiert |
+| `.vscode/tasks.json`                                      | `Build api2ai` sofort; `Build db2ai` mit Hinweis/fehlendem Ordner bis Phase 2                                                                       |
+| `.vscode/extensions.json`                                 | `langium.langium-vscode` empfehlen                                                                                                                  |
+| `README.md` (Parent)                                      | Kurz: Workspace öffnen, Plan unter `.cursor/plans/`                                                                                                 |
+| `db2ai/README.md`                                         | Platzhalter: „Projekt folgt in Phase 2“                                                                                                             |
+| `.cursor/plans/db2ai_geschwisterprojekt_6053e67a.plan.md` | **Kopie** dieses Plans (Hauptreferenz im Parent-Workspace)                                                                                          |
 
 **Phase 1 erledigt.** Als Nächstes: `cursor /Users/annette/Documents/Projekte/MCP/mcp-dsls.code-workspace` öffnen → Explorer zeigt `api2ai` und `db2ai` → F5 **Run api2ai Extension** testen → Phase 2 starten.
 

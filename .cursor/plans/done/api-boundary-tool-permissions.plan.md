@@ -1,16 +1,16 @@
 ---
 name: api-boundary-tool-permissions
-overview: "Architektur-Zusammenfassung aus der Diskussion: Upstream-API als autoritative Absicherung, optionale Tool-Metadaten (Permissions) und Filtern nur zur Vermeidung unnötiger Calls; vorgeschaltete App für Session/Token; Abgrenzung zu dynamischem MCP tools/list (B)."
+overview: 'Architektur-Zusammenfassung aus der Diskussion: Upstream-API als autoritative Absicherung, optionale Tool-Metadaten (Permissions) und Filtern nur zur Vermeidung unnötiger Calls; vorgeschaltete App für Session/Token; Abgrenzung zu dynamischem MCP tools/list (B).'
 todos:
-  - id: dsl-permissions-later
-    content: "Optional später: `requiresPermissions` (o. Ä.) in Grammatik/Validator/Generator in Tool-Metadaten spiegeln — nur wenn Produkt es braucht"
-    status: pending
-  - id: invoke-enforcement
-    content: "Bei Integration: Upstream oder BFF muss Authz hart ablehnen; Filter nur Komfort"
-    status: pending
-  - id: sealed-token-followup
-    content: "bearerSealed umgesetzt (PoC); siehe done/github-sealed-bearer.plan.md"
-    status: completed
+    - id: dsl-permissions-later
+      content: 'Optional später: `requiresPermissions` (o. Ä.) in Grammatik/Validator/Generator in Tool-Metadaten spiegeln — nur wenn Produkt es braucht'
+      status: pending
+    - id: invoke-enforcement
+      content: 'Bei Integration: Upstream oder BFF muss Authz hart ablehnen; Filter nur Komfort'
+      status: pending
+    - id: sealed-token-followup
+      content: 'bearerSealed umgesetzt (PoC); siehe done/github-sealed-bearer.plan.md'
+      status: completed
 isProject: false
 ---
 

@@ -1,9 +1,9 @@
 # CLI tests
 
-| Path | Kind | What it checks |
-|------|------|----------------|
-| `integration/smoke-generated.ts` | Integration smoke | One `invokeTool` on a generated `*-tools.mjs` from demos (HTTP only, **no** MCP server) |
-| `json-schema-to-zod-codegen.test.ts` | Unit (Vitest) | Zod emission from JSON Schema IR |
+| Path                                 | Kind              | What it checks                                                                          |
+| ------------------------------------ | ----------------- | --------------------------------------------------------------------------------------- |
+| `integration/smoke-generated.ts`     | Integration smoke | One `invokeTool` on a generated `*-tools.mjs` from demos (HTTP only, **no** MCP server) |
+| `json-schema-to-zod-codegen.test.ts` | Unit (Vitest)     | Zod emission from JSON Schema IR                                                        |
 
 ## Run from repo root
 

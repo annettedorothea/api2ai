@@ -55,8 +55,7 @@ function resolveSmokeHostRuntime(modulePath: string, requiresAuth: boolean): { b
         return { baseUrl, credential };
     }
     if (base.includes('open-meteo-geocoding')) {
-        const baseUrl =
-            process.env.OPEN_METEO_GEOCODING_BASE_URL?.trim() ?? 'https://geocoding-api.open-meteo.com';
+        const baseUrl = process.env.OPEN_METEO_GEOCODING_BASE_URL?.trim() ?? 'https://geocoding-api.open-meteo.com';
         return { baseUrl };
     }
     if (base.includes('open-meteo')) {
@@ -64,8 +63,7 @@ function resolveSmokeHostRuntime(modulePath: string, requiresAuth: boolean): { b
         return { baseUrl };
     }
     if (base.includes('spaceflight')) {
-        const baseUrl =
-            process.env.SPACEFLIGHT_NEWS_BASE_URL?.trim() ?? 'https://api.spaceflightnewsapi.net';
+        const baseUrl = process.env.SPACEFLIGHT_NEWS_BASE_URL?.trim() ?? 'https://api.spaceflightnewsapi.net';
         return { baseUrl };
     }
     if (base.includes('mock-api-tools')) {
@@ -109,9 +107,7 @@ export async function runSmokeGenerated(modulePath: string, toolName: string, ar
     let args: InvokeArgs = {};
     if (argsJson) {
         try {
-            const argsContent = argsJson.startsWith('@')
-                ? fs.readFileSync(argsJson.slice(1), 'utf-8')
-                : argsJson;
+            const argsContent = argsJson.startsWith('@') ? fs.readFileSync(argsJson.slice(1), 'utf-8') : argsJson;
             args = JSON.parse(argsContent) as InvokeArgs;
         } catch (error) {
             console.error(chalk.red(`Invalid args JSON: ${error instanceof Error ? error.message : String(error)}`));

@@ -1,5 +1,12 @@
 import { type Module, inject } from 'langium';
-import { createDefaultModule, createDefaultSharedModule, type DefaultSharedModuleContext, type LangiumServices, type LangiumSharedServices, type PartialLangiumServices } from 'langium/lsp';
+import {
+    createDefaultModule,
+    createDefaultSharedModule,
+    type DefaultSharedModuleContext,
+    type LangiumServices,
+    type LangiumSharedServices,
+    type PartialLangiumServices
+} from 'langium/lsp';
 import { Api2AiDslGeneratedModule, Api2AiDslGeneratedSharedModule } from './generated/module.js';
 import { Api2AiDslCompletionProvider } from './api-2-ai-dsl-completion-provider.js';
 import { Api2AiDslValidator, registerValidationChecks } from './api-2-ai-dsl-validator.js';
@@ -9,15 +16,15 @@ import { Api2AiDslValidator, registerValidationChecks } from './api-2-ai-dsl-val
  */
 export type Api2AiDslAddedServices = {
     validation: {
-        Api2AiDslValidator: Api2AiDslValidator
-    }
-}
+        Api2AiDslValidator: Api2AiDslValidator;
+    };
+};
 
 /**
  * Union of Langium default services and your custom services - use this as constructor parameter
  * of custom service classes.
  */
-export type Api2AiDslServices = LangiumServices & Api2AiDslAddedServices
+export type Api2AiDslServices = LangiumServices & Api2AiDslAddedServices;
 
 /**
  * Dependency injection module that overrides Langium default services and contributes the
@@ -49,18 +56,11 @@ export const Api2AiDslModule: Module<Api2AiDslServices, PartialLangiumServices &
  * @returns An object wrapping the shared services and the language-specific services
  */
 export function createApi2AiDslServices(context: DefaultSharedModuleContext): {
-    shared: LangiumSharedServices,
-    Api2AiDsl: Api2AiDslServices
+    shared: LangiumSharedServices;
+    Api2AiDsl: Api2AiDslServices;
 } {
-    const shared = inject(
-        createDefaultSharedModule(context),
-        Api2AiDslGeneratedSharedModule
-    );
-    const Api2AiDsl = inject(
-        createDefaultModule({ shared }),
-        Api2AiDslGeneratedModule,
-        Api2AiDslModule
-    );
+    const shared = inject(createDefaultSharedModule(context), Api2AiDslGeneratedSharedModule);
+    const Api2AiDsl = inject(createDefaultModule({ shared }), Api2AiDslGeneratedModule, Api2AiDslModule);
     shared.ServiceRegistry.register(Api2AiDsl);
     registerValidationChecks(Api2AiDsl);
     if (!context.connection) {

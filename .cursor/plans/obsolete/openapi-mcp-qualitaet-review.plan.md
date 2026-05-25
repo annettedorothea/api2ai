@@ -1,13 +1,13 @@
 ---
 name: OpenAPI-MCP Qualität
-overview: "Überblick und verbleibende Review-Themen; Schema/Responses und Token-Footprint sind in eigene Pläne ausgelagert."
+overview: 'Überblick und verbleibende Review-Themen; Schema/Responses und Token-Footprint sind in eigene Pläne ausgelagert.'
 todos:
-  - id: serialize-hint
-    content: "buildMcpDescription: kurzer Hinweis wenn Query-Arrays explode=false (oder non-default style)"
-    status: pending
-  - id: server-metadata
-    content: "Optional später: SERVER_METADATA / MCP-Info aus OpenAPI info+servers"
-    status: pending
+    - id: serialize-hint
+      content: 'buildMcpDescription: kurzer Hinweis wenn Query-Arrays explode=false (oder non-default style)'
+      status: pending
+    - id: server-metadata
+      content: 'Optional später: SERVER_METADATA / MCP-Info aus OpenAPI info+servers'
+      status: pending
 isProject: false
 ---
 
@@ -30,16 +30,16 @@ Die **enge** PoC-Aufgabe „Parameter-Beschreibungen“ ist erledigt ([`paramete
 
 ## Bewertung der acht Review-Punkte (Rest + Verweise)
 
-| # | Thema | Wo |
-|---|--------|-----|
-| 1 | Metadaten im JSON Schema | [openapi-mcp-schema-and-responses.plan.md](openapi-mcp-schema-and-responses.plan.md) |
-| 2 | integer vs number | In Beispielen meist `integer`; Risiko bei degradierten Schemas — mit Schema-Plan testen |
-| 3 | Enums tokenlastig | [openapi-mcp-token-footprint.plan.md](openapi-mcp-token-footprint.plan.md) |
-| 4 | Immer gleiche Hülle | [openapi-mcp-token-footprint.plan.md](openapi-mcp-token-footprint.plan.md) |
-| 5 | Query style/explode (Sichtbarkeit) | unten **C** |
-| 6 | Response-/Fehlerinfos | [openapi-mcp-schema-and-responses.plan.md](openapi-mcp-schema-and-responses.plan.md) |
-| 7 | Defaults | größtenteils schon via Schema-`default`; Einzelfälle prüfen |
-| 8 | Server-Metadaten | Todo `server-metadata` |
+| #   | Thema                              | Wo                                                                                      |
+| --- | ---------------------------------- | --------------------------------------------------------------------------------------- |
+| 1   | Metadaten im JSON Schema           | [openapi-mcp-schema-and-responses.plan.md](openapi-mcp-schema-and-responses.plan.md)    |
+| 2   | integer vs number                  | In Beispielen meist `integer`; Risiko bei degradierten Schemas — mit Schema-Plan testen |
+| 3   | Enums tokenlastig                  | [openapi-mcp-token-footprint.plan.md](openapi-mcp-token-footprint.plan.md)              |
+| 4   | Immer gleiche Hülle                | [openapi-mcp-token-footprint.plan.md](openapi-mcp-token-footprint.plan.md)              |
+| 5   | Query style/explode (Sichtbarkeit) | unten **C**                                                                             |
+| 6   | Response-/Fehlerinfos              | [openapi-mcp-schema-and-responses.plan.md](openapi-mcp-schema-and-responses.plan.md)    |
+| 7   | Defaults                           | größtenteils schon via Schema-`default`; Einzelfälle prüfen                             |
+| 8   | Server-Metadaten                   | Todo `server-metadata`                                                                  |
 
 ---
 

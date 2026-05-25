@@ -1,22 +1,22 @@
 ---
 name: db2ai SELECT Spalten
-overview: "Erweiterung der db2ai-DSL und des Schema-Layers: `SELECT *` oder SQL-like Spaltenliste mit Completion aus `information_schema.columns`. Suche/WHERE bewusst ausgelassen (nächster Schritt)."
+overview: 'Erweiterung der db2ai-DSL und des Schema-Layers: `SELECT *` oder SQL-like Spaltenliste mit Completion aus `information_schema.columns`. Suche/WHERE bewusst ausgelassen (nächster Schritt).'
 todos:
-  - id: schema-columns
-    content: "loadSchema: information_schema.columns → columnsByTable + hasColumn"
-    status: pending
-  - id: grammar-select
-    content: Grammar SelectList (* | col1, col2); Parser-Tests
-    status: pending
-  - id: completion-columns
-    content: Completion für Spalten zwischen SELECT und FROM wenn Tabelle bekannt
-    status: pending
-  - id: validator-columns
-    content: "Validator: Spalten existieren, keine Duplikate"
-    status: pending
-  - id: codegen-select
-    content: "Generator: SELECT clause aus DSL; pagila-Beispiel + build/smoke"
-    status: pending
+    - id: schema-columns
+      content: 'loadSchema: information_schema.columns → columnsByTable + hasColumn'
+      status: pending
+    - id: grammar-select
+      content: Grammar SelectList (* | col1, col2); Parser-Tests
+      status: pending
+    - id: completion-columns
+      content: Completion für Spalten zwischen SELECT und FROM wenn Tabelle bekannt
+      status: pending
+    - id: validator-columns
+      content: 'Validator: Spalten existieren, keine Duplikate'
+      status: pending
+    - id: codegen-select
+      content: 'Generator: SELECT clause aus DSL; pagila-Beispiel + build/smoke'
+      status: pending
 isProject: false
 ---
 
@@ -49,16 +49,16 @@ sequenceDiagram
     end
 ```
 
-| Schicht | Datei | Rolle |
-|--------|--------|--------|
-| **Env auflösen** | [`packages/language/src/env.ts`](db2ai/packages/language/src/env.ts) | Liest `examples/.env` (und Elternordner) in `process.env`; [`workspaceDirsForDocumentUri`](db2ai/packages/language/src/env.ts) leitet aus `file://…/pagila.db2ai` den Ordner `examples/` ab. |
-| **URL aus DSL** | [`schema.ts`](db2ai/packages/language/src/schema.ts) `resolveDatabaseUrlFromEnvForDocument` | DSL: `database env "PAGILA_DATABASE_URL"` → nur **Name** der Variable; Wert kommt aus `.env`, nie aus der `.db2ai`-Datei. |
-| **Schema laden** | [`schema.ts`](db2ai/packages/language/src/schema.ts) `loadSchema(url)` | Einmal pro Connection-URL: `pg` → Query nur **`information_schema.tables`** (`public`, BASE TABLE) → `LoadedSchema = { tables: string[] }` → **In-Memory-Cache** (`Map`). |
-| **Nutzung** | [`db-2-ai-dsl-completion-provider.ts`](db2ai/packages/language/src/db-2-ai-dsl-completion-provider.ts) | Tabellen nach `FROM` (braucht URL + erreichbare DB). |
-| | [`db-2-ai-dsl-validator.ts`](db2ai/packages/language/src/db-2-ai-dsl-validator.ts) | Prüft, ob Tabelle existiert (nur wenn `{` im Block und Env gesetzt); DB-Fehler → **Warning**, kein harter Abbruch beim Generate. |
-| **LSP-Hooks** | [`packages/extension/src/language/main.ts`](db2ai/packages/extension/src/language/main.ts) | `.env` bei Open/Change der Datei nachladen. |
-| **CLI/MCP** | [`packages/cli/src/env.ts`](db2ai/packages/cli/src/env.ts) (standalone, **ohne** Language-Import) | Gleiche `.env`-Logik für `generate` / `mcp-serve`; MCP-Bundle darf Language nicht ziehen (esbuild). |
-| **Runtime** | [`packages/cli/src/generator.ts`](db2ai/packages/cli/src/generator.ts) | Generiert fest `SELECT * FROM "table"` — **noch kein Schema** zur Laufzeit, nur DSL-Metadaten. |
+| Schicht          | Datei                                                                                                  | Rolle                                                                                                                                                                                        |
+| ---------------- | ------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Env auflösen** | [`packages/language/src/env.ts`](db2ai/packages/language/src/env.ts)                                   | Liest `examples/.env` (und Elternordner) in `process.env`; [`workspaceDirsForDocumentUri`](db2ai/packages/language/src/env.ts) leitet aus `file://…/pagila.db2ai` den Ordner `examples/` ab. |
+| **URL aus DSL**  | [`schema.ts`](db2ai/packages/language/src/schema.ts) `resolveDatabaseUrlFromEnvForDocument`            | DSL: `database env "PAGILA_DATABASE_URL"` → nur **Name** der Variable; Wert kommt aus `.env`, nie aus der `.db2ai`-Datei.                                                                    |
+| **Schema laden** | [`schema.ts`](db2ai/packages/language/src/schema.ts) `loadSchema(url)`                                 | Einmal pro Connection-URL: `pg` → Query nur **`information_schema.tables`** (`public`, BASE TABLE) → `LoadedSchema = { tables: string[] }` → **In-Memory-Cache** (`Map`).                    |
+| **Nutzung**      | [`db-2-ai-dsl-completion-provider.ts`](db2ai/packages/language/src/db-2-ai-dsl-completion-provider.ts) | Tabellen nach `FROM` (braucht URL + erreichbare DB).                                                                                                                                         |
+|                  | [`db-2-ai-dsl-validator.ts`](db2ai/packages/language/src/db-2-ai-dsl-validator.ts)                     | Prüft, ob Tabelle existiert (nur wenn `{` im Block und Env gesetzt); DB-Fehler → **Warning**, kein harter Abbruch beim Generate.                                                             |
+| **LSP-Hooks**    | [`packages/extension/src/language/main.ts`](db2ai/packages/extension/src/language/main.ts)             | `.env` bei Open/Change der Datei nachladen.                                                                                                                                                  |
+| **CLI/MCP**      | [`packages/cli/src/env.ts`](db2ai/packages/cli/src/env.ts) (standalone, **ohne** Language-Import)      | Gleiche `.env`-Logik für `generate` / `mcp-serve`; MCP-Bundle darf Language nicht ziehen (esbuild).                                                                                          |
+| **Runtime**      | [`packages/cli/src/generator.ts`](db2ai/packages/cli/src/generator.ts)                                 | Generiert fest `SELECT * FROM "table"` — **noch kein Schema** zur Laufzeit, nur DSL-Metadaten.                                                                                               |
 
 **Wichtig:** Schema-Introspection läuft nur in **Language Server** (Validator/Completion), nicht im generierten MCP-Tool. MCP vertraut der validierten/generierten DSL.
 
@@ -131,8 +131,8 @@ ColumnRef:
 
 - **Tabellen** (bestehend): nach `FROM`, wenn noch kein Tabellenname
 - **Spalten** (neu): Cursor in `SelectList`-Region **und** `query.table.name` gesetzt
-  - Nach `SELECT ` / nach Komma in Liste: Vorschläge aus `columnsForTable(loaded, table)`
-  - Optional: Item `*` als erstes, wenn Liste leer / nur Teilersetzung von `*`
+    - Nach `SELECT ` / nach Komma in Liste: Vorschläge aus `columnsForTable(loaded, table)`
+    - Optional: Item `*` als erstes, wenn Liste leer / nur Teilersetzung von `*`
 - `loadSchema` liefert dann `columnsByTable`
 
 Erkennung SelectList-Region analog zu `findQueryForTableCompletion`: Offset zwischen `SELECT` und `FROM`, rechte Query gewinnt.
@@ -158,9 +158,7 @@ Erkennung SelectList-Region analog zu `findQueryForTableCompletion`: Offset zwis
 - SQL:
 
 ```typescript
-const selectClause = selectAll
-  ? '*'
-  : columns.map(quotePostgresIdent).join(', ');
+const selectClause = selectAll ? '*' : columns.map(quotePostgresIdent).join(', ');
 const sql = `SELECT ${selectClause} FROM ${quotedTable} LIMIT $1 OFFSET $2`;
 ```
 

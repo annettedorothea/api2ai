@@ -2,27 +2,27 @@
 name: MCP Tool-Schemas aus OpenAPI
 overview: Pro DSL-Operation tool-spezifische MCP-Input-Schemas (und konsistente Aufruf-Serialisierung) aus den bereits geladenen OpenAPI-Metadaten erzeugen statt generischer pathParams/query/body-Objekte.
 todos:
-  - id: wire-runtime-openapi
-    content: OpenAPI-OperationDetails pro DSL-Operation in Runtime/Generator-Pipeline verfügbar machen (RuntimeOperation + getOperations)
-    status: pending
-  - id: emit-json-schema-per-tool
-    content: Im Generator pro Tool ein JSON-Schema (path/query/header/body) aus OpenAPI ableiten und in generated module exportieren
-    status: pending
-  - id: mcp-register-per-tool-zod
-    content: mcp-server pro Tool mit abgeleitetem inputSchema registrieren (Zod aus Schema oder shared Mapper)
-    status: pending
-  - id: invoke-align-openapi
-    content: invokeTool/URL-Bau an required, Typen und MVP style/explode für path/query ausrichten; klare Fehler bei fehlenden Pflichtfeldern
-    status: pending
-  - id: enrich-descriptions
-    content: Tool-Beschreibungen mit summary/description/tags/operationId und Parameter-Kurzinfos optional anreichern
-    status: pending
-  - id: cli-tests-schemas
-    content: CLI-Tests mit Fixture-Spec – erwartetes inputSchema und Smoke-Aufruf mit typischen Open-Meteo/Spaceflight-Parametern
-    status: pending
-  - id: verify-build
-    content: npm run langium:generate && npm run build und relevante Tests grün
-    status: pending
+    - id: wire-runtime-openapi
+      content: OpenAPI-OperationDetails pro DSL-Operation in Runtime/Generator-Pipeline verfügbar machen (RuntimeOperation + getOperations)
+      status: pending
+    - id: emit-json-schema-per-tool
+      content: Im Generator pro Tool ein JSON-Schema (path/query/header/body) aus OpenAPI ableiten und in generated module exportieren
+      status: pending
+    - id: mcp-register-per-tool-zod
+      content: mcp-server pro Tool mit abgeleitetem inputSchema registrieren (Zod aus Schema oder shared Mapper)
+      status: pending
+    - id: invoke-align-openapi
+      content: invokeTool/URL-Bau an required, Typen und MVP style/explode für path/query ausrichten; klare Fehler bei fehlenden Pflichtfeldern
+      status: pending
+    - id: enrich-descriptions
+      content: Tool-Beschreibungen mit summary/description/tags/operationId und Parameter-Kurzinfos optional anreichern
+      status: pending
+    - id: cli-tests-schemas
+      content: CLI-Tests mit Fixture-Spec – erwartetes inputSchema und Smoke-Aufruf mit typischen Open-Meteo/Spaceflight-Parametern
+      status: pending
+    - id: verify-build
+      content: npm run langium:generate && npm run build und relevante Tests grün
+      status: pending
 isProject: false
 ---
 

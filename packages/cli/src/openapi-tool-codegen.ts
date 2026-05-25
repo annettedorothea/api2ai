@@ -1,4 +1,10 @@
-import type { Auth, OpenApiOperationDetails, OpenApiParameterDetails, OpenApiSchema, Operation } from 'api-2-ai-dsl-language';
+import type {
+    Auth,
+    OpenApiOperationDetails,
+    OpenApiParameterDetails,
+    OpenApiSchema,
+    Operation
+} from 'api-2-ai-dsl-language';
 
 /** JSON-schema-like dict emitted into generated modules / MCP. */
 export type JsonSchemaDict = Record<string, unknown>;
@@ -151,7 +157,9 @@ function topLevelShapeLine(schema: OpenApiSchema | undefined): string | undefine
     }
     if (t === 'object' || (!t && s.properties)) {
         const keys = Object.keys(s.properties ?? {});
-        return keys.length > 0 ? `properties (top-level): ${keys.sort().join(', ')}` : 'type: object (no inlined properties)';
+        return keys.length > 0
+            ? `properties (top-level): ${keys.sort().join(', ')}`
+            : 'type: object (no inlined properties)';
     }
     return t ? `type: ${t}` : undefined;
 }
@@ -341,7 +349,9 @@ function openApiPrimitiveToJsonSchema(schema: OpenApiSchema, pathStack: OpenApiS
         inner = {
             ...out,
             type: 'array',
-            items: schema.items ? openApiSchemaToJsonSchema(schema.items as OpenApiSchema, nextStack) : { type: 'string' }
+            items: schema.items
+                ? openApiSchemaToJsonSchema(schema.items as OpenApiSchema, nextStack)
+                : { type: 'string' }
         };
     } else if (typeKind === 'object') {
         const props = schema.properties ?? {};
@@ -499,7 +509,9 @@ export function effectiveQueryParamSerialization(p: OpenApiParameterDetails): { 
 }
 
 /** Per query parameter: how array values should join (form + explode false → comma, else repeated keys). */
-export function buildQueryParamSerializationLookup(details: OpenApiOperationDetails): Record<string, { style: string; explode: boolean }> {
+export function buildQueryParamSerializationLookup(
+    details: OpenApiOperationDetails
+): Record<string, { style: string; explode: boolean }> {
     const out: Record<string, { style: string; explode: boolean }> = {};
     for (const p of details.parameters) {
         if (p.in === 'query') {
@@ -530,10 +542,7 @@ function parametersByLocation(parameters: OpenApiParameterDetails[]): {
 }
 
 /** Outer MCP tool input: pathParams | query | headers | body buckets. */
-export function buildToolInputSchema(
-    details: OpenApiOperationDetails,
-    jwtBoundPathParam?: string
-): JsonSchemaDict {
+export function buildToolInputSchema(details: OpenApiOperationDetails, jwtBoundPathParam?: string): JsonSchemaDict {
     const { path, query, headers } = parametersByLocation(details.parameters);
 
     const pathEntries = path

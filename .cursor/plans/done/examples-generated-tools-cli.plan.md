@@ -39,11 +39,11 @@ isProject: false
 
 ## Rollenverteilung
 
-| Ort | Zweck |
-|-----|--------|
-| **IDE‑Plugin / Extension** | **Codegenerierung** („Speichern“ / „Generate“ / Commands): ruft Diesel/Language + **`generateOutput`** auf; schreibt **`generated/tools/*`** und **`generated/cli/mcp-serve.mjs`**. |
-| **Nutzerprojekt / `examples`** | Enthält **DSL + OpenAPI + `generated/`**; **`package.json`** entsteht beim **ersten Generate**, sobald keine existiert (**niemals** bestehende überschreiben); danach dort **`npm install`** für MCP‑Runtime‑Deps (**keine** Pflicht‑`generate`‑Scripts in dieser Datei). |
-| **Monorepo Root** (`package.json`) | **Optional** Maintainer‑Shortcuts (`generate:*`), CI — nicht Teil des „Nutzer öffnet nur examples“‑Produkts. |
+| Ort                                | Zweck                                                                                                                                                                                                                                                                     |
+| ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **IDE‑Plugin / Extension**         | **Codegenerierung** („Speichern“ / „Generate“ / Commands): ruft Diesel/Language + **`generateOutput`** auf; schreibt **`generated/tools/*`** und **`generated/cli/mcp-serve.mjs`**.                                                                                       |
+| **Nutzerprojekt / `examples`**     | Enthält **DSL + OpenAPI + `generated/`**; **`package.json`** entsteht beim **ersten Generate**, sobald keine existiert (**niemals** bestehende überschreiben); danach dort **`npm install`** für MCP‑Runtime‑Deps (**keine** Pflicht‑`generate`‑Scripts in dieser Datei). |
+| **Monorepo Root** (`package.json`) | **Optional** Maintainer‑Shortcuts (`generate:*`), CI — nicht Teil des „Nutzer öffnet nur examples“‑Produkts.                                                                                                                                                              |
 
 **Woher `package.json`?** Ohne Monorepo hat der Nutzer sie initial nicht. **Sinnvoll:** Beim **ersten** erfolgreichen Generate legt der Generator (oder das Plugin, das ihn aufruft) eine **Standard‑`package.json`** an — **nur wenn** im gewählten **Projektroot** noch **keine** liegt. **Spätere Generate‑Läufe** lassen eine vorhandene `package.json` **unverändert** (keine stillen Überraschungen, keine gelöschten Scripts). Nach dem ersten Gen: Hinweis im Plugin („`npm install` ausführen“). **Automatisches Nachziehen von Deps** in bestehende `package.json` bleibt **außerhalb MVP** (aktuell nur **Warn‑Hinweis** bei fehlenden Paketen).
 

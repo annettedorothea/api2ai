@@ -14,6 +14,8 @@
         "langium:generate": "npm run --workspace packages/language langium:generate",
         "langium:watch": "npm run --workspace packages/language langium:watch",
         "test": "npm run --workspace packages/language test && npm run --workspace packages/cli test",
+        "format": "prettier --write .",
+        "format:check": "prettier --check .",
         "test:smoke": "node ./packages/cli/bin/cli.js smoke-generated ./packages/extension/demos/generated/tools/open-meteo-tools.mjs openMeteoForecast",
         "test:smoke:tmdb": "node ./packages/cli/bin/cli.js smoke-generated ./packages/extension/demos/generated/tools/tmdb-tools.mjs searchTmdbMovies '{\"query\":{\"query\":\"Dune\"}}'",
         "test:smoke:mock-api": "node ./packages/cli/bin/cli.js smoke-generated ./packages/extension/demos/generated/tools/mock-api-tools.mjs listCustomerOrders",
@@ -22,6 +24,7 @@
     "devDependencies": {
         "@types/node": "~20.17.48",
         "esbuild": "^0.25.12",
+        "prettier": "^3.8.3",
         "shx": "~0.4.0",
         "typescript": "~5.8.3"
     },

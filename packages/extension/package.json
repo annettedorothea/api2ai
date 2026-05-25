@@ -17,29 +17,41 @@
         "Programming Languages"
     ],
     "contributes": {
-        "languages": [{
-            "id": "api-2-ai-dsl",
-            "aliases": ["api2ai-dsl", "api-2-ai-dsl"],
-            "extensions": [".api2ai"],
-            "configuration": "./language-configuration.json"
-        }],
-        "grammars": [{
-            "language": "api-2-ai-dsl",
-            "scopeName": "source.api-2-ai-dsl",
-            "path": "syntaxes/api-2-ai-dsl.tmLanguage.json"
-        }],
+        "languages": [
+            {
+                "id": "api-2-ai-dsl",
+                "aliases": [
+                    "api2ai-dsl",
+                    "api-2-ai-dsl"
+                ],
+                "extensions": [
+                    ".api2ai"
+                ],
+                "configuration": "./language-configuration.json"
+            }
+        ],
+        "grammars": [
+            {
+                "language": "api-2-ai-dsl",
+                "scopeName": "source.api-2-ai-dsl",
+                "path": "syntaxes/api-2-ai-dsl.tmLanguage.json"
+            }
+        ],
         "configurationDefaults": {
             "[api-2-ai-dsl]": {
                 "editor.wordBasedSuggestions": "off"
             }
         },
-        "commands": [{
-            "command": "api2ai.generateTools",
-            "title": "Generate tool code (.ts + .mjs + MCP host)"
-        }, {
-            "command": "api2ai.createDemoWorkspace",
-            "title": "api2ai: Create demo workspace (MCP examples)"
-        }]
+        "commands": [
+            {
+                "command": "api2ai.generateTools",
+                "title": "Generate tool code (.ts + .mjs + MCP host)"
+            },
+            {
+                "command": "api2ai.createDemoWorkspace",
+                "title": "api2ai: Create demo workspace (MCP examples)"
+            }
+        ]
     },
     "activationEvents": [
         "onLanguage:api-2-ai-dsl",
@@ -69,6 +81,6 @@
         "esbuild": "~0.25.5"
     },
     "vsce": {
-      "dependencies": false
+        "dependencies": false
     }
 }

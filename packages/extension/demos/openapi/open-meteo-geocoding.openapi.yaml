@@ -1,39 +1,39 @@
 openapi: 3.0.3
 info:
-  title: Open-Meteo Geocoding API Demo
-  version: 1.0.0
+    title: Open-Meteo Geocoding API Demo
+    version: 1.0.0
 paths:
-  /v1/search:
-    get:
-      operationId: searchLocationByName
-      summary: Resolve location names to coordinates
-      parameters:
-        - name: name
-          in: query
-          required: true
-          schema:
-            type: string
-          description: City/place search text, e.g. Bernstein.
-        - name: count
-          in: query
-          required: false
-          schema:
-            type: integer
-            minimum: 1
-            maximum: 100
-          description: Number of matches to return.
-        - name: language
-          in: query
-          required: false
-          schema:
-            type: string
-          description: Language code for result names, e.g. de or en.
-        - name: countryCode
-          in: query
-          required: false
-          schema:
-            type: string
-          description: ISO country code filter, e.g. AT.
-      responses:
-        "200":
-          description: OK
+    /v1/search:
+        get:
+            operationId: searchLocationByName
+            summary: Resolve location names to coordinates
+            parameters:
+                - name: name
+                  in: query
+                  required: true
+                  schema:
+                      type: string
+                  description: City/place search text, e.g. Bernstein.
+                - name: count
+                  in: query
+                  required: false
+                  schema:
+                      type: integer
+                      minimum: 1
+                      maximum: 100
+                  description: Number of matches to return.
+                - name: language
+                  in: query
+                  required: false
+                  schema:
+                      type: string
+                  description: Language code for result names, e.g. de or en.
+                - name: countryCode
+                  in: query
+                  required: false
+                  schema:
+                      type: string
+                  description: ISO country code filter, e.g. AT.
+            responses:
+                '200':
+                    description: OK

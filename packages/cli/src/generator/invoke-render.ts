@@ -126,10 +126,7 @@ function appendSerializedQueryParams(searchParams, toolName, query) {
 }`;
 }
 
-function renderInvokeToolFunction(
-    authKind: 'none' | 'credential',
-    usesInsecureTls: boolean
-): string {
+function renderInvokeToolFunction(authKind: 'none' | 'credential', usesInsecureTls: boolean): string {
     const resolveCall = renderAuthApplicationBlock(authKind);
     const auth401Block = renderAuth401Hint(authKind);
     const insecureTlsFetch = renderInsecureTlsFetch(usesInsecureTls);

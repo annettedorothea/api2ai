@@ -7,11 +7,7 @@ import * as url from 'node:url';
 import { buildInputZodBlock } from '@core2ai/codegen';
 import { renderMcpHostAdapterBlock } from './generator/host-adapter-render.js';
 import { createSharedInvokeBlock } from './generator/invoke-render.js';
-import {
-    renderJsModule,
-    renderMcpServerIdentityExports,
-    renderTsModule
-} from './generator/module-render.js';
+import { renderJsModule, renderMcpServerIdentityExports, renderTsModule } from './generator/module-render.js';
 import {
     copyBundledMcpServeInto,
     ensureParentDir,

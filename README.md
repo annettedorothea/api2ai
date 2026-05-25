@@ -43,41 +43,41 @@ Details for MCP demos: **[`./packages/extension/demos/README.md`](./packages/ext
 
 ## Project layout
 
-| Path | Role |
-|------|------|
-| `packages/language` | Langium grammar, validation, OpenAPI linking |
-| `packages/cli` | `generate`, smoke tests, MCP bundle |
-| `packages/extension` | VS Code / Cursor extension (VSIX); includes **`demos/`** |
+| Path                        | Role                                                                |
+| --------------------------- | ------------------------------------------------------------------- |
+| `packages/language`         | Langium grammar, validation, OpenAPI linking                        |
+| `packages/cli`              | `generate`, smoke tests, MCP bundle                                 |
+| `packages/extension`        | VS Code / Cursor extension (VSIX); includes **`demos/`**            |
 | `packages/extension/demos/` | Sample `.api2ai`, OpenAPI, `.cursor/mcp.json`, `generate:*` scripts |
 
 Package notes: [`./packages/language/README.md`](./packages/language/README.md) · [`./packages/cli/README.md`](./packages/cli/README.md)
 
 ## npm scripts (repository root)
 
-| Script | Purpose |
-|--------|---------|
-| `langium:generate` | Regenerate Langium AST/grammar from `packages/language` |
-| `langium:watch` | Watch grammar and regenerate on change |
-| `build` | TypeScript build (workspaces) + `bundle:mcp-runtime` |
-| `build:clean` | `clean` then `build` |
-| `watch` | TypeScript watch on the monorepo build graph |
-| `clean` | Clean all workspace build outputs |
-| `bundle:mcp-runtime` | Bundle standalone `mcp-serve` into `packages/cli/resources/` |
-| `test` | Language package unit tests |
-| `test:smoke` | Smoke-call one generated Open-Meteo tool |
-| `test:smoke:tmdb` | Smoke TMDB search (needs env/token) |
-| `test:smoke:mock-api` | Smoke mock-api `listCustomerOrders` |
-| `test:mcp` | Start MCP server manually (Open-Meteo) |
+| Script                | Purpose                                                      |
+| --------------------- | ------------------------------------------------------------ |
+| `langium:generate`    | Regenerate Langium AST/grammar from `packages/language`      |
+| `langium:watch`       | Watch grammar and regenerate on change                       |
+| `build`               | TypeScript build (workspaces) + `bundle:mcp-runtime`         |
+| `build:clean`         | `clean` then `build`                                         |
+| `watch`               | TypeScript watch on the monorepo build graph                 |
+| `clean`               | Clean all workspace build outputs                            |
+| `bundle:mcp-runtime`  | Bundle standalone `mcp-serve` into `packages/cli/resources/` |
+| `test`                | Language package unit tests                                  |
+| `test:smoke`          | Smoke-call one generated Open-Meteo tool                     |
+| `test:smoke:tmdb`     | Smoke TMDB search (needs env/token)                          |
+| `test:smoke:mock-api` | Smoke mock-api `listCustomerOrders`                          |
+| `test:mcp`            | Start MCP server manually (Open-Meteo)                       |
 
 Example tool regeneration: `npm run generate:*` or `npm run generate:all` inside **[`./packages/extension/demos/`](./packages/extension/demos/)**.
 
 ## Launch configurations ([`./.vscode/launch.json`](./.vscode/launch.json))
 
-| Configuration | What it does |
-|---------------|----------------|
-| **Run api2ai Extension** | Extension Development Host with workspace `packages/extension/demos/`. Pre-launch task **Build api-2-ai-dsl**. |
-| **api2ai: completion debug log** | Same host; sets `API2AI_DSL_DEBUG_COMPLETION=1` for completion tracing. |
-| **Attach: api2ai Language Server (6009)** | Attach debugger to the language server (port 6009). |
+| Configuration                             | What it does                                                                                                   |
+| ----------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| **Run api2ai Extension**                  | Extension Development Host with workspace `packages/extension/demos/`. Pre-launch task **Build api-2-ai-dsl**. |
+| **api2ai: completion debug log**          | Same host; sets `API2AI_DSL_DEBUG_COMPLETION=1` for completion tracing.                                        |
+| **Attach: api2ai Language Server (6009)** | Attach debugger to the language server (port 6009).                                                            |
 
 Pre-launch task **Build api-2-ai-dsl** in [`./.vscode/tasks.json`](./.vscode/tasks.json) (`langium:generate` + `build`).
 

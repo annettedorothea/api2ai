@@ -2,27 +2,27 @@
 name: OpenAPI in MCP-Tools
 overview: Beim Codegen OpenAPI laden, pro Operation `OpenApiOperationDetails` nutzen, Tool-Metadaten (title/description + inputSchema) erzeugen; Operationsebene OpenAPI-Werte mit optionalen DSL-Overrides; Response-Hinweis nur bei includeResponses mit fester 200/201-Priorität und flachem Schema-Summary. MCP `registerTool` mit Zod → Wire JSON Schema.
 todos:
-  - id: dsl-operation-overrides
-    content: "Grammar + Generator: optionale title/summary/description — Feld fehlt → OpenAPI; Feld gesetzt (inkl. leerer String) → DSL-Wert, leerer String unterdrückt OpenAPI; v1 nicht für einzelne Parameter/Response-Bodies"
-    status: completed
-  - id: dsl-include-responses
-    content: "Grammar + AST: optionales Schluesselwort includeResponses (Anwesenheit=true); kein : true|false"
-    status: completed
-  - id: async-generate-openapi
-    content: "generateOutput: loadOpenApi + Lookup pro Operation; async API + main.ts await"
-    status: completed
-  - id: schema-mapper
-    content: OpenApiSchema → JSON Schema Subset + Gruppierung path/query/header/body; MCP-Text aus Merge OpenAPI + DSL-Overrides
-    status: completed
-  - id: emit-inputSchemaByTool
-    content: "generator.ts: pro Tool title + description + serialisiertes inputSchema; Responses nur bei includeResponses"
-    status: completed
-  - id: mcp-zod-bridge
-    content: "mcp-server.ts: title + inputSchemaByTool → registerTool config; JSON Schema → Zod (Mapper)"
-    status: completed
-  - id: verify-build-tests
-    content: langium:generate, build, Tests/Fixtures inkl. DSL-Beispiel mit/ohne Responses
-    status: completed
+    - id: dsl-operation-overrides
+      content: 'Grammar + Generator: optionale title/summary/description — Feld fehlt → OpenAPI; Feld gesetzt (inkl. leerer String) → DSL-Wert, leerer String unterdrückt OpenAPI; v1 nicht für einzelne Parameter/Response-Bodies'
+      status: completed
+    - id: dsl-include-responses
+      content: 'Grammar + AST: optionales Schluesselwort includeResponses (Anwesenheit=true); kein : true|false'
+      status: completed
+    - id: async-generate-openapi
+      content: 'generateOutput: loadOpenApi + Lookup pro Operation; async API + main.ts await'
+      status: completed
+    - id: schema-mapper
+      content: OpenApiSchema → JSON Schema Subset + Gruppierung path/query/header/body; MCP-Text aus Merge OpenAPI + DSL-Overrides
+      status: completed
+    - id: emit-inputSchemaByTool
+      content: 'generator.ts: pro Tool title + description + serialisiertes inputSchema; Responses nur bei includeResponses'
+      status: completed
+    - id: mcp-zod-bridge
+      content: 'mcp-server.ts: title + inputSchemaByTool → registerTool config; JSON Schema → Zod (Mapper)'
+      status: completed
+    - id: verify-build-tests
+      content: langium:generate, build, Tests/Fixtures inkl. DSL-Beispiel mit/ohne Responses
+      status: completed
 isProject: false
 ---
 
@@ -32,11 +32,11 @@ isProject: false
 
 Ja — das ist in der **Model Context Protocol**-Spezifikation festgelegt. Clients rufen **`tools/list`** auf; die Antwort enthält eine Liste von Tool-Objekten. Pro Tool sind u.a. relevant ([Draft-Doku auf GitHub](https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/docs/specification/draft/server/tools.mdx)):
 
-| Feld | Rolle |
-|------|--------|
-| `name` | Eindeutiger Tool-Name (String) |
-| `title` | Optional, kurzer Anzeigename |
-| `description` | Optional, Freitext für das Modell |
+| Feld              | Rolle                                                                                                    |
+| ----------------- | -------------------------------------------------------------------------------------------------------- |
+| `name`            | Eindeutiger Tool-Name (String)                                                                           |
+| `title`           | Optional, kurzer Anzeigename                                                                             |
+| `description`     | Optional, Freitext für das Modell                                                                        |
 | **`inputSchema`** | **JSON Schema** (`type: "object"`, `properties`, `required`) — beschreibt die Argumente von `tools/call` |
 
 Optional (je nach Spec-Version): `outputSchema`, `annotations`, `execution`, `_meta`, `icons`.
@@ -70,7 +70,7 @@ flowchart LR
 
 - **DSL `includeResponses`:** Optionales **Schlüsselwort** allein auf einer Zeile (`includeResponses`); **fehlt** → kein `Response:`-Abschnitt. Kein `: true` / `: false` mehr.
 - **Zod vs. JSON Schema (siehe unten „Schema-Pipeline“):** Canonical ist **JSON Schema im generierten Modul**; Zod nur als **dünne Laufzeit-Brücke** für das MCP SDK.
-- **Welche Success-Response aus der OpenAPI-Liste (wenn `includeResponses` gesetzt):** Feste Priorität: **`200`** falls in `responses` vorhanden, **sonst `201`**, **sonst erste übrige `2xx`-Response**, die **`application/json`** (oder ersten verfügbaren Media-Type) mit Schema hat, **sonst** erste beliebige `2xx`. Keine 4xx/5xx in v1. *Hinweis:* `204` hat oft keinen Body — dann reicht Status + `description` aus der Spec; kein Property-Summary.
+- **Welche Success-Response aus der OpenAPI-Liste (wenn `includeResponses` gesetzt):** Feste Priorität: **`200`** falls in `responses` vorhanden, **sonst `201`**, **sonst erste übrige `2xx`-Response**, die **`application/json`** (oder ersten verfügbaren Media-Type) mit Schema hat, **sonst** erste beliebige `2xx`. Keine 4xx/5xx in v1. _Hinweis:_ `204` hat oft keinen Body — dann reicht Status + `description` aus der Spec; kein Property-Summary.
 - **Wie knapp das Response-Format aus dem Schema:** Typ **`object`** (oder primitiv/array wenn kein Object) **plus eine Zeile** mit **Property-Namen nur auf der ersten Ebene** (z. B. `properties: id, name, …` oder komma-separiert). **Keine** rekursive Auflösung verschachtelter Objekte in v1.
 - **MCP `title`:** Kette (erster Treffer): **DSL-`title`** → **DSL-`summary`** → OpenAPI **`summary`** → **`operationId`**. Für Clients/UI kurzes Label; fürs Modell sekundär zu **`description`** / **`inputSchema`**. **Pflicht in v1:** `title` im **generierten Modul** pro Tool exportieren und in [packages/cli/src/mcp-server.ts](../../../packages/cli/src/mcp-server.ts) an **`registerTool(..., { title, description, inputSchema })`** durchreichen.
 - **OpenAPI `description`:** In **`API:`**-Abschnitt der MCP-**`description`** (siehe Reihenfolge unten). **OpenAPI-Beispiele (`example` / `examples`):** In **OpenAPI 3** gibt es am **Operation-Objekt kein** zentrales Top-Level-**`example`** wie früher in Swagger 2 — Beispiele hängen typisch an **requestBody**, **parameters** oder **responses**. **Response-**`example` / **Response-**`examples` **nicht** in die Tool-Definition übernehmen (weder in `description` noch anderswo). **Request-Body-**Beispiel-JSON in v1 **ebenfalls nicht** in den MCP-Text: Ziel ist ein **Beispiel-Prompt** (siehe **`Example:`** unten), kein roher Payload aus der Spec.
@@ -83,10 +83,10 @@ flowchart LR
 
 1. Beim **`generate`**: dieselbe OpenAPI-Datei wie die Validator-Pipeline laden (`loadOpenApi(model.openapi, baseDir)` mit `baseDir = path.dirname(source)`).
 2. Pro DSL-Operation: Lookup via `makeOperationLookupKey(method, path)` und daraus:
-   - **MCP `title`:** Kette **DSL-`title` → DSL-`summary` → OpenAPI-`summary` → `operationId`** (s.o.).
-   - **MCP `description`:** Zusammensetzen nach **fester Abschnittsreihenfolge** (siehe unten); Overrides für `description`/`summary`/`title` nach **fehlt vs. gesetzt (inkl. `""`)**-Regel.
-   - **Response-Hinweis in der Tool-Beschreibung**: nur wenn das DSL-Schlagwort **`includeResponses`** gesetzt ist — Auswahl **200 → 201 → …** und **flaches** Schema-Summary s.o.
-   - **`inputJsonSchema`**: äußeres Objekt wie heute (`pathParams`, `query`, `headers`, `body`), **pro Bucket** echte Property-Namen mit **`description`** und Typ aus `parameter.schema` bzw. Body-Schema — **`required`**-Arrays passend zu OpenAPI (`path` immer required im path-Bucket; query/header nach `required`).
+    - **MCP `title`:** Kette **DSL-`title` → DSL-`summary` → OpenAPI-`summary` → `operationId`** (s.o.).
+    - **MCP `description`:** Zusammensetzen nach **fester Abschnittsreihenfolge** (siehe unten); Overrides für `description`/`summary`/`title` nach **fehlt vs. gesetzt (inkl. `""`)**-Regel.
+    - **Response-Hinweis in der Tool-Beschreibung**: nur wenn das DSL-Schlagwort **`includeResponses`** gesetzt ist — Auswahl **200 → 201 → …** und **flaches** Schema-Summary s.o.
+    - **`inputJsonSchema`**: äußeres Objekt wie heute (`pathParams`, `query`, `headers`, `body`), **pro Bucket** echte Property-Namen mit **`description`** und Typ aus `parameter.schema` bzw. Body-Schema — **`required`**-Arrays passend zu OpenAPI (`path` immer required im path-Bucket; query/header nach `required`).
 
 ### Aufbau MCP `description` (feste Reihenfolge)
 

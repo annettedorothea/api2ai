@@ -7,11 +7,7 @@ export function jwtSecret() {
 }
 
 function base64urlEncode(buf) {
-    return Buffer.from(buf)
-        .toString('base64')
-        .replace(/\+/g, '-')
-        .replace(/\//g, '_')
-        .replace(/=+$/u, '');
+    return Buffer.from(buf).toString('base64').replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/u, '');
 }
 
 function base64urlDecodeJson(segment) {

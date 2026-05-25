@@ -168,7 +168,9 @@ export function pathsForHttpMethod(operations: OperationLookup, method: string):
     return [...paths].sort((a, b) => a.localeCompare(b));
 }
 
-function mapExamples(examples: Record<string, OpenApiExample | unknown> | undefined): Record<string, unknown> | undefined {
+function mapExamples(
+    examples: Record<string, OpenApiExample | unknown> | undefined
+): Record<string, unknown> | undefined {
     if (!examples) {
         return undefined;
     }
@@ -183,7 +185,10 @@ function mapExamples(examples: Record<string, OpenApiExample | unknown> | undefi
     return Object.keys(mapped).length > 0 ? mapped : undefined;
 }
 
-function mergeParameters(pathParams: OpenApiParameterObject[] | undefined, operationParams: OpenApiParameterObject[] | undefined): OpenApiParameterObject[] {
+function mergeParameters(
+    pathParams: OpenApiParameterObject[] | undefined,
+    operationParams: OpenApiParameterObject[] | undefined
+): OpenApiParameterObject[] {
     const merged = new Map<string, OpenApiParameterObject>();
     for (const candidate of pathParams ?? []) {
         if (!candidate?.name || !candidate.in) {
@@ -208,9 +213,7 @@ function extractRequestBodyDetails(operation: OpenApiOperation): OpenApiRequestB
     const content = requestBody.content ?? {};
     const jsonEntry = content['application/json'];
     const firstEntry = Object.entries(content)[0];
-    const [contentType, media] = jsonEntry
-        ? ['application/json', jsonEntry]
-        : firstEntry ?? [undefined, undefined];
+    const [contentType, media] = jsonEntry ? ['application/json', jsonEntry] : (firstEntry ?? [undefined, undefined]);
     if (!media) {
         return {
             description: requestBody.description,
@@ -227,13 +230,18 @@ function extractRequestBodyDetails(operation: OpenApiOperation): OpenApiRequestB
     };
 }
 
-function extractMediaForResponse(response: OpenApiResponse | undefined): { contentType?: string; schema?: OpenApiSchema } | undefined {
+function extractMediaForResponse(
+    response: OpenApiResponse | undefined
+): { contentType?: string; schema?: OpenApiSchema } | undefined {
     const content = response?.content ?? {};
     if (Object.keys(content).length === 0) {
         return undefined;
     }
     const jsonEntry = content['application/json'];
-    const firstPair = jsonEntry !== undefined ? (['application/json', jsonEntry] as const) : (Object.entries(content)[0] as [string, OpenApiMediaType] | undefined);
+    const firstPair =
+        jsonEntry !== undefined
+            ? (['application/json', jsonEntry] as const)
+            : (Object.entries(content)[0] as [string, OpenApiMediaType] | undefined);
     if (!firstPair) {
         return undefined;
     }
@@ -313,7 +321,10 @@ function buildOperationLookup(spec: OpenApiDocument): OperationLookup {
                 continue;
             }
             if (value && typeof value === 'object') {
-                operations.set(toLookupKey(normalizedMethod, routePath), toOperationDetails(pathItem, value as OpenApiOperation));
+                operations.set(
+                    toLookupKey(normalizedMethod, routePath),
+                    toOperationDetails(pathItem, value as OpenApiOperation)
+                );
             }
         }
     }
@@ -327,7 +338,11 @@ export function getEffectiveStyle(location: OpenApiParameterLocation, style: str
     return location === 'query' || location === 'cookie' ? 'form' : 'simple';
 }
 
-export function getEffectiveExplode(location: OpenApiParameterLocation, style: string | undefined, explode: boolean | undefined): boolean {
+export function getEffectiveExplode(
+    location: OpenApiParameterLocation,
+    style: string | undefined,
+    explode: boolean | undefined
+): boolean {
     if (explode !== undefined) {
         return explode;
     }
@@ -387,10 +402,14 @@ export function getUnsupportedSerializationMessages(operation: OpenApiOperationD
                 messages.push(`${label} is ${kind} typed (${parameter.in}) and not supported in MVP serialization.`);
             }
             if (style !== 'simple' && style !== 'form') {
-                messages.push(`${label} uses style "${style}" in ${parameter.in}, which is not supported in MVP serialization.`);
+                messages.push(
+                    `${label} uses style "${style}" in ${parameter.in}, which is not supported in MVP serialization.`
+                );
             }
             if (explode && parameter.in === 'header') {
-                messages.push(`${label} uses explode=true for header parameter; MVP only supports simple scalar header serialization.`);
+                messages.push(
+                    `${label} uses explode=true for header parameter; MVP only supports simple scalar header serialization.`
+                );
             }
         }
     }

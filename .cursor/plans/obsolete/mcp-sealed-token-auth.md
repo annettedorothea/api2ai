@@ -1,25 +1,25 @@
 ---
 name: MCP sealed token auth
-overview: "DSL: Entweder auth apiKey oder auth sealedSecret (Alternativen). Laufzeit: verschiegelter Blob sealedCredential durch Tool-Args → MCP entschlüsselt mit Private Key aus privateKeyEnv → gleicher Upstream wie apiKey."
+overview: 'DSL: Entweder auth apiKey oder auth sealedSecret (Alternativen). Laufzeit: verschiegelter Blob sealedCredential durch Tool-Args → MCP entschlüsselt mit Private Key aus privateKeyEnv → gleicher Upstream wie apiKey.'
 todos:
-  - id: dsl-auth-alternatives
-    content: Langium Grammar Auth auf apiKey | sealedSecret (sealedSecret-Block parallel zu apiKey)
-    status: pending
-  - id: dsl-validator-exclusive
-    content: Validator/Generation nur ein Auth-Statement (Grammatik erzwingt schon eines von beiden)
-    status: pending
-  - id: crypto-mvp
-    content: "Ein gepflegtes Verfahren (z.B. HPKE oder Hybrid AEAD); Klartext nach decrypt = Bearer-Substring oder ganzer Header-Wert (festlegen)"
-    status: pending
-  - id: generator-sealed-invoke
-    content: Bei Model.auth sealedSecret authConfig zweiten Typ emittieren; invokeTool wenn sealedCredential dann decrypt sonst bestehendes apiKey/Env
-    status: pending
-  - id: mcp-zod-sealedCredential
-    content: MCP inputSchema/Zod wenn sealedSecret-Modell zusätzlich optionales Feld sealedCredential
-    status: pending
-  - id: smoke-test
-    content: "Smoke: Seal → sealedCredential → httpbin/bearer oder TMDB"
-    status: pending
+    - id: dsl-auth-alternatives
+      content: Langium Grammar Auth auf apiKey | sealedSecret (sealedSecret-Block parallel zu apiKey)
+      status: pending
+    - id: dsl-validator-exclusive
+      content: Validator/Generation nur ein Auth-Statement (Grammatik erzwingt schon eines von beiden)
+      status: pending
+    - id: crypto-mvp
+      content: 'Ein gepflegtes Verfahren (z.B. HPKE oder Hybrid AEAD); Klartext nach decrypt = Bearer-Substring oder ganzer Header-Wert (festlegen)'
+      status: pending
+    - id: generator-sealed-invoke
+      content: Bei Model.auth sealedSecret authConfig zweiten Typ emittieren; invokeTool wenn sealedCredential dann decrypt sonst bestehendes apiKey/Env
+      status: pending
+    - id: mcp-zod-sealedCredential
+      content: MCP inputSchema/Zod wenn sealedSecret-Modell zusätzlich optionales Feld sealedCredential
+      status: pending
+    - id: smoke-test
+      content: 'Smoke: Seal → sealedCredential → httpbin/bearer oder TMDB'
+      status: pending
 isProject: false
 ---
 
@@ -29,9 +29,9 @@ isProject: false
 
 Das Modell hat optional **genau einen** Auth-Block — wahlweise klassisch oder versiegelt (`sealedCredential` später **nur** bei `sealedSecret`):
 
-| Variante | Bedeutung |
-|----------|-----------|
-| `auth apiKey { … }` | Wie heute: Klartext aus `process.env[env]`; kein Feld `sealedCredential` auf den Tools relevant. Siehe [api-2-ai-dsl.langium](../packages/language/src/api-2-ai-dsl.langium). |
+| Variante                  | Bedeutung                                                                                                                                                                                              |
+| ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `auth apiKey { … }`       | Wie heute: Klartext aus `process.env[env]`; kein Feld `sealedCredential` auf den Tools relevant. Siehe [api-2-ai-dsl.langium](../packages/language/src/api-2-ai-dsl.langium).                          |
 | `auth sealedSecret { … }` | **Neu**: Kein API-Secret in Env für den Bearer selbst; der MCP-Prozess hält nur den **Private Key**. Der wirksame Bearer/API-Teil kommt verschlüsselt pro Aufruf als Tool-Argument `sealedCredential`. |
 
 Syntax-Vorschlag (analog zu `apiKey`: `in`, `name`, optional `prefix`):

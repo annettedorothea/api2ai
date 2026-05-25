@@ -2,21 +2,21 @@
 name: JWT mock-api demo
 overview: Lokale Mini-API unter examples/mock-api (erweiterbar) mit JWT-Login (curl/Script) und GET /orders/{customerId}, plus DSL auth.fromJwt und jwt-orders.api2ai — customerId aus Token, nicht im MCP-Schema.
 todos:
-  - id: mock-server
-    content: "examples/mock-api: server.mjs, data/orders.json, get-token.mjs, README, npm script demo:mock-api"
-    status: completed
-  - id: openapi-spec
-    content: examples/openapi/mock-api.openapi.yaml (login + orders, bearerAuth)
-    status: completed
-  - id: dsl-fromjwt
-    content: Langium auth.fromJwt, Validator, Tests, langium:generate
-    status: completed
-  - id: generator-fromjwt
-    content: "generator.ts + openapi-tool-codegen: JWT decode, pathParams bind, omit param from MCP schema"
-    status: completed
-  - id: example-wire
-    content: jwt-orders.api2ai, generate script, mcp.json, examples/README, optional smoke
-    status: completed
+    - id: mock-server
+      content: 'examples/mock-api: server.mjs, data/orders.json, get-token.mjs, README, npm script demo:mock-api'
+      status: completed
+    - id: openapi-spec
+      content: examples/openapi/mock-api.openapi.yaml (login + orders, bearerAuth)
+      status: completed
+    - id: dsl-fromjwt
+      content: Langium auth.fromJwt, Validator, Tests, langium:generate
+      status: completed
+    - id: generator-fromjwt
+      content: 'generator.ts + openapi-tool-codegen: JWT decode, pathParams bind, omit param from MCP schema'
+      status: completed
+    - id: example-wire
+      content: jwt-orders.api2ai, generate script, mcp.json, examples/README, optional smoke
+      status: completed
 isProject: false
 ---
 
@@ -50,14 +50,14 @@ sequenceDiagram
 
 ## Namenskonvention (erweiterbar)
 
-| Artefakt | Name | Rolle |
-|----------|------|--------|
-| Laufzeit / Ordner | **`examples/mock-api/`** | Eine lokale HTTP-API für alle künftigen Demo-Szenarien (Orders jetzt, später ggf. weitere Routes) |
-| OpenAPI | **`mock-api.openapi.yaml`** | Gemeinsame Spec; wächst mit neuen Endpoints |
-| DSL pro Szenario | **`jwt-orders.api2ai`** (v1) | Kuratierte Tools; weitere Dateien später z. B. `jwt-xyz.api2ai` gegen dieselbe `mock-api` |
-| Env-Präfix | **`MOCK_API_*`** | `MOCK_API_BASE_URL`, `MOCK_API_ACCESS_TOKEN`, `MOCK_API_JWT_SECRET` |
-| MCP-Server | **`api2ai-mock-api-jwt-orders`** | Ein Eintrag pro generiertem Tool-Modul (wie `api2ai-tmdb`) |
-| npm | `demo:mock-api`, `generate:jwt-orders-tools` | |
+| Artefakt          | Name                                         | Rolle                                                                                             |
+| ----------------- | -------------------------------------------- | ------------------------------------------------------------------------------------------------- |
+| Laufzeit / Ordner | **`examples/mock-api/`**                     | Eine lokale HTTP-API für alle künftigen Demo-Szenarien (Orders jetzt, später ggf. weitere Routes) |
+| OpenAPI           | **`mock-api.openapi.yaml`**                  | Gemeinsame Spec; wächst mit neuen Endpoints                                                       |
+| DSL pro Szenario  | **`jwt-orders.api2ai`** (v1)                 | Kuratierte Tools; weitere Dateien später z. B. `jwt-xyz.api2ai` gegen dieselbe `mock-api`         |
+| Env-Präfix        | **`MOCK_API_*`**                             | `MOCK_API_BASE_URL`, `MOCK_API_ACCESS_TOKEN`, `MOCK_API_JWT_SECRET`                               |
+| MCP-Server        | **`api2ai-mock-api-jwt-orders`**             | Ein Eintrag pro generiertem Tool-Modul (wie `api2ai-tmdb`)                                        |
+| npm               | `demo:mock-api`, `generate:jwt-orders-tools` |                                                                                                   |
 
 `mock-api` ist bewusst **allgemeiner** als `mock-orders` — der Orders-Fall ist nur das erste Szenario.
 
@@ -65,9 +65,9 @@ sequenceDiagram
 
 ## 1. Mini-API ([`examples/mock-api/`](examples/mock-api/))
 
-| Endpoint | Verhalten |
-|----------|-----------|
-| `GET /login/{customerId}` | Mintet HS256-JWT, Payload `{ customerId, iat, exp }`, Antwort `{ "access_token": "..." }` |
+| Endpoint                   | Verhalten                                                                                                             |
+| -------------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| `GET /login/{customerId}`  | Mintet HS256-JWT, Payload `{ customerId, iat, exp }`, Antwort `{ "access_token": "..." }`                             |
 | `GET /orders/{customerId}` | Erfordert `Authorization: Bearer <jwt>`; prüft Signatur + Claim `customerId` === Pfad; liefert statische Bestellliste |
 
 **Implementierung:** [`server.mjs`](examples/mock-api/server.mjs) (Node `http`, keine neuen Dependencies), Port **3847**.
@@ -176,10 +176,10 @@ GET "/orders/{customerId}" {
 
 ## Dateien (Überblick)
 
-| Neu/Geändert | Inhalt |
-|--------------|--------|
-| `examples/mock-api/*` | Server, Daten, Script, README |
-| `examples/openapi/mock-api.openapi.yaml` | Spec (gemeinsam für künftige Demos) |
-| `examples/jwt-orders.api2ai` | Erstes Szenario + `fromJwt` |
-| `packages/language/...`, `packages/cli/...` | fromJwt |
-| `examples/.cursor/mcp.json`, READMEs, scripts | Draht |
+| Neu/Geändert                                  | Inhalt                              |
+| --------------------------------------------- | ----------------------------------- |
+| `examples/mock-api/*`                         | Server, Daten, Script, README       |
+| `examples/openapi/mock-api.openapi.yaml`      | Spec (gemeinsam für künftige Demos) |
+| `examples/jwt-orders.api2ai`                  | Erstes Szenario + `fromJwt`         |
+| `packages/language/...`, `packages/cli/...`   | fromJwt                             |
+| `examples/.cursor/mcp.json`, READMEs, scripts | Draht                               |

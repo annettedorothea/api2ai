@@ -18,8 +18,8 @@ beforeAll(async () => {
 
 function openApiPathLabels(items: Array<{ detail?: unknown; label: unknown }>): string[] {
     return items
-        .filter(i => typeof i.detail === 'string' && i.detail.endsWith('OpenAPI'))
-        .map(i => String(i.label));
+        .filter((i) => typeof i.detail === 'string' && i.detail.endsWith('OpenAPI'))
+        .map((i) => String(i.label));
 }
 
 async function completionAt(content: string, offset: number) {
@@ -49,7 +49,7 @@ describe('Completion for operation path', () => {
 
         const labels = openApiPathLabels(list?.items ?? []);
         expect(labels.length).toBeGreaterThan(0);
-        expect(labels.some(l => l.includes('/pet/{petId}'))).toBe(true);
+        expect(labels.some((l) => l.includes('/pet/{petId}'))).toBe(true);
     });
 
     test('filters POST routes by typed prefix', async () => {
@@ -63,7 +63,7 @@ describe('Completion for operation path', () => {
 
         const labels = openApiPathLabels(list?.items ?? []);
         expect(labels.length).toBeGreaterThan(0);
-        expect(labels.every(l => l.includes('/pet'))).toBe(true);
+        expect(labels.every((l) => l.includes('/pet'))).toBe(true);
     });
 
     test('inserts quoted paths after GET when path is not parsed yet (Ctrl+Space after verb)', async () => {
@@ -75,8 +75,8 @@ describe('Completion for operation path', () => {
 
         const labels = openApiPathLabels(list?.items ?? []);
         expect(labels.length).toBeGreaterThan(0);
-        expect(labels.some(l => l.includes('/pet/{petId}'))).toBe(true);
-        const first = list?.items?.find(i => typeof i.label === 'string' && String(i.label).includes('/pet'));
+        expect(labels.some((l) => l.includes('/pet/{petId}'))).toBe(true);
+        const first = list?.items?.find((i) => typeof i.label === 'string' && String(i.label).includes('/pet'));
         expect(first && 'textEdit' in first && first.textEdit && 'newText' in first.textEdit).toBe(true);
         if (first && 'textEdit' in first && first.textEdit && 'newText' in first.textEdit) {
             expect(String(first.textEdit.newText).startsWith('"')).toBe(true);
@@ -93,6 +93,6 @@ describe('Completion for operation path', () => {
 
         const labels = openApiPathLabels(list?.items ?? []);
         expect(labels.length).toBeGreaterThan(0);
-        expect(labels.some(l => l.includes('/pet/{petId}'))).toBe(true);
+        expect(labels.some((l) => l.includes('/pet/{petId}'))).toBe(true);
     });
 });

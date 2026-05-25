@@ -1,19 +1,19 @@
 ---
 name: api2ai cli.js Review
-overview: "`packages/cli/bin/cli.js` ist der stabile, ausführbare Einstiegspunkt für die Node-CLI — ein bewusst dünner Stub, der die kompilierte Logik in `out/main.js` aufruft. Er ist für npm `bin`, Monorepo-Skripte und die VS-Code-Extension im Dev-Modus nötig; die eigentliche Implementierung liegt in TypeScript."
+overview: '`packages/cli/bin/cli.js` ist der stabile, ausführbare Einstiegspunkt für die Node-CLI — ein bewusst dünner Stub, der die kompilierte Logik in `out/main.js` aufruft. Er ist für npm `bin`, Monorepo-Skripte und die VS-Code-Extension im Dev-Modus nötig; die eigentliche Implementierung liegt in TypeScript.'
 todos:
-  - id: review-cli-src
-    content: Review packages/cli/src (main, generate, generator, smoke)
-    status: pending
-  - id: review-mcp-bundle
-    content: Review mcp-bundle + mcp-serve-emitted / generate copy path
-    status: pending
-  - id: review-language
-    content: Review packages/language (DSL, Langium, validation)
-    status: pending
-  - id: review-extension
-    content: Review extension LSP + embed-cli vs bin/cli.js divergence
-    status: pending
+    - id: review-cli-src
+      content: Review packages/cli/src (main, generate, generator, smoke)
+      status: pending
+    - id: review-mcp-bundle
+      content: Review mcp-bundle + mcp-serve-emitted / generate copy path
+      status: pending
+    - id: review-language
+      content: Review packages/language (DSL, Langium, validation)
+      status: pending
+    - id: review-extension
+      content: Review extension LSP + embed-cli vs bin/cli.js divergence
+      status: pending
 isProject: false
 ---
 
@@ -36,12 +36,12 @@ Ohne diesen Stub hättet ihr keinen Standardweg, die CLI direkt aus dem Repo ode
 
 ## Warum nicht direkt `out/main.js` als `bin`?
 
-| Aspekt | `bin/cli.js` | Nur `out/main.js` |
-|--------|----------------|-------------------|
-| Shebang `#!/usr/bin/env node` | Handgeschrieben, stabil | TypeScript/`tsc` fügt keinen Shebang hinzu |
-| Pfad in `package.json` `bin` | Fest unter `bin/`, unabhängig vom Build-Layout | Müsste bei jedem Build-Setup angepasst werden |
-| npm-Konvention | Üblich: kleiner Stub in `bin/` | Ungewöhnlich, tooling erwartet oft `bin/*.js` |
-| ESM | Stub importiert kompiliertes Modul relativ | Gleich möglich, aber `bin`-Datei bleibt trotzdem nötig |
+| Aspekt                        | `bin/cli.js`                                   | Nur `out/main.js`                                      |
+| ----------------------------- | ---------------------------------------------- | ------------------------------------------------------ |
+| Shebang `#!/usr/bin/env node` | Handgeschrieben, stabil                        | TypeScript/`tsc` fügt keinen Shebang hinzu             |
+| Pfad in `package.json` `bin`  | Fest unter `bin/`, unabhängig vom Build-Layout | Müsste bei jedem Build-Setup angepasst werden          |
+| npm-Konvention                | Üblich: kleiner Stub in `bin/`                 | Ungewöhnlich, tooling erwartet oft `bin/*.js`          |
+| ESM                           | Stub importiert kompiliertes Modul relativ     | Gleich möglich, aber `bin`-Datei bleibt trotzdem nötig |
 
 Der Stub trennt **„was npm/Node als Programm startet“** von **„was der TypeScript-Build erzeugt“** (`out/`).
 
@@ -88,7 +88,7 @@ Root-[`package.json`](package.json) ruft überall `node ./packages/cli/bin/cli.j
 
 [`packages/extension/src/extension/main.ts`](packages/extension/src/extension/main.ts) sucht zuerst `packages/cli/bin/cli.js` im Workspace (Monorepo-Dev). **Im veröffentlichten VSIX** wird stattdessen [`out/embed-api2ai/cli.cjs`](packages/extension/out/embed-api2ai/cli.cjs) genutzt — gebündelt aus [`vscode-bundle-cli-entry.ts`](packages/cli/src/vscode-bundle-cli-entry.ts), **ohne** `cli.js` und **ohne** `smoke-generated`.
 
-### 4. Was bewusst *nicht* über `cli.js` läuft
+### 4. Was bewusst _nicht_ über `cli.js` läuft
 
 - **MCP-Standalone:** [`mcp-bundle/mcp-standalone-entry.ts`](packages/cli/mcp-bundle/mcp-standalone-entry.ts) — eigener Bundle-Pfad für Endnutzer-MCP-Hosts.
 - **Extension-Bundle:** schmaler `generate`-only-Einstieg, separat gebaut.

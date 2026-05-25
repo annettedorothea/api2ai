@@ -2,24 +2,24 @@
 name: VSIX Demo Workspace
 overview: Demos einmal unter packages/extension/demos/ (Verschiebung von examples/) — in der VSIX enthalten, per Befehl in einen Nutzerordner kopierbar. Kein Repo-Clone, kein doppelter Ordner im Git.
 todos:
-  - id: move-examples
-    content: git mv examples → packages/extension/demos; alle Pfade laut Checkliste unten (launch, package.json, gitignore, READMEs, rules, smoke-Hinweis)
-    status: completed
-  - id: extension-command
-    content: api2ai.createDemoWorkspace kopiert demos/ → Nutzerordner; package.json contributes + activationEvents
-    status: completed
-  - id: demos-package-json
-    content: demos/package.json + scripts/generate.mjs — generate:* und generate:all (CLI Monorepo oder VSIX-Embed); Kopie unverändert
-    status: completed
-  - id: vsix-build
-    content: demos/ nicht in .vscodeignore; extension:vsix unverändert; generated/node_modules nicht mitpacken
-    status: completed
-  - id: extension-readme
-    content: packages/extension/README.md — Abschnitt „MCP-Demos ohne Repo“ (VSIX-Erklärungsseite)
-    status: completed
-  - id: root-readme
-    content: Root-README + kurzer Verweis auf demos-Pfad und VSIX-Befehl
-    status: completed
+    - id: move-examples
+      content: git mv examples → packages/extension/demos; alle Pfade laut Checkliste unten (launch, package.json, gitignore, READMEs, rules, smoke-Hinweis)
+      status: completed
+    - id: extension-command
+      content: api2ai.createDemoWorkspace kopiert demos/ → Nutzerordner; package.json contributes + activationEvents
+      status: completed
+    - id: demos-package-json
+      content: demos/package.json + scripts/generate.mjs — generate:* und generate:all (CLI Monorepo oder VSIX-Embed); Kopie unverändert
+      status: completed
+    - id: vsix-build
+      content: demos/ nicht in .vscodeignore; extension:vsix unverändert; generated/node_modules nicht mitpacken
+      status: completed
+    - id: extension-readme
+      content: packages/extension/README.md — Abschnitt „MCP-Demos ohne Repo“ (VSIX-Erklärungsseite)
+      status: completed
+    - id: root-readme
+      content: Root-README + kurzer Verweis auf demos-Pfad und VSIX-Befehl
+      status: completed
 isProject: false
 ---
 
@@ -27,11 +27,11 @@ isProject: false
 
 ## Kurzantwort
 
-| Frage | Antwort |
-|-------|---------|
-| **Doppelt im Repo?** | **Nein** — mit Verschiebung gibt es nur **einen** Ordner: [`packages/extension/demos/`](packages/extension/demos/). |
-| **Yeoman / npm create?** | Nicht nötig; du lieferst über **VSIX + Befehl**. |
-| **Publish?** | Nur die **VSIX** (Release / Install from VSIX). |
+| Frage                    | Antwort                                                                                                             |
+| ------------------------ | ------------------------------------------------------------------------------------------------------------------- |
+| **Doppelt im Repo?**     | **Nein** — mit Verschiebung gibt es nur **einen** Ordner: [`packages/extension/demos/`](packages/extension/demos/). |
+| **Yeoman / npm create?** | Nicht nötig; du lieferst über **VSIX + Befehl**.                                                                    |
+| **Publish?**             | Nur die **VSIX** (Release / Install from VSIX).                                                                     |
 
 ---
 
@@ -39,11 +39,11 @@ isProject: false
 
 ### Optionen im Vergleich
 
-| Ansatz | Git | VSIX | Wartung |
-|--------|-----|------|---------|
-| **A: `examples/` + `extension/demos/` + Sync** | Zwei Bäume | demos in VSIX | Sync/CI, Drift-Risiko |
-| **B: Nur Build-Kopie** (`examples/` bleibt, Copy bei `extension:vsix`) | Ein Baum | Kopie nur im Artefakt | Kein Duplikat in Git, aber zwei Pfade mental |
-| **C: Verschieben → `packages/extension/demos/`** | **Ein Baum** | Derselbe Ordner wird gepackt | **Empfohlen** |
+| Ansatz                                                                 | Git          | VSIX                         | Wartung                                      |
+| ---------------------------------------------------------------------- | ------------ | ---------------------------- | -------------------------------------------- |
+| **A: `examples/` + `extension/demos/` + Sync**                         | Zwei Bäume   | demos in VSIX                | Sync/CI, Drift-Risiko                        |
+| **B: Nur Build-Kopie** (`examples/` bleibt, Copy bei `extension:vsix`) | Ein Baum     | Kopie nur im Artefakt        | Kein Duplikat in Git, aber zwei Pfade mental |
+| **C: Verschieben → `packages/extension/demos/`**                       | **Ein Baum** | Derselbe Ordner wird gepackt | **Empfohlen**                                |
 
 **Empfehlung: Option C** — der gesamte [`examples/`](examples/)-Ordner wandert nach [`packages/extension/demos/`](packages/extension/demos/). Damit entfällt Sync-Skript und CI-Check „in sync“.
 
@@ -78,40 +78,40 @@ flowchart TB
 
 **Konfiguration / Build**
 
-| Datei | Änderung |
-|-------|----------|
-| [`.vscode/launch.json`](.vscode/launch.json) | Beide Extension-Host-Configs (Zeilen 10 + 40): `${workspaceFolder}/examples` → `${workspaceFolder}/packages/extension/demos` |
-| [Root `package.json`](package.json) | `test:smoke*`, `test:mcp`: `./examples/generated/...` → `./packages/extension/demos/generated/...` |
-| [`.gitignore`](.gitignore) | `examples/...` → `packages/extension/demos/...` (Zeilen 15–20) |
-| [`.cursor/rules/langium-generate-build.mdc`](.cursor/rules/langium-generate-build.mdc) | Ausnahme „nur `examples/`“ → `packages/extension/demos/` |
-| [`packages/extension/.vscodeignore`](packages/extension/.vscodeignore) | Optional: `demos/node_modules`, `demos/generated`, `demos/package-lock.json` ausschließen |
-| [`packages/extension/demos/package.json`](packages/extension/demos/package.json) | `generate:*` → `node scripts/generate.mjs …`; plus `generate:all` (siehe unten) |
-| [`packages/extension/demos/scripts/generate.mjs`](packages/extension/demos/scripts/generate.mjs) | **neu** — CLI-Auflösung Monorepo + VSIX-Embed + `API2AI_CLI` |
+| Datei                                                                                            | Änderung                                                                                                                     |
+| ------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------- |
+| [`.vscode/launch.json`](.vscode/launch.json)                                                     | Beide Extension-Host-Configs (Zeilen 10 + 40): `${workspaceFolder}/examples` → `${workspaceFolder}/packages/extension/demos` |
+| [Root `package.json`](package.json)                                                              | `test:smoke*`, `test:mcp`: `./examples/generated/...` → `./packages/extension/demos/generated/...`                           |
+| [`.gitignore`](.gitignore)                                                                       | `examples/...` → `packages/extension/demos/...` (Zeilen 15–20)                                                               |
+| [`.cursor/rules/langium-generate-build.mdc`](.cursor/rules/langium-generate-build.mdc)           | Ausnahme „nur `examples/`“ → `packages/extension/demos/`                                                                     |
+| [`packages/extension/.vscodeignore`](packages/extension/.vscodeignore)                           | Optional: `demos/node_modules`, `demos/generated`, `demos/package-lock.json` ausschließen                                    |
+| [`packages/extension/demos/package.json`](packages/extension/demos/package.json)                 | `generate:*` → `node scripts/generate.mjs …`; plus `generate:all` (siehe unten)                                              |
+| [`packages/extension/demos/scripts/generate.mjs`](packages/extension/demos/scripts/generate.mjs) | **neu** — CLI-Auflösung Monorepo + VSIX-Embed + `API2AI_CLI`                                                                 |
 
 **README / Doku (aktive Dateien, nicht historische `.cursor/plans/`)**
 
-| Datei | Änderung |
-|-------|----------|
-| [Root `README.md`](README.md) | Alle `./examples/`-Links und Tabellenzeile; Launch-Beschreibung; `generate:*`-Hinweis |
-| [`packages/extension/README.md`](packages/extension/README.md) | Neuer Abschnitt MCP-Demos + ggf. Monorepo-Link auf `packages/extension/demos` |
-| [`packages/cli/README.md`](packages/cli/README.md) | `examples/generated` → `packages/extension/demos/generated`; Link `../../examples/` → `../extension/demos/` |
-| [`packages/extension/demos/README.md`](packages/extension/demos/README.md) (ehem. `examples/`) | Titel/„examples“-Wording → „demos“; **kein** relativer `../README.md` — Link zum api2ai-Projekt immer **[GitHub README](https://github.com/annettedorothea/api2ai/blob/main/README.md)** (funktioniert im Repo, nach VSIX-Kopie und im MCP-Workspace); „Open folder **examples**“ → **demos**-Pfad bzw. kopierter Demo-Ordner |
-| [`packages/extension/demos/mock-api/README.md`](packages/extension/demos/mock-api/README.md) | `examples/.env.local` → `.env.local`; `cd examples` entfällt oder „im Demo-Workspace“ |
-| [`packages/extension/demos/.cursor/rules/mcp-api2ai-only.mdc`](packages/extension/demos/.cursor/rules/mcp-api2ai-only.mdc) | Text `examples/.cursor/mcp.json` → `.cursor/mcp.json` (relativ zum Workspace) |
+| Datei                                                                                                                      | Änderung                                                                                                                                                                                                                                                                                                                      |
+| -------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [Root `README.md`](README.md)                                                                                              | Alle `./examples/`-Links und Tabellenzeile; Launch-Beschreibung; `generate:*`-Hinweis                                                                                                                                                                                                                                         |
+| [`packages/extension/README.md`](packages/extension/README.md)                                                             | Neuer Abschnitt MCP-Demos + ggf. Monorepo-Link auf `packages/extension/demos`                                                                                                                                                                                                                                                 |
+| [`packages/cli/README.md`](packages/cli/README.md)                                                                         | `examples/generated` → `packages/extension/demos/generated`; Link `../../examples/` → `../extension/demos/`                                                                                                                                                                                                                   |
+| [`packages/extension/demos/README.md`](packages/extension/demos/README.md) (ehem. `examples/`)                             | Titel/„examples“-Wording → „demos“; **kein** relativer `../README.md` — Link zum api2ai-Projekt immer **[GitHub README](https://github.com/annettedorothea/api2ai/blob/main/README.md)** (funktioniert im Repo, nach VSIX-Kopie und im MCP-Workspace); „Open folder **examples**“ → **demos**-Pfad bzw. kopierter Demo-Ordner |
+| [`packages/extension/demos/mock-api/README.md`](packages/extension/demos/mock-api/README.md)                               | `examples/.env.local` → `.env.local`; `cd examples` entfällt oder „im Demo-Workspace“                                                                                                                                                                                                                                         |
+| [`packages/extension/demos/.cursor/rules/mcp-api2ai-only.mdc`](packages/extension/demos/.cursor/rules/mcp-api2ai-only.mdc) | Text `examples/.cursor/mcp.json` → `.cursor/mcp.json` (relativ zum Workspace)                                                                                                                                                                                                                                                 |
 
 **Code (nur wenn Pfad hardcodiert)**
 
-| Datei | Änderung |
-|-------|----------|
+| Datei                                                    | Änderung                                                                                                 |
+| -------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- |
 | [`packages/cli/src/smoke.ts`](packages/cli/src/smoke.ts) | Fehlermeldung `node examples/mock-api/get-token.mjs` → `node mock-api/get-token.mjs` (workspace-relativ) |
 
 **Unverändert (bewusst)**
 
-| Was | Warum |
-|-----|--------|
+| Was                                                                   | Warum                                                             |
+| --------------------------------------------------------------------- | ----------------------------------------------------------------- |
 | [`demos/.cursor/mcp.json`](packages/extension/demos/.cursor/mcp.json) | Pfade `./generated/...` bleiben — relativ zum Demo-Workspace-Root |
-| OpenAPI-`examples` in Specs / Langium `openapi.ts` | OpenAPI-Feldname, kein Ordner |
-| Alte Einträge unter `.cursor/plans/` | Archiv, nicht pflegen |
+| OpenAPI-`examples` in Specs / Langium `openapi.ts`                    | OpenAPI-Feldname, kein Ordner                                     |
+| Alte Einträge unter `.cursor/plans/`                                  | Archiv, nicht pflegen                                             |
 
 **Abschluss-Check:** `rg 'examples/'` im Repo (ohne `plans/`, ohne OpenAPI-`examples`-Felder) — sollte nach Umzug leer sein oder nur bewusste Ausnahmen.
 
@@ -139,11 +139,11 @@ Node **20+** bleibt Pflicht.
 
 ### Generate (VSIX-Nutzer — nicht „blöd“)
 
-| Weg | Wann |
-|-----|------|
-| **Speichern** | `.api2ai` fokussieren → Speichern → Generate-on-Save (eingebettete CLI in der VSIX) |
-| **Command Palette** | **„Generate tool code (.ts + .mjs + MCP host)“** (`api2ai.generateTools`) — pro geöffneter `.api2ai`-Datei |
-| **Terminal** | Im Demo-Workspace: `npm run generate:open-meteo-tools` oder **`npm run generate:all`** — über [`scripts/generate.mjs`](packages/extension/demos/scripts/generate.mjs) |
+| Weg                 | Wann                                                                                                                                                                  |
+| ------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Speichern**       | `.api2ai` fokussieren → Speichern → Generate-on-Save (eingebettete CLI in der VSIX)                                                                                   |
+| **Command Palette** | **„Generate tool code (.ts + .mjs + MCP host)“** (`api2ai.generateTools`) — pro geöffneter `.api2ai`-Datei                                                            |
+| **Terminal**        | Im Demo-Workspace: `npm run generate:open-meteo-tools` oder **`npm run generate:all`** — über [`scripts/generate.mjs`](packages/extension/demos/scripts/generate.mjs) |
 
 **Nicht** zurück ins **Root-**[`package.json`](package.json): `generate:*` bleiben in **`packages/extension/demos/package.json`** (Demo-Workspace). Root behält nur `test:smoke*` / `test:mcp` auf `demos/generated/`.
 
@@ -163,8 +163,8 @@ Damit funktionieren die **gleichen** `generate:*` in Repo, nach VSIX-Kopie und o
 
 ```json
 {
-  "command": "api2ai.createDemoWorkspace",
-  "title": "api2ai: Create demo workspace (MCP examples)"
+    "command": "api2ai.createDemoWorkspace",
+    "title": "api2ai: Create demo workspace (MCP examples)"
 }
 ```
 
@@ -215,11 +215,11 @@ Root-[`README.md`](README.md): ein Satz + Link auf Extension-README für Endnutz
 
 ## Aufwand (aktualisiert)
 
-| Task | Aufwand |
-|------|---------|
-| Verschieben + Pfad-Updates | ~0,5 Tag |
-| Copy-Befehl | ~0,5 Tag |
-| Extension-README + Root-README | ~0,25 Tag |
+| Task                                               | Aufwand   |
+| -------------------------------------------------- | --------- |
+| Verschieben + Pfad-Updates                         | ~0,5 Tag  |
+| Copy-Befehl                                        | ~0,5 Tag  |
+| Extension-README + Root-README                     | ~0,25 Tag |
 | Manueller Test (VSIX → leerer Ordner → Open-Meteo) | ~0,25 Tag |
 
 **Gesamt:** ~1–1,5 Tage.

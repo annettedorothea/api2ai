@@ -20,7 +20,7 @@ function findInstalledExtensionCli() {
     const roots = [
         path.join(home, '.cursor', 'extensions'),
         path.join(home, '.vscode', 'extensions'),
-        path.join(home, '.vscode-insiders', 'extensions'),
+        path.join(home, '.vscode-insiders', 'extensions')
     ];
     const candidates = [];
     for (const root of roots) {
@@ -34,9 +34,7 @@ function findInstalledExtensionCli() {
             if (!entry.name.startsWith('api2ai.vscode-api2ai-')) {
                 continue;
             }
-            candidates.push(
-                path.join(root, entry.name, 'out', 'embed-api2ai', 'cli.cjs')
-            );
+            candidates.push(path.join(root, entry.name, 'out', 'embed-api2ai', 'cli.cjs'));
         }
     }
     candidates.sort();
@@ -58,7 +56,7 @@ function resolveCliSpawn() {
     if (installedCli) {
         return {
             scriptPath: installedCli,
-            embedHome: resolveEmbedHome(installedCli),
+            embedHome: resolveEmbedHome(installedCli)
         };
     }
 
@@ -67,7 +65,7 @@ function resolveCliSpawn() {
             'api2ai CLI not found.',
             '• Install the api2ai VS Code/Cursor extension (VSIX), or',
             '• Run from the api2ai monorepo with packages/extension/demos as cwd, or',
-            '• Set API2AI_CLI to cli.js / cli.cjs.',
+            '• Set API2AI_CLI to cli.js / cli.cjs.'
         ].join('\n')
     );
 }
@@ -86,5 +84,5 @@ const env = embedHome ? { ...process.env, API2AI_EMBED_HOME: embedHome } : proce
 execFileSync(process.execPath, [scriptPath, 'generate', dslPath, outPath], {
     stdio: 'inherit',
     cwd: workspaceRoot,
-    env,
+    env
 });

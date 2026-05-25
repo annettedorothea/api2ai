@@ -1,28 +1,28 @@
 ---
 name: github-sealed-bearer
-overview: "DSL: Auth als Alternative Env-basierter Bearer vs. sealed Bearer (Tool-Arg); Generator/MCP entschlüsseln mit Private Key; GitHub als Referenzbeispiel mit PAT und OpenAPI."
+overview: 'DSL: Auth als Alternative Env-basierter Bearer vs. sealed Bearer (Tool-Arg); Generator/MCP entschlüsseln mit Private Key; GitHub als Referenzbeispiel mit PAT und OpenAPI.'
 todos:
-  - id: dsl-auth-union
-    content: "Grammatik `Auth` als Alternative zweier Blöcke (Naming final festlegen); gemeinsame Keys `in`/`name`/`prefix`; exklusiv `env` vs `privateKeyEnv` + Validator"
-    status: completed
-  - id: crypto-mvp
-    content: "Festlegen und implementieren: z.B. HPKE oder RSA-OAEP+AES-GCM; Klartext = roher Token (GitHub PAT), Header = prefix + Klartext"
-    status: completed
-  - id: generator-invoke
-    content: "generator.ts: AuthConfig-Typ erweitern; invokeTool liest sealedCredential aus options, sonst env; Fehlermeldungen 401 angepasst"
-    status: completed
-  - id: zod-mcp-schema
-    content: "inputSchemaByTool / Zod sealedCredential optional nur bei sealed-Modell; MCP-Server unverändert aufrufbar"
-    status: completed
-  - id: seal-cli-doc
-    content: "Kleines Hilfsskript oder README-Abschnitt: PAT mit Public Key verschlüsseln → Base64 für Agent/sealedCredential"
-    status: completed
-  - id: example-github
-    content: "examples/github.api2ai + OpenAPI (GET /repos/{owner}/{repo} im Minimal-YAML) + npm run generate:github-tools; PAT nur Env oder sealedCredential"
-    status: completed
-  - id: langium-tests
-    content: "parsing/validating Tests für beide Auth-Varianten und Duplikat-Keys"
-    status: completed
+    - id: dsl-auth-union
+      content: 'Grammatik `Auth` als Alternative zweier Blöcke (Naming final festlegen); gemeinsame Keys `in`/`name`/`prefix`; exklusiv `env` vs `privateKeyEnv` + Validator'
+      status: completed
+    - id: crypto-mvp
+      content: 'Festlegen und implementieren: z.B. HPKE oder RSA-OAEP+AES-GCM; Klartext = roher Token (GitHub PAT), Header = prefix + Klartext'
+      status: completed
+    - id: generator-invoke
+      content: 'generator.ts: AuthConfig-Typ erweitern; invokeTool liest sealedCredential aus options, sonst env; Fehlermeldungen 401 angepasst'
+      status: completed
+    - id: zod-mcp-schema
+      content: 'inputSchemaByTool / Zod sealedCredential optional nur bei sealed-Modell; MCP-Server unverändert aufrufbar'
+      status: completed
+    - id: seal-cli-doc
+      content: 'Kleines Hilfsskript oder README-Abschnitt: PAT mit Public Key verschlüsseln → Base64 für Agent/sealedCredential'
+      status: completed
+    - id: example-github
+      content: 'examples/github.api2ai + OpenAPI (GET /repos/{owner}/{repo} im Minimal-YAML) + npm run generate:github-tools; PAT nur Env oder sealedCredential'
+      status: completed
+    - id: langium-tests
+      content: 'parsing/validating Tests für beide Auth-Varianten und Duplikat-Keys'
+      status: completed
 isProject: false
 ---
 
@@ -54,10 +54,10 @@ sequenceDiagram
 
 **Empfehlung:** Unter **`auth`** zwei **Alternativen** (Langium `|`), statt eines Blocks mit optionalem `env` **und** optionalem `privateKeyEnv` (das wäre validator-lastig und leicht fehlbesetzt):
 
-| Modus | Keyword (Vorschlag) | Pflichtfelder | Secret-Quelle |
-|--------|----------------------|---------------|----------------|
-| Env (heute) | z. B. `bearerEnv` | `in`, `name`, `env` | `process.env[env]` + optional `prefix` |
-| Sealed | z. B. `bearerSealed` | `in`, `name`, `privateKeyEnv`, optional `prefix` | Klartext aus `options.sealedCredential` nach Decrypt |
+| Modus       | Keyword (Vorschlag)  | Pflichtfelder                                    | Secret-Quelle                                        |
+| ----------- | -------------------- | ------------------------------------------------ | ---------------------------------------------------- |
+| Env (heute) | z. B. `bearerEnv`    | `in`, `name`, `env`                              | `process.env[env]` + optional `prefix`               |
+| Sealed      | z. B. `bearerSealed` | `in`, `name`, `privateKeyEnv`, optional `prefix` | Klartext aus `options.sealedCredential` nach Decrypt |
 
 - **`apiKey`** entfällt zugunsten **`bearerEnv`** / **`bearerSealed`** (**Breaking change**, PoC ohne Alias).
 - **`sealedCredential`** bleibt der **Tool-Parameter-Name** (wie im Archiv [obsolete/mcp-sealed-token-auth.md](../obsolete/mcp-sealed-token-auth.md)); nicht mit DSL-Blocknamen verwechseln.
@@ -82,8 +82,8 @@ Validator:
 
 - **Offizielles Gesamt-Bundle:** [github/rest-api-description](https://github.com/github/rest-api-description) → `descriptions/api.github.com/api.github.com.json` (sehr groß, nicht ins Repo committen).
 - **Für api2ai-Demos:** kleine Repo-Datei [examples/openapi/github-user-min.openapi.yaml](../../examples/openapi/github-user-min.openapi.yaml) mit zwei **lesenden** Endpunkten:
-  - **`GET /user`** — minimaler Smoke mit PAT (`read:user` o. Ä.); 401 bei fehlendem/falschem Token.
-  - **`GET /repos/{owner}/{repo}`** — zeigt **Zugriff vs. kein Zugriff** ohne zweiten GitHub-Account: ein **privates** Repo, auf das der PAT **keine** Rechte hat, liefert typischerweise **404** (GitHub verschleiert Existenz); derselbe PAT auf ein **öffentliches** oder explizit freigegebenes Repo → **200**. Zwei echte **User** sind dafür nicht nötig; optional zweiter PAT mit **minimalen** Scopes vs. PAT mit **Repo-Zugriff**, um dasselbe zu verstärken.
+    - **`GET /user`** — minimaler Smoke mit PAT (`read:user` o. Ä.); 401 bei fehlendem/falschem Token.
+    - **`GET /repos/{owner}/{repo}`** — zeigt **Zugriff vs. kein Zugriff** ohne zweiten GitHub-Account: ein **privates** Repo, auf das der PAT **keine** Rechte hat, liefert typischerweise **404** (GitHub verschleiert Existenz); derselbe PAT auf ein **öffentliches** oder explizit freigegebenes Repo → **200**. Zwei echte **User** sind dafür nicht nötig; optional zweiter PAT mit **minimalen** Scopes vs. PAT mit **Repo-Zugriff**, um dasselbe zu verstärken.
 
 ## Code-Ort (Repo)
 

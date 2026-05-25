@@ -188,11 +188,15 @@ export class Api2AiDslValidator {
             const key = makeOperationLookupKey(operation.method, opPath);
             const openApiOperation = loaded.operations.get(key);
             if (!openApiOperation) {
-                accept('error', `Operation ${operation.method} ${opPath} does not exist in the referenced OpenAPI 3.x spec.`, {
-                    node: model,
-                    property: 'operations',
-                    index
-                });
+                accept(
+                    'error',
+                    `Operation ${operation.method} ${opPath} does not exist in the referenced OpenAPI 3.x spec.`,
+                    {
+                        node: model,
+                        property: 'operations',
+                        index
+                    }
+                );
                 return;
             }
 

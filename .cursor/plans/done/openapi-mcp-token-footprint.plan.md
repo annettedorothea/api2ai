@@ -1,13 +1,13 @@
 ---
 name: OpenAPI-MCP Token-Footprint
-overview: "Alles, was vor allem Token-Nutzung in tools/list und inputSchema betrifft: schlankere Hülle, kompaktere Enums."
+overview: 'Alles, was vor allem Token-Nutzung in tools/list und inputSchema betrifft: schlankere Hülle, kompaktere Enums.'
 todos:
-  - id: slim-input-hull
-    content: "buildToolInputSchema: nur pathParams/query/headers/body ausliefern wenn nötig; InvokeOptions + MCP Zod + invokeTool an fehlende Buckets anpassen"
-    status: pending
-  - id: enum-normalize
-    content: "Optional: anyOf+const → enum kompaktieren wo sinnvoll"
-    status: pending
+    - id: slim-input-hull
+      content: 'buildToolInputSchema: nur pathParams/query/headers/body ausliefern wenn nötig; InvokeOptions + MCP Zod + invokeTool an fehlende Buckets anpassen'
+      status: pending
+    - id: enum-normalize
+      content: 'Optional: anyOf+const → enum kompaktieren wo sinnvoll'
+      status: pending
 isProject: false
 ---
 

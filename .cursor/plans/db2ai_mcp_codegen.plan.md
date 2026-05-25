@@ -1,25 +1,25 @@
 ---
 name: db2ai MCP Codegen
-overview: "MCP-Tool-Codegen analog api2ai: database env (kein URL in DSL/Generated), SELECT * FROM table, limit/offset als MCP-Tool-Parameter für Agent-Pagination, pg-Runtime + mcp-bundle."
+overview: 'MCP-Tool-Codegen analog api2ai: database env (kein URL in DSL/Generated), SELECT * FROM table, limit/offset als MCP-Tool-Parameter für Agent-Pagination, pg-Runtime + mcp-bundle.'
 todos:
-  - id: dsl-env-limit
-    content: "Grammar: database env; Query nur SELECT * FROM table; optional maxLimit im Block; Validator/Tests"
-    status: pending
-  - id: cli-generator
-    content: "generator: connectionEnv, dynamisches SQL mit limit/offset aus invokeTool-Args, inputSchema"
-    status: pending
-  - id: cli-commands
-    content: "CLI generate + smoke; bundle:mcp-runtime + generate:pagila"
-    status: pending
-  - id: mcp-host
-    content: "mcp-bundle adaptieren; generated/cli/mcp-serve.mjs"
-    status: pending
-  - id: examples-docs
-    content: "pagila.db2ai + README/.env.example; Tool-Description Pagination-Hinweis"
-    status: pending
-  - id: extension-generate
-    content: "Extension wie api2ai: Generate on Save, Command, embed-cli-bundle, DB2AI_EMBED_HOME"
-    status: pending
+    - id: dsl-env-limit
+      content: 'Grammar: database env; Query nur SELECT * FROM table; optional maxLimit im Block; Validator/Tests'
+      status: pending
+    - id: cli-generator
+      content: 'generator: connectionEnv, dynamisches SQL mit limit/offset aus invokeTool-Args, inputSchema'
+      status: pending
+    - id: cli-commands
+      content: 'CLI generate + smoke; bundle:mcp-runtime + generate:pagila'
+      status: pending
+    - id: mcp-host
+      content: 'mcp-bundle adaptieren; generated/cli/mcp-serve.mjs'
+      status: pending
+    - id: examples-docs
+      content: 'pagila.db2ai + README/.env.example; Tool-Description Pagination-Hinweis'
+      status: pending
+    - id: extension-generate
+      content: 'Extension wie api2ai: Generate on Save, Command, embed-cli-bundle, DB2AI_EMBED_HOME'
+      status: pending
 isProject: false
 ---
 
@@ -99,10 +99,10 @@ SELECT * FROM film {
 
 Pro Tool im generierten `inputSchemaByTool` (JSON Schema → Zod im MCP-Host):
 
-| Parameter | Schema | Bedeutung |
-|-----------|--------|-----------|
-| `limit` | `integer`, `minimum: 1`, **optional**, `default: 100` | Zeilen pro Seite; fehlt → 100 |
-| `offset` | `integer`, `minimum: 0`, `default: 0` | Überspringen für nächste Seite |
+| Parameter | Schema                                                | Bedeutung                      |
+| --------- | ----------------------------------------------------- | ------------------------------ |
+| `limit`   | `integer`, `minimum: 1`, **optional**, `default: 100` | Zeilen pro Seite; fehlt → 100  |
+| `offset`  | `integer`, `minimum: 0`, `default: 0`                 | Überspringen für nächste Seite |
 
 **Tool-Description** (Codegen) enthält explizit:
 
@@ -126,29 +126,33 @@ SELECT * FROM "film" LIMIT $1 OFFSET $2
 Analog [`api2ai/packages/cli/src/generator.ts`](api2ai/packages/cli/src/generator.ts):
 
 ```typescript
-export const connectionEnv = "PAGILA_DATABASE_URL";
+export const connectionEnv = 'PAGILA_DATABASE_URL';
 
-export const generatedTools = [{
-  toolName: "listFilms",
-  title: "...",
-  description: "...",  // inkl. Pagination-Hinweis
-  table: "film",
-  maxLimit: 500,
-}];
+export const generatedTools = [
+    {
+        toolName: 'listFilms',
+        title: '...',
+        description: '...', // inkl. Pagination-Hinweis
+        table: 'film',
+        maxLimit: 500
+    }
+];
 
 export const inputSchemaByTool = {
-  listFilms: {
-    type: "object",
-    properties: {
-      limit: { type: "integer", minimum: 1, description: "Rows per page" },
-      offset: { type: "integer", minimum: 0, default: 0, description: "Skip rows (next page)" }
-    },
-    required: [],
-    additionalProperties: false
-  }
+    listFilms: {
+        type: 'object',
+        properties: {
+            limit: { type: 'integer', minimum: 1, description: 'Rows per page' },
+            offset: { type: 'integer', minimum: 0, default: 0, description: 'Skip rows (next page)' }
+        },
+        required: [],
+        additionalProperties: false
+    }
 };
 
-export async function invokeTool(toolName, options = {}) { /* pg + dynamic LIMIT/OFFSET */ }
+export async function invokeTool(toolName, options = {}) {
+    /* pg + dynamic LIMIT/OFFSET */
+}
 ```
 
 - **Kein** festes `sql`-Literal pro Tool — nur `table` + Cap; SQL wird zur Laufzeit gebaut.
@@ -170,32 +174,32 @@ Kopie/Anpassung von [`api2ai/packages/cli/mcp-bundle/mcp-server.ts`](api2ai/pack
 
 ### Referenz (api2ai, bereits implementiert)
 
-| Teil | Datei |
-|------|--------|
+| Teil              | Datei                                                                                                                                                                               |
+| ----------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | On Save + Command | [`api2ai/packages/extension/src/extension/main.ts`](api2ai/packages/extension/src/extension/main.ts) — `registerGenerateOnSave`, `registerGenerateCommand`, `generateForSourceFile` |
-| Command-ID | `api2ai.generateTools` in [`package.json`](api2ai/packages/extension/package.json) |
-| Eingebettete CLI | [`embed-cli-bundle.mjs`](api2ai/packages/extension/embed-cli-bundle.mjs) → `out/embed-api2ai/cli.cjs` + `API2AI_EMBED_HOME` |
-| Zielpfad | `<dir der .api2ai>/generated/tools/<name>-tools.ts` (+ `.mjs` + `generated/cli/mcp-serve.mjs` via `generateOutput`) |
+| Command-ID        | `api2ai.generateTools` in [`package.json`](api2ai/packages/extension/package.json)                                                                                                  |
+| Eingebettete CLI  | [`embed-cli-bundle.mjs`](api2ai/packages/extension/embed-cli-bundle.mjs) → `out/embed-api2ai/cli.cjs` + `API2AI_EMBED_HOME`                                                         |
+| Zielpfad          | `<dir der .api2ai>/generated/tools/<name>-tools.ts` (+ `.mjs` + `generated/cli/mcp-serve.mjs` via `generateOutput`)                                                                 |
 
 ### db2ai — zu ergänzen
 
-1. **[`db2ai/packages/extension/src/extension/main.ts`](db2ai/packages/extension/src/extension/main.ts)**  
-   - `onDidSaveTextDocument` wenn `languageId === 'db-2-ai-dsl'`  
-   - Command `db2ai.generateTools` („Generate tool code (.ts + .mjs + MCP host)“)  
-   - `execFile(node, [cli, 'generate', sourcePath, destinationPath])`  
-   - `destinationPath = path.join(parsed.dir, 'generated', 'tools', `${parsed.name}-tools.ts`)`  
-   - Queue pro Datei (wie api2ai, kein paralleles Doppel-Generate)  
-   - `resolveCliSpawn`: Monorepo `packages/cli/bin/cli.js`, sonst `out/embed-db2ai/cli.cjs` + `DB2AI_EMBED_HOME`
+1. **[`db2ai/packages/extension/src/extension/main.ts`](db2ai/packages/extension/src/extension/main.ts)**
+    - `onDidSaveTextDocument` wenn `languageId === 'db-2-ai-dsl'`
+    - Command `db2ai.generateTools` („Generate tool code (.ts + .mjs + MCP host)“)
+    - `execFile(node, [cli, 'generate', sourcePath, destinationPath])`
+    - `destinationPath = path.join(parsed.dir, 'generated', 'tools', `${parsed.name}-tools.ts`)`
+    - Queue pro Datei (wie api2ai, kein paralleles Doppel-Generate)
+    - `resolveCliSpawn`: Monorepo `packages/cli/bin/cli.js`, sonst `out/embed-db2ai/cli.cjs` + `DB2AI_EMBED_HOME`
 
-2. **[`db2ai/packages/extension/package.json`](db2ai/packages/extension/package.json)**  
-   - `commands` + `activationEvents`: `onCommand:db2ai.generateTools`  
-   - Build: `embed-cli-bundle.mjs` (analog api2ai, Ziel `embed-db2ai`)
+2. **[`db2ai/packages/extension/package.json`](db2ai/packages/extension/package.json)**
+    - `commands` + `activationEvents`: `onCommand:db2ai.generateTools`
+    - Build: `embed-cli-bundle.mjs` (analog api2ai, Ziel `embed-db2ai`)
 
-3. **CLI-Einstieg für Bundle**  
-   - `vscode-bundle-cli-entry.ts` (wie api2ai), damit die Extension ohne globales `npm link` generieren kann
+3. **CLI-Einstieg für Bundle**
+    - `vscode-bundle-cli-entry.ts` (wie api2ai), damit die Extension ohne globales `npm link` generieren kann
 
-4. **Dev-Workflow**  
-   - Extension-Build: `npm run bundle:mcp-runtime` (Root) vor `extension build`, wie bei api2ai dokumentiert
+4. **Dev-Workflow**
+    - Extension-Build: `npm run bundle:mcp-runtime` (Root) vor `extension build`, wie bei api2ai dokumentiert
 
 Damit gilt für db2ai derselbe Loop wie bei api2ai: **Speichern → generiert**, oder **Command Palette → Generate tool code**.
 
@@ -207,18 +211,15 @@ Analog [`api2ai/examples/.cursor/mcp.json`](api2ai/examples/.cursor/mcp.json):
 
 ```json
 {
-  "mcpServers": {
-    "db2ai-pagila": {
-      "command": "node",
-      "args": [
-        "./generated/cli/mcp-serve.mjs",
-        "./generated/tools/pagila-tools.mjs"
-      ],
-      "env": {
-        "PAGILA_DATABASE_URL": "postgresql://postgres:postgres@localhost:5432/pagila"
-      }
+    "mcpServers": {
+        "db2ai-pagila": {
+            "command": "node",
+            "args": ["./generated/cli/mcp-serve.mjs", "./generated/tools/pagila-tools.mjs"],
+            "env": {
+                "PAGILA_DATABASE_URL": "postgresql://postgres:postgres@localhost:5432/pagila"
+            }
+        }
     }
-  }
 }
 ```
 

@@ -1,17 +1,17 @@
 openapi: 3.0.3
 info:
-  title: Cookie param demo
-  version: 1.0.0
+    title: Cookie param demo
+    version: 1.0.0
 paths:
-  /session:
-    get:
-      operationId: getSession
-      parameters:
-        - name: sid
-          in: cookie
-          required: true
-          schema:
-            type: string
-      responses:
-        "200":
-          description: OK
+    /session:
+        get:
+            operationId: getSession
+            parameters:
+                - name: sid
+                  in: cookie
+                  required: true
+                  schema:
+                      type: string
+            responses:
+                '200':
+                    description: OK

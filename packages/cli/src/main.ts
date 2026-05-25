@@ -10,11 +10,15 @@ const __dirname = url.fileURLToPath(new URL('.', import.meta.url));
 const packagePath = path.resolve(__dirname, '..', '..', 'package.json');
 const packageContent = await fs.readFile(packagePath, 'utf-8');
 
-export const smokeGeneratedAction = async (generatedModulePath: string, toolName: string, argsJson?: string): Promise<void> => {
+export const smokeGeneratedAction = async (
+    generatedModulePath: string,
+    toolName: string,
+    argsJson?: string
+): Promise<void> => {
     await runSmokeGenerated(generatedModulePath, toolName, argsJson);
 };
 
-export default function(): void {
+export default function (): void {
     const program = new Command();
 
     program.version(JSON.parse(packageContent).version);

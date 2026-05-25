@@ -1,22 +1,22 @@
 ---
 name: db2ai Hybrid SQL
-overview: "\"Zwei-Stufen-DSL: einfache Tabellen-Abfragen (bestehend + columnsDoc) mit Tabellen-Completion; komplexe Abfragen als plain SQL in '''-Strings, nur DB-Validierung mit exampleParams — kein SQL-IntelliSense. Kritische Bewertung im Plan.\""
+overview: '"Zwei-Stufen-DSL: einfache Tabellen-Abfragen (bestehend + columnsDoc) mit Tabellen-Completion; komplexe Abfragen als plain SQL in ''''''-Strings, nur DB-Validierung mit exampleParams — kein SQL-IntelliSense. Kritische Bewertung im Plan."'
 todos:
-  - id: grammar-hybrid
-    content: "Grammar: SimpleQuery + columnsDoc; SqlTool mit sql + exampleParams"
-    status: pending
-  - id: sql-validate
-    content: "SqlTool-Validator: JSON params, $n check, read-only execute test"
-    status: pending
-  - id: codegen-hybrid
-    content: "Generator: zwei Tool-Typen, columnsDoc in description, prepared SQL"
-    status: pending
-  - id: examples-hybrid
-    content: pagila.db2ai + README; Simple + ein SqlTool-Beispiel
-    status: pending
-  - id: obsolete-plan
-    content: Plan db2ai_select_spalten als obsolet markieren
-    status: pending
+    - id: grammar-hybrid
+      content: 'Grammar: SimpleQuery + columnsDoc; SqlTool mit sql + exampleParams'
+      status: pending
+    - id: sql-validate
+      content: 'SqlTool-Validator: JSON params, $n check, read-only execute test'
+      status: pending
+    - id: codegen-hybrid
+      content: 'Generator: zwei Tool-Typen, columnsDoc in description, prepared SQL'
+      status: pending
+    - id: examples-hybrid
+      content: pagila.db2ai + README; Simple + ein SqlTool-Beispiel
+      status: pending
+    - id: obsolete-plan
+      content: Plan db2ai_select_spalten als obsolet markieren
+      status: pending
 isProject: false
 ---
 
@@ -28,23 +28,23 @@ isProject: false
 
 ### Stärken
 
-| Punkt | Warum |
-|--------|--------|
-| **Zwei klare Stufen** | 80 % „Tabelle listen“ braucht kein SQL-Design; 20 % komplexe Fälle bekommen volle SQL-Power. |
-| **Wiederverwendung** | Tabellen-Completion, `database env`, Generate-on-Save, MCP-Host bleiben. |
-| **Agent-tauglich** | Einfache Tools: festes Verhalten + `columnsDoc` erklärt Felder menschlich. SQL-Tools: `intent`/`summary` + `exampleParams` erzwingen durchdachte Doku. |
-| **Validierung mit echter DB** | SQL-Fehler vor MCP, nicht erst im Agent-Lauf — passt zu „PoC muss laufen“. |
-| **Kein SQL-IntelliSense** | Spart Wochenarbeit; Validierung ersetzt „Syntaxhilfe im String“. |
+| Punkt                         | Warum                                                                                                                                                  |
+| ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Zwei klare Stufen**         | 80 % „Tabelle listen“ braucht kein SQL-Design; 20 % komplexe Fälle bekommen volle SQL-Power.                                                           |
+| **Wiederverwendung**          | Tabellen-Completion, `database env`, Generate-on-Save, MCP-Host bleiben.                                                                               |
+| **Agent-tauglich**            | Einfache Tools: festes Verhalten + `columnsDoc` erklärt Felder menschlich. SQL-Tools: `intent`/`summary` + `exampleParams` erzwingen durchdachte Doku. |
+| **Validierung mit echter DB** | SQL-Fehler vor MCP, nicht erst im Agent-Lauf — passt zu „PoC muss laufen“.                                                                             |
+| **Kein SQL-IntelliSense**     | Spart Wochenarbeit; Validierung ersetzt „Syntaxhilfe im String“.                                                                                       |
 
 ### Risiken / Schwächen
 
-| Risiko | Mitigation im Plan |
-|--------|---------------------|
-| **Zwei Tool-Arten** | Klare Syntax (`SELECT * FROM` vs. `tool { sql: '''…''' }`); Generator erzeugt einheitliches MCP-Format. |
-| **`columnsDoc` manuell** | Pflegeaufwand; Validator kann **Warning** wenn leer; Pagila-Beispiele gut pflegen. Später optional Auto-Ergänzung aus Schema. |
-| **SQL-Validierung = Execute** | Nur mit **Read-only**-Transaktion + Timeout; `exampleParams` Pflicht; optional verbotene Keywords (`DROP`, `TRUNCATE`). |
-| **Parameter `$1…$n`** | Agent darf nur Werte liefern, nie SQL-Text — im generierten Code strikt `pg` prepared. |
-| **Veralteter Plan** | [`db2ai_select_spalten`](api2ai/.cursor/plans/db2ai_select_spalten_9549000c.plan.md) wird **obsolet** (keine Spalten-Grammar). |
+| Risiko                        | Mitigation im Plan                                                                                                             |
+| ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| **Zwei Tool-Arten**           | Klare Syntax (`SELECT * FROM` vs. `tool { sql: '''…''' }`); Generator erzeugt einheitliches MCP-Format.                        |
+| **`columnsDoc` manuell**      | Pflegeaufwand; Validator kann **Warning** wenn leer; Pagila-Beispiele gut pflegen. Später optional Auto-Ergänzung aus Schema.  |
+| **SQL-Validierung = Execute** | Nur mit **Read-only**-Transaktion + Timeout; `exampleParams` Pflicht; optional verbotene Keywords (`DROP`, `TRUNCATE`).        |
+| **Parameter `$1…$n`**         | Agent darf nur Werte liefern, nie SQL-Text — im generierten Code strikt `pg` prepared.                                         |
+| **Veralteter Plan**           | [`db2ai_select_spalten`](api2ai/.cursor/plans/db2ai_select_spalten_9549000c.plan.md) wird **obsolet** (keine Spalten-Grammar). |
 
 ### Fazit
 
@@ -134,8 +134,8 @@ SQL_TEXT: '"""' ( ... )* '"""';   // oder ''' … ''' — einheitlich dokumentie
 1. `exampleParams` ist gültiges JSON (Objekt oder Array — festlegen: **empfohlen Objekt** `{"1":"PG","2":20}`).
 2. SQL enthält nur Platzhalter `$1…$n` (Regex); Anzahl passt zu Keys/Array-Länge.
 3. **Execute-Test** (CLI + optional LSP):
-   - `BEGIN` → `SET TRANSACTION READ ONLY` → `PREPARE` / `query({ text, values })` → `ROLLBACK`
-   - Timeout (z. B. 5s), Fehler als Diagnostics an `sql`-Knoten.
+    - `BEGIN` → `SET TRANSACTION READ ONLY` → `PREPARE` / `query({ text, values })` → `ROLLBACK`
+    - Timeout (z. B. 5s), Fehler als Diagnostics an `sql`-Knoten.
 4. `summary`/`intent` mindestens N Zeichen (Warning) — „ausführliche Erklärung“.
 
 **Kein** IntelliSense-Code für SQL-Strings.
@@ -146,10 +146,10 @@ SQL_TEXT: '"""' ( ... )* '"""';   // oder ''' … ''' — einheitlich dokumentie
 
 Zwei Resolver:
 
-| Typ | MCP `invokeTool` | `inputSchema` |
-|-----|------------------|-----------------|
-| SimpleQuery | `SELECT * FROM "t" LIMIT $1 OFFSET $2` | `limit`, `offset` |
-| SqlTool | Prepared SQL aus `sql`-Text | aus `$n` + Typ-Inferenz aus `exampleParams` (v1: alles `string`/`number`/`boolean` nach JSON-Typ) |
+| Typ         | MCP `invokeTool`                       | `inputSchema`                                                                                     |
+| ----------- | -------------------------------------- | ------------------------------------------------------------------------------------------------- |
+| SimpleQuery | `SELECT * FROM "t" LIMIT $1 OFFSET $2` | `limit`, `offset`                                                                                 |
+| SqlTool     | Prepared SQL aus `sql`-Text            | aus `$n` + Typ-Inferenz aus `exampleParams` (v1: alles `string`/`number`/`boolean` nach JSON-Typ) |
 
 - **Description:** SimpleQuery = `intent` + `columnsDoc` + Pagination-Hinweis; SqlTool = `intent` + `summary` + `example`.
 - `columnsDoc` landet **vollständig** in der Tool-Description (Agent-Footprint).

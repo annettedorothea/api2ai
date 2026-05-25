@@ -1,82 +1,82 @@
 {
-  "mcpServers": {
-    "api2ai-spaceflight-news": {
-      "command": "node",
-      "args": [
-        "./generated/cli/mcp-serve.mjs",
-        "./generated/tools/spaceflight-news-tools.mjs",
-        "--base-url-env",
-        "SPACEFLIGHT_NEWS_BASE_URL"
-      ],
-      "env": {
-        "SPACEFLIGHT_NEWS_BASE_URL": "https://api.spaceflightnewsapi.net"
-      }
-    },
-    "api2ai-tmdb": {
-      "command": "node",
-      "args": [
-        "./generated/cli/mcp-serve.mjs",
-        "./generated/tools/tmdb-tools.mjs",
-        "--base-url-env",
-        "TMDB_BASE_URL",
-        "--auth-env",
-        "TMDB_ACCESS_TOKEN"
-      ],
-      "env": {
-        "TMDB_BASE_URL": "https://api.themoviedb.org"
-      }
-    },
-    "api2ai-open-meteo": {
-      "command": "node",
-      "args": [
-        "./generated/cli/mcp-serve.mjs",
-        "./generated/tools/open-meteo-tools.mjs",
-        "--base-url-env",
-        "OPEN_METEO_BASE_URL"
-      ],
-      "env": {
-        "OPEN_METEO_BASE_URL": "https://api.open-meteo.com"
-      }
-    },
-    "api2ai-open-meteo-geocoding": {
-      "command": "node",
-      "args": [
-        "./generated/cli/mcp-serve.mjs",
-        "./generated/tools/open-meteo-geocoding-tools.mjs",
-        "--base-url-env",
-        "OPEN_METEO_GEOCODING_BASE_URL"
-      ],
-      "env": {
-        "OPEN_METEO_GEOCODING_BASE_URL": "https://geocoding-api.open-meteo.com"
-      }
-    },
-    "api2ai-github": {
-      "command": "node",
-      "args": [
-        "./generated/cli/mcp-serve.mjs",
-        "./generated/tools/github-tools.mjs",
-        "--base-url-env",
-        "GITHUB_BASE_URL",
-        "--auth-env",
-        "GITHUB_TOKEN"
-      ],
-      "env": {
-        "GITHUB_BASE_URL": "https://api.github.com"
-      }
-    },
-    "api2ai-mock-api": {
-      "command": "node",
-      "args": [
-        "./generated/cli/mcp-serve.mjs",
-        "./generated/tools/mock-api-tools.mjs",
-        "--base-url-env",
-        "MOCK_API_BASE_URL",
-        "--auth-env",
-        "MOCK_API_ACCESS_TOKEN"
-      ],
-      "env": {
-        "MOCK_API_BASE_URL": "http://127.0.0.1:3847"
-      }
+    "mcpServers": {
+        "api2ai-spaceflight-news": {
+            "command": "node",
+            "args": [
+                "./generated/cli/mcp-serve.mjs",
+                "./generated/tools/spaceflight-news-tools.mjs",
+                "--base-url-env",
+                "SPACEFLIGHT_NEWS_BASE_URL"
+            ],
+            "env": {
+                "SPACEFLIGHT_NEWS_BASE_URL": "https://api.spaceflightnewsapi.net"
+            }
+        },
+        "api2ai-tmdb": {
+            "command": "node",
+            "args": [
+                "./generated/cli/mcp-serve.mjs",
+                "./generated/tools/tmdb-tools.mjs",
+                "--base-url-env",
+                "TMDB_BASE_URL",
+                "--auth-env",
+                "TMDB_ACCESS_TOKEN"
+            ],
+            "env": {
+                "TMDB_BASE_URL": "https://api.themoviedb.org"
+            }
+        },
+        "api2ai-open-meteo": {
+            "command": "node",
+            "args": [
+                "./generated/cli/mcp-serve.mjs",
+                "./generated/tools/open-meteo-tools.mjs",
+                "--base-url-env",
+                "OPEN_METEO_BASE_URL"
+            ],
+            "env": {
+                "OPEN_METEO_BASE_URL": "https://api.open-meteo.com"
+            }
+        },
+        "api2ai-open-meteo-geocoding": {
+            "command": "node",
+            "args": [
+                "./generated/cli/mcp-serve.mjs",
+                "./generated/tools/open-meteo-geocoding-tools.mjs",
+                "--base-url-env",
+                "OPEN_METEO_GEOCODING_BASE_URL"
+            ],
+            "env": {
+                "OPEN_METEO_GEOCODING_BASE_URL": "https://geocoding-api.open-meteo.com"
+            }
+        },
+        "api2ai-github": {
+            "command": "node",
+            "args": [
+                "./generated/cli/mcp-serve.mjs",
+                "./generated/tools/github-tools.mjs",
+                "--base-url-env",
+                "GITHUB_BASE_URL",
+                "--auth-env",
+                "GITHUB_TOKEN"
+            ],
+            "env": {
+                "GITHUB_BASE_URL": "https://api.github.com"
+            }
+        },
+        "api2ai-mock-api": {
+            "command": "node",
+            "args": [
+                "./generated/cli/mcp-serve.mjs",
+                "./generated/tools/mock-api-tools.mjs",
+                "--base-url-env",
+                "MOCK_API_BASE_URL",
+                "--auth-env",
+                "MOCK_API_ACCESS_TOKEN"
+            ],
+            "env": {
+                "MOCK_API_BASE_URL": "http://127.0.0.1:3847"
+            }
+        }
     }
-  }
 }

@@ -1,4 +1,4 @@
-import { describe, expect, test } from "vitest";
+import { describe, expect, test } from 'vitest';
 
 /*
 let services: ReturnType<typeof createApi2AiDslServices>;
@@ -19,7 +19,6 @@ afterEach(async () => {
 */
 
 describe('Linking tests', () => {
-
     test('placeholder linking smoke test', () => {
         expect(true).toBe(true);
     });

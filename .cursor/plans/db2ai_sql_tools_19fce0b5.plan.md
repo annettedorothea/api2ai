@@ -1,22 +1,22 @@
 ---
 name: db2ai SQL tools
-overview: "Zweite Tool-Art `SQL { … }` neben `SELECT * FROM … { … }`: freier SQL in `query` (ohne Autocomplete), Parameter-Doku in `params: { $1: \"…\" }`. Validierung nur: jedes `$n` in `query` hat einen `params`-Eintrag (und umgekehrt keine überzähligen Keys). Kein `exampleParams`, kein DB-Execute. Codegen: prepared statements + MCP-Input-Schema (alle Parameter `string`)."
+overview: 'Zweite Tool-Art `SQL { … }` neben `SELECT * FROM … { … }`: freier SQL in `query` (ohne Autocomplete), Parameter-Doku in `params: { $1: "…" }`. Validierung nur: jedes `$n` in `query` hat einen `params`-Eintrag (und umgekehrt keine überzähligen Keys). Kein `exampleParams`, kein DB-Execute. Codegen: prepared statements + MCP-Input-Schema (alle Parameter `string`).'
 todos:
-  - id: grammar-sql-query
-    content: "Langium: ModelEntry TableQuery|SqlQuery, PARAM_REF, params; kein exampleParams; AST-Migration"
-    status: pending
-  - id: sql-validator
-    content: "Sql-Validator: nur $n in query ↔ params (inkl. Duplikate); kein DB-Execute"
-    status: pending
-  - id: completion-sql-block
-    content: "Completion: SQL_BLOCK_KEYS ohne exampleParams; keine Vorschläge in query-STRING"
-    status: pending
-  - id: codegen-sql-tools
-    content: resolveSqlTools, inputSchema aus params (string), generator invoke + mcp-server generic args
-    status: pending
-  - id: examples-sql-readme
-    content: pagila.db2ai SQL-Beispiel, README, Tests, build/smoke mit CLI-Args
-    status: pending
+    - id: grammar-sql-query
+      content: 'Langium: ModelEntry TableQuery|SqlQuery, PARAM_REF, params; kein exampleParams; AST-Migration'
+      status: pending
+    - id: sql-validator
+      content: 'Sql-Validator: nur $n in query ↔ params (inkl. Duplikate); kein DB-Execute'
+      status: pending
+    - id: completion-sql-block
+      content: 'Completion: SQL_BLOCK_KEYS ohne exampleParams; keine Vorschläge in query-STRING'
+      status: pending
+    - id: codegen-sql-tools
+      content: resolveSqlTools, inputSchema aus params (string), generator invoke + mcp-server generic args
+      status: pending
+    - id: examples-sql-readme
+      content: pagila.db2ai SQL-Beispiel, README, Tests, build/smoke mit CLI-Args
+      status: pending
 isProject: false
 ---
 
@@ -41,12 +41,12 @@ SQL {
 }
 ```
 
-| Element | Rolle |
-|---------|--------|
-| **`SQL { }`** | Eigenständiges Top-Level-Statement (parallel zu `SELECT * FROM`) |
-| **`query`** | Normaler `STRING` mit `$1`, `$2`, … — **kein** SQL-Autocomplete |
-| **`params`** | Map `$n` → **Agent-Doku**; wird MCP-`inputSchema` (Properties + descriptions) |
-| Block-Keywords | `toolName`, `intent`, `summary`, `example`, `query`, `params` |
+| Element        | Rolle                                                                         |
+| -------------- | ----------------------------------------------------------------------------- |
+| **`SQL { }`**  | Eigenständiges Top-Level-Statement (parallel zu `SELECT * FROM`)              |
+| **`query`**    | Normaler `STRING` mit `$1`, `$2`, … — **kein** SQL-Autocomplete               |
+| **`params`**   | Map `$n` → **Agent-Doku**; wird MCP-`inputSchema` (Properties + descriptions) |
+| Block-Keywords | `toolName`, `intent`, `summary`, `example`, `query`, `params`                 |
 
 **Kein `exampleParams`** — weder in Grammar noch Validator noch Beispielen.
 
@@ -116,13 +116,13 @@ terminal PARAM_REF: /\$[0-9]+/;
 
 Neu/erweitert: [`db-2-ai-dsl-sql-validator.ts`](db2ai/packages/language/src/db-2-ai-dsl-sql-validator.ts)
 
-| Check | Schwere | Regel |
-|-------|---------|--------|
-| `$n` in `query` | error | Jedes per Regex gefundene `$n` (z. B. `$1`…`$9`) hat Eintrag in `params.entries` |
-| `params` ohne `$n` | error | Jeder `params`-Key, der nicht in `query` vorkommt → „unused param“ |
-| Doppelte `$n` in `params` | error | wie bei `columns`-Map |
-| `toolName` | error | global eindeutig (`TableQuery` + `SqlQuery`) |
-| `toolName` / `intent` | error | Pflicht (wie Table-Tools) |
+| Check                     | Schwere | Regel                                                                            |
+| ------------------------- | ------- | -------------------------------------------------------------------------------- |
+| `$n` in `query`           | error   | Jedes per Regex gefundene `$n` (z. B. `$1`…`$9`) hat Eintrag in `params.entries` |
+| `params` ohne `$n`        | error   | Jeder `params`-Key, der nicht in `query` vorkommt → „unused param“               |
+| Doppelte `$n` in `params` | error   | wie bei `columns`-Map                                                            |
+| `toolName`                | error   | global eindeutig (`TableQuery` + `SqlQuery`)                                     |
+| `toolName` / `intent`     | error   | Pflicht (wie Table-Tools)                                                        |
 
 Table-Tools: DB-Schema-Check für Tabellen/Spalten **unverändert**. SqlQuery: **kein** `loadSchema` / `pg`.
 
@@ -169,13 +169,13 @@ Table-Tools: DB-Schema-Check für Tabellen/Spalten **unverändert**. SqlQuery: *
 
 ## 6. Abgrenzung (v1)
 
-| Nicht in v1 | |
-|-------------|--|
-| `exampleParams` | bewusst weggelassen |
-| DB-Execute in LSP | |
-| SQL-Autocomplete | |
-| Verbotene SQL-Keywords | optional später |
-| `columns` / `maxLimit` in SQL-Tools | |
+| Nicht in v1                         |                     |
+| ----------------------------------- | ------------------- |
+| `exampleParams`                     | bewusst weggelassen |
+| DB-Execute in LSP                   |                     |
+| SQL-Autocomplete                    |                     |
+| Verbotene SQL-Keywords              | optional später     |
+| `columns` / `maxLimit` in SQL-Tools |                     |
 
 ---
 
@@ -191,9 +191,9 @@ Plan nach Freigabe: [`db2ai/.cursor/plans/db2ai_sql_tools.plan.md`](db2ai/.curso
 
 ## Umsetzungsreihenfolge
 
-1. Grammar + AST-Migration  
-2. Sql-Validator (nur `$n` ↔ `params`)  
-3. Completion  
-4. Codegen + MCP  
-5. Tests + pagila + README  
+1. Grammar + AST-Migration
+2. Sql-Validator (nur `$n` ↔ `params`)
+3. Completion
+4. Codegen + MCP
+5. Tests + pagila + README
 6. `langium:generate && build`

@@ -1,20 +1,20 @@
 ---
 name: examples-http-github-oauth-poc
-overview: "Archiviert — HTTP/GitHub-OAuth-PoC unter examples/poc-http-github wurde entfernt; nicht weiterverfolgt."
+overview: 'Archiviert — HTTP/GitHub-OAuth-PoC unter examples/poc-http-github wurde entfernt; nicht weiterverfolgt.'
 status: cancelled
 todos:
-  - id: poc-server
-    content: examples/poc-http-github/mcp-server.mjs
-    status: cancelled
-  - id: poc-readme
-    content: README PoC
-    status: cancelled
-  - id: poc-cursor-config
-    content: mcp.json.example Eintrag api2ai-poc-github-http
-    status: cancelled
-  - id: poc-verify
-    content: Cursor Connect + Tool
-    status: cancelled
+    - id: poc-server
+      content: examples/poc-http-github/mcp-server.mjs
+      status: cancelled
+    - id: poc-readme
+      content: README PoC
+      status: cancelled
+    - id: poc-cursor-config
+      content: mcp.json.example Eintrag api2ai-poc-github-http
+      status: cancelled
+    - id: poc-verify
+      content: Cursor Connect + Tool
+      status: cancelled
 isProject: true
 ---
 
@@ -58,8 +58,8 @@ sequenceDiagram
 
 - **issuer** = `http://127.0.0.1:{port}` (PoC-Server)
 - [`mcpAuthMetadataRouter`](node_modules/@modelcontextprotocol/sdk/dist/esm/server/auth/router.js) liefert auf dem PoC-Host:
-  - PRM: `authorization_servers: [issuer]`
-  - AS-Metadata: `authorization_endpoint` / `token_endpoint` → **GitHub** (`/login/oauth/authorize`, `/login/oauth/access_token`)
+    - PRM: `authorization_servers: [issuer]`
+    - AS-Metadata: `authorization_endpoint` / `token_endpoint` → **GitHub** (`/login/oauth/authorize`, `/login/oauth/access_token`)
 - Env: `MCP_DANGEROUSLY_ALLOW_INSECURE_ISSUER_URL=true` (HTTP-issuer)
 
 ### Token-Verifikation (MCP-Layer, kein Store)
@@ -73,11 +73,11 @@ sequenceDiagram
 
 ## Dateien
 
-| Datei | Zweck |
-|-------|--------|
+| Datei                                                                                | Zweck                                                       |
+| ------------------------------------------------------------------------------------ | ----------------------------------------------------------- |
 | [`examples/poc-http-github/mcp-server.mjs`](examples/poc-http-github/mcp-server.mjs) | Server (angelehnt an SDK `simpleStreamableHttp.js --oauth`) |
-| [`examples/poc-http-github/README.md`](examples/poc-http-github/README.md) | Setup & Test |
-| [`examples/.cursor/mcp.json.example`](examples/.cursor/mcp.json.example) | Optionaler Eintrag `api2ai-poc-github-http` |
+| [`examples/poc-http-github/README.md`](examples/poc-http-github/README.md)           | Setup & Test                                                |
+| [`examples/.cursor/mcp.json.example`](examples/.cursor/mcp.json.example)             | Optionaler Eintrag `api2ai-poc-github-http`                 |
 
 ## Cursor-Setup (manuell)
 
@@ -107,16 +107,16 @@ sequenceDiagram
 
 ## Bekannte Risiken / Fallbacks
 
-| Risiko | Fallback |
-|--------|----------|
-| Cursor öffnet Browser nicht | URL aus MCP-Log / Doku |
-| GitHub OAuth + `cursor://` Redirect nicht registriert | OAuth App prüfen |
-| Token nicht GitHub-API-fähig | Scopes `read:user` |
-| PoC scheitert | Phase-1-DSL erst nach Anpassung der IdP-Story |
+| Risiko                                                | Fallback                                      |
+| ----------------------------------------------------- | --------------------------------------------- |
+| Cursor öffnet Browser nicht                           | URL aus MCP-Log / Doku                        |
+| GitHub OAuth + `cursor://` Redirect nicht registriert | OAuth App prüfen                              |
+| Token nicht GitHub-API-fähig                          | Scopes `read:user`                            |
+| PoC scheitert                                         | Phase-1-DSL erst nach Anpassung der IdP-Story |
 
 ## Abhängigkeit zum Hauptplan
 
-Ergebnis fließt in [dsl-http-oauth-passthrough_...plan.md](dsl-http-oauth-passthrough_overview_dsl_wählt_stdio-_oder_http-mcp-runtime;_http_optional_mit_idp-me_0e98b246.plan.md) Phase 0 — bei Erfolg Phase 1 starten.
+Ergebnis fließt in [dsl-http-oauth-passthrough\_...plan.md](dsl-http-oauth-passthrough_overview_dsl_wählt_stdio-_oder_http-mcp-runtime;_http_optional_mit_idp-me_0e98b246.plan.md) Phase 0 — bei Erfolg Phase 1 starten.
 
 ## Aufwand
 

@@ -1,25 +1,25 @@
 ---
 name: host-runtime-config-option-b
-overview: "Option B umsetzen: DSL beschreibt nur API-Auth-Header (einheitliches `auth`), Base-URL und Secrets kommen ausschließlich vom MCP-Host via CLI-Flags und `mcp.json` env. `bearerSealed` entfällt. Ziel: belastbare Demo-Grundlage für Lizenz/Beratung, klare Trennung Generator vs. Runtime."
+overview: 'Option B umsetzen: DSL beschreibt nur API-Auth-Header (einheitliches `auth`), Base-URL und Secrets kommen ausschließlich vom MCP-Host via CLI-Flags und `mcp.json` env. `bearerSealed` entfällt. Ziel: belastbare Demo-Grundlage für Lizenz/Beratung, klare Trennung Generator vs. Runtime.'
 todos:
-  - id: dsl-auth-no-baseurl
-    content: "Grammatik: baseUrl entfernen, einheitliches auth {}; Validator/Tests/Completion; langium:generate"
-    status: completed
-  - id: generator-runtime-injection
-    content: "generator.ts + openapi-tool-codegen: credential/baseUrl nur via invokeTool-Options; Seal-Crypto entfernen"
-    status: completed
-  - id: mcp-host-cli
-    content: "mcp-serve: --base-url-env, --auth-env; Injection in tool handler; bundle + copy"
-    status: completed
-  - id: examples-demo
-    content: Alle examples/*.api2ai + mcp.json.example + README Demo/Lizenz-Story; regenerate
-    status: completed
-  - id: remove-sealing
-    content: Seal-Skripte/Keys/Docs/Rules entfernen; github.api2ai auf Env-PAT
-    status: completed
-  - id: verify-smoke
-    content: smoke.ts anpassen; build, test, generate, smoke, manueller Cursor-Check
-    status: completed
+    - id: dsl-auth-no-baseurl
+      content: 'Grammatik: baseUrl entfernen, einheitliches auth {}; Validator/Tests/Completion; langium:generate'
+      status: completed
+    - id: generator-runtime-injection
+      content: 'generator.ts + openapi-tool-codegen: credential/baseUrl nur via invokeTool-Options; Seal-Crypto entfernen'
+      status: completed
+    - id: mcp-host-cli
+      content: 'mcp-serve: --base-url-env, --auth-env; Injection in tool handler; bundle + copy'
+      status: completed
+    - id: examples-demo
+      content: Alle examples/*.api2ai + mcp.json.example + README Demo/Lizenz-Story; regenerate
+      status: completed
+    - id: remove-sealing
+      content: Seal-Skripte/Keys/Docs/Rules entfernen; github.api2ai auf Env-PAT
+      status: completed
+    - id: verify-smoke
+      content: smoke.ts anpassen; build, test, generate, smoke, manueller Cursor-Check
+      status: completed
 isProject: false
 ---
 
@@ -85,12 +85,12 @@ auth {
 GET "/3/search/movie" { ... }
 ```
 
-| Änderung | Detail |
-|----------|--------|
-| `baseUrl` entfernen | Aus `entry Model`; kein Fallback im Generator |
+| Änderung                | Detail                                                     |
+| ----------------------- | ---------------------------------------------------------- |
+| `baseUrl` entfernen     | Aus `entry Model`; kein Fallback im Generator              |
 | `Auth` vereinheitlichen | Ein Block `auth { … }` (kein `bearerEnv` / `bearerSealed`) |
-| Pflichtfelder `auth` | `in`, `name`; optional `prefix` (wie heute) |
-| `insecureEnv` | Unverändert optional auf Model-Ebene |
+| Pflichtfelder `auth`    | `in`, `name`; optional `prefix` (wie heute)                |
+| `insecureEnv`           | Unverändert optional auf Model-Ebene                       |
 
 Validator ([`api-2-ai-dsl-validator.ts`](../../packages/language/src/api-2-ai-dsl-validator.ts)): Regeln für `bearerEnv`/`bearerSealed` löschen; Duplikat-Keys für neues `Auth`-Layout; Tests in [`validating.test.ts`](../../packages/language/test/validating.test.ts) anpassen.
 
@@ -110,11 +110,11 @@ node mcp-serve.mjs <tools.mjs> \
   [--auth-env TMDB_ACCESS_TOKEN]
 ```
 
-| Flag | Pflicht | Verhalten |
-|------|---------|-----------|
-| `--base-url-env` | **ja** (immer) | `process.env[name]` → `invokeTool({ baseUrl })`; fehlt/leer → klarer Fehler beim Tool-Call |
-| `--auth-env` | wenn DSL `auth` hat | Env-Wert = rohes Secret; Generator setzt `prefix` + Header |
-| (kein Flag) | DSL ohne `auth` | Kein Auth-Header (spaceflight, open-meteo) |
+| Flag             | Pflicht             | Verhalten                                                                                  |
+| ---------------- | ------------------- | ------------------------------------------------------------------------------------------ |
+| `--base-url-env` | **ja** (immer)      | `process.env[name]` → `invokeTool({ baseUrl })`; fehlt/leer → klarer Fehler beim Tool-Call |
+| `--auth-env`     | wenn DSL `auth` hat | Env-Wert = rohes Secret; Generator setzt `prefix` + Header                                 |
+| (kein Flag)      | DSL ohne `auth`     | Kein Auth-Header (spaceflight, open-meteo)                                                 |
 
 Parsing: minimal (kein Commander nötig) — `process.argv` oder kleines Hilfsmodul in `mcp-bundle/parse-host-args.ts`.
 
@@ -135,13 +135,13 @@ await invokeTool(name, { baseUrl, credential, pathParams, query, headers, body }
 
 ## 3. Generator ([`generator.ts`](../../packages/cli/src/generator.ts))
 
-| Thema | Änderung |
-|-------|----------|
-| `export const baseUrl = "…"` | **Entfällt** |
-| `authKind` / `bearerSealed` / RSA-A2S1 | **Entfernen** (inkl. Crypto-Imports im generierten Code) |
-| `resolveAuthSecret` | Liest `options.credential` (vom Host); wirft wenn `authConfig` und credential fehlt |
-| `InvokeOptions` | `baseUrl` **required** vom Host; `credential?: string`; kein `sealedCredential` |
-| `inputSchema` | Nie Credential-Felder |
+| Thema                                                                                           | Änderung                                                                                                                  |
+| ----------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| `export const baseUrl = "…"`                                                                    | **Entfällt**                                                                                                              |
+| `authKind` / `bearerSealed` / RSA-A2S1                                                          | **Entfernen** (inkl. Crypto-Imports im generierten Code)                                                                  |
+| `resolveAuthSecret`                                                                             | Liest `options.credential` (vom Host); wirft wenn `authConfig` und credential fehlt                                       |
+| `InvokeOptions`                                                                                 | `baseUrl` **required** vom Host; `credential?: string`; kein `sealedCredential`                                           |
+| `inputSchema`                                                                                   | Nie Credential-Felder                                                                                                     |
 | Tool-Beschreibung ([`openapi-tool-codegen.ts`](../../packages/cli/src/openapi-tool-codegen.ts)) | Runtime-Hinweis: „Configure `--base-url-env` / `--auth-env` on the MCP host (see mcp.json)“ — **keine** Env-Namen aus DSL |
 
 `effectiveBaseUrl = options.baseUrl` (kein Modul-Default).
@@ -150,13 +150,13 @@ await invokeTool(name, { baseUrl, credential, pathParams, query, headers, body }
 
 ## 4. Entfernen: Sealing & GitHub-Seal-Demo
 
-| Entfernen / bereinigen |
-|------------------------|
-| `examples/scripts/seal-bearer-helper.mjs`, Wire-Format-Doc, `npm run seal:*` |
-| `examples/seal-keys/`, gitignore-Einträge für `*-sealed-token.txt` (optional behalten für lokale Altlasten) |
-| [`examples/github.api2ai`](../../examples/github.api2ai) → auf `auth { … }` + Host-Env umstellen (PAT in `GITHUB_TOKEN` o.ä.) |
-| README-Abschnitte zu A2S1 / `sealedCredential` |
-| [`.cursor/rules`](../../examples/.cursor/rules) — Regeln zu `sealedCredential` / Token-Dateien |
+| Entfernen / bereinigen                                                                                                                 |
+| -------------------------------------------------------------------------------------------------------------------------------------- |
+| `examples/scripts/seal-bearer-helper.mjs`, Wire-Format-Doc, `npm run seal:*`                                                           |
+| `examples/seal-keys/`, gitignore-Einträge für `*-sealed-token.txt` (optional behalten für lokale Altlasten)                            |
+| [`examples/github.api2ai`](../../examples/github.api2ai) → auf `auth { … }` + Host-Env umstellen (PAT in `GITHUB_TOKEN` o.ä.)          |
+| README-Abschnitte zu A2S1 / `sealedCredential`                                                                                         |
+| [`.cursor/rules`](../../examples/.cursor/rules) — Regeln zu `sealedCredential` / Token-Dateien                                         |
 | Plan [`github-sealed-bearer.plan.md`](github-sealed-bearer.plan.md) — Hinweis „superseded by host-runtime-config“ (kein Löschen nötig) |
 
 ---

@@ -2,27 +2,27 @@
 name: dsl-unordered-properties
 overview: Make the order of properties inside `Operation { ... }` and `auth apiKey { ... }` blocks free in the api2ai DSL, validating required fields and duplicate keys in the Langium validator instead of in the grammar.
 todos:
-  - id: grammar
-    content: Rewrite `Operation` and `Auth` rules in `packages/language/src/api-2-ai-dsl.langium` as unordered alternation loops
-    status: completed
-  - id: validator-required
-    content: Add required-key checks for Operation (`toolName`, `intent`) and Auth (`in`, `name`, `env`) in `Api2AiDslValidator`
-    status: completed
-  - id: validator-duplicates
-    content: Add CST-based duplicate-key detection per block in `Api2AiDslValidator` using `CstUtils.flattenCst`
-    status: completed
-  - id: tests
-    content: Extend `packages/language/test/parsing.test.ts` and `packages/language/test/validating.test.ts` with shuffled-order parsing tests and validator tests for missing/duplicate keys
-    status: completed
-  - id: consumer-fixes
-    content: Patch generator/codegen call sites for newly optional AST fields (validator-enforced invariant)
-    status: completed
-  - id: readme
-    content: Add one sentence to `README.md` clarifying that properties inside `{ ... }` blocks may appear in any order
-    status: completed
-  - id: build
-    content: Run `npm run langium:generate && npm run build` (workspace rule) and the test suite
-    status: completed
+    - id: grammar
+      content: Rewrite `Operation` and `Auth` rules in `packages/language/src/api-2-ai-dsl.langium` as unordered alternation loops
+      status: completed
+    - id: validator-required
+      content: Add required-key checks for Operation (`toolName`, `intent`) and Auth (`in`, `name`, `env`) in `Api2AiDslValidator`
+      status: completed
+    - id: validator-duplicates
+      content: Add CST-based duplicate-key detection per block in `Api2AiDslValidator` using `CstUtils.flattenCst`
+      status: completed
+    - id: tests
+      content: Extend `packages/language/test/parsing.test.ts` and `packages/language/test/validating.test.ts` with shuffled-order parsing tests and validator tests for missing/duplicate keys
+      status: completed
+    - id: consumer-fixes
+      content: Patch generator/codegen call sites for newly optional AST fields (validator-enforced invariant)
+      status: completed
+    - id: readme
+      content: Add one sentence to `README.md` clarifying that properties inside `{ ... }` blocks may appear in any order
+      status: completed
+    - id: build
+      content: Run `npm run langium:generate && npm run build` (workspace rule) and the test suite
+      status: completed
 isProject: false
 ---
 

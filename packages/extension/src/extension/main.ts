@@ -29,7 +29,12 @@ async function startLanguageClient(context: vscode.ExtensionContext): Promise<La
     // The debug options for the server
     // --inspect=6009: runs the server in Node's Inspector mode so VS Code can attach to the server for debugging.
     // By setting `process.env.DEBUG_BREAK` to a truthy value, the language server will wait until a debugger is attached.
-    const debugOptions = { execArgv: ['--nolazy', `--inspect${process.env.DEBUG_BREAK ? '-brk' : ''}=${process.env.DEBUG_SOCKET || '6009'}`] };
+    const debugOptions = {
+        execArgv: [
+            '--nolazy',
+            `--inspect${process.env.DEBUG_BREAK ? '-brk' : ''}=${process.env.DEBUG_SOCKET || '6009'}`
+        ]
+    };
 
     // If the extension is launched in debug mode then the debug server options are used
     // Otherwise the run options are used
@@ -44,12 +49,7 @@ async function startLanguageClient(context: vscode.ExtensionContext): Promise<La
     };
 
     // Create the language client and start the client.
-    const client = new LanguageClient(
-        'api-2-ai-dsl',
-        'api2ai-dsl',
-        serverOptions,
-        clientOptions
-    );
+    const client = new LanguageClient('api-2-ai-dsl', 'api2ai-dsl', serverOptions, clientOptions);
 
     // Start the client. This will also launch the server
     await client.start();
@@ -106,7 +106,7 @@ function registerCreateDemoWorkspaceCommand(context: vscode.ExtensionContext): v
         try {
             cpSync(sourceDir, targetDir, {
                 recursive: true,
-                filter: (src) => shouldCopyDemoPath(sourceDir, src),
+                filter: (src) => shouldCopyDemoPath(sourceDir, src)
             });
         } catch (error) {
             const message = error instanceof Error ? error.message : String(error);
@@ -130,19 +130,16 @@ async function pickDemoWorkspaceTarget(): Promise<vscode.Uri | undefined> {
         canSelectFiles: false,
         canSelectFolders: true,
         canSelectMany: false,
-        openLabel: 'Create demo workspace here',
+        openLabel: 'Create demo workspace here'
     });
     if (picked?.[0]) {
         return picked[0];
     }
     const folder = vscode.workspace.workspaceFolders?.[0];
     if (folder && !existsSync(path.join(folder.uri.fsPath, 'package.json'))) {
-        const useWorkspace = await vscode.window.showQuickPick(
-            [
-                { label: 'Use current workspace folder', folder },
-            ],
-            { placeHolder: 'No folder selected — use open workspace?' }
-        );
+        const useWorkspace = await vscode.window.showQuickPick([{ label: 'Use current workspace folder', folder }], {
+            placeHolder: 'No folder selected — use open workspace?'
+        });
         if (useWorkspace) {
             return useWorkspace.folder.uri;
         }
@@ -214,14 +211,16 @@ async function generateForSourceFile(
                 resolve();
             }
         );
-    }).then(() => {
-        if (reportSuccess) {
-            void vscode.window.showInformationMessage(`api2ai: generated tools for ${path.basename(sourcePath)}.`);
-        }
-    }).catch((error) => {
-        const message = error instanceof Error ? error.message.trim() : String(error);
-        void vscode.window.showErrorMessage(`api2ai: generate failed for ${path.basename(sourcePath)}: ${message}`);
-    });
+    })
+        .then(() => {
+            if (reportSuccess) {
+                void vscode.window.showInformationMessage(`api2ai: generated tools for ${path.basename(sourcePath)}.`);
+            }
+        })
+        .catch((error) => {
+            const message = error instanceof Error ? error.message.trim() : String(error);
+            void vscode.window.showErrorMessage(`api2ai: generate failed for ${path.basename(sourcePath)}: ${message}`);
+        });
 }
 
 function resolveCliSpawn(context: vscode.ExtensionContext): CliSpawn | undefined {
@@ -245,7 +244,7 @@ function resolveCliSpawn(context: vscode.ExtensionContext): CliSpawn | undefined
     if (existsSync(bundledCliPath)) {
         return {
             scriptPath: bundledCliPath,
-            embedHome: context.asAbsolutePath(path.join('out', 'embed-api2ai')),
+            embedHome: context.asAbsolutePath(path.join('out', 'embed-api2ai'))
         };
     }
 

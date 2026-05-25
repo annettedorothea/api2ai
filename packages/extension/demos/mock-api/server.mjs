@@ -7,9 +7,7 @@ import { mintCustomerToken, verifyJwt } from './jwt.mjs';
 
 const PORT = Number(process.env.MOCK_API_PORT) || 3847;
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const ordersByCustomer = JSON.parse(
-    readFileSync(path.join(__dirname, 'data', 'orders.json'), 'utf8')
-);
+const ordersByCustomer = JSON.parse(readFileSync(path.join(__dirname, 'data', 'orders.json'), 'utf8'));
 
 function sendJson(res, status, body) {
     res.writeHead(status, { 'content-type': 'application/json; charset=utf-8' });

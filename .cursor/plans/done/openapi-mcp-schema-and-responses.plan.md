@@ -1,16 +1,16 @@
 ---
 name: OpenAPI-MCP Schema und Responses
-overview: "Review 1 (JSON-Schema-Metadaten für Parameter) und Review 6 (kompakte Response-/Fehlerinfos in der Tool-Beschreibung): OpenAPI → MCP, ohne unnötige DSL-Komplexität."
+overview: 'Review 1 (JSON-Schema-Metadaten für Parameter) und Review 6 (kompakte Response-/Fehlerinfos in der Tool-Beschreibung): OpenAPI → MCP, ohne unnötige DSL-Komplexität.'
 todos:
-  - id: schema-constraints-test
-    content: "Optional: Fixture-/Codegen-Test, dass minimum/maximum am Query-Param im generierten inputSchema erscheint (Keywords sind bereits in OpenApiSchema + copyOpenApiConstraintKeywords)"
-    status: cancelled
-  - id: response-errors
-    content: "Erledigt: Response-Abschnitt immer aus OpenAPI (2xx nach Priorität + kompakte 4xx/5xx/default, gekappt); kein DSL-Flag"
-    status: completed
-  - id: schema-ref-composition
-    content: "Optional: $ref/Komposition — dereferenzieren oder Validator-Warnung wenn Metadaten fehlen"
-    status: cancelled
+    - id: schema-constraints-test
+      content: 'Optional: Fixture-/Codegen-Test, dass minimum/maximum am Query-Param im generierten inputSchema erscheint (Keywords sind bereits in OpenApiSchema + copyOpenApiConstraintKeywords)'
+      status: cancelled
+    - id: response-errors
+      content: 'Erledigt: Response-Abschnitt immer aus OpenAPI (2xx nach Priorität + kompakte 4xx/5xx/default, gekappt); kein DSL-Flag'
+      status: completed
+    - id: schema-ref-composition
+      content: 'Optional: $ref/Komposition — dereferenzieren oder Validator-Warnung wenn Metadaten fehlen'
+      status: cancelled
 isProject: false
 ---
 
@@ -22,11 +22,11 @@ Im Plan [agent-qualitaet-poc.plan.md](done/agent-qualitaet-poc.plan.md) war **Pa
 
 ## Review 1 — Metadaten im JSON Schema
 
-| Aspekt | Stand |
-|--------|--------|
-| `description` (Param) | erledigt (Merge in [`parameterPropertySchema`](packages/cli/src/openapi-tool-codegen.ts)) |
+| Aspekt                                           | Stand                                                                                                                                                                                                          |
+| ------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `description` (Param)                            | erledigt (Merge in [`parameterPropertySchema`](packages/cli/src/openapi-tool-codegen.ts))                                                                                                                      |
 | `format`, `default`, `enum`, Constraint-Keywords | [`OpenApiSchema`](packages/language/src/openapi.ts) + [`copyOpenApiConstraintKeywords`](packages/cli/src/openapi-tool-codegen.ts) / [`openApiPrimitiveToJsonSchema`](packages/cli/src/openapi-tool-codegen.ts) |
-| `$ref` / Komposition | weiterhin degradiert — optional verbessern oder warnen (Todo `schema-ref-composition`) |
+| `$ref` / Komposition                             | weiterhin degradiert — optional verbessern oder warnen (Todo `schema-ref-composition`)                                                                                                                         |
 
 **Optional:** dedizierter Test (Fixture), dass z. B. `minimum`/`maximum` aus der Spec im generierten `inputSchema` landen.
 

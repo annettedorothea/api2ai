@@ -61,9 +61,7 @@ function resolveOperationPathStringLeaf(root: CstNode, operation: Operation, off
     if (!brace) {
         return undefined;
     }
-    const leafAt =
-        CstUtils.findLeafNodeAtOffset(root, offset) ??
-        CstUtils.findLeafNodeBeforeOffset(root, offset);
+    const leafAt = CstUtils.findLeafNodeAtOffset(root, offset) ?? CstUtils.findLeafNodeBeforeOffset(root, offset);
     if (leafAt && isLeafCstNode(leafAt) && isQuotedOperationPath(leafAt, operation)) {
         return leafAt;
     }
@@ -145,9 +143,7 @@ export class Api2AiDslCompletionProvider extends DefaultCompletionProvider {
         }
         const textDoc = document.textDocument;
         const offset = textDoc.offsetAt(position);
-        const leafAt =
-            CstUtils.findLeafNodeAtOffset(root, offset) ??
-            CstUtils.findLeafNodeBeforeOffset(root, offset);
+        const leafAt = CstUtils.findLeafNodeAtOffset(root, offset) ?? CstUtils.findLeafNodeBeforeOffset(root, offset);
         if (!leafAt || !isLeafCstNode(leafAt)) {
             debugCompletion('buildOpenApiPathCompletionItems: no leaf at offset', offset);
             return [];
@@ -197,8 +193,7 @@ export class Api2AiDslCompletionProvider extends DefaultCompletionProvider {
                 start: textDoc.positionAt(innerStart),
                 end: textDoc.positionAt(prefixEndOffset)
             });
-            let filtered =
-                typedPrefix.length === 0 ? candidates : candidates.filter(p => p.startsWith(typedPrefix));
+            let filtered = typedPrefix.length === 0 ? candidates : candidates.filter((p) => p.startsWith(typedPrefix));
             if (filtered.length === 0 && candidates.length > 0) {
                 debugCompletion('buildOpenApiPathCompletionItems: prefix matched nothing, showing all paths', {
                     typedPrefix,
@@ -212,7 +207,7 @@ export class Api2AiDslCompletionProvider extends DefaultCompletionProvider {
                 method: operation.method
             });
 
-            return filtered.map(route => ({
+            return filtered.map((route) => ({
                 label: `${quoteChar}${route}${quoteChar}`,
                 kind: CompletionItemKind.Value,
                 detail: `${operation.method} OpenAPI`,
@@ -233,7 +228,7 @@ export class Api2AiDslCompletionProvider extends DefaultCompletionProvider {
                 method: operation.method
             });
             const quoteChar = '"';
-            return candidates.map(route => ({
+            return candidates.map((route) => ({
                 label: `${quoteChar}${route}${quoteChar}`,
                 kind: CompletionItemKind.Value,
                 detail: `${operation.method} OpenAPI`,

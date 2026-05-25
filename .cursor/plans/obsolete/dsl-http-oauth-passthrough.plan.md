@@ -1,23 +1,23 @@
 ---
 name: dsl-http-oauth-passthrough
-overview: "Archiviert — nicht im OSS-PoC. DSL HTTP-MCP + IdP + bearerPassthrough war geplant; Scope bleibt stdio + bearerEnv/bearerSealed."
+overview: 'Archiviert — nicht im OSS-PoC. DSL HTTP-MCP + IdP + bearerPassthrough war geplant; Scope bleibt stdio + bearerEnv/bearerSealed.'
 status: cancelled
 todos:
-  - id: phase0-cursor-idp-poc
-    content: "Phase 0 — siehe obsolete/examples-http-github-oauth-poc.plan.md (abgebrochen)"
-    status: cancelled
-  - id: phase1-dsl-validator
-    content: "Phase 1: Grammatik mcp/idp/bearerPassthrough + Validator/Tests"
-    status: cancelled
-  - id: phase2-generator
-    content: "Phase 2: Generator mcpRuntimeConfig + bearerPassthrough"
-    status: cancelled
-  - id: phase3-mcp-http-host
-    content: "Phase 3: mcp-bundle HTTP + PRM/401"
-    status: cancelled
-  - id: phase4-example-docs
-    content: "Phase 4: github-http.api2ai + Doku"
-    status: cancelled
+    - id: phase0-cursor-idp-poc
+      content: 'Phase 0 — siehe obsolete/examples-http-github-oauth-poc.plan.md (abgebrochen)'
+      status: cancelled
+    - id: phase1-dsl-validator
+      content: 'Phase 1: Grammatik mcp/idp/bearerPassthrough + Validator/Tests'
+      status: cancelled
+    - id: phase2-generator
+      content: 'Phase 2: Generator mcpRuntimeConfig + bearerPassthrough'
+      status: cancelled
+    - id: phase3-mcp-http-host
+      content: 'Phase 3: mcp-bundle HTTP + PRM/401'
+      status: cancelled
+    - id: phase4-example-docs
+      content: 'Phase 4: github-http.api2ai + Doku'
+      status: cancelled
 isProject: false
 ---
 
@@ -65,15 +65,15 @@ mcp http {
 }
 ```
 
-| Feld | Pflicht | Bedeutung |
-|------|---------|-----------|
-| `mcp stdio` | — | Generiert/erwartet stdio-Host (heute) |
-| `mcp http { … }` | — | HTTP-Host |
-| `port` | nein (Default z. B. `3000`) | Bind-Port (nur Runtime-Hinweis im Export) |
-| `idp { … }` | nein | PRM-Inhalt; ohne IdP: HTTP ohne MCP-OAuth-Discovery (Dev mit `bearerEnv` möglich) |
-| `authorizationServer` | ja (wenn `idp`) | Eintrag in PRM `authorization_servers` |
-| `resource` | nein | Canonical Resource URI (RFC 8707); Default aus Generator: `http://127.0.0.1:{port}/mcp` |
-| `scopes` | nein | Dokumentation in PRM / Hinweis für Cursor-`mcp.json` (nicht vom Server ausgehandelt) |
+| Feld                  | Pflicht                     | Bedeutung                                                                               |
+| --------------------- | --------------------------- | --------------------------------------------------------------------------------------- |
+| `mcp stdio`           | —                           | Generiert/erwartet stdio-Host (heute)                                                   |
+| `mcp http { … }`      | —                           | HTTP-Host                                                                               |
+| `port`                | nein (Default z. B. `3000`) | Bind-Port (nur Runtime-Hinweis im Export)                                               |
+| `idp { … }`           | nein                        | PRM-Inhalt; ohne IdP: HTTP ohne MCP-OAuth-Discovery (Dev mit `bearerEnv` möglich)       |
+| `authorizationServer` | ja (wenn `idp`)             | Eintrag in PRM `authorization_servers`                                                  |
+| `resource`            | nein                        | Canonical Resource URI (RFC 8707); Default aus Generator: `http://127.0.0.1:{port}/mcp` |
+| `scopes`              | nein                        | Dokumentation in PRM / Hinweis für Cursor-`mcp.json` (nicht vom Server ausgehandelt)    |
 
 **Auth (erweitern):**
 
@@ -95,15 +95,15 @@ Nach Änderung: `npm run langium:generate` (Workspace-Regel).
 
 Neue Regeln (mit Tests in [`validating.test.ts`](packages/language/test/validating.test.ts)):
 
-| Kombination | Ergebnis |
-|-------------|----------|
-| kein `mcp` | `transport: stdio` (implizit) |
-| `mcp http` + `auth bearerSealed` | **Error** |
-| `mcp http` + `auth bearerPassthrough` | OK |
-| `mcp http` + `auth bearerEnv` | OK (Dev) |
+| Kombination                            | Ergebnis                                                  |
+| -------------------------------------- | --------------------------------------------------------- |
+| kein `mcp`                             | `transport: stdio` (implizit)                             |
+| `mcp http` + `auth bearerSealed`       | **Error**                                                 |
+| `mcp http` + `auth bearerPassthrough`  | OK                                                        |
+| `mcp http` + `auth bearerEnv`          | OK (Dev)                                                  |
 | `mcp stdio` + `auth bearerPassthrough` | **Error** (oder Warning → lieber Error, klarere Semantik) |
-| `idp` ohne `mcp http` | **Error** |
-| `idp` ohne `authorizationServer` | **Error** |
+| `idp` ohne `mcp http`                  | **Error**                                                 |
+| `idp` ohne `authorizationServer`       | **Error**                                                 |
 
 Bestehende Auth-/Block-Checks für `bearerPassthrough` analog `bearerEnv` (`in`, `name`, optional `prefix`).
 
@@ -152,9 +152,9 @@ Nicht im MCP-Tool-`inputSchema` (Agent soll kein Token eingeben).
 
 - [`mcp-server.ts`](packages/cli/mcp-bundle/mcp-server.ts): Transport-Fabrik `stdio | http`.
 - Neues Modul z. B. `mcp-http-server.ts`:
-  - Node-HTTP(S) + **Streamable HTTP** aus `@modelcontextprotocol/sdk` (Version [^1.29.0](packages/cli/package.json) — **Implementierungs-Spike**: exakte Imports/`mcpAuthRouter` im SDK verifizieren).
-  - Route **Protected Resource Metadata** (RFC 9728 Pfad laut MCP-Spec, z. B. `/.well-known/oauth-protected-resource` relativ zur MCP-Base-URL).
-  - Bei fehlendem/ungültigem MCP-`Authorization`: **401** + `WWW-Authenticate` mit `resource_metadata=…` (nur wenn `idp` in DSL gesetzt; sonst 401 ohne OAuth-Hinweis oder konfigurierbar „strict“).
+    - Node-HTTP(S) + **Streamable HTTP** aus `@modelcontextprotocol/sdk` (Version [^1.29.0](packages/cli/package.json) — **Implementierungs-Spike**: exakte Imports/`mcpAuthRouter` im SDK verifizieren).
+    - Route **Protected Resource Metadata** (RFC 9728 Pfad laut MCP-Spec, z. B. `/.well-known/oauth-protected-resource` relativ zur MCP-Base-URL).
+    - Bei fehlendem/ungültigem MCP-`Authorization`: **401** + `WWW-Authenticate` mit `resource_metadata=…` (nur wenn `idp` in DSL gesetzt; sonst 401 ohne OAuth-Hinweis oder konfigurierbar „strict“).
 
 ### 4.2 Request → Tool: Bearer durchreichen
 
@@ -199,13 +199,13 @@ So funktioniert Cursor (sendet oft `Bearer …`) und GitHub-API gleichzeitig.
 
 ## 6. Beispiele & Doku
 
-| Artefakt | Aktion |
-|----------|--------|
-| Neues [`examples/github-http.api2ai`](examples/github-http.api2ai) | `mcp http` + `idp` (GitHub) + `auth bearerPassthrough`; gleiche Operations wie [`github.api2ai`](examples/github.api2ai) |
-| [`github.api2ai`](examples/github.api2ai) | bleibt stdio + `bearerSealed` (bestehendes Demo) |
-| [`examples/.cursor/mcp.json.example`](examples/.cursor/mcp.json.example) | Zusätzlicher Eintrag `url: "http://127.0.0.1:3000/mcp"` für HTTP-Beispiel; Hinweis: OAuth-Client bei GitHub + Redirect `cursor://anysphere.cursor-mcp/oauth/callback` (**manuell**, nicht vom Server verwaltet) |
-| [`examples/README.md`](examples/README.md) / Root [`README.md`](README.md) | Abschnitt HTTP vs stdio, PRM/IdP, Passthrough, kein Token-Store |
-| Root `package.json` | `generate:github-http-tools` Script |
+| Artefakt                                                                   | Aktion                                                                                                                                                                                                          |
+| -------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Neues [`examples/github-http.api2ai`](examples/github-http.api2ai)         | `mcp http` + `idp` (GitHub) + `auth bearerPassthrough`; gleiche Operations wie [`github.api2ai`](examples/github.api2ai)                                                                                        |
+| [`github.api2ai`](examples/github.api2ai)                                  | bleibt stdio + `bearerSealed` (bestehendes Demo)                                                                                                                                                                |
+| [`examples/.cursor/mcp.json.example`](examples/.cursor/mcp.json.example)   | Zusätzlicher Eintrag `url: "http://127.0.0.1:3000/mcp"` für HTTP-Beispiel; Hinweis: OAuth-Client bei GitHub + Redirect `cursor://anysphere.cursor-mcp/oauth/callback` (**manuell**, nicht vom Server verwaltet) |
+| [`examples/README.md`](examples/README.md) / Root [`README.md`](README.md) | Abschnitt HTTP vs stdio, PRM/IdP, Passthrough, kein Token-Store                                                                                                                                                 |
+| Root `package.json`                                                        | `generate:github-http-tools` Script                                                                                                                                                                             |
 
 ---
 
@@ -233,12 +233,12 @@ So funktioniert Cursor (sendet oft `Bearer …`) und GitHub-API gleichzeitig.
 
 ## 9. Was noch unklar ist (vor Implementierung)
 
-| Thema | Status | Wo geklärt |
-|--------|--------|------------|
-| SDK: Streamable HTTP + Auth-Context pro Request | **Spike nötig** | Phase 0 / Phase 3 |
-| GitHub als `authorizationServer` in PRM — akzeptiert Cursor das und liefert ein **GitHub-API-Token** (nicht nur ein opaques MCP-JWT)? | **PoC-Risiko** | Phase 0 — sonst Fallback-Doku (eigener AS / statisches `mcp.json`-OAuth) |
-| Exakter PRM-Pfad + `WWW-Authenticate`-Format für Cursor | **PoC** | Phase 0 (`curl` + Connect) |
-| TLS/öffentliche URL vs. `localhost` (Redirect, Resource URI) | Betrieb | Doku; lokal oft `127.0.0.1` + manueller Token-Test parallel |
+| Thema                                                                                                                                 | Status          | Wo geklärt                                                               |
+| ------------------------------------------------------------------------------------------------------------------------------------- | --------------- | ------------------------------------------------------------------------ |
+| SDK: Streamable HTTP + Auth-Context pro Request                                                                                       | **Spike nötig** | Phase 0 / Phase 3                                                        |
+| GitHub als `authorizationServer` in PRM — akzeptiert Cursor das und liefert ein **GitHub-API-Token** (nicht nur ein opaques MCP-JWT)? | **PoC-Risiko**  | Phase 0 — sonst Fallback-Doku (eigener AS / statisches `mcp.json`-OAuth) |
+| Exakter PRM-Pfad + `WWW-Authenticate`-Format für Cursor                                                                               | **PoC**         | Phase 0 (`curl` + Connect)                                               |
+| TLS/öffentliche URL vs. `localhost` (Redirect, Resource URI)                                                                          | Betrieb         | Doku; lokal oft `127.0.0.1` + manueller Token-Test parallel              |
 
 **Fachlich klar (kein PoC nötig):** Passthrough-Architektur, kein Token-Store, stdio vs. http, PRM-only IdP, `bearerEnv` für HTTP-Dev.
 
