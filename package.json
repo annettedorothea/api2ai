@@ -16,6 +16,7 @@
         "langium:generate": "npm run --workspace packages/language langium:generate",
         "langium:watch": "npm run --workspace packages/language langium:watch",
         "test": "npm run --workspace packages/language test && npm run --workspace packages/cli test",
+        "test:coverage": "npm run --workspace packages/language test:coverage && npm run --workspace packages/cli test:coverage",
         "format": "prettier --write .",
         "format:check": "prettier --check .",
         "typecheck": "npm --prefix ../core2ai run typecheck && tsc -b tsconfig.build.json --pretty false",
@@ -30,6 +31,7 @@
     "devDependencies": {
         "@eslint/js": "^10.0.1",
         "@types/node": "~20.17.48",
+        "@vitest/coverage-v8": "^3.1.4",
         "esbuild": "^0.25.12",
         "eslint": "^10.4.0",
         "prettier": "^3.8.3",

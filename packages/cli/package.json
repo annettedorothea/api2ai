@@ -20,7 +20,8 @@
         "clean": "shx rm -fr *.tsbuildinfo out",
         "build": "echo 'No build step'",
         "build:clean": "npm run clean && npm run build",
-        "test": "vitest run"
+        "test": "vitest run",
+        "test:coverage": "vitest run --coverage"
     },
     "dependencies": {
         "@core2ai/codegen": "file:../../../core2ai/packages/codegen",
