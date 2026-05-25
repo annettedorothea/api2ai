@@ -3,7 +3,7 @@ import { Command } from 'commander';
 import * as url from 'node:url';
 import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
-import { runSmokeGenerated } from '../smoke/smoke-generated.js';
+import { runSmokeGenerated } from '../test/smoke/smoke-generated.js';
 import { generateAction } from './generate-command.js';
 const __dirname = url.fileURLToPath(new URL('.', import.meta.url));
 

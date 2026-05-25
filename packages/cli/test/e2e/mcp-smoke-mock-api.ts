@@ -1,13 +1,13 @@
+import { runMcpStdioSmoke } from '@core2ai/mcp-host';
 import { spawn, type ChildProcess } from 'node:child_process';
 import * as fs from 'node:fs/promises';
 import * as net from 'node:net';
 import * as path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { generateAction } from '../src/generate-command.js';
-import { runMcpStdioSmoke } from './mcp-stdio-smoke.js';
+import { generateAction } from '../../src/generate-command.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const cliRoot = path.resolve(__dirname, '../..');
+const cliRoot = path.resolve(__dirname, '../../..');
 const workspaceRoot = path.resolve(cliRoot, '../..');
 const demosRoot = path.join(workspaceRoot, 'packages/extension/demos');
 const mockApiServerPath = path.join(demosRoot, 'mock-api/server.mjs');
