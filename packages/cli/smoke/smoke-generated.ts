@@ -83,7 +83,7 @@ function resolveSmokeHostRuntime(modulePath: string, requiresAuth: boolean): { b
     return { baseUrl };
 }
 
-/** Integration smoke: one direct invokeTool call on a generated *-tools.mjs (no MCP stdio). */
+/** Smoke command: one direct invokeTool call on a generated *-tools.mjs (no MCP stdio). */
 export async function runSmokeGenerated(modulePath: string, toolName: string, argsJson?: string): Promise<void> {
     const envDirs = [process.cwd(), path.dirname(path.resolve(modulePath))];
     loadLocalEnvFiles(envDirs);

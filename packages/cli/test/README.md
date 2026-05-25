@@ -1,9 +1,10 @@
 # CLI tests
 
-| Path                                 | Kind              | What it checks                                                                          |
-| ------------------------------------ | ----------------- | --------------------------------------------------------------------------------------- |
-| `integration/smoke-generated.ts`     | Integration smoke | One `invokeTool` on a generated `*-tools.mjs` from demos (HTTP only, **no** MCP server) |
-| `json-schema-to-zod-codegen.test.ts` | Unit (Vitest)     | Zod emission from JSON Schema IR                                                        |
+| Path                                         | Kind              | What it checks                                                                                   |
+| -------------------------------------------- | ----------------- | ------------------------------------------------------------------------------------------------ |
+| `integration/mock-api-direct-invoke.test.ts` | Integration test  | Generates mock API tools, calls public `login`, then authenticated `listCustomerOrders` directly |
+| `../smoke/smoke-generated.ts`                | Integration smoke | One `invokeTool` on a generated `*-tools.mjs` from demos (HTTP only, **no** MCP server)          |
+| `json-schema-to-zod-codegen.test.ts`         | Unit (Vitest)     | Zod emission from JSON Schema IR                                                                 |
 
 ## Run from repo root
 
@@ -17,7 +18,7 @@ npm run test:smoke:mock-api
 npm run test:mcp
 ```
 
-`smoke-generated` is still exposed as a CLI subcommand (`node packages/cli/bin/cli.js smoke-generated …`) for ad-hoc runs; implementation lives here under `test/integration/`.
+`smoke-generated` is still exposed as a CLI subcommand (`node packages/cli/bin/cli.js smoke-generated …`) for ad-hoc runs; implementation lives in `packages/cli/smoke/`.
 
 ---
 

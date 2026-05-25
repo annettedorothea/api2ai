@@ -11,7 +11,8 @@ Langium’s Minilogo CLI guide is still a useful reference for the shared patter
 - [src/main.ts](./src/main.ts) – Commander setup: `generate`, `smoke-generated`.
 - [src/generate-command.ts](./src/generate-command.ts) – wiring for the generate command.
 - [src/generator.ts](./src/generator.ts) – writes generated tool modules and copies the bundled MCP entry.
-- [test/integration/smoke-generated.ts](./test/integration/smoke-generated.ts) – integration smoke runner (`smoke-generated` CLI command).
+- [smoke/smoke-generated.ts](./smoke/smoke-generated.ts) – integration smoke runner (`smoke-generated` CLI command).
+- [test/integration/](./test/integration/) – Vitest integration tests, including mock API direct invoke.
 - [test/README.md](./test/README.md) – how smoke vs `test:mcp` differ.
 - [src/openapi-tool-codegen.ts](./src/openapi-tool-codegen.ts) – OpenAPI-derived input schemas for tools.
 - [src/util.ts](./src/util.ts) – helpers.
