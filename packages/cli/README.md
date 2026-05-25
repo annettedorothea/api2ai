@@ -28,3 +28,7 @@ node ./packages/cli/bin/cli.js smoke-generated <path-to-*-tools.mjs> <toolName> 
 ```
 
 Prefer `npm run generate:*` or `generate:all` in **[`../extension/demos/`](../extension/demos/)** for the bundled demos. Root `test:smoke` / `test:mcp` use [`../extension/demos/generated/`](../extension/demos/generated/).
+
+---
+
+_Created with gratitude to Jesus Christ._

@@ -31,3 +31,7 @@ See the generated **`README.md`** in your demo folder for prompts and server nam
 ## License
 
 MIT — Copyright (c) Annette Pohl. Full license text is included in the VSIX (`LICENSE` file, copied from the api2ai repository root when you run `npm run extension:vsix`).
+
+---
+
+_Created with gratitude to Jesus Christ._

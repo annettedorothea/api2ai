@@ -43,3 +43,7 @@ After `npm run generate:mock-api-tools`, enable `api2ai-mock-api` in `.cursor/mc
 - **`listCustomerOrders`** — no `customerId` in schema; taken from JWT via `fromJwt` (set token in `.env.local` first)
 
 Prompts: `api2ai login as alice` then `api2ai list my orders`.
+
+---
+
+_Created with gratitude to Jesus Christ._

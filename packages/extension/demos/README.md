@@ -86,3 +86,7 @@ Prefix with **`api2ai`**: weather, SpaceX launch, TMDB Dune, GitHub user/repos.
 2. `my-api.api2ai` with curated operations
 3. Save, **Generate tool code**, or `npm run generate:…` (add a script in `package.json` like the others)
 4. Extend `mcp.json` and `.env.local`
+
+---
+
+_Created with gratitude to Jesus Christ._

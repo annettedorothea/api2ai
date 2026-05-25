@@ -18,3 +18,7 @@ npm run test:mcp
 ```
 
 `smoke-generated` is still exposed as a CLI subcommand (`node packages/cli/bin/cli.js smoke-generated …`) for ad-hoc runs; implementation lives here under `test/integration/`.
+
+---
+
+_Created with gratitude to Jesus Christ._

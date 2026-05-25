@@ -12,3 +12,7 @@ Langium package for the **`.api2ai` DSL** (grammar, OpenAPI-linked validation, c
 - [`test/`](./test/) — parsing, validation, completion tests
 
 Monorepo overview: [`../../README.md`](../../README.md).
+
+---
+
+_Created with gratitude to Jesus Christ._
