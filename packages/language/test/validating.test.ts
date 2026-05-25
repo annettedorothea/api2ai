@@ -211,38 +211,6 @@ describe('Validating', () => {
         expect(diagnostics.some((d) => d.message.includes('auth requires `name'))).toBe(true);
     });
 
-    test('reports duplicate key inside operation block', async () => {
-        document = await parseValidated(`
-            openapi "./petstore-mini.openapi.yaml"
-            GET "/pet/{petId}" {
-                toolName: "getPetById"
-                intent: "get one pet"
-                toolName: "secondName"
-            }
-        `);
-
-        const diagnostics = document.diagnostics ?? [];
-        expect(diagnostics.some((d) => d.message.includes('Duplicate key "toolName"'))).toBe(true);
-    });
-
-    test('reports duplicate key inside auth block', async () => {
-        document = await parseValidated(`
-            openapi "./petstore-mini.openapi.yaml"
-            auth {
-                in: header
-                name: "Authorization"
-                name: "X-Other"
-            }
-            GET "/pet/{petId}" {
-                toolName: "getPetById"
-                intent: "get one pet"
-            }
-        `);
-
-        const diagnostics = document.diagnostics ?? [];
-        expect(diagnostics.some((d) => d.message.includes('Duplicate key "name"'))).toBe(true);
-    });
-
     test('reports empty fromJwt', async () => {
         document = await parseValidated(`
             openapi "./petstore-mini.openapi.yaml"
@@ -259,19 +227,5 @@ describe('Validating', () => {
 
         const diagnostics = document.diagnostics ?? [];
         expect(diagnostics.some((d) => d.message.includes('auth fromJwt must not be empty'))).toBe(true);
-    });
-
-    test('accepts an operation with properties in shuffled order', async () => {
-        document = await parseValidated(`
-            openapi "./petstore-mini.openapi.yaml"
-            GET "/pet/{petId}" {
-                description: "details"
-                summary: "the title"
-                intent: "get one pet"
-                toolName: "getPetById"
-            }
-        `);
-
-        expect(document.diagnostics ?? []).toHaveLength(0);
     });
 });

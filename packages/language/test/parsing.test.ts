@@ -3,7 +3,6 @@ import { parseHelper } from 'langium/test';
 import { beforeAll, describe, expect, test } from 'vitest';
 import { createApi2AiDslServices } from '../src/api-2-ai-dsl-module.js';
 import type { Model } from '../src/generated/ast.js';
-import { isAuth } from '../src/generated/ast.js';
 
 let parse: ReturnType<typeof parseHelper<Model>>;
 let document: LangiumDocument<Model> | undefined;
@@ -61,7 +60,7 @@ describe('Parsing tests', () => {
         expect(document.parseResult.parserErrors.length).toBeGreaterThan(0);
     });
 
-    test('parses operation with properties in shuffled order', async () => {
+    test('rejects operation properties outside the canonical order', async () => {
         document = await parse(`
             openapi "./petstore.openapi.yaml"
             GET "/customers" {
@@ -73,13 +72,7 @@ describe('Parsing tests', () => {
             }
         `);
 
-        expect(document.parseResult.parserErrors).toHaveLength(0);
-        const op = document.parseResult.value.operations[0];
-        expect(op.toolName).toBe('listCustomers');
-        expect(op.intent).toBe('list');
-        expect(op.example).toBe('Example call');
-        expect(op.summary).toBe('the title');
-        expect(op.description).toBe('long text');
+        expect(document.parseResult.parserErrors.length).toBeGreaterThan(0);
     });
 
     test('parses optional insecureEnv flag', async () => {
@@ -96,7 +89,7 @@ describe('Parsing tests', () => {
         expect(document.parseResult.value.insecureEnv).toBe(true);
     });
 
-    test('parses auth block with properties in shuffled order', async () => {
+    test('rejects auth properties outside the canonical order', async () => {
         document = await parse(`
             openapi "./petstore.openapi.yaml"
             auth {
@@ -110,14 +103,7 @@ describe('Parsing tests', () => {
             }
         `);
 
-        expect(document.parseResult.parserErrors).toHaveLength(0);
-        const auth = document.parseResult.value.auth;
-        expect(auth && isAuth(auth)).toBe(true);
-        if (auth && isAuth(auth)) {
-            expect(auth.location).toBe('header');
-            expect(auth.name).toBe('Authorization');
-            expect(auth.prefix).toBe('Bearer ');
-        }
+        expect(document.parseResult.parserErrors.length).toBeGreaterThan(0);
     });
 
     test('parses auth block with fromJwt', async () => {

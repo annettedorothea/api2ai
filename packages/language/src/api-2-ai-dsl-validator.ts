@@ -1,7 +1,6 @@
 import path from 'node:path';
 import type { ValidationAcceptor, ValidationChecks } from 'langium';
-import { CstUtils, isLeafCstNode } from 'langium';
-import type { Api2AiDslAstType, Auth, Model, Operation } from './generated/ast.js';
+import type { Api2AiDslAstType, Model, Operation } from './generated/ast.js';
 import type { Api2AiDslServices } from './api-2-ai-dsl-module.js';
 import {
     getCookieParameterMessages,
@@ -9,9 +8,6 @@ import {
     loadOpenApi,
     makeOperationLookupKey
 } from './openapi.js';
-
-const OPERATION_BLOCK_KEYS = ['toolName', 'intent', 'example', 'summary', 'description', 'public'] as const;
-const AUTH_BLOCK_KEYS = ['in', 'name', 'prefix', 'fromJwt'] as const;
 
 /**
  * Register custom validation checks.
@@ -32,7 +28,6 @@ export class Api2AiDslValidator {
     async checkModel(model: Model, accept: ValidationAcceptor): Promise<void> {
         this.checkAuth(model, accept);
         this.checkOperationRequiredKeys(model, accept);
-        this.checkBlockDuplicateKeys(model, accept);
         this.checkUniqueToolNames(model, accept);
         await this.checkReferencedOperationsExist(model, accept);
     }
@@ -92,52 +87,6 @@ export class Api2AiDslValidator {
                     property: 'intent'
                 });
             }
-        }
-    }
-
-    private checkBlockDuplicateKeys(model: Model, accept: ValidationAcceptor): void {
-        const auth = model.auth;
-        if (auth) {
-            this.reportDuplicateKeywords(auth, AUTH_BLOCK_KEYS, accept);
-        }
-        for (const operation of model.operations) {
-            this.reportDuplicateKeywords(operation, OPERATION_BLOCK_KEYS, accept);
-        }
-    }
-
-    /**
-     * Grammar uses an unordered alternation loop, so a repeated property would
-     * silently overwrite the AST value. We walk the block's CST to flag every
-     * occurrence after the first one as an error.
-     */
-    private reportDuplicateKeywords(
-        node: Operation | Auth,
-        keywords: readonly string[],
-        accept: ValidationAcceptor
-    ): void {
-        const cst = node.$cstNode;
-        if (!cst) {
-            return;
-        }
-        const allowed = new Set<string>(keywords);
-        const seen = new Set<string>();
-        for (const leaf of CstUtils.flattenCst(cst)) {
-            if (!isLeafCstNode(leaf)) {
-                continue;
-            }
-            const text = leaf.text;
-            if (!allowed.has(text)) {
-                continue;
-            }
-            if (!seen.has(text)) {
-                seen.add(text);
-                continue;
-            }
-            const range = leaf.range;
-            accept('error', `Duplicate key "${text}". Each property may appear at most once per block.`, {
-                node,
-                range
-            });
         }
     }
 

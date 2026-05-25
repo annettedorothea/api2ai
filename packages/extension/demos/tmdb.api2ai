@@ -9,8 +9,8 @@ auth {
 GET "/3/search/movie" {
     toolName: "searchTmdbMovies"
     intent: "search TMDB movies by title"
-    example: "Find movies named Dune"
     summary: "Search movies by title"
+    example: "Find movies named Dune"
 }
 
 GET "/3/movie/popular" {
@@ -23,76 +23,76 @@ GET "/3/movie/popular" {
 GET "/3/movie/{movie_id}" {
     toolName: "getTmdbMovieDetails"
     intent: "retrieve details for a TMDB movie by id"
-    example: "Get details for movie id 693134"
     summary: "Movie details by ID"
+    example: "Get details for movie id 693134"
 }
 
 GET "/3/movie/{movie_id}/credits" {
     toolName: "getTmdbMovieCredits"
     intent: "retrieve cast and crew credits for a TMDB movie"
-    example: "Who played in movie id 693134?"
     summary: "Movie cast and crew"
+    example: "Who played in movie id 693134?"
 }
 
 GET "/3/discover/movie" {
     toolName: "discoverTmdbMovies"
     intent: "discover TMDB movies using rich filters such as genre, year, and rating"
-    example: "Find highly rated science fiction movies from 2024"
     summary: "Discover movies with filters"
+    example: "Find highly rated science fiction movies from 2024"
 }
 
 GET "/3/genre/movie/list" {
     toolName: "getTmdbMovieGenres"
     intent: "retrieve TMDB movie genres for filtering and lookup"
-    example: "List available movie genres"
     summary: "Movie genre list"
+    example: "List available movie genres"
 }
 
 GET "/3/trending/movie/{time_window}" {
     toolName: "getTmdbTrendingMovies"
     intent: "retrieve trending TMDB movies for a selected time window"
-    example: "Show trending movies this week"
     summary: "Trending movies"
+    example: "Show trending movies this week"
 }
 
 GET "/3/movie/{movie_id}/videos" {
     toolName: "getTmdbMovieVideos"
     intent: "retrieve videos such as trailers for a TMDB movie"
-    example: "Show trailers for movie id 693134"
     summary: "Movie videos and trailers"
+    example: "Show trailers for movie id 693134"
 }
 
 GET "/3/search/multi" {
     toolName: "searchTmdbMulti"
     intent: "search TMDB across movies, tv shows, and people"
-    example: "Search TMDB for Dune across all media types"
     summary: "Multi search (movies, TV, people)"
+    example: "Search TMDB for Dune across all media types"
 }
 
 GET "/3/movie/{movie_id}/release_dates" {
     toolName: "getTmdbMovieReleaseDates"
     intent: "retrieve release dates for a TMDB movie"
-    example: "When was movie id 693134 released?"
     summary: "Movie release dates"
+    example: "When was movie id 693134 released?"
 }
 
 GET "/3/movie/{movie_id}/recommendations" {
     toolName: "getTmdbMovieRecommendations"
     intent: "retrieve recommendations for a TMDB movie"
-    example: "Recommendations for movie id 693134"
     summary: "Movie recommendations"
+    example: "Recommendations for movie id 693134"
 }
 
 GET "/3/movie/{movie_id}/similar" {
     toolName: "getTmdbMovieSimilar"
     intent: "retrieve similar movies for a TMDB movie"
-    example: "Find similar movies to 693134"
     summary: "Retrieve similar movies"
+    example: "Find similar movies to 693134"
 }
 
 GET "/3/movie/{movie_id}/reviews" {
     toolName: "getTmdbMovieReviews"
     intent: "retrieve reviews for a TMDB movie"
-    example: "Reviews for movie id 693134"
     summary: "Retrieve movie reviews"
+    example: "Reviews for movie id 693134"
 }

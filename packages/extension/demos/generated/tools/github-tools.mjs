@@ -10,7 +10,7 @@ export const generatedTools = [
         toolName: 'getGitHubAuthenticatedUser',
         title: 'Get the authenticated user',
         description:
-            'Intent:\nreturn the GitHub user profile for the authenticated PAT; use to confirm which account the token represents before calling repo-scoped tools\n\nAPI:\nRequires a user PAT with at least read:user (classic) or equivalent fine-grained scope.\n\nMeta:\noperationId: get-authenticated-user\n\nExample:\nNo path or query parameters\n\nResponse:\nHTTP 200\nOK\ntype: object (no inlined properties)\nDocumented errors:\nHTTP 401 — Unauthorized\nHTTP 403 — Forbidden (rate limit or insufficient token scope)\n\nRuntime auth: MCP host injects the API credential via --auth-env; send as header "Authorization" (prefix applied to the secret).',
+            'Intent:\nreturn the GitHub user profile for the authenticated PAT; use to confirm which account the token represents before calling repo-scoped tools\n\nAPI:\nRequires a user PAT with at least read:user (classic) or equivalent fine-grained scope.\n\nMeta:\noperationId: get-authenticated-user\n\nExample:\nNo path or query parameters\n\nResponse:\nHTTP 200\nOK\ntype: object (no inlined properties)\nDocumented errors:\nHTTP 401 — Unauthorized\nHTTP 403 — Forbidden (rate limit or insufficient token scope)\n\nRuntime auth: MCP host injects the API credential via --auth-env; send as header "Authorization" (prefix applied to the secret). Path parameter "customerId" is derived from that JWT claim; do not pass it in tool arguments.',
         method: 'GET',
         path: '/user',
         example: 'No path or query parameters',
@@ -20,7 +20,7 @@ export const generatedTools = [
         toolName: 'listGitHubUserRepos',
         title: 'List repositories for the authenticated user',
         description:
-            'Intent:\nlist repositories the authenticated PAT can access; use to find owner/repo and to debug 404 on GET /repos/{owner}/{repo}\n\nAPI:\nLists repositories the authenticated user has **direct** access to (your own repos, collaborations, org repos the token can see).\n\n**Classic PAT:** use scope `repo` if you need private repositories; without it, private repos may be omitted or single-repo `GET /repos/{owner}/{repo}` can return **404** (GitHub hides existence of private repos you cannot read).\n\n**Fine-grained PAT:** grant **Repository permissions** (e.g. Metadata read) on each repository or via organization/team rules; missing scope often surfaces as **404** on `GET /repos/{owner}/{repo}`, not 403.\n\nPrefer this endpoint to discover `owner`/`repo` names before calling `GET /repos/{owner}/{repo}`.\n\nMeta:\noperationId: list-repositories-for-the-authenticated-user\n\nExample:\nFirst page, 10 per page: query per_page=10 page=1\n\nResponse:\nHTTP 200\nOK — array of repository objects\ntype: array of object\nDocumented errors:\nHTTP 401 — Unauthorized\nHTTP 403 — Forbidden (rate limit or insufficient token)\n\nRuntime auth: MCP host injects the API credential via --auth-env; send as header "Authorization" (prefix applied to the secret).',
+            'Intent:\nlist repositories the authenticated PAT can access; use to find owner/repo and to debug 404 on GET /repos/{owner}/{repo}\n\nAPI:\nLists repositories the authenticated user has **direct** access to (your own repos, collaborations, org repos the token can see).\n\n**Classic PAT:** use scope `repo` if you need private repositories; without it, private repos may be omitted or single-repo `GET /repos/{owner}/{repo}` can return **404** (GitHub hides existence of private repos you cannot read).\n\n**Fine-grained PAT:** grant **Repository permissions** (e.g. Metadata read) on each repository or via organization/team rules; missing scope often surfaces as **404** on `GET /repos/{owner}/{repo}`, not 403.\n\nPrefer this endpoint to discover `owner`/`repo` names before calling `GET /repos/{owner}/{repo}`.\n\nMeta:\noperationId: list-repositories-for-the-authenticated-user\n\nExample:\nFirst page, 10 per page: query per_page=10 page=1\n\nResponse:\nHTTP 200\nOK — array of repository objects\ntype: array of object\nDocumented errors:\nHTTP 401 — Unauthorized\nHTTP 403 — Forbidden (rate limit or insufficient token)\n\nRuntime auth: MCP host injects the API credential via --auth-env; send as header "Authorization" (prefix applied to the secret). Path parameter "customerId" is derived from that JWT claim; do not pass it in tool arguments.',
         method: 'GET',
         path: '/user/repos',
         example: 'First page, 10 per page: query per_page=10 page=1',
@@ -30,7 +30,7 @@ export const generatedTools = [
         toolName: 'getGitHubRepository',
         title: 'Get a repository',
         description:
-            'Intent:\nfetch GitHub repository metadata when the PAT can read the repo\n\nAPI:\nReturns metadata for one repository.\n\n**404 on private repos:** GitHub often returns **404 Not Found** (not 403) when the repo is private and the token **cannot** read it, or when `owner`/`repo` is wrong — this avoids leaking whether a private repo exists.\n\nIf you are sure the PAT should have access: verify the token in the MCP host (`--auth-env` / `GITHUB_TOKEN`), PAT type (classic `repo` vs fine-grained repo access), exact `owner`/`repo` spelling, and try `GET /user/repos` to confirm the repo appears in the list for this token.\n\nMeta:\noperationId: get-a-repository\n\nExample:\nGet public repo octocat/Hello-World\n\nResponse:\nHTTP 200\nOK\ntype: object (no inlined properties)\nDocumented errors:\nHTTP 404 — Not Found (e.g. private repo or no access)\n\nRuntime auth: MCP host injects the API credential via --auth-env; send as header "Authorization" (prefix applied to the secret).',
+            'Intent:\nfetch GitHub repository metadata when the PAT can read the repo\n\nAPI:\nReturns metadata for one repository.\n\n**404 on private repos:** GitHub often returns **404 Not Found** (not 403) when the repo is private and the token **cannot** read it, or when `owner`/`repo` is wrong — this avoids leaking whether a private repo exists.\n\nIf you are sure the PAT should have access: verify the token in the MCP host (`--auth-env` / `GITHUB_TOKEN`), PAT type (classic `repo` vs fine-grained repo access), exact `owner`/`repo` spelling, and try `GET /user/repos` to confirm the repo appears in the list for this token.\n\nMeta:\noperationId: get-a-repository\n\nExample:\nGet public repo octocat/Hello-World\n\nResponse:\nHTTP 200\nOK\ntype: object (no inlined properties)\nDocumented errors:\nHTTP 404 — Not Found (e.g. private repo or no access)\n\nRuntime auth: MCP host injects the API credential via --auth-env; send as header "Authorization" (prefix applied to the secret). Path parameter "customerId" is derived from that JWT claim; do not pass it in tool arguments.',
         method: 'GET',
         path: '/repos/{owner}/{repo}',
         example: 'Get public repo octocat/Hello-World',
@@ -43,7 +43,8 @@ export const requiresAuth = true;
 export const authConfig = {
     location: 'header',
     name: 'Authorization',
-    prefix: 'Bearer '
+    prefix: 'Bearer ',
+    fromJwt: 'customerId'
 };
 
 export const mcpServerName = 'github-tools';
@@ -295,6 +296,23 @@ function appendSerializedQueryParams(searchParams, toolName, query) {
         }
         searchParams.set(key, String(value));
     }
+}
+
+function resolvePathParamsWithFromJwt(authConfig, pathParams, jwt) {
+    const base = { ...(pathParams ?? {}) };
+    const claim = authConfig?.fromJwt;
+    if (!claim) {
+        return base;
+    }
+    if (!jwt || typeof jwt !== 'object') {
+        throw new Error('fromJwt requires a JWT in host context (set --auth-env to a JWT).');
+    }
+    const value = jwt[claim];
+    if (value === undefined || value === null || String(value).trim() === '') {
+        throw new Error('fromJwt: JWT payload missing claim "' + claim + '".');
+    }
+    base[claim] = String(value).trim();
+    return base;
 }
 
 function resolveAuthSecret(authConfig, credential) {

@@ -22,6 +22,15 @@ function openApiPathLabels(items: Array<{ detail?: unknown; label: unknown }>): 
         .map((i) => String(i.label));
 }
 
+function sortedKeywordLabels(
+    items: Array<{ kind?: unknown; label: unknown; sortText?: string | undefined }>
+): string[] {
+    return items
+        .filter((item) => typeof item.label === 'string' && typeof item.sortText === 'string')
+        .sort((a, b) => String(a.sortText).localeCompare(String(b.sortText)))
+        .map((item) => String(item.label));
+}
+
 async function completionAt(content: string, offset: number) {
     completionCase += 1;
     const documentUri = path.join(fixtureDir, `completion-case-${completionCase}.api2ai`);
@@ -83,6 +92,15 @@ describe('Completion for operation path', () => {
         }
     });
 
+    test('lists routes for an unfinished path literal before the operation can parse', async () => {
+        const content = `\nopenapi "./petstore-mini.openapi.yaml"\n\nGET "/pe`;
+        const list = await completionAt(content, content.length);
+
+        const labels = openApiPathLabels(list?.items ?? []);
+        expect(labels.length).toBeGreaterThan(0);
+        expect(labels.some((label) => label.includes('/pet/{petId}'))).toBe(true);
+    });
+
     test('lists routes when caret is on the Operation opening brace after the path', async () => {
         const header = `\nopenapi "./petstore-mini.openapi.yaml"\n\nGET "/pe" `;
         const braceAndBody = `{\n    toolName: "t"\n    intent: "x"\n}`;
@@ -94,5 +112,55 @@ describe('Completion for operation path', () => {
         const labels = openApiPathLabels(list?.items ?? []);
         expect(labels.length).toBeGreaterThan(0);
         expect(labels.some((l) => l.includes('/pet/{petId}'))).toBe(true);
+    });
+});
+
+describe('Completion for block keywords', () => {
+    test('sorts auth keywords in canonical order', async () => {
+        const marker = '/*caret*/';
+        const content = `\nopenapi "./petstore-mini.openapi.yaml"\nauth {\n    ${marker}\n}\nGET "/pet/{petId}" {\n    toolName: "t"\n    intent: "x"\n}`;
+        const list = await completionAt(content.replace(marker, ''), content.indexOf(marker));
+
+        expect(
+            sortedKeywordLabels(list?.items ?? []).filter((label) =>
+                ['in', 'name', 'prefix', 'fromJwt'].includes(label)
+            )
+        ).toEqual(['in', 'name', 'prefix', 'fromJwt']);
+    });
+
+    test('sorts auth keywords even when the block is incomplete', async () => {
+        const marker = '/*caret*/';
+        const content = `\nopenapi "./petstore-mini.openapi.yaml"\nauth {\n    name: "Authorization"\n    ${marker}`;
+        const list = await completionAt(content.replace(marker, ''), content.indexOf(marker));
+
+        expect(
+            sortedKeywordLabels(list?.items ?? []).filter((label) =>
+                ['in', 'name', 'prefix', 'fromJwt'].includes(label)
+            )
+        ).toEqual(['in', 'prefix', 'fromJwt']);
+    });
+
+    test('sorts operation keywords in canonical order', async () => {
+        const marker = '/*caret*/';
+        const content = `\nopenapi "./petstore-mini.openapi.yaml"\nGET "/pet/{petId}" {\n    ${marker}\n}`;
+        const list = await completionAt(content.replace(marker, ''), content.indexOf(marker));
+
+        expect(
+            sortedKeywordLabels(list?.items ?? []).filter((label) =>
+                ['toolName', 'intent', 'summary', 'description', 'example', 'public'].includes(label)
+            )
+        ).toEqual(['toolName', 'intent', 'summary', 'description', 'example', 'public']);
+    });
+
+    test('sorts operation keywords before the block is complete', async () => {
+        const marker = '/*caret*/';
+        const content = `\nopenapi "./petstore-mini.openapi.yaml"\nGET "/pet/{petId}" {\n    ${marker}`;
+        const list = await completionAt(content.replace(marker, ''), content.indexOf(marker));
+
+        expect(
+            sortedKeywordLabels(list?.items ?? []).filter((label) =>
+                ['toolName', 'intent', 'summary', 'description', 'example', 'public'].includes(label)
+            )
+        ).toEqual(['toolName', 'intent', 'summary', 'description', 'example', 'public']);
     });
 });

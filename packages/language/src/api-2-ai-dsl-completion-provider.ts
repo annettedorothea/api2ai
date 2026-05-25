@@ -9,6 +9,33 @@ import { loadOpenApi, pathsForHttpMethod } from './openapi.js';
 import { isModel, isOperation, type HttpMethod, type Operation } from './generated/ast.js';
 
 const HTTP_METHOD_LEAVES = new Set<HttpMethod>(['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'HEAD', 'OPTIONS', 'TRACE']);
+const HTTP_METHODS = [...HTTP_METHOD_LEAVES];
+const CANONICAL_KEYWORD_SORT: Record<string, string> = {
+    in: '0100',
+    name: '0101',
+    prefix: '0102',
+    fromJwt: '0103',
+    toolName: '0200',
+    intent: '0201',
+    summary: '0202',
+    description: '0203',
+    example: '0204',
+    public: '0205'
+};
+const AUTH_KEYWORD_INSERT: Record<string, string> = {
+    in: 'in: $1$0',
+    name: 'name: "$1"$0',
+    prefix: 'prefix: "$1"$0',
+    fromJwt: 'fromJwt: "$1"$0'
+};
+const OPERATION_KEYWORD_INSERT: Record<string, string> = {
+    toolName: 'toolName: "$1"$0',
+    intent: 'intent: "$1"$0',
+    summary: 'summary: "$1"$0',
+    description: 'description: "$1"$0',
+    example: 'example: "$1"$0',
+    public: 'public'
+};
 
 function debugCompletion(message: string, data?: unknown): void {
     if (process.env.API2AI_DSL_DEBUG_COMPLETION === '1') {
@@ -111,6 +138,96 @@ function cursorAwaitingQuotedPath(
     return /^\s*$/.test(between);
 }
 
+function lineStartOffset(text: string, offset: number): number {
+    return text.lastIndexOf('\n', Math.max(0, offset - 1)) + 1;
+}
+
+function currentLineUntilOffset(text: string, offset: number): { line: string; lineStart: number } {
+    const lineStart = lineStartOffset(text, offset);
+    return { line: text.slice(lineStart, offset), lineStart };
+}
+
+function textHasUnclosedString(value: string): boolean {
+    let quote: '"' | "'" | undefined;
+    let escaped = false;
+    for (const char of value) {
+        if (escaped) {
+            escaped = false;
+            continue;
+        }
+        if (char === '\\') {
+            escaped = true;
+            continue;
+        }
+        if (quote) {
+            if (char === quote) {
+                quote = undefined;
+            }
+            continue;
+        }
+        if (char === '"' || char === "'") {
+            quote = char;
+        }
+    }
+    return quote !== undefined;
+}
+
+function currentWordRange(
+    text: string,
+    offset: number,
+    textDoc: LangiumDocument['textDocument']
+): {
+    prefix: string;
+    range: ReturnType<typeof TextEdit.replace>['range'];
+} {
+    const { line } = currentLineUntilOffset(text, offset);
+    const prefix = /[A-Za-z]*$/.exec(line)?.[0] ?? '';
+    const startOffset = offset - prefix.length;
+    return {
+        prefix,
+        range: {
+            start: textDoc.positionAt(startOffset),
+            end: textDoc.positionAt(offset)
+        }
+    };
+}
+
+type IncompleteBlockContext = {
+    kind: 'auth' | 'operation';
+    openBraceOffset: number;
+};
+
+function findLastIncompleteBlockContext(text: string, offset: number): IncompleteBlockContext | undefined {
+    const before = text.slice(0, offset);
+    const candidates: IncompleteBlockContext[] = [];
+    const authRegex = /\bauth\s*\{/g;
+    const operationRegex = new RegExp(`\\b(?:${HTTP_METHODS.join('|')})\\s+["'][^"']*["']\\s*\\{`, 'g');
+
+    for (const match of before.matchAll(authRegex)) {
+        const openBraceOffset = (match.index ?? 0) + match[0].lastIndexOf('{');
+        candidates.push({ kind: 'auth', openBraceOffset });
+    }
+    for (const match of before.matchAll(operationRegex)) {
+        const openBraceOffset = (match.index ?? 0) + match[0].lastIndexOf('{');
+        candidates.push({ kind: 'operation', openBraceOffset });
+    }
+
+    candidates.sort((a, b) => b.openBraceOffset - a.openBraceOffset);
+    return candidates.find((candidate) => !text.slice(candidate.openBraceOffset + 1, offset).includes('}'));
+}
+
+function usedBlockKeywords(blockText: string, keys: readonly string[]): Set<string> {
+    const used = new Set<string>();
+    const pattern = new RegExp(`\\b(${keys.join('|')})\\b\\s*:`, 'g');
+    for (const match of blockText.matchAll(pattern)) {
+        used.add(match[1]);
+    }
+    if (keys.includes('public') && /\bpublic\b/.test(blockText)) {
+        used.add('public');
+    }
+    return used;
+}
+
 export class Api2AiDslCompletionProvider extends DefaultCompletionProvider {
     override readonly completionOptions: CompletionProviderOptions = {
         triggerCharacters: ['/']
@@ -121,14 +238,126 @@ export class Api2AiDslCompletionProvider extends DefaultCompletionProvider {
         params: CompletionParams,
         cancelToken?: Cancellation.CancellationToken
     ): Promise<CompletionList | undefined> {
+        const incompletePathItems = await this.buildIncompleteOpenApiPathCompletionItems(document, params.position);
+        debugCompletion('getCompletion incompletePathItems count', incompletePathItems.length);
+        if (incompletePathItems.length > 0) {
+            return CompletionList.create(this.deduplicateItems(incompletePathItems), false);
+        }
+
         const pathItems = await this.buildOpenApiPathCompletionItems(document, params.position);
         debugCompletion('getCompletion pathItems count', pathItems.length);
         if (pathItems.length > 0) {
             return CompletionList.create(this.deduplicateItems(pathItems), false);
         }
+        const keywordItems = this.buildIncompleteBlockKeywordCompletionItems(document, params.position);
+        debugCompletion('getCompletion keywordItems count', keywordItems.length);
+        if (keywordItems.length > 0) {
+            return CompletionList.create(this.deduplicateItems(keywordItems), false);
+        }
+
         const fallback = await super.getCompletion(document, params, cancelToken);
         debugCompletion('getCompletion fallback item count', fallback?.items?.length ?? 0);
-        return fallback;
+        return this.withCanonicalKeywordSort(fallback);
+    }
+
+    private withCanonicalKeywordSort(completions: CompletionList | undefined): CompletionList | undefined {
+        if (!completions) {
+            return undefined;
+        }
+        return CompletionList.create(
+            completions.items.map((item) => {
+                if (item.kind !== CompletionItemKind.Keyword || typeof item.label !== 'string') {
+                    return item;
+                }
+                const sortText = CANONICAL_KEYWORD_SORT[item.label];
+                return sortText ? { ...item, sortText } : item;
+            }),
+            completions.isIncomplete
+        );
+    }
+
+    private async buildIncompleteOpenApiPathCompletionItems(
+        document: LangiumDocument,
+        position: Position
+    ): Promise<CompletionItem[]> {
+        const model = document.parseResult.value;
+        if (!isModel(model) || !document.uri.fsPath) {
+            return [];
+        }
+
+        const textDoc = document.textDocument;
+        const text = textDoc.getText();
+        const offset = textDoc.offsetAt(position);
+        const { line, lineStart } = currentLineUntilOffset(text, offset);
+        const methodPattern = HTTP_METHODS.join('|');
+        const match = new RegExp(`^\\s*(${methodPattern})\\s+(?:(["'])([^"']*)?)?$`).exec(line);
+        if (!match) {
+            return [];
+        }
+
+        let loaded;
+        try {
+            loaded = await loadOpenApi(model.openapi, path.dirname(document.uri.fsPath));
+        } catch {
+            return [];
+        }
+
+        const method = match[1] as HttpMethod;
+        const quote = match[2] ?? '"';
+        const typedPrefix = match[3] ?? '';
+        const candidates = pathsForHttpMethod(loaded.operations, method);
+        const filtered =
+            typedPrefix.length > 0 ? candidates.filter((candidate) => candidate.startsWith(typedPrefix)) : candidates;
+        const quoteIndex = line.search(/["']/);
+        const replaceStart = quoteIndex >= 0 ? lineStart + quoteIndex : offset;
+        const range = {
+            start: textDoc.positionAt(replaceStart),
+            end: position
+        };
+
+        return filtered.map((route) => ({
+            label: `${quote}${route}${quote}`,
+            kind: CompletionItemKind.Value,
+            detail: `${method} OpenAPI`,
+            insertTextFormat: InsertTextFormat.PlainText,
+            sortText: '0',
+            textEdit: TextEdit.replace(range, `${quote}${route}${quote}`)
+        }));
+    }
+
+    private buildIncompleteBlockKeywordCompletionItems(
+        document: LangiumDocument,
+        position: Position
+    ): CompletionItem[] {
+        const textDoc = document.textDocument;
+        const text = textDoc.getText();
+        const offset = textDoc.offsetAt(position);
+        const { line } = currentLineUntilOffset(text, offset);
+        if (textHasUnclosedString(line)) {
+            return [];
+        }
+
+        const context = findLastIncompleteBlockContext(text, offset);
+        if (!context) {
+            return [];
+        }
+
+        const keys = context.kind === 'auth' ? Object.keys(AUTH_KEYWORD_INSERT) : Object.keys(OPERATION_KEYWORD_INSERT);
+        const inserts = context.kind === 'auth' ? AUTH_KEYWORD_INSERT : OPERATION_KEYWORD_INSERT;
+        const blockText = text.slice(context.openBraceOffset + 1, offset);
+        const used = usedBlockKeywords(blockText, keys);
+        const { prefix, range } = currentWordRange(text, offset, textDoc);
+        const candidates = keys.filter((key) => !used.has(key) && key.startsWith(prefix));
+
+        return candidates.map((key) => ({
+            label: key,
+            kind: CompletionItemKind.Keyword,
+            detail: context.kind === 'auth' ? 'Auth block property' : 'Operation block property',
+            insertTextFormat: InsertTextFormat.Snippet,
+            sortText: CANONICAL_KEYWORD_SORT[key],
+            insertText: inserts[key],
+            textEdit: TextEdit.replace(range, inserts[key])
+        }));
     }
 
     private async buildOpenApiPathCompletionItems(

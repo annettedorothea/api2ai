@@ -8,24 +8,20 @@ entry Model:
 
 Auth:
     '{'
-        (
-              'in' ':' location=AuthLocation
-            | 'name' ':' name=STRING
-            | 'prefix' ':' prefix=STRING
-            | 'fromJwt' ':' fromJwt=STRING
-        )*
+        ('in' ':' location=AuthLocation)?
+        ('name' ':' name=STRING)?
+        ('prefix' ':' prefix=STRING)?
+        ('fromJwt' ':' fromJwt=STRING)?
     '}';
 
 Operation:
     method=HttpMethod path=STRING '{'
-        (
-              'toolName' ':' toolName=STRING
-            | 'intent' ':' intent=STRING
-            | 'example' ':' example=STRING
-            | 'summary' ':' summary=STRING
-            | 'description' ':' description=STRING
-            | public?='public'
-        )*
+        ('toolName' ':' toolName=STRING)?
+        ('intent' ':' intent=STRING)?
+        ('summary' ':' summary=STRING)?
+        ('description' ':' description=STRING)?
+        ('example' ':' example=STRING)?
+        (public?='public')?
     '}';
 
 AuthLocation returns string:
