@@ -26,11 +26,10 @@ export const mcpServerVersion = "0.0.1";
 
 import * as z from 'zod/v4';
 
-const __api2aiPrimitiveUnion = z.union([z.string(), z.number(), z.boolean()]);
-const __api2aiQueryValueUnion = z.union([__api2aiPrimitiveUnion, z.array(__api2aiPrimitiveUnion)]);
+const __core2aiPrimitiveUnion = z.union([z.string(), z.number(), z.boolean()]);
 
 export const inputZodByTool = {
-    "openMeteoGeocodeSearch": z.object({ "pathParams": z.record(z.string(), __api2aiPrimitiveUnion).describe("No path parameters.").optional(), "query": z.object({ "name": z.string().describe("City/place search text, e.g. Bernstein."), "count": z.number().describe("Number of matches to return.").optional(), "language": z.string().describe("Language code for result names, e.g. de or en.").optional(), "countryCode": z.string().describe("ISO country code filter, e.g. AT.").optional() }).strict().describe("Query parameters from OpenAPI.").optional(), "headers": z.record(z.string(), z.string()).describe("Optional extra headers.").optional(), "body": z.record(z.string(), __api2aiPrimitiveUnion).describe("Request body JSON if applicable.").optional() }).strict().describe("Arguments for invoking the generated HTTP wrapper.")
+    "openMeteoGeocodeSearch": z.object({ "pathParams": z.record(z.string(), __core2aiPrimitiveUnion).describe("No path parameters.").optional(), "query": z.object({ "name": z.string().describe("City/place search text, e.g. Bernstein."), "count": z.number().describe("Number of matches to return.").optional(), "language": z.string().describe("Language code for result names, e.g. de or en.").optional(), "countryCode": z.string().describe("ISO country code filter, e.g. AT.").optional() }).strict().describe("Query parameters from OpenAPI.").optional(), "headers": z.record(z.string(), z.string()).describe("Optional extra headers.").optional(), "body": z.record(z.string(), __core2aiPrimitiveUnion).describe("Request body JSON if applicable.").optional() }).strict().describe("Arguments for invoking the generated HTTP wrapper.")
 };
 
 const META_BASE_URL_ENV_KEY = 'MCP_HOST_BASE_URL_ENV_KEY';

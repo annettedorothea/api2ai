@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { emitInputZodByToolExport, emitZodExpression } from '../src/json-schema-to-zod-codegen.js';
+import { emitInputZodByToolExport, emitZodExpression } from '@core2ai/codegen';
 import type { JsonSchemaDict } from '../src/openapi-tool-codegen.js';
 // Vitest: run via `npm run test --workspace packages/cli`
 

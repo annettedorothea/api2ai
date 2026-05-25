@@ -40,12 +40,11 @@ export const mcpServerVersion = "0.0.1";
 
 import * as z from 'zod/v4';
 
-const __api2aiPrimitiveUnion = z.union([z.string(), z.number(), z.boolean()]);
-const __api2aiQueryValueUnion = z.union([__api2aiPrimitiveUnion, z.array(__api2aiPrimitiveUnion)]);
+const __core2aiPrimitiveUnion = z.union([z.string(), z.number(), z.boolean()]);
 
 export const inputZodByTool = {
-    "listCustomerOrders": z.object({ "pathParams": z.record(z.string(), __api2aiPrimitiveUnion).describe("No path parameters.").optional(), "query": z.record(z.string(), __api2aiPrimitiveUnion).describe("Optional query overrides.").optional(), "headers": z.record(z.string(), z.string()).describe("Optional extra headers.").optional(), "body": z.record(z.string(), __api2aiPrimitiveUnion).describe("Request body JSON if applicable.").optional() }).strict().describe("Arguments for invoking the generated HTTP wrapper."),
-    "login": z.object({ "pathParams": z.object({ "customerId": z.string() }).strict().describe("Path parameters from OpenAPI."), "query": z.record(z.string(), __api2aiPrimitiveUnion).describe("Optional query overrides.").optional(), "headers": z.record(z.string(), z.string()).describe("Optional extra headers.").optional(), "body": z.record(z.string(), __api2aiPrimitiveUnion).describe("Request body JSON if applicable.").optional() }).strict().describe("Arguments for invoking the generated HTTP wrapper.")
+    "listCustomerOrders": z.object({ "pathParams": z.record(z.string(), __core2aiPrimitiveUnion).describe("No path parameters.").optional(), "query": z.record(z.string(), __core2aiPrimitiveUnion).describe("Optional query overrides.").optional(), "headers": z.record(z.string(), z.string()).describe("Optional extra headers.").optional(), "body": z.record(z.string(), __core2aiPrimitiveUnion).describe("Request body JSON if applicable.").optional() }).strict().describe("Arguments for invoking the generated HTTP wrapper."),
+    "login": z.object({ "pathParams": z.object({ "customerId": z.string() }).strict().describe("Path parameters from OpenAPI."), "query": z.record(z.string(), __core2aiPrimitiveUnion).describe("Optional query overrides.").optional(), "headers": z.record(z.string(), z.string()).describe("Optional extra headers.").optional(), "body": z.record(z.string(), __core2aiPrimitiveUnion).describe("Request body JSON if applicable.").optional() }).strict().describe("Arguments for invoking the generated HTTP wrapper.")
 };
 
 const META_BASE_URL_ENV_KEY = 'MCP_HOST_BASE_URL_ENV_KEY';
