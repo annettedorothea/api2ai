@@ -63,11 +63,12 @@ Package notes: [`./packages/language/README.md`](./packages/language/README.md) 
 | `watch`               | TypeScript watch on the monorepo build graph                 |
 | `clean`               | Clean all workspace build outputs                            |
 | `bundle:mcp-runtime`  | Bundle standalone `mcp-serve` into `packages/cli/resources/` |
-| `test`                | Language package unit tests                                  |
+| `test`                | All automated tests, including mock API MCP stdio smoke      |
 | `test:smoke`          | Smoke-call one generated Open-Meteo tool                     |
 | `test:smoke:tmdb`     | Smoke TMDB search (needs env/token)                          |
 | `test:smoke:mock-api` | Smoke mock-api `listCustomerOrders`                          |
 | `test:mcp`            | Start MCP server manually (Open-Meteo)                       |
+| `test:mcp:mock-api`   | Smoke mock API through generated MCP stdio host              |
 
 Example tool regeneration: `npm run generate:*` or `npm run generate:all` inside **[`./packages/extension/demos/`](./packages/extension/demos/)**.
 

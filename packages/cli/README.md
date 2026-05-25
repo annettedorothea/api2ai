@@ -12,6 +12,7 @@ Langium’s Minilogo CLI guide is still a useful reference for the shared patter
 - [src/generate-command.ts](./src/generate-command.ts) – wiring for the generate command.
 - [src/generator.ts](./src/generator.ts) – writes generated tool modules and copies the bundled MCP entry.
 - [smoke/smoke-generated.ts](./smoke/smoke-generated.ts) – integration smoke runner (`smoke-generated` CLI command).
+- [e2e/mcp-smoke-mock-api.ts](./e2e/mcp-smoke-mock-api.ts) – MCP stdio end-to-end smoke runner for the local mock API.
 - [test/integration/](./test/integration/) – Vitest integration tests, including mock API direct invoke.
 - [test/README.md](./test/README.md) – how smoke vs `test:mcp` differ.
 - [src/openapi-tool-codegen.ts](./src/openapi-tool-codegen.ts) – OpenAPI-derived input schemas for tools.
@@ -29,6 +30,7 @@ node ./packages/cli/bin/cli.js smoke-generated <path-to-*-tools.mjs> <toolName> 
 ```
 
 Prefer `npm run generate:*` or `generate:all` in **[`../extension/demos/`](../extension/demos/)** for the bundled demos. Root `test:smoke` / `test:mcp` use [`../extension/demos/generated/`](../extension/demos/generated/).
+Root `test:mcp:mock-api` generates mock API tools in a temp folder, starts the local mock API, and calls `login` through the MCP stdio host.
 
 ---
 
