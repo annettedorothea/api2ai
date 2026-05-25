@@ -12,7 +12,6 @@ const HTTP_METHOD_LEAVES = new Set<HttpMethod>(['GET', 'POST', 'PUT', 'PATCH', '
 
 function debugCompletion(message: string, data?: unknown): void {
     if (process.env.API2AI_DSL_DEBUG_COMPLETION === '1') {
-        // eslint-disable-next-line no-console
         console.log(`[api2ai-dsl completion] ${message}`, data !== undefined ? data : '');
     }
 }
