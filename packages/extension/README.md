@@ -37,24 +37,6 @@ Base URLs and API tokens belong in the MCP host config (e.g. `.cursor/mcp.json` 
 
 See the generated **`README.md`** in your demo folder for prompts and server names.
 
-## Share a VSIX build
-
-From the repository root:
-
-```bash
-npm run release:vsix
-```
-
-This runs tests, checks, packages the VSIX, creates a GitHub prerelease, and uploads the matching `.vsix` as a release asset. The release/tag name uses the extension `name` and `version` from [`package.json`](./package.json), for example `vscode-api2ai-0.0.1`. It requires the GitHub CLI (`gh`) to be installed and authenticated.
-
-For a future version, bump the extension package first from the repository root:
-
-```bash
-npm run version:patch
-```
-
-Use `version:minor` or `version:major` when appropriate, then commit the version change before publishing.
-
 ## License
 
 BUSL-1.1 - Copyright (c) 2026 Annette Pohl. Full license text is included in the VSIX (`LICENSE` file, copied from the api2ai repository root when you run `npm run extension:vsix`).
