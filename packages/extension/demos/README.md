@@ -8,8 +8,10 @@ Use the **api2ai** extension (VSIX or Extension Development Host). This folder i
 
 1. Install the **api2ai** VSIX.
 2. Command Palette → **api2ai: Create demo workspace (MCP examples)** → choose an empty folder.
-3. In that folder: `npm install` → `npm run generate:all` (or save each `.api2ai` with the extension).
-4. Open the folder as workspace → enable MCP servers in `.cursor/mcp.json`.
+3. In that folder: `npm install`.
+4. Copy [`.env.example`](./.env.example) to `.env.local` and set tokens (TMDB, GitHub, mock-api). Open-Meteo needs no token.
+5. Run `npm run generate:all` (or save each `.api2ai` with the extension).
+6. Open the folder as workspace → Cursor Settings → **Tools & MCP** → enable `api2ai-*` MCP servers.
 
 ## What you can do here
 

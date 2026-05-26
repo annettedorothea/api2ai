@@ -14,6 +14,7 @@
         "build": "tsc -b tsconfig.build.json && npm run bundle:mcp-runtime && npm run build --workspaces",
         "bundle:mcp-runtime": "esbuild @core2ai/core/mcp-host/standalone-entry --bundle --platform=node --format=esm --banner:js=\"#!/usr/bin/env node\" --outfile=packages/cli/resources/mcp-serve-emitted.mjs --external:@modelcontextprotocol/sdk --external:zod",
         "build:clean": "npm run clean && npm run build",
+        "extension:vsix": "npm run --workspace packages/extension extension:vsix",
         "langium:generate": "npm run --workspace packages/language langium:generate",
         "langium:watch": "npm run --workspace packages/language langium:watch",
         "test": "npm run langium:generate && npm run build && npm run test:unit && npm run test:e2e",
