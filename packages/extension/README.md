@@ -2,7 +2,7 @@
 
 Editor support for the **`.api2ai` DSL**: syntax highlighting, validation, completion, and **generate on save** (TypeScript/ESM tool modules + MCP host).
 
-The full project (DSL, CLI, demos) lives in the [api2ai](https://github.com/annettedorothea/api2ai) repository. Sibling: [db2ai](https://github.com/annettedorothea/db2ai) (PostgreSQL → MCP).
+The full project (DSL, CLI, demos) lives in the [api2ai](https://github.com/annettedorothea/api2ai) repository. Sibling: [db2ai](https://github.com/annettedorothea/db2ai) (PostgreSQL to MCP).
 
 ## Requirements
 
@@ -20,12 +20,20 @@ Base URLs and API tokens belong in the MCP host config (e.g. `.cursor/mcp.json` 
 ## MCP demos without cloning the repo
 
 1. Install this extension (VSIX).
-2. Command Palette → **api2ai: Create demo workspace (MCP examples)** → pick an empty folder.
-3. In that folder: `npm install`.
-4. Copy `.env.example` → `.env.local` and set tokens (TMDB, GitHub, mock-api). Open-Meteo needs no token.
-5. Run `npm run generate:all` (or save each `.api2ai` file / use **Generate tool code**).
-6. **File → Open Folder** on the demo workspace.
-7. Cursor Settings → **Tools & MCP** → enable `api2ai-*` MCP servers.
+2. Create a demo workspace:
+    - Open the Command Palette.
+    - Run **api2ai: Create demo workspace (MCP examples)**.
+    - Pick an empty folder.
+3. Prepare the demo folder:
+    - Run `npm install`.
+    - Copy `.env.example` to `.env.local`.
+    - Set tokens for TMDB, GitHub, and mock-api if you want to use those demos. Open-Meteo needs no token.
+4. Generate tools:
+    - Run `npm run generate:all`.
+    - Alternatively, save each `.api2ai` file or run **Generate tool code**.
+5. Open and enable:
+    - Open the demo folder as the workspace.
+    - In Cursor Settings, open **Tools & MCP** and enable the `api2ai-*` MCP servers.
 
 See the generated **`README.md`** in your demo folder for prompts and server names.
 
@@ -46,4 +54,4 @@ BUSL-1.1 - Copyright (c) 2026 Annette Pohl. Full license text is included in the
 
 ---
 
-_Created with gratitude to Jesus Christ._
+#Col3:23

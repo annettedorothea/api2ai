@@ -34,4 +34,4 @@ Root `test:mcp:mock-api` generates mock API tools in a temp folder, starts the l
 
 ---
 
-_Created with gratitude to Jesus Christ._
+#Col3:23

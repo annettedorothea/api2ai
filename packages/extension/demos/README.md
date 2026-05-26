@@ -7,11 +7,21 @@ Use the **api2ai** extension (VSIX or Extension Development Host). This folder i
 ## Get demos without cloning the repo
 
 1. Install the **api2ai** VSIX.
-2. Command Palette → **api2ai: Create demo workspace (MCP examples)** → choose an empty folder.
-3. In that folder: `npm install`.
-4. Copy [`.env.example`](./.env.example) to `.env.local` and set tokens (TMDB, GitHub, mock-api). Open-Meteo needs no token.
-5. Run `npm run generate:all` (or save each `.api2ai` with the extension).
-6. Open the folder as workspace → Cursor Settings → **Tools & MCP** → enable `api2ai-*` MCP servers.
+2. Create a demo workspace:
+    - Open the Command Palette.
+    - Run **api2ai: Create demo workspace (MCP examples)**.
+    - Choose an empty folder.
+3. Prepare the folder:
+    - Run `npm install`.
+    - Copy [`.env.example`](./.env.example) to `.env.local`.
+    - Set tokens for TMDB, GitHub, and mock-api if you want to use those demos. Open-Meteo needs no token.
+4. Generate tools:
+    - Run `npm run generate:all`.
+    - Alternatively, save each `.api2ai` file with the extension.
+5. Enable MCP:
+    - Open the demo folder as the workspace.
+    - Open Cursor Settings, then **Tools & MCP**.
+    - Enable the `api2ai-*` MCP servers.
 
 ## What you can do here
 
@@ -24,27 +34,38 @@ Use the **api2ai** extension (VSIX or Extension Development Host). This folder i
 
 Prerequisite: **Node.js 20+** and the **api2ai** extension.
 
-1. Open **this folder** as the workspace (so `.cursor/mcp.json` applies).
-2. `npm install`
+1. Open **this folder** as the workspace so `.cursor/mcp.json` applies.
+2. Install dependencies:
+    ```bash
+    npm install
+    ```
 3. Generate tool code:
     ```bash
     npm run generate:all
     ```
-    Or one API: `npm run generate:open-meteo-tools`, etc. (see [`./package.json`](./package.json)). Alternative: save each `.api2ai` or Command Palette → **Generate tool code**.
-4. **Secrets:** copy [`.env.example`](./.env.example) to `./.env.local` and set `TMDB_ACCESS_TOKEN`, `GITHUB_TOKEN`, … (`.env.local` is gitignored)
-5. **Cursor:** Settings → **Tools & MCP** → enable `api2ai-*` → reload MCP.
+    For one API only, use a targeted script such as `npm run generate:open-meteo-tools` (see [`./package.json`](./package.json)).
+4. Configure optional secrets:
+    - Copy [`.env.example`](./.env.example) to `./.env.local`.
+    - Set `TMDB_ACCESS_TOKEN`, `GITHUB_TOKEN`, or mock-api values only for the demos you want to use.
+    - `.env.local` is gitignored.
+5. Enable MCP in Cursor:
+    - Open Settings, then **Tools & MCP**.
+    - Enable the `api2ai-*` servers.
+    - Reload MCP after changing `.env.local`; MCP servers read env values when they start, not on every tool call.
 
 ### TMDB / GitHub (tokens)
 
 - TMDB: `TMDB_ACCESS_TOKEN` in `.env.local` ([TMDB settings](https://www.themoviedb.org/settings/api)).
 - GitHub: `GITHUB_TOKEN` in `.env.local` or `mcp.json` `env` for `api2ai-github`.
+- After adding or changing a token, reload the matching MCP server so the new env value is available.
 
 ### mock-api (JWT)
 
 1. `npm run demo:mock-api` (stop: `npm run demo:mock-api:kill`)
-2. `node mock-api/get-token.mjs alice` → `MOCK_API_ACCESS_TOKEN` in `.env.local`
-3. `npm run generate:mock-api-tools`
-4. Enable `api2ai-mock-api`, reload MCP
+2. `node mock-api/get-token.mjs alice`
+3. Add `MOCK_API_ACCESS_TOKEN` to `.env.local`
+4. `npm run generate:mock-api-tools`
+5. Enable `api2ai-mock-api`, then reload MCP
 
 Details: [`./mock-api/README.md`](./mock-api/README.md).
 
@@ -86,9 +107,9 @@ Prefix with **`api2ai`**: weather, SpaceX launch, TMDB Dune, GitHub user/repos.
 
 1. OpenAPI under `./openapi/`
 2. `my-api.api2ai` with curated operations
-3. Save, **Generate tool code**, or `npm run generate:…` (add a script in `package.json` like the others)
+3. Save, run **Generate tool code**, or use a `generate:*` script (add one in `package.json` like the others)
 4. Extend `mcp.json` and `.env.local`
 
 ---
 
-_Created with gratitude to Jesus Christ._
+#Col3:23

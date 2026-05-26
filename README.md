@@ -2,7 +2,7 @@
 
 **api2ai** curates OpenAPI operations into MCP tools: an **`.api2ai` DSL** selects endpoints and adds AI-facing metadata (intent, examples, tool names, optional auth). A **code generator** (CLI + extension on save) emits tool modules and a stdio MCP host. The language stack is built with **[Langium](https://langium.org/)** (grammar, validation, completion).
 
-Sibling project: [db2ai](https://github.com/annettedorothea/db2ai) (PostgreSQL → MCP).
+Sibling project: [db2ai](https://github.com/annettedorothea/db2ai) (PostgreSQL to MCP).
 
 Keywords: **DSL** · **OpenAPI** · **code generator** · **MCP** · **Langium**
 
@@ -26,18 +26,25 @@ GET "/v4/articles/{id}/" {
 
 Bundled demos and walkthrough: **[`./packages/extension/demos/`](./packages/extension/demos/)** — see **[`./packages/extension/demos/README.md`](./packages/extension/demos/README.md)**.
 
-**Without cloning the repo:** install the VSIX, then Command Palette → **api2ai: Create demo workspace (MCP examples)**. Details: [`./packages/extension/README.md`](./packages/extension/README.md).
+**Without cloning the repo:** install the VSIX, then run **api2ai: Create demo workspace (MCP examples)** from the Command Palette. Details: [`./packages/extension/README.md`](./packages/extension/README.md).
 
 ## Getting started (DSL / monorepo)
 
 Prerequisite: **Node.js 20+**.
 
-- Clone the repo
-- Repository root: `npm install` → `npm run langium:generate` → `npm run build`
-- Open the **`api2ai`** repository root in Cursor/VS Code
-- Edit or create a `.api2ai` file (e.g. under `./packages/extension/demos/`)
-- **Extension dev:** Run and Debug → **Run api2ai Extension** (opens `packages/extension/demos/` in an Extension Development Host; save regenerates tools)
-- **CLI only:** `node ./packages/cli/bin/cli.js generate <file.api2ai> <out-tools.ts>` then `npm run build` if needed
+1. Prepare the repository:
+    - Clone the repo.
+    - From the repository root, run:
+        ```bash
+        npm install
+        npm run langium:generate
+        npm run build
+        ```
+2. Open the **`api2ai`** repository root in Cursor/VS Code.
+3. Edit or create a `.api2ai` file, for example under `./packages/extension/demos/`.
+4. Generate tools with one of these options:
+    - **Extension dev:** Run **Run api2ai Extension** from Run and Debug. The Extension Development Host opens `packages/extension/demos/`; saving a `.api2ai` file regenerates tools.
+    - **CLI only:** `node ./packages/cli/bin/cli.js generate <file.api2ai> <out-tools.ts>`, then `npm run build` if needed.
 
 Details for MCP demos: **[`./packages/extension/demos/README.md`](./packages/extension/demos/README.md)**.
 
@@ -90,13 +97,13 @@ Build (maintainers), in **`packages/extension/`**:
 npm run extension:vsix
 ```
 
-→ `./packages/extension/vscode-api2ai-<version>.vsix` (**version** from [`./packages/extension/package.json`](./packages/extension/package.json); gitignored via `*.vsix`).
+Output: `./packages/extension/vscode-api2ai-<version>.vsix` (**version** from [`./packages/extension/package.json`](./packages/extension/package.json); gitignored via `*.vsix`).
 
 From repo root: `npm run extension:vsix -w packages/extension`
 
 ### Install in Cursor / VS Code (test)
 
-1. `Cmd+Shift+P` → **`Install from VSIX`** or **`vsix`**
+1. Press `Cmd+Shift+P` and search for **`Install from VSIX`** or **`vsix`**
 2. **`Extensions: Install from VSIX`**
 3. Select `./packages/extension/vscode-api2ai-<version>.vsix`
 4. **`Developer: Reload Window`**
@@ -115,4 +122,4 @@ BUSL-1.1 - see [`./LICENSE`](./LICENSE).
 
 ---
 
-_Created with gratitude to Jesus Christ._
+#Col3:23
