@@ -42,7 +42,7 @@ The release script uses the extension `name` and `version` from [`package.json`]
 
 ## License
 
-MIT — Copyright (c) Annette Pohl. Full license text is included in the VSIX (`LICENSE` file, copied from the api2ai repository root when you run `npm run extension:vsix`).
+BUSL-1.1 - Copyright (c) 2026 Annette Pohl. Full license text is included in the VSIX (`LICENSE` file, copied from the api2ai repository root when you run `npm run extension:vsix`).
 
 ---
 

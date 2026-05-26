@@ -111,7 +111,7 @@ Extension details: [`./packages/extension/README.md`](./packages/extension/READM
 
 ## License
 
-MIT — see [`./LICENSE`](./LICENSE).
+BUSL-1.1 - see [`./LICENSE`](./LICENSE).
 
 ---
 

@@ -4,7 +4,7 @@
     "description": "Language support and code generation for the .api2ai DSL (OpenAPI → MCP tools).",
     "version": "0.0.1",
     "publisher": "api2ai",
-    "license": "MIT",
+    "license": "BUSL-1.1",
     "icon": "icon.png",
     "author": {
         "name": "Annette Pohl"
