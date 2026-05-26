@@ -91,7 +91,7 @@ Pre-launch task **Build api-2-ai-dsl** in [`./.vscode/tasks.json`](./.vscode/tas
 
 ## Extension (VSIX)
 
-Build (maintainers), in **`packages/extension/`**:
+Build (maintainers), from the repository root:
 
 ```bash
 npm run extension:vsix
@@ -99,7 +99,23 @@ npm run extension:vsix
 
 Output: `./packages/extension/vscode-api2ai-<version>.vsix` (**version** from [`./packages/extension/package.json`](./packages/extension/package.json); gitignored via `*.vsix`).
 
-From repo root: `npm run extension:vsix -w packages/extension`
+### Release to GitHub
+
+For a full prerelease from the repository root:
+
+```bash
+npm run release:vsix
+```
+
+This runs `npm run test`, `npm run check`, packages the VSIX, then creates a GitHub prerelease and uploads the matching VSIX asset. The release/tag name is derived from the extension package `name` and `version`, for example `vscode-api2ai-0.0.1`.
+
+For a future version, bump the extension package first:
+
+```bash
+npm run version:patch
+```
+
+Use `version:minor` or `version:major` when appropriate. Commit the version change before publishing the release.
 
 ### Install in Cursor / VS Code (test)
 

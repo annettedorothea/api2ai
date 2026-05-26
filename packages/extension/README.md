@@ -42,11 +42,18 @@ See the generated **`README.md`** in your demo folder for prompts and server nam
 From the repository root:
 
 ```bash
-npm run extension:vsix
-npm run extension:release:vsix
+npm run release:vsix
 ```
 
-The release script uses the extension `name` and `version` from [`package.json`](./package.json), creates a GitHub prerelease, and uploads the matching `.vsix` as a release asset. It requires the GitHub CLI (`gh`) to be installed and authenticated.
+This runs tests, checks, packages the VSIX, creates a GitHub prerelease, and uploads the matching `.vsix` as a release asset. The release/tag name uses the extension `name` and `version` from [`package.json`](./package.json), for example `vscode-api2ai-0.0.1`. It requires the GitHub CLI (`gh`) to be installed and authenticated.
+
+For a future version, bump the extension package first from the repository root:
+
+```bash
+npm run version:patch
+```
+
+Use `version:minor` or `version:major` when appropriate, then commit the version change before publishing.
 
 ## License
 
