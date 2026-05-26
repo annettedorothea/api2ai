@@ -21,12 +21,24 @@ Base URLs and API tokens belong in the MCP host config (e.g. `.cursor/mcp.json` 
 
 1. Install this extension (VSIX).
 2. Command Palette → **api2ai: Create demo workspace (MCP examples)** → pick an empty folder.
-3. In that folder: `npm install` → `npm run generate:all` (or save each `.api2ai` file / use **Generate tool code**).
-4. **File → Open Folder** on the demo workspace.
-5. Cursor/VS Code: enable MCP servers in `.cursor/mcp.json` (Settings → Tools & MCP).
-6. Optional: copy `.env.example` → `.env.local` and set tokens (TMDB, GitHub, mock-api). Open-Meteo needs no token.
+3. In that folder: `npm install`.
+4. Copy `.env.example` → `.env.local` and set tokens (TMDB, GitHub, mock-api). Open-Meteo needs no token.
+5. Run `npm run generate:all` (or save each `.api2ai` file / use **Generate tool code**).
+6. **File → Open Folder** on the demo workspace.
+7. Cursor Settings → **Tools & MCP** → enable `api2ai-*` MCP servers.
 
 See the generated **`README.md`** in your demo folder for prompts and server names.
+
+## Share a VSIX build
+
+From the repository root:
+
+```bash
+npm run extension:vsix
+npm run extension:release:vsix
+```
+
+The release script uses the extension `name` and `version` from [`package.json`](./package.json), creates a GitHub prerelease, and uploads the matching `.vsix` as a release asset. It requires the GitHub CLI (`gh`) to be installed and authenticated.
 
 ## License
 
