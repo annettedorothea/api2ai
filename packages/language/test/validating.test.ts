@@ -263,7 +263,7 @@ describe('Validating', () => {
         expect(diagnostics).toHaveLength(0);
     });
 
-    test('accepts autofillParams values that are not present in OpenAPI', async () => {
+    test('warns when autofillParams entry is not in OpenAPI', async () => {
         document = await parseValidated(`
             openapi "./petstore-mini.openapi.yaml"
             auth {
@@ -279,7 +279,31 @@ describe('Validating', () => {
         `);
 
         const diagnostics = document.diagnostics ?? [];
-        expect(diagnostics).toHaveLength(0);
+        expect(diagnostics).toHaveLength(1);
+        expect(diagnostics[0]?.severity).toBe(2);
+        expect(diagnostics[0]?.message).toContain('autofillParams entry "customerId"');
+        expect(diagnostics[0]?.message).toContain('no effect on the generated tool schema');
+    });
+
+    test('warns only for unknown autofillParams entries when list is mixed', async () => {
+        document = await parseValidated(`
+            openapi "./petstore-mini.openapi.yaml"
+            auth {
+                in: header
+                name: "Authorization"
+            }
+            GET "/pet/{petId}" {
+                toolName: "getPetById"
+                intent: "get one pet"
+                autofillParams: ["petId", "customerId"]
+                restricted
+            }
+        `);
+
+        const diagnostics = document.diagnostics ?? [];
+        expect(diagnostics).toHaveLength(1);
+        expect(diagnostics[0]?.message).toContain('"customerId"');
+        expect(diagnostics[0]?.message).not.toContain('"petId"');
     });
 
     test('reports autofillParams without restricted', async () => {

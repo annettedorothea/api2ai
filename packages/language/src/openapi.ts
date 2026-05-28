@@ -360,6 +360,52 @@ function schemaKind(schema: OpenApiSchema | undefined): 'primitive' | 'array' | 
     return 'primitive';
 }
 
+/** Parameter names emitted into generated invoke/schema (path, query, header). */
+export function openApiInvokeParameterNames(operation: OpenApiOperationDetails): Set<string> {
+    const names = new Set<string>();
+    for (const parameter of operation.parameters) {
+        if (parameter.in === 'path' || parameter.in === 'query' || parameter.in === 'header') {
+            names.add(parameter.name);
+        }
+    }
+    return names;
+}
+
+export type UnknownAutofillParamWarning = {
+    index: number;
+    name: string;
+    message: string;
+};
+
+/** DSL autofill names that do not match any invoke parameter on the OpenAPI operation. */
+export function getUnknownAutofillParamWarnings(
+    autofillParams: readonly string[] | undefined,
+    openApiOperation: OpenApiOperationDetails,
+    method: string,
+    routePath: string
+): UnknownAutofillParamWarning[] {
+    if (!autofillParams?.length) {
+        return [];
+    }
+    const known = openApiInvokeParameterNames(openApiOperation);
+    const warnings: UnknownAutofillParamWarning[] = [];
+    autofillParams.forEach((raw, index) => {
+        const name = raw.trim();
+        if (name.length === 0) {
+            return;
+        }
+        if (known.has(name)) {
+            return;
+        }
+        warnings.push({
+            index,
+            name,
+            message: `autofillParams entry "${name}" is not a path, query, or header parameter on ${method} ${routePath} in the OpenAPI spec (no effect on the generated tool schema).`
+        });
+    });
+    return warnings;
+}
+
 /** Cookie parameters are not emitted into generated invoke/schema; fail validation so users do not rely on silent omission. */
 export function getCookieParameterMessages(operation: OpenApiOperationDetails): string[] {
     const cookies = operation.parameters.filter((p) => p.in === 'cookie');

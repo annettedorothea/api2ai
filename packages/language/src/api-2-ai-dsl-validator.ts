@@ -4,6 +4,7 @@ import type { Api2AiDslAstType, Model, Operation } from './generated/ast.js';
 import type { Api2AiDslServices } from './api-2-ai-dsl-module.js';
 import {
     getCookieParameterMessages,
+    getUnknownAutofillParamWarnings,
     getUnsupportedSerializationMessages,
     loadOpenApi,
     makeOperationLookupKey
@@ -184,6 +185,19 @@ export class Api2AiDslValidator {
                     node: model,
                     property: 'operations',
                     index
+                });
+            }
+
+            for (const warning of getUnknownAutofillParamWarnings(
+                operation.autofillParams,
+                openApiOperation,
+                operation.method,
+                operation.path
+            )) {
+                accept('warning', warning.message, {
+                    node: operation,
+                    property: 'autofillParams',
+                    index: warning.index
                 });
             }
         });

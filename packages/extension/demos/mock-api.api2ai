@@ -11,7 +11,7 @@ GET "/orders/{customerId}" {
     intent: "list orders for the authenticated customer from the JWT, when the customerId is empty, it will be filled from the JWT"
     summary: "List customer orders"
     example: "List my orders"
-    autofillParams: ["customerId", "test"]
+    autofillParams: ["customerId"]
     restricted
 }
 
