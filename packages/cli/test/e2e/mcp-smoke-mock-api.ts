@@ -81,11 +81,10 @@ export async function runMockApiMcpSmoke(): Promise<void> {
     const mockApiBaseUrl = `http://127.0.0.1:${port}`;
     const runRoot = await fs.mkdtemp(path.join(tmpRoot, 'mock-api-mcp-'));
     const fixtureRoot = path.join(runRoot, 'fixture');
-    const generatedTsPath = path.join(runRoot, 'generated/tools/mock-api-tools.ts');
-    const generatedJsPath = path.join(runRoot, 'generated/tools/mock-api-tools.mjs');
-    const mcpServePath = path.join(runRoot, 'generated/cli/mcp-serve.mjs');
+    const generatedTsPath = path.join(fixtureRoot, 'generated/tools/mock-api-tools.ts');
+    const generatedJsPath = path.join(fixtureRoot, 'generated/tools/mock-api-tools.mjs');
+    const mcpServePath = path.join(fixtureRoot, 'generated/cli/mcp-serve.mjs');
     const baseUrlEnv = 'MOCK_API_BASE_URL';
-    const credentialEnv = 'MOCK_API_ACCESS_TOKEN';
 
     try {
         mockApiProcess = spawn(process.execPath, [mockApiServerPath], {
@@ -101,6 +100,11 @@ export async function runMockApiMcpSmoke(): Promise<void> {
         await fs.copyFile(sourceFixturePath, path.join(fixtureRoot, 'mock-api.api2ai'));
         await fs.copyFile(openApiFixturePath, path.join(fixtureRoot, 'openapi/mock-api.openapi.yaml'));
         await generateAction(path.join(fixtureRoot, 'mock-api.api2ai'), generatedTsPath);
+        await fs.mkdir(path.join(fixtureRoot, 'src', 'auth'), { recursive: true });
+        await fs.copyFile(
+            path.join(demosRoot, 'src/auth/listCustomerOrders.ts'),
+            path.join(fixtureRoot, 'src/auth/listCustomerOrders.ts')
+        );
 
         const smoke = await runMcpStdioSmoke({
             mcpServePath,
@@ -111,11 +115,10 @@ export async function runMockApiMcpSmoke(): Promise<void> {
                     customerId: 'alice'
                 }
             },
-            hostArgs: ['--base-url-env', baseUrlEnv, '--auth-env', credentialEnv],
-            cwd: runRoot,
+            hostArgs: ['--base-url-env', baseUrlEnv, '--auth-env', 'MOCK_API_ACCESS_TOKEN'],
+            cwd: fixtureRoot,
             env: {
-                [baseUrlEnv]: mockApiBaseUrl,
-                [credentialEnv]: 'unused-for-public-login'
+                [baseUrlEnv]: mockApiBaseUrl
             }
         });
 

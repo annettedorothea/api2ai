@@ -230,15 +230,17 @@ export function buildMcpDescription(
 
     if (operation.public === true) {
         sections.push('Runtime: public endpoint — no Authorization header or MCP credential required.');
+    } else if (operation.restricted === true && auth) {
+        const prefixNote =
+            auth.prefix !== undefined && String(auth.prefix).trim().length > 0 ? ' (prefix applied to the secret)' : '';
+        sections.push(
+            `Runtime: restricted — implement check${operation.toolName?.trim() ? operation.toolName.trim().charAt(0).toUpperCase() + operation.toolName.trim().slice(1) : 'Tool'}Parameters in src/auth/${operation.toolName?.trim() ?? 'tool'}.ts (compiled to .mjs on generate); credential sent as ${auth.location} "${auth.name}"${prefixNote}.`
+        );
     } else if (auth) {
         const prefixNote =
             auth.prefix !== undefined && String(auth.prefix).trim().length > 0 ? ' (prefix applied to the secret)' : '';
-        const fromJwtNote =
-            auth.fromJwt !== undefined && auth.fromJwt.trim().length > 0
-                ? ` Path parameter "${auth.fromJwt.trim()}" is derived from that JWT claim; do not pass it in tool arguments.`
-                : '';
         sections.push(
-            `Runtime auth: MCP host injects the API credential via --auth-env; send as ${auth.location} "${auth.name}"${prefixNote}.${fromJwtNote}`
+            `Runtime auth: MCP host injects the API credential via --auth-env; send as ${auth.location} "${auth.name}"${prefixNote}.`
         );
     }
 
@@ -542,25 +544,30 @@ function parametersByLocation(parameters: OpenApiParameterDetails[]): {
 }
 
 /** Outer MCP tool input: pathParams | query | headers | body buckets. */
-export function buildToolInputSchema(details: OpenApiOperationDetails, jwtBoundPathParam?: string): JsonSchemaDict {
+export function buildToolInputSchema(
+    details: OpenApiOperationDetails,
+    jwtBoundPathParam?: string,
+    autofillParams?: readonly string[]
+): JsonSchemaDict {
     const { path, query, headers } = parametersByLocation(details.parameters);
+    const autofill = new Set((autofillParams ?? []).map((p) => p.trim()).filter((p) => p.length > 0));
 
     const pathEntries = path
         .filter((p) => jwtBoundPathParam === undefined || p.name !== jwtBoundPathParam)
         .map((p) => ({
             name: p.name,
             schema: parameterPropertySchema(p),
-            required: true
+            required: !autofill.has(p.name)
         }));
     const queryEntries = query.map((p) => ({
         name: p.name,
         schema: parameterPropertySchema(p),
-        required: p.required
+        required: p.required && !autofill.has(p.name)
     }));
     const headerEntries = headers.map((p) => ({
         name: p.name,
         schema: parameterPropertySchema(p),
-        required: p.required
+        required: p.required && !autofill.has(p.name)
     }));
 
     const rootProps: Record<string, JsonSchemaDict> = {};
@@ -568,7 +575,9 @@ export function buildToolInputSchema(details: OpenApiOperationDetails, jwtBoundP
 
     if (pathEntries.length > 0) {
         rootProps.pathParams = objectSchemaFromKeyedProps(pathEntries, 'Path parameters from OpenAPI.');
-        rootRequired.push('pathParams');
+        if (pathEntries.some((entry) => entry.required)) {
+            rootRequired.push('pathParams');
+        }
     } else {
         rootProps.pathParams = { type: 'object', additionalProperties: true, description: 'No path parameters.' };
     }

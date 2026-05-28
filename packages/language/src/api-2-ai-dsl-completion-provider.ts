@@ -14,19 +14,19 @@ const CANONICAL_KEYWORD_SORT: Record<string, string> = {
     in: '0100',
     name: '0101',
     prefix: '0102',
-    fromJwt: '0103',
     toolName: '0200',
     intent: '0201',
     summary: '0202',
     description: '0203',
     example: '0204',
-    public: '0205'
+    autofillParams: '0205',
+    public: '0206',
+    restricted: '0207'
 };
 const AUTH_KEYWORD_INSERT: Record<string, string> = {
     in: 'in: $1$0',
     name: 'name: "$1"$0',
-    prefix: 'prefix: "$1"$0',
-    fromJwt: 'fromJwt: "$1"$0'
+    prefix: 'prefix: "$1"$0'
 };
 const OPERATION_KEYWORD_INSERT: Record<string, string> = {
     toolName: 'toolName: "$1"$0',
@@ -34,7 +34,9 @@ const OPERATION_KEYWORD_INSERT: Record<string, string> = {
     summary: 'summary: "$1"$0',
     description: 'description: "$1"$0',
     example: 'example: "$1"$0',
-    public: 'public'
+    autofillParams: 'autofillParams: ["$1"]$0',
+    public: 'public',
+    restricted: 'restricted'
 };
 
 function debugCompletion(message: string, data?: unknown): void {
@@ -248,6 +250,11 @@ export class Api2AiDslCompletionProvider extends DefaultCompletionProvider {
         debugCompletion('getCompletion pathItems count', pathItems.length);
         if (pathItems.length > 0) {
             return CompletionList.create(this.deduplicateItems(pathItems), false);
+        }
+        const autofillItems = await this.buildAutofillParamCompletionItems(document, params.position);
+        debugCompletion('getCompletion autofillItems count', autofillItems.length);
+        if (autofillItems.length > 0) {
+            return CompletionList.create(this.deduplicateItems(autofillItems), false);
         }
         const keywordItems = this.buildIncompleteBlockKeywordCompletionItems(document, params.position);
         debugCompletion('getCompletion keywordItems count', keywordItems.length);
@@ -472,5 +479,74 @@ export class Api2AiDslCompletionProvider extends DefaultCompletionProvider {
             resolvedPathLeaf: false
         });
         return [];
+    }
+
+    private async buildAutofillParamCompletionItems(
+        document: LangiumDocument,
+        position: Position
+    ): Promise<CompletionItem[]> {
+        const root = document.parseResult.value?.$cstNode;
+        if (!root) {
+            return [];
+        }
+        const textDoc = document.textDocument;
+        const offset = textDoc.offsetAt(position);
+        const leafAt = CstUtils.findLeafNodeAtOffset(root, offset) ?? CstUtils.findLeafNodeBeforeOffset(root, offset);
+        if (!leafAt || !isLeafCstNode(leafAt)) {
+            return [];
+        }
+        const operation = AstUtils.getContainerOfType(leafAt.astNode as AstNode, isOperation);
+        if (!operation) {
+            return [];
+        }
+        const model = operation.$container;
+        if (!isModel(model) || !document.uri.fsPath) {
+            return [];
+        }
+        const operationStart = operation.$cstNode?.offset ?? 0;
+        const beforeCursor = textDoc.getText({
+            start: textDoc.positionAt(operationStart),
+            end: position
+        });
+        if (!/autofillParams\s*:\s*\[[^\]]*$/m.test(beforeCursor)) {
+            return [];
+        }
+
+        let openApiRequiredNames: string[] = [];
+        try {
+            const loaded = await loadOpenApi(model.openapi, path.dirname(document.uri.fsPath));
+            const key = `${operation.method} ${operation.path}`;
+            const details = loaded.operations.get(key);
+            if (details) {
+                openApiRequiredNames = details.parameters.filter((p) => p.required).map((p) => p.name);
+            }
+        } catch {
+            return [];
+        }
+        const { line } = currentLineUntilOffset(textDoc.getText(), offset);
+        const quotedMatch = /"([^"]*)$/.exec(line);
+        const listPositionMatch = /(?:\[\s*|,\s*)$/.test(line);
+        if (!quotedMatch && !listPositionMatch) {
+            return [];
+        }
+        const typedPrefix = quotedMatch?.[1] ?? '';
+        const candidates = [...new Set(openApiRequiredNames)]
+            .filter((name) => name.startsWith(typedPrefix))
+            .sort((a, b) => a.localeCompare(b));
+        if (candidates.length === 0) {
+            return [];
+        }
+        const replaceStart = quotedMatch ? offset - typedPrefix.length - 1 : offset;
+        const range = {
+            start: textDoc.positionAt(replaceStart),
+            end: position
+        };
+        return candidates.map((name) => ({
+            label: `"${name}"`,
+            kind: CompletionItemKind.Value,
+            detail: 'Required OpenAPI parameter',
+            insertTextFormat: InsertTextFormat.PlainText,
+            textEdit: TextEdit.replace(range, `"${name}"`)
+        }));
     }
 }

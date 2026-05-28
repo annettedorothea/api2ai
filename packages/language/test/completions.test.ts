@@ -122,10 +122,8 @@ describe('Completion for block keywords', () => {
         const list = await completionAt(content.replace(marker, ''), content.indexOf(marker));
 
         expect(
-            sortedKeywordLabels(list?.items ?? []).filter((label) =>
-                ['in', 'name', 'prefix', 'fromJwt'].includes(label)
-            )
-        ).toEqual(['in', 'name', 'prefix', 'fromJwt']);
+            sortedKeywordLabels(list?.items ?? []).filter((label) => ['in', 'name', 'prefix'].includes(label))
+        ).toEqual(['in', 'name', 'prefix']);
     });
 
     test('sorts auth keywords even when the block is incomplete', async () => {
@@ -134,10 +132,8 @@ describe('Completion for block keywords', () => {
         const list = await completionAt(content.replace(marker, ''), content.indexOf(marker));
 
         expect(
-            sortedKeywordLabels(list?.items ?? []).filter((label) =>
-                ['in', 'name', 'prefix', 'fromJwt'].includes(label)
-            )
-        ).toEqual(['in', 'prefix', 'fromJwt']);
+            sortedKeywordLabels(list?.items ?? []).filter((label) => ['in', 'name', 'prefix'].includes(label))
+        ).toEqual(['in', 'prefix']);
     });
 
     test('sorts operation keywords in canonical order', async () => {
@@ -147,9 +143,27 @@ describe('Completion for block keywords', () => {
 
         expect(
             sortedKeywordLabels(list?.items ?? []).filter((label) =>
-                ['toolName', 'intent', 'summary', 'description', 'example', 'public'].includes(label)
+                [
+                    'toolName',
+                    'intent',
+                    'summary',
+                    'description',
+                    'example',
+                    'autofillParams',
+                    'public',
+                    'restricted'
+                ].includes(label)
             )
-        ).toEqual(['toolName', 'intent', 'summary', 'description', 'example', 'public']);
+        ).toEqual([
+            'toolName',
+            'intent',
+            'summary',
+            'description',
+            'example',
+            'autofillParams',
+            'public',
+            'restricted'
+        ]);
     });
 
     test('sorts operation keywords before the block is complete', async () => {
@@ -159,8 +173,50 @@ describe('Completion for block keywords', () => {
 
         expect(
             sortedKeywordLabels(list?.items ?? []).filter((label) =>
-                ['toolName', 'intent', 'summary', 'description', 'example', 'public'].includes(label)
+                [
+                    'toolName',
+                    'intent',
+                    'summary',
+                    'description',
+                    'example',
+                    'autofillParams',
+                    'public',
+                    'restricted'
+                ].includes(label)
             )
-        ).toEqual(['toolName', 'intent', 'summary', 'description', 'example', 'public']);
+        ).toEqual([
+            'toolName',
+            'intent',
+            'summary',
+            'description',
+            'example',
+            'autofillParams',
+            'public',
+            'restricted'
+        ]);
+    });
+
+    test('suggests required OpenAPI params inside autofillParams list', async () => {
+        const marker = '/*caret*/';
+        const content = `\nopenapi "./petstore-mini.openapi.yaml"\nGET "/pet/{petId}" {\n    toolName: "getPetById"\n    intent: "get one pet"\n    autofillParams: ["${marker}"]\n}`;
+        const list = await completionAt(content.replace(marker, ''), content.indexOf(marker));
+        const labels = (list?.items ?? []).map((item) => String(item.label));
+        expect(labels).toContain('"petId"');
+    });
+
+    test('suggests required OpenAPI params for empty autofill list slot', async () => {
+        const marker = '/*caret*/';
+        const content = `\nopenapi "./petstore-mini.openapi.yaml"\nGET "/pet/{petId}" {\n    toolName: "getPetById"\n    intent: "get one pet"\n    autofillParams: [${marker}]\n}`;
+        const list = await completionAt(content.replace(marker, ''), content.indexOf(marker));
+        const labels = (list?.items ?? []).map((item) => String(item.label));
+        expect(labels).toContain('"petId"');
+    });
+
+    test('suggests required OpenAPI params when editing existing autofill value', async () => {
+        const marker = '/*caret*/';
+        const content = `\nopenapi "./petstore-mini.openapi.yaml"\nGET "/pet/{petId}" {\n    toolName: "getPetById"\n    intent: "get one pet"\n    autofillParams: ["pet${marker}"]\n}`;
+        const list = await completionAt(content.replace(marker, ''), content.indexOf(marker));
+        const labels = (list?.items ?? []).map((item) => String(item.label));
+        expect(labels).toContain('"petId"');
     });
 });

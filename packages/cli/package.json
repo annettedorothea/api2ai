@@ -25,7 +25,7 @@
         "test:coverage": "vitest run --coverage"
     },
     "dependencies": {
-        "@core2ai/core": "github:annettedorothea/core2ai#v0.1.0",
+        "@core2ai/core": "file:../../../core2ai",
         "@modelcontextprotocol/sdk": "^1.29.0",
         "api-2-ai-dsl-language": "0.0.1",
         "chalk": "~5.3.0",
@@ -35,6 +35,7 @@
         "zod": "^4.4.3"
     },
     "devDependencies": {
+        "esbuild": "^0.25.12",
         "vitest": "~3.1.3"
     }
 }

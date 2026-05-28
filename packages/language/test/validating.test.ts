@@ -211,21 +211,92 @@ describe('Validating', () => {
         expect(diagnostics.some((d) => d.message.includes('auth requires `name'))).toBe(true);
     });
 
-    test('reports empty fromJwt', async () => {
+    test('reports public and restricted together', async () => {
         document = await parseValidated(`
             openapi "./petstore-mini.openapi.yaml"
             auth {
                 in: header
                 name: "Authorization"
-                fromJwt: ""
             }
             GET "/pet/{petId}" {
                 toolName: "getPetById"
                 intent: "get one pet"
+                public
+                restricted
             }
         `);
 
         const diagnostics = document.diagnostics ?? [];
-        expect(diagnostics.some((d) => d.message.includes('auth fromJwt must not be empty'))).toBe(true);
+        expect(diagnostics.some((d) => d.message.includes('cannot be both public and restricted'))).toBe(true);
+    });
+
+    test('reports restricted without auth block', async () => {
+        document = await parseValidated(`
+            openapi "./petstore-mini.openapi.yaml"
+            GET "/pet/{petId}" {
+                toolName: "getPetById"
+                intent: "get one pet"
+                restricted
+            }
+        `);
+
+        const diagnostics = document.diagnostics ?? [];
+        expect(diagnostics.some((d) => d.message.includes('restricted requires an auth block'))).toBe(true);
+    });
+
+    test('accepts autofillParams when parameter exists and is required in OpenAPI', async () => {
+        document = await parseValidated(`
+            openapi "./petstore-mini.openapi.yaml"
+            auth {
+                in: header
+                name: "Authorization"
+            }
+            GET "/pet/{petId}" {
+                toolName: "getPetById"
+                intent: "get one pet"
+                autofillParams: ["petId"]
+                restricted
+            }
+        `);
+
+        const diagnostics = document.diagnostics ?? [];
+        expect(diagnostics).toHaveLength(0);
+    });
+
+    test('accepts autofillParams values that are not present in OpenAPI', async () => {
+        document = await parseValidated(`
+            openapi "./petstore-mini.openapi.yaml"
+            auth {
+                in: header
+                name: "Authorization"
+            }
+            GET "/pet/{petId}" {
+                toolName: "getPetById"
+                intent: "get one pet"
+                autofillParams: ["customerId"]
+                restricted
+            }
+        `);
+
+        const diagnostics = document.diagnostics ?? [];
+        expect(diagnostics).toHaveLength(0);
+    });
+
+    test('reports autofillParams without restricted', async () => {
+        document = await parseValidated(`
+            openapi "./petstore-mini.openapi.yaml"
+            auth {
+                in: header
+                name: "Authorization"
+            }
+            GET "/pet/{petId}" {
+                toolName: "getPetById"
+                intent: "get one pet"
+                autofillParams: ["petId"]
+            }
+        `);
+
+        const diagnostics = document.diagnostics ?? [];
+        expect(diagnostics.some((d) => d.message.includes('autofillParams requires `restricted`'))).toBe(true);
     });
 });

@@ -5,6 +5,7 @@ import * as fs from 'node:fs/promises';
 import * as net from 'node:net';
 import * as path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
+import { compileAuthStubSources } from '../../src/generator/auth-stub-compile.js';
 import { generateAction } from '../../src/generate-command.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -106,8 +107,8 @@ describe('mock API generated module direct invocation', () => {
     it('generates mock API tools and invokes public and authenticated calls', async () => {
         const runRoot = await fs.mkdtemp(path.join(tmpRoot, 'mock-api-direct-'));
         const fixtureRoot = path.join(runRoot, 'fixture');
-        const generatedTsPath = path.join(runRoot, 'generated/tools/mock-api-tools.ts');
-        const generatedJsPath = path.join(runRoot, 'generated/tools/mock-api-tools.mjs');
+        const generatedTsPath = path.join(fixtureRoot, 'generated/tools/mock-api-tools.ts');
+        const generatedJsPath = path.join(fixtureRoot, 'generated/tools/mock-api-tools.mjs');
         const baseUrlEnv = 'MCP_HOST_BASE_URL';
         const credentialEnv = 'MCP_HOST_CREDENTIAL';
         const previousBaseUrl = process.env[baseUrlEnv];
@@ -119,6 +120,12 @@ describe('mock API generated module direct invocation', () => {
             await fs.copyFile(openApiFixturePath, path.join(fixtureRoot, 'openapi/mock-api.openapi.yaml'));
 
             await generateAction(path.join(fixtureRoot, 'mock-api.api2ai'), generatedTsPath);
+            await fs.mkdir(path.join(fixtureRoot, 'src', 'auth'), { recursive: true });
+            await fs.copyFile(
+                path.join(demosRoot, 'src/auth/listCustomerOrders.ts'),
+                path.join(fixtureRoot, 'src/auth/listCustomerOrders.ts')
+            );
+            await compileAuthStubSources(path.join(fixtureRoot, 'src/auth'));
             const imported = await import(`${pathToFileURL(generatedJsPath).href}?t=${Date.now()}`);
             const generated = readGeneratedModule(imported as Record<string, unknown>);
 
@@ -141,7 +148,11 @@ describe('mock API generated module direct invocation', () => {
             generated.adapter.validateAtStartup(generated.requiresAuth === true);
 
             const ordersResult = asRecord(
-                await generated.invokeTool('listCustomerOrders', {}, generated.adapter.resolveHostContext())
+                await generated.invokeTool(
+                    'listCustomerOrders',
+                    { pathParams: { customerId: 'alice' } },
+                    generated.adapter.resolveHostContext()
+                )
             );
             expect(ordersResult.customerId).toBe('alice');
             expect(ordersResult.orders).toEqual([

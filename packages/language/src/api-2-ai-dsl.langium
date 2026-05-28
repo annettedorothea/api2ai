@@ -11,7 +11,6 @@ Auth:
         ('in' ':' location=AuthLocation)?
         ('name' ':' name=STRING)?
         ('prefix' ':' prefix=STRING)?
-        ('fromJwt' ':' fromJwt=STRING)?
     '}';
 
 Operation:
@@ -21,7 +20,9 @@ Operation:
         ('summary' ':' summary=STRING)?
         ('description' ':' description=STRING)?
         ('example' ':' example=STRING)?
+        ('autofillParams' ':' '[' (autofillParams+=STRING (',' autofillParams+=STRING)*)? ']')?
         (public?='public')?
+        (restricted?='restricted')?
     '}';
 
 AuthLocation returns string:

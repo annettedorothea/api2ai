@@ -106,23 +106,22 @@ describe('Parsing tests', () => {
         expect(document.parseResult.parserErrors.length).toBeGreaterThan(0);
     });
 
-    test('parses auth block with fromJwt', async () => {
+    test('parses restricted flag on operation', async () => {
         document = await parse(`
             openapi "./petstore.openapi.yaml"
             auth {
                 in: header
                 name: "Authorization"
-                prefix: "Bearer "
-                fromJwt: "customerId"
             }
-            GET "/orders/{customerId}" {
+            GET "/orders" {
                 toolName: "listOrders"
                 intent: "list"
+                restricted
             }
         `);
 
         expect(document.parseResult.parserErrors).toHaveLength(0);
-        expect(document.parseResult.value.auth?.fromJwt).toBe('customerId');
+        expect(document.parseResult.value.operations[0].restricted).toBe(true);
     });
 
     test('parses public flag on operation', async () => {
@@ -137,5 +136,19 @@ describe('Parsing tests', () => {
 
         expect(document.parseResult.parserErrors).toHaveLength(0);
         expect(document.parseResult.value.operations[0].public).toBe(true);
+    });
+
+    test('parses autofillParams on operation', async () => {
+        document = await parse(`
+            openapi "./petstore.openapi.yaml"
+            GET "/customers/{id}" {
+                toolName: "getCustomer"
+                intent: "get customer"
+                autofillParams: ["id"]
+            }
+        `);
+
+        expect(document.parseResult.parserErrors).toHaveLength(0);
+        expect(document.parseResult.value.operations[0].autofillParams).toEqual(['id']);
     });
 });

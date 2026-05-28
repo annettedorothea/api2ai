@@ -10,7 +10,7 @@ paths:
         post:
             operationId: login-customer
             summary: Login customer
-            description: Issues a short-lived HS256 JWT with claim customerId. No authentication required.
+            description: Issues a short-lived HS256 JWT with claims customerId and role (admin or user). No authentication required.
             parameters:
                 - name: customerId
                   in: path
@@ -57,7 +57,7 @@ paths:
         get:
             operationId: list-customer-orders
             summary: List orders for customer
-            description: Requires Bearer JWT; customerId in path must match JWT claim.
+            description: Requires Bearer JWT; for role=user customerId in path must match JWT claim, role=admin may read any customer.
             security:
                 - bearerAuth: []
             parameters:

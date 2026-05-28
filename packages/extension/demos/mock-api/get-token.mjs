@@ -5,7 +5,7 @@
  */
 const customerId = process.argv[2];
 if (!customerId) {
-    console.error('Usage: node get-token.mjs <customerId>  (demo customers: alice, bob)');
+    console.error('Usage: node get-token.mjs <customerId>  (demo customers: admin, alice, bob)');
     process.exit(1);
 }
 

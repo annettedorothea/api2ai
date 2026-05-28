@@ -42,11 +42,13 @@ function matchPath(pathname, pattern) {
 }
 
 function handleLogin(res, customerId) {
-    if (!ordersByCustomer[customerId]) {
+    const normalized = String(customerId);
+    if (normalized !== 'admin' && !ordersByCustomer[normalized]) {
         sendJson(res, 404, { error: 'unknown_customer', customerId });
         return;
     }
-    sendJson(res, 200, { access_token: mintCustomerToken(customerId) });
+    const role = normalized === 'admin' ? 'admin' : 'user';
+    sendJson(res, 200, { access_token: mintCustomerToken(normalized, role) });
 }
 
 const server = createServer((req, res) => {
@@ -77,11 +79,13 @@ const server = createServer((req, res) => {
             return;
         }
         const claimCustomerId = verified.payload.customerId;
-        if (String(claimCustomerId) !== String(orders.customerId)) {
+        const role = String(verified.payload.role ?? '');
+        if (role !== 'admin' && String(claimCustomerId) !== String(orders.customerId)) {
             sendJson(res, 403, {
                 error: 'customer_mismatch',
                 pathCustomerId: orders.customerId,
-                tokenCustomerId: claimCustomerId
+                tokenCustomerId: claimCustomerId,
+                tokenRole: role || 'user'
             });
             return;
         }

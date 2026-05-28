@@ -27,6 +27,7 @@ export function registerValidationChecks(services: Api2AiDslServices) {
 export class Api2AiDslValidator {
     async checkModel(model: Model, accept: ValidationAcceptor): Promise<void> {
         this.checkAuth(model, accept);
+        this.checkOperationAccess(model, accept);
         this.checkOperationRequiredKeys(model, accept);
         this.checkUniqueToolNames(model, accept);
         await this.checkReferencedOperationsExist(model, accept);
@@ -55,11 +56,33 @@ export class Api2AiDslValidator {
                 property: 'name'
             });
         }
-        if (auth.fromJwt !== undefined && auth.fromJwt.trim().length === 0) {
-            accept('error', 'auth fromJwt must not be empty.', {
-                node: auth,
-                property: 'fromJwt'
-            });
+    }
+
+    private checkOperationAccess(model: Model, accept: ValidationAcceptor): void {
+        const hasRestricted = model.operations.some((op) => op.restricted === true);
+        if (hasRestricted && !model.auth) {
+            for (const operation of model.operations) {
+                if (operation.restricted === true) {
+                    accept('error', 'restricted requires an auth block on the model.', {
+                        node: operation,
+                        property: 'restricted'
+                    });
+                }
+            }
+        }
+        for (const operation of model.operations) {
+            if (operation.public === true && operation.restricted === true) {
+                accept('error', 'Operation cannot be both public and restricted.', {
+                    node: operation,
+                    property: 'public'
+                });
+            }
+            if ((operation.autofillParams?.length ?? 0) > 0 && operation.restricted !== true) {
+                accept('error', 'autofillParams requires `restricted` on the operation.', {
+                    node: operation,
+                    property: 'autofillParams'
+                });
+            }
         }
     }
 

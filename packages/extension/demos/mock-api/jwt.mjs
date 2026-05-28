@@ -52,10 +52,11 @@ export function verifyJwt(token, secret = jwtSecret()) {
     return { ok: true, payload };
 }
 
-export function mintCustomerToken(customerId, ttlSeconds = 3600) {
+export function mintCustomerToken(customerId, role = 'user', ttlSeconds = 3600) {
     const now = Math.floor(Date.now() / 1000);
     return signJwt({
         customerId: String(customerId),
+        role: String(role),
         iat: now,
         exp: now + ttlSeconds,
         jti: randomBytes(8).toString('hex')

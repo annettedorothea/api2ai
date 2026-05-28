@@ -15,6 +15,14 @@ import {
     writeMinimalPackageJsonIfAbsent,
     type ProjectBootstrapConfig
 } from '@core2ai/core/codegen';
+import {
+    ensureRestrictedAuthStubs,
+    listRestrictedToolNames,
+    renderParameterCheckerImports,
+    renderParameterCheckersMap,
+    resolveToolAccess,
+    type ToolAccess
+} from './generator/auth-stub-render.js';
 import { renderMcpHostAdapterBlock } from './generator/host-adapter-render.js';
 import { createSharedInvokeBlock } from './generator/invoke-render.js';
 import { renderJsModule, renderMcpServerIdentityExports, renderTsModule } from './generator/module-render.js';
@@ -78,7 +86,7 @@ export type ResolvedToolCodegen = {
     method: Model['operations'][number]['method'];
     path: string;
     example?: string;
-    public: boolean;
+    access: ToolAccess;
 };
 
 function serializeJsonForModule(value: unknown): string {
@@ -101,7 +109,7 @@ function resolveToolsFromLoaded(model: Model, loaded: LoadedOpenApi): ResolvedTo
             method: operation.method,
             path: operation.path,
             example: operation.example,
-            public: operation.public === true
+            access: model.auth ? resolveToolAccess(operation) : 'public'
         };
     });
 }
@@ -124,10 +132,7 @@ function buildSchemasFromLoaded(model: Model, loaded: LoadedOpenApi): Record<str
         if (!details) {
             continue;
         }
-        const jwtBound = model.auth?.fromJwt?.trim();
-        const omitJwtPath =
-            operation.public === true ? undefined : jwtBound && jwtBound.length > 0 ? jwtBound : undefined;
-        const base = buildToolInputSchema(details, omitJwtPath);
+        const base = buildToolInputSchema(details, undefined, operation.autofillParams ?? []);
         out[requireToolName(operation)] = base;
     }
     return out;
@@ -207,24 +212,50 @@ export async function generateOutput(model: Model, source: string, destination: 
     );
     const authKind = authRuntimeKind(model);
     const usesInsecureTls = model.insecureEnv === true;
-    const usesFromJwt = Boolean(model.auth?.fromJwt?.trim());
     const mcpServerIdentity = resolveMcpServerIdentityFromDestination(tsPath, bootstrapConfig);
     const mcpServerIdentityBlock = renderMcpServerIdentityExports(mcpServerIdentity.name, mcpServerIdentity.version);
     const mcpHostAdapterBlock = renderMcpHostAdapterBlock(authKind);
-    const toolRuntimeBlock = `${buildInputZodBlock(orderedSchemas)}\n${mcpHostAdapterBlock}\n${createSharedInvokeBlock(
+
+    const hasRestrictedOps = listRestrictedToolNames(model).length > 0;
+    const stubPaths = hasRestrictedOps ? await ensureRestrictedAuthStubs(source, model) : new Map<string, string>();
+    const hasRestricted = stubPaths.size > 0;
+    const parameterCheckerImports = hasRestricted ? renderParameterCheckerImports(tsPath, stubPaths) : '';
+    const parameterCheckersMap = hasRestricted ? renderParameterCheckersMap(stubPaths) : '';
+
+    const authRuntimePrefix = parameterCheckersMap.length > 0 ? `${parameterCheckersMap}\n\n` : '';
+
+    const toolRuntimeBlock = `${authRuntimePrefix}${buildInputZodBlock(orderedSchemas)}\n${mcpHostAdapterBlock}\n${createSharedInvokeBlock(
         querySerializationLiteral,
         authKind,
         usesInsecureTls,
-        usesFromJwt
+        hasRestricted
     )}`;
 
     fs.writeFileSync(
         tsPath,
-        renderTsModule(toolsLiteral, mcpServerIdentityBlock, toolRuntimeBlock, model, source, authKind, usesInsecureTls)
+        renderTsModule(
+            toolsLiteral,
+            mcpServerIdentityBlock,
+            toolRuntimeBlock,
+            model,
+            source,
+            authKind,
+            usesInsecureTls,
+            parameterCheckerImports
+        )
     );
     fs.writeFileSync(
         jsPath,
-        renderJsModule(toolsLiteral, mcpServerIdentityBlock, toolRuntimeBlock, model, source, authKind, usesInsecureTls)
+        renderJsModule(
+            toolsLiteral,
+            mcpServerIdentityBlock,
+            toolRuntimeBlock,
+            model,
+            source,
+            authKind,
+            usesInsecureTls,
+            parameterCheckerImports
+        )
     );
     await formatGeneratedFilesWithPrettier([tsPath, jsPath]);
 

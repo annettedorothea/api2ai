@@ -16,8 +16,7 @@ function renderAuthConfig(model: Model): string {
         {
             location: model.auth.location,
             name: model.auth.name,
-            prefix: model.auth.prefix,
-            fromJwt: model.auth.fromJwt
+            prefix: model.auth.prefix
         },
         null,
         4
@@ -28,14 +27,23 @@ function renderSourceReference(source: string): string {
     return path.basename(source);
 }
 
+function requiresAuthLiteral(model: Model): string {
+    if (!model.auth) {
+        return 'false';
+    }
+    const needsCredential = model.operations.some((op) => op.public !== true);
+    return needsCredential ? 'true' : 'false';
+}
+
 export function renderTsModule(
     enrichedToolsLiteral: string,
     mcpServerIdentityBlock: string,
     toolRuntimeBlock: string,
     model: Model,
     source: string,
-    authKind: 'none' | 'credential',
-    usesInsecureTls: boolean
+    _authKind: 'none' | 'credential',
+    usesInsecureTls: boolean,
+    restrictedImports = ''
 ): string {
     const authConfigLiteral = renderAuthConfig(model);
     const sourceReference = renderSourceReference(source);
@@ -43,22 +51,26 @@ export function renderTsModule(
         ? '\nexport const insecureTls = true;\n'
         : '\nexport const insecureTls = false;\n';
 
-    const authDecl = `type AuthConfig = {
+    const authDecl = model.auth
+        ? `type AuthConfig = {
     location: 'header' | 'query';
     name: string;
     prefix?: string;
-    fromJwt?: string;
 };
 
-export const requiresAuth = ${model.auth && model.operations.some((op) => !op.public) ? 'true' : 'false'};
-export const authConfig: AuthConfig | undefined = ${authConfigLiteral};`;
+export const requiresAuth = ${requiresAuthLiteral(model)};
+export const authConfig: AuthConfig | undefined = ${authConfigLiteral};`
+        : `export const requiresAuth = false;
+export const authConfig: undefined = undefined;`;
+
+    const importPrefix = restrictedImports.length > 0 ? `${restrictedImports}\n\n` : '';
 
     const fileNode = expandToNode`
 /**
  * Generated from: ${sourceReference}
  * Referenced OpenAPI: ${model.openapi}
  */
-${insecureTlsExport}
+${importPrefix}${insecureTlsExport}
 export type GeneratedTool = {
     toolName: string;
     title: string;
@@ -66,8 +78,7 @@ export type GeneratedTool = {
     method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' | 'HEAD' | 'OPTIONS' | 'TRACE';
     path: string;
     example?: string;
-    /** When true, no auth header or fromJwt binding (e.g. login). */
-    public?: boolean;
+    access: 'public' | 'protected' | 'restricted';
 };
 
 export const generatedTools: GeneratedTool[] = ${enrichedToolsLiteral};
@@ -93,21 +104,21 @@ export function renderJsModule(
     mcpServerIdentityBlock: string,
     toolRuntimeBlock: string,
     model: Model,
-    source: string,
-    authKind: 'none' | 'credential',
-    usesInsecureTls: boolean
+    _source: string,
+    _authKind: 'none' | 'credential',
+    usesInsecureTls: boolean,
+    restrictedImports = ''
 ): string {
-    const sourceReference = renderSourceReference(source);
+    const importPrefix = restrictedImports.length > 0 ? `${restrictedImports}\n\n` : '';
     return `/**
- * Generated from: ${sourceReference}
- * Referenced OpenAPI: ${model.openapi}
+ * Generated JS module (types live in the sibling .ts file).
  */
-
+${importPrefix}
 export const insecureTls = ${usesInsecureTls ? 'true' : 'false'};
 
 export const generatedTools = ${enrichedToolsLiteral};
 
-export const requiresAuth = ${model.auth && model.operations.some((op) => !op.public) ? 'true' : 'false'};
+export const requiresAuth = ${requiresAuthLiteral(model)};
 
 export const authConfig = ${renderAuthConfig(model)};
 

@@ -1,14 +1,5 @@
 export function renderMcpHostAdapterBlock(authKind: 'none' | 'credential'): string {
-    const authCheck =
-        authKind === 'credential'
-            ? `
-        if (!credential) {
-            throw new Error(
-                'Missing host credential. Pass --auth-env on mcp-serve.mjs and set the variable (re-read on every tool call).'
-            );
-        }`
-            : `
-        credential = credential || undefined;`;
+    void authKind;
     return `const META_BASE_URL_ENV_KEY = 'MCP_HOST_BASE_URL_ENV_KEY';
 const META_AUTH_ENV_KEY = 'MCP_HOST_AUTH_ENV_KEY';
 const META_ENV_DIRS = 'MCP_HOST_ENV_DIRS';
@@ -88,12 +79,6 @@ export const mcpHostAdapter = {
         if (!authEnvName) {
             throw new Error('Generated tools require auth; pass --auth-env <ENV_VAR_NAME> on the MCP host.');
         }
-        const credential = process.env[authEnvName]?.trim();
-        if (!credential) {
-            throw new Error(
-                'Environment variable "' + authEnvName + '" is missing or empty (required by --auth-env).'
-            );
-        }
     },
 
     resolveHostContext() {
@@ -106,7 +91,7 @@ export const mcpHostAdapter = {
         }
 
         const authKey = process.env[META_AUTH_ENV_KEY]?.trim();
-        let credential = authKey ? process.env[authKey]?.trim() : undefined;${authCheck}
+        const credential = authKey ? process.env[authKey]?.trim() : undefined;
 
         let jwt;
         if (credential) {

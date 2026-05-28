@@ -4,14 +4,15 @@ auth {
     in: header
     name: "Authorization"
     prefix: "Bearer "
-    fromJwt: "customerId"
 }
 
 GET "/orders/{customerId}" {
     toolName: "listCustomerOrders"
-    intent: "list orders for the authenticated customer from the JWT"
+    intent: "list orders for the authenticated customer from the JWT, when the customerId is empty, it will be filled from the JWT"
     summary: "List customer orders"
     example: "List my orders"
+    autofillParams: ["customerId", "test"]
+    restricted
 }
 
 POST "/login/{customerId}" {

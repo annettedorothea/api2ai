@@ -12,8 +12,7 @@ export type GeneratedTool = {
     method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' | 'HEAD' | 'OPTIONS' | 'TRACE';
     path: string;
     example?: string;
-    /** When true, no auth header or fromJwt binding (e.g. login). */
-    public?: boolean;
+    access: 'public' | 'protected' | 'restricted';
 };
 
 export const generatedTools: GeneratedTool[] = [
@@ -25,7 +24,7 @@ export const generatedTools: GeneratedTool[] = [
         method: 'GET',
         path: '/3/search/movie',
         example: 'Find movies named Dune',
-        public: false
+        access: 'protected'
     },
     {
         toolName: 'getPopularTmdbMovies',
@@ -35,7 +34,7 @@ export const generatedTools: GeneratedTool[] = [
         method: 'GET',
         path: '/3/movie/popular',
         example: 'Show popular movies',
-        public: false
+        access: 'protected'
     },
     {
         toolName: 'getTmdbMovieDetails',
@@ -45,7 +44,7 @@ export const generatedTools: GeneratedTool[] = [
         method: 'GET',
         path: '/3/movie/{movie_id}',
         example: 'Get details for movie id 693134',
-        public: false
+        access: 'protected'
     },
     {
         toolName: 'getTmdbMovieCredits',
@@ -55,7 +54,7 @@ export const generatedTools: GeneratedTool[] = [
         method: 'GET',
         path: '/3/movie/{movie_id}/credits',
         example: 'Who played in movie id 693134?',
-        public: false
+        access: 'protected'
     },
     {
         toolName: 'discoverTmdbMovies',
@@ -65,7 +64,7 @@ export const generatedTools: GeneratedTool[] = [
         method: 'GET',
         path: '/3/discover/movie',
         example: 'Find highly rated science fiction movies from 2024',
-        public: false
+        access: 'protected'
     },
     {
         toolName: 'getTmdbMovieGenres',
@@ -75,7 +74,7 @@ export const generatedTools: GeneratedTool[] = [
         method: 'GET',
         path: '/3/genre/movie/list',
         example: 'List available movie genres',
-        public: false
+        access: 'protected'
     },
     {
         toolName: 'getTmdbTrendingMovies',
@@ -85,7 +84,7 @@ export const generatedTools: GeneratedTool[] = [
         method: 'GET',
         path: '/3/trending/movie/{time_window}',
         example: 'Show trending movies this week',
-        public: false
+        access: 'protected'
     },
     {
         toolName: 'getTmdbMovieVideos',
@@ -95,7 +94,7 @@ export const generatedTools: GeneratedTool[] = [
         method: 'GET',
         path: '/3/movie/{movie_id}/videos',
         example: 'Show trailers for movie id 693134',
-        public: false
+        access: 'protected'
     },
     {
         toolName: 'searchTmdbMulti',
@@ -105,7 +104,7 @@ export const generatedTools: GeneratedTool[] = [
         method: 'GET',
         path: '/3/search/multi',
         example: 'Search TMDB for Dune across all media types',
-        public: false
+        access: 'protected'
     },
     {
         toolName: 'getTmdbMovieReleaseDates',
@@ -115,7 +114,7 @@ export const generatedTools: GeneratedTool[] = [
         method: 'GET',
         path: '/3/movie/{movie_id}/release_dates',
         example: 'When was movie id 693134 released?',
-        public: false
+        access: 'protected'
     },
     {
         toolName: 'getTmdbMovieRecommendations',
@@ -125,7 +124,7 @@ export const generatedTools: GeneratedTool[] = [
         method: 'GET',
         path: '/3/movie/{movie_id}/recommendations',
         example: 'Recommendations for movie id 693134',
-        public: false
+        access: 'protected'
     },
     {
         toolName: 'getTmdbMovieSimilar',
@@ -135,7 +134,7 @@ export const generatedTools: GeneratedTool[] = [
         method: 'GET',
         path: '/3/movie/{movie_id}/similar',
         example: 'Find similar movies to 693134',
-        public: false
+        access: 'protected'
     },
     {
         toolName: 'getTmdbMovieReviews',
@@ -145,7 +144,7 @@ export const generatedTools: GeneratedTool[] = [
         method: 'GET',
         path: '/3/movie/{movie_id}/reviews',
         example: 'Reviews for movie id 693134',
-        public: false
+        access: 'protected'
     }
 ];
 
@@ -161,7 +160,6 @@ type AuthConfig = {
     location: 'header' | 'query';
     name: string;
     prefix?: string;
-    fromJwt?: string;
 };
 
 export const requiresAuth = true;
@@ -542,10 +540,6 @@ export const mcpHostAdapter = {
         if (!authEnvName) {
             throw new Error('Generated tools require auth; pass --auth-env <ENV_VAR_NAME> on the MCP host.');
         }
-        const credential = process.env[authEnvName]?.trim();
-        if (!credential) {
-            throw new Error('Environment variable "' + authEnvName + '" is missing or empty (required by --auth-env).');
-        }
     },
 
     resolveHostContext() {
@@ -558,12 +552,7 @@ export const mcpHostAdapter = {
         }
 
         const authKey = process.env[META_AUTH_ENV_KEY]?.trim();
-        let credential = authKey ? process.env[authKey]?.trim() : undefined;
-        if (!credential) {
-            throw new Error(
-                'Missing host credential. Pass --auth-env on mcp-serve.mjs and set the variable (re-read on every tool call).'
-            );
-        }
+        const credential = authKey ? process.env[authKey]?.trim() : undefined;
 
         let jwt;
         if (credential) {
@@ -940,24 +929,30 @@ export async function invokeTool(toolName, options = {}, hostContext) {
     }
 
     const host = hostContext ?? mcpHostAdapter.resolveHostContext();
-    const { baseUrl, credential, jwt } = host;
+    const { baseUrl, credential } = host;
+
+    if (tool.access !== 'public') {
+        if (!credential || !String(credential).trim()) {
+            throw new Error(
+                'Missing host credential. Pass --auth-env on mcp-serve.mjs and set the variable (re-read on every tool call).'
+            );
+        }
+    }
+    const optionsResolved = options;
     const normalizedBaseUrl = baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl;
-    const pathParams =
-        !tool.public && authConfig?.fromJwt
-            ? resolvePathParamsWithFromJwt(authConfig, options.pathParams, jwt)
-            : { ...(options.pathParams ?? {}) };
+    const pathParams = { ...(optionsResolved.pathParams ?? {}) };
     let resolvedPath = tool.path;
     for (const [key, value] of Object.entries(pathParams)) {
         resolvedPath = resolvedPath.split('{' + key + '}').join(encodeURIComponent(String(value)));
     }
 
     const url = new URL(normalizedBaseUrl + resolvedPath);
-    appendSerializedQueryParams(url.searchParams, tool.toolName, options.query);
+    appendSerializedQueryParams(url.searchParams, tool.toolName, optionsResolved.query);
     const requestHeaders = {
         'content-type': 'application/json',
-        ...(options.headers ?? {})
+        ...(optionsResolved.headers ?? {})
     };
-    if (authConfig && !tool.public) {
+    if (authConfig && tool.access !== 'public') {
         const authValue = resolveAuthSecret(authConfig, credential);
         if (authConfig.location === 'header') {
             requestHeaders[authConfig.name] = authValue;
@@ -971,8 +966,8 @@ export async function invokeTool(toolName, options = {}, hostContext) {
         headers: requestHeaders
     };
 
-    if (options.body !== undefined && tool.method !== 'GET' && tool.method !== 'HEAD') {
-        requestInit.body = JSON.stringify(options.body);
+    if (optionsResolved.body !== undefined && tool.method !== 'GET' && tool.method !== 'HEAD') {
+        requestInit.body = JSON.stringify(optionsResolved.body);
     }
 
     const response = await fetch(url, requestInit);
@@ -983,15 +978,13 @@ export async function invokeTool(toolName, options = {}, hostContext) {
             const t = await response.text();
             bodySnippet = t.length > 512 ? t.slice(0, 512) + '...' : t;
         } catch {
-            bodySnippet = '';
+            /* ignore unreadable error body */
         }
         let msg = 'HTTP ' + response.status + ' while invoking ' + tool.toolName + '.';
         if (response.status === 401) {
             msg += ' Unauthorized.';
-            if (authConfig && !tool.public) {
+            if (authConfig && tool.access !== 'public') {
                 msg += ' Check MCP host --auth-env (' + authConfig.location + ' ' + authConfig.name + ').';
-            } else if (!tool.public) {
-                msg += ' The API may require authentication.';
             }
         } else if (response.status === 403) {
             msg += ' Forbidden: insufficient permission for this request.';

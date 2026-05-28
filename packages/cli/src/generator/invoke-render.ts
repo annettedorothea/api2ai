@@ -8,29 +8,6 @@ const insecureTlsDispatcher = new Agent({ connect: { rejectUnauthorized: false }
         : '';
 }
 
-function renderJwtHelpers(usesFromJwt: boolean): string {
-    return usesFromJwt
-        ? `
-function resolvePathParamsWithFromJwt(authConfig, pathParams, jwt) {
-    const base = { ...(pathParams ?? {}) };
-    const claim = authConfig?.fromJwt;
-    if (!claim) {
-        return base;
-    }
-    if (!jwt || typeof jwt !== 'object') {
-        throw new Error('fromJwt requires a JWT in host context (set --auth-env to a JWT).');
-    }
-    const value = jwt[claim];
-    if (value === undefined || value === null || String(value).trim() === '') {
-        throw new Error('fromJwt: JWT payload missing claim "' + claim + '".');
-    }
-    base[claim] = String(value).trim();
-    return base;
-}
-`
-        : '';
-}
-
 function renderAuthHelpers(authKind: 'none' | 'credential'): string {
     return authKind === 'credential'
         ? `
@@ -47,7 +24,7 @@ function renderAuthApplicationBlock(authKind: 'none' | 'credential'): string {
     return authKind === 'none'
         ? ''
         : `
-    if (authConfig && !tool.public) {
+    if (authConfig && tool.access !== 'public') {
         const authValue = resolveAuthSecret(authConfig, credential);
         if (authConfig.location === 'header') {
             requestHeaders[authConfig.name] = authValue;
@@ -76,6 +53,8 @@ function renderInsecureTlsFetch(usesInsecureTls: boolean): string {
     }`
         : '';
 }
+
+import { renderInvokeCredentialAndParameterCheck } from './auth-stub-render.js';
 
 function renderQuerySerializationHelpers(querySerializationLiteralBody: string): string {
     return `export const queryParamSerializationByTool = ${querySerializationLiteralBody};
@@ -126,10 +105,25 @@ function appendSerializedQueryParams(searchParams, toolName, query) {
 }`;
 }
 
-function renderInvokeToolFunction(authKind: 'none' | 'credential', usesInsecureTls: boolean): string {
+function renderInvokeToolFunction(
+    authKind: 'none' | 'credential',
+    usesInsecureTls: boolean,
+    hasRestricted: boolean
+): string {
+    const credentialBinding = authKind === 'credential' ? ', credential' : '';
+    const hasAuth = authKind === 'credential';
     const resolveCall = renderAuthApplicationBlock(authKind);
     const auth401Block = renderAuth401Hint(authKind);
+    const auth401Section =
+        authKind === 'credential'
+            ? `if (authConfig && tool.access !== 'public') {
+                ${auth401Block}
+            }`
+            : `if (tool.access !== 'public') {
+                msg += ' The API may require authentication.';
+            }`;
     const insecureTlsFetch = renderInsecureTlsFetch(usesInsecureTls);
+    const credentialAndParams = renderInvokeCredentialAndParameterCheck(hasAuth, hasRestricted);
 
     return `export async function invokeTool(toolName, options = {}, hostContext) {
     const tool = generatedTools.find((t) => t.toolName === toolName);
@@ -138,30 +132,16 @@ function renderInvokeToolFunction(authKind: 'none' | 'credential', usesInsecureT
     }
 
     const host = hostContext ?? mcpHostAdapter.resolveHostContext();
-    const { baseUrl, credential, jwt } = host;
-    const normalizedBaseUrl = baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl;
-    const pathParams = !tool.public && authConfig?.fromJwt
-        ? resolvePathParamsWithFromJwt(authConfig, options.pathParams, jwt)
-        : { ...(options.pathParams ?? {}) };
-    let resolvedPath = tool.path;
-    for (const [key, value] of Object.entries(pathParams)) {
-        resolvedPath = resolvedPath.split('{' + key + '}').join(encodeURIComponent(String(value)));
-    }
-
-    const url = new URL(normalizedBaseUrl + resolvedPath);
-    appendSerializedQueryParams(url.searchParams, tool.toolName, options.query);
-    const requestHeaders = {
-        'content-type': 'application/json',
-        ...(options.headers ?? {})
-    };${resolveCall}
+    const { baseUrl${credentialBinding} } = host;
+${credentialAndParams}${resolveCall}
 
     const requestInit = {
         method: tool.method,
         headers: requestHeaders
     };
 
-    if (options.body !== undefined && tool.method !== 'GET' && tool.method !== 'HEAD') {
-        requestInit.body = JSON.stringify(options.body);
+    if (optionsResolved.body !== undefined && tool.method !== 'GET' && tool.method !== 'HEAD') {
+        requestInit.body = JSON.stringify(optionsResolved.body);
     }${insecureTlsFetch}
 
     const response = await fetch(url, requestInit);
@@ -172,16 +152,12 @@ function renderInvokeToolFunction(authKind: 'none' | 'credential', usesInsecureT
             const t = await response.text();
             bodySnippet = t.length > 512 ? t.slice(0, 512) + '...' : t;
         } catch {
-            bodySnippet = '';
+            /* ignore unreadable error body */
         }
         let msg = 'HTTP ' + response.status + ' while invoking ' + tool.toolName + '.';
         if (response.status === 401) {
             msg += ' Unauthorized.';
-            if (authConfig && !tool.public) {
-                ${auth401Block}
-            } else if (!tool.public) {
-                msg += ' The API may require authentication.';
-            }
+            ${auth401Section}
         } else if (response.status === 403) {
             msg += ' Forbidden: insufficient permission for this request.';
         } else if (response.status === 429) {
@@ -210,12 +186,12 @@ export function createSharedInvokeBlock(
     querySerializationLiteralBody: string,
     authKind: 'none' | 'credential',
     usesInsecureTls: boolean,
-    usesFromJwt: boolean
+    hasRestricted: boolean
 ): string {
     return `${renderInsecureTlsSetup(usesInsecureTls)}
 ${renderQuerySerializationHelpers(querySerializationLiteralBody)}
-${renderJwtHelpers(usesFromJwt)}${renderAuthHelpers(authKind)}
+${renderAuthHelpers(authKind)}
 
-${renderInvokeToolFunction(authKind, usesInsecureTls)}
+${renderInvokeToolFunction(authKind, usesInsecureTls, hasRestricted)}
 `.trim();
 }

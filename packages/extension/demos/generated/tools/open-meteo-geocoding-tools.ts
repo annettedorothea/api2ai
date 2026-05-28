@@ -12,8 +12,7 @@ export type GeneratedTool = {
     method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' | 'HEAD' | 'OPTIONS' | 'TRACE';
     path: string;
     example?: string;
-    /** When true, no auth header or fromJwt binding (e.g. login). */
-    public?: boolean;
+    access: 'public' | 'protected' | 'restricted';
 };
 
 export const generatedTools: GeneratedTool[] = [
@@ -25,7 +24,7 @@ export const generatedTools: GeneratedTool[] = [
         method: 'GET',
         path: '/v1/search',
         example: 'Find coordinates for Bernstein, Burgenland, Austria',
-        public: false
+        access: 'public'
     }
 ];
 
@@ -37,15 +36,8 @@ export type InvokeOptions = {
     body?: unknown;
 };
 
-type AuthConfig = {
-    location: 'header' | 'query';
-    name: string;
-    prefix?: string;
-    fromJwt?: string;
-};
-
 export const requiresAuth = false;
-export const authConfig: AuthConfig | undefined = undefined;
+export const authConfig: undefined = undefined;
 
 export const mcpServerName = 'open-meteo-geocoding-tools';
 export const mcpServerVersion = '0.0.1';
@@ -154,10 +146,6 @@ export const mcpHostAdapter = {
         if (!authEnvName) {
             throw new Error('Generated tools require auth; pass --auth-env <ENV_VAR_NAME> on the MCP host.');
         }
-        const credential = process.env[authEnvName]?.trim();
-        if (!credential) {
-            throw new Error('Environment variable "' + authEnvName + '" is missing or empty (required by --auth-env).');
-        }
     },
 
     resolveHostContext() {
@@ -170,8 +158,7 @@ export const mcpHostAdapter = {
         }
 
         const authKey = process.env[META_AUTH_ENV_KEY]?.trim();
-        let credential = authKey ? process.env[authKey]?.trim() : undefined;
-        credential = credential || undefined;
+        const credential = authKey ? process.env[authKey]?.trim() : undefined;
 
         let jwt;
         if (credential) {
@@ -278,22 +265,21 @@ export async function invokeTool(toolName, options = {}, hostContext) {
     }
 
     const host = hostContext ?? mcpHostAdapter.resolveHostContext();
-    const { baseUrl, credential, jwt } = host;
+    const { baseUrl } = host;
+
+    const optionsResolved = options;
     const normalizedBaseUrl = baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl;
-    const pathParams =
-        !tool.public && authConfig?.fromJwt
-            ? resolvePathParamsWithFromJwt(authConfig, options.pathParams, jwt)
-            : { ...(options.pathParams ?? {}) };
+    const pathParams = { ...(optionsResolved.pathParams ?? {}) };
     let resolvedPath = tool.path;
     for (const [key, value] of Object.entries(pathParams)) {
         resolvedPath = resolvedPath.split('{' + key + '}').join(encodeURIComponent(String(value)));
     }
 
     const url = new URL(normalizedBaseUrl + resolvedPath);
-    appendSerializedQueryParams(url.searchParams, tool.toolName, options.query);
+    appendSerializedQueryParams(url.searchParams, tool.toolName, optionsResolved.query);
     const requestHeaders = {
         'content-type': 'application/json',
-        ...(options.headers ?? {})
+        ...(optionsResolved.headers ?? {})
     };
 
     const requestInit = {
@@ -301,8 +287,8 @@ export async function invokeTool(toolName, options = {}, hostContext) {
         headers: requestHeaders
     };
 
-    if (options.body !== undefined && tool.method !== 'GET' && tool.method !== 'HEAD') {
-        requestInit.body = JSON.stringify(options.body);
+    if (optionsResolved.body !== undefined && tool.method !== 'GET' && tool.method !== 'HEAD') {
+        requestInit.body = JSON.stringify(optionsResolved.body);
     }
 
     const response = await fetch(url, requestInit);
@@ -313,13 +299,12 @@ export async function invokeTool(toolName, options = {}, hostContext) {
             const t = await response.text();
             bodySnippet = t.length > 512 ? t.slice(0, 512) + '...' : t;
         } catch {
-            bodySnippet = '';
+            /* ignore unreadable error body */
         }
         let msg = 'HTTP ' + response.status + ' while invoking ' + tool.toolName + '.';
         if (response.status === 401) {
             msg += ' Unauthorized.';
-            if (authConfig && !tool.public) {
-            } else if (!tool.public) {
+            if (tool.access !== 'public') {
                 msg += ' The API may require authentication.';
             }
         } else if (response.status === 403) {
