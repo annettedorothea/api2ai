@@ -21,4 +21,4 @@ packages/extension/demos/customer-portal/
 packages/extension/demos/node_modules/
 packages/extension/demos/tmp/
 packages/cli/tmp/
-packages/extension/vscode-api2ai-0.0.1.vsix
+packages/extension/vscode-api2ai-*.vsix

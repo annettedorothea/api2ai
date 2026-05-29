@@ -109,7 +109,7 @@ For a full prerelease from the repository root:
 npm run release:vsix
 ```
 
-This runs `npm run test`, `npm run check`, packages the VSIX, then creates a GitHub prerelease and uploads the matching VSIX asset. The release/tag name is derived from the extension package `name` and `version`, for example `vscode-api2ai-0.0.1`.
+This runs `npm run test`, `npm run check`, packages the VSIX, then creates a GitHub prerelease and uploads the matching VSIX asset. The release/tag name is derived from the extension package `name` and `version`, for example `vscode-api2ai-0.0.2`.
 
 For a future version, bump the extension package first:
 
@@ -129,7 +129,7 @@ Use `version:minor` or `version:major` when appropriate. Commit the version chan
 Alternatively drag the `.vsix` into the Extensions panel, or:
 
 ```bash
-cursor --install-extension "/absolute/path/to/api2ai/packages/extension/vscode-api2ai-0.0.1.vsix"
+cursor --install-extension "/absolute/path/to/api2ai/packages/extension/vscode-api2ai-0.0.2.vsix"
 ```
 
 Extension details: [`./packages/extension/README.md`](./packages/extension/README.md) (includes icon in VSIX).
