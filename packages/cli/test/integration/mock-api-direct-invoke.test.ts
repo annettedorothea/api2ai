@@ -5,7 +5,7 @@ import * as fs from 'node:fs/promises';
 import * as net from 'node:net';
 import * as path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
-import { compileAuthStubSources } from '../../src/generator/auth-stub-compile.js';
+import { compileAuthStubSources } from '@core2ai/core/codegen';
 import { generateAction } from '../../src/generate-command.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));

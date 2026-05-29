@@ -84,6 +84,12 @@ Details: [`./mock-api/README.md`](./mock-api/README.md).
 
 After editing `.api2ai`: save, **Generate tool code**, or `npm run generate:…`, then reload MCP.
 
+## MCP transport and credentials
+
+These demos serve tools through a **local MCP server over stdio**. Cursor (or another MCP client) starts [`generated/cli/mcp-serve.mjs`](./generated/cli/mcp-serve.mjs), loads the matching `generated/tools/*-tools.mjs`, and talks MCP on the stdio transport configured in [`.cursor/mcp.json`](./.cursor/mcp.json).
+
+There is **no sign-in step in MCP** itself. To call APIs as a particular user, put the token in [`.env.local`](./.env.example) (for example `GITHUB_TOKEN`, `TMDB_ACCESS_TOKEN`, or `MOCK_API_ACCESS_TOKEN` for the JWT demo). The MCP host reads those variables when it starts and passes them to the generated tools. Reload the MCP server after you change `.env.local`.
+
 ## MCP configuration
 
 [`./.cursor/mcp.json`](./.cursor/mcp.json) — do not commit API keys.

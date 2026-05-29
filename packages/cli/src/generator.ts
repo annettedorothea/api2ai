@@ -22,7 +22,7 @@ import {
     renderParameterCheckersMap,
     type ToolAccess
 } from './generator/auth-stub-render.js';
-import { renderMcpHostAdapterBlock } from './generator/host-adapter-render.js';
+import { MCP_HOST_JWT_IMPORT, renderMcpHostAdapterBlock } from './generator/host-adapter-render.js';
 import { createSharedInvokeBlock } from './generator/invoke-render.js';
 import { renderJsModule, renderMcpServerIdentityExports, renderTsModule } from './generator/module-render.js';
 import {
@@ -57,10 +57,11 @@ function createBootstrapConfig(): ProjectBootstrapConfig {
         generatorImplementationDir: __generatorDirname,
         embedHomeEnv: 'API2AI_EMBED_HOME',
         fallbackProjectName: 'api2ai-project',
-        requiredRuntimeDeps: ['@modelcontextprotocol/sdk', 'zod'],
+        requiredRuntimeDeps: ['@modelcontextprotocol/sdk', 'zod', '@core2ai/core'],
         dependencyVersionFallbacks: {
             '@modelcontextprotocol/sdk': '^1.29.0',
-            zod: '^4.4.3'
+            zod: '^4.4.3',
+            '@core2ai/core': 'github:annettedorothea/core2ai#v0.0.2'
         },
         resolvePackageRoot(dir) {
             const oneUp = path.resolve(dir, '..');
@@ -220,6 +221,7 @@ export async function generateOutput(model: Model, source: string, destination: 
     const hasChecked = stubPaths.size > 0;
     const parameterCheckerImports = hasChecked ? renderParameterCheckerImports(tsPath, stubPaths) : '';
     const parameterCheckersMap = hasChecked ? renderParameterCheckersMap(stubPaths) : '';
+    const mcpHostJwtImport = MCP_HOST_JWT_IMPORT;
 
     const authRuntimePrefix = parameterCheckersMap.length > 0 ? `${parameterCheckersMap}\n\n` : '';
 
@@ -240,7 +242,8 @@ export async function generateOutput(model: Model, source: string, destination: 
             source,
             authKind,
             usesInsecureTls,
-            parameterCheckerImports
+            parameterCheckerImports,
+            mcpHostJwtImport
         )
     );
     fs.writeFileSync(
@@ -253,7 +256,8 @@ export async function generateOutput(model: Model, source: string, destination: 
             source,
             authKind,
             usesInsecureTls,
-            parameterCheckerImports
+            parameterCheckerImports,
+            mcpHostJwtImport
         )
     );
     await formatGeneratedFilesWithPrettier([tsPath, jsPath]);

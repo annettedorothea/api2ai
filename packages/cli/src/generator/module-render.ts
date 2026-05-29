@@ -3,6 +3,11 @@ import { getAccessKind } from 'api-2-ai-dsl-language';
 import { expandToNode, toString } from 'langium/generate';
 import * as path from 'node:path';
 
+function renderGeneratedImports(mcpHostJwtImport: string, parameterCheckerImports: string): string {
+    const lines = [mcpHostJwtImport, parameterCheckerImports].filter((line) => line.length > 0);
+    return lines.length > 0 ? `${lines.join('\n')}\n\n` : '';
+}
+
 export function renderMcpServerIdentityExports(name: string, version: string): string {
     return `export const mcpServerName = ${JSON.stringify(name)};
 export const mcpServerVersion = ${JSON.stringify(version)};
@@ -44,7 +49,8 @@ export function renderTsModule(
     source: string,
     _authKind: 'none' | 'credential',
     usesInsecureTls: boolean,
-    parameterCheckerImports = ''
+    parameterCheckerImports = '',
+    mcpHostJwtImport = ''
 ): string {
     const authConfigLiteral = renderAuthConfig(model);
     const sourceReference = renderSourceReference(source);
@@ -64,7 +70,7 @@ export const authConfig: AuthConfig | undefined = ${authConfigLiteral};`
         : `export const requiresAuth = false;
 export const authConfig: undefined = undefined;`;
 
-    const importPrefix = parameterCheckerImports.length > 0 ? `${parameterCheckerImports}\n\n` : '';
+    const importPrefix = renderGeneratedImports(mcpHostJwtImport, parameterCheckerImports);
 
     const fileNode = expandToNode`
 /**
@@ -108,9 +114,10 @@ export function renderJsModule(
     _source: string,
     _authKind: 'none' | 'credential',
     usesInsecureTls: boolean,
-    parameterCheckerImports = ''
+    parameterCheckerImports = '',
+    mcpHostJwtImport = ''
 ): string {
-    const importPrefix = parameterCheckerImports.length > 0 ? `${parameterCheckerImports}\n\n` : '';
+    const importPrefix = renderGeneratedImports(mcpHostJwtImport, parameterCheckerImports);
     return `/**
  * Generated JS module (types live in the sibling .ts file).
  */

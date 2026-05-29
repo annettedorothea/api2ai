@@ -1,11 +1,11 @@
 import type { Model } from 'api-2-ai-dsl-language';
 import { getAccessKind } from 'api-2-ai-dsl-language';
+import { compileAuthStubSources, parameterCheckExportName, type AccessKind } from '@core2ai/core/codegen';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { resolveBootstrapProjectRootFromSource } from '@core2ai/core/codegen';
-import { compileAuthStubSources } from './auth-stub-compile.js';
 
-export type ToolAccess = 'public' | 'protected' | 'checked';
+export type ToolAccess = AccessKind;
 
 export function listCheckedToolNames(model: Model): string[] {
     const names: string[] = [];
@@ -17,9 +17,7 @@ export function listCheckedToolNames(model: Model): string[] {
     return names;
 }
 
-export function parameterCheckExportName(toolName: string): string {
-    return `check${toolName.charAt(0).toUpperCase()}${toolName.slice(1)}Parameters`;
-}
+export { parameterCheckExportName };
 
 export const AUTH_INVOKE_OPTIONS_BASENAME = 'api2ai-invoke-options';
 

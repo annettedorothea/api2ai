@@ -1,6 +1,8 @@
 /**
  * Generated JS module (types live in the sibling .ts file).
  */
+import { resolveCredentialAndOptionalJwt } from '@core2ai/core/mcp-host';
+
 
 export const insecureTls = false;
 
@@ -75,7 +77,7 @@ export const requiresAuth = false;
 export const authConfig = undefined;
 
 export const mcpServerName = "spaceflight-news-tools";
-export const mcpServerVersion = "0.0.1";
+export const mcpServerVersion = "0.0.2";
 
 import * as z from 'zod/v4';
 
@@ -107,18 +109,6 @@ function applyHostEnvKeys(hostConfig, envDirs) {
     } else {
         delete process.env[META_ENV_DIRS];
     }
-}
-
-function decodeJwtPayloadUnsafe(token) {
-    const parts = String(token).trim().split('.');
-    if (parts.length !== 3) {
-        throw new Error('credential is not a JWT (expected three dot-separated segments).');
-    }
-    let b64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
-    while (b64.length % 4 !== 0) {
-        b64 += '=';
-    }
-    return JSON.parse(Buffer.from(b64, 'base64').toString('utf8'));
 }
 
 export const mcpHostAdapter = {
@@ -182,19 +172,7 @@ export const mcpHostAdapter = {
         }
 
         const authKey = process.env[META_AUTH_ENV_KEY]?.trim();
-        const credential = authKey ? process.env[authKey]?.trim() : undefined;
-
-        let jwt;
-        if (credential) {
-            const segments = String(credential).trim().split('.');
-            if (segments.length === 3) {
-                try {
-                    jwt = decodeJwtPayloadUnsafe(credential);
-                } catch {
-                    jwt = undefined;
-                }
-            }
-        }
+        const { credential, jwt } = resolveCredentialAndOptionalJwt(authKey);
 
         return { baseUrl, credential, jwt };
     },
