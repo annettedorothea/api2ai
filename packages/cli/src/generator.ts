@@ -61,7 +61,7 @@ function createBootstrapConfig(): ProjectBootstrapConfig {
         dependencyVersionFallbacks: {
             '@modelcontextprotocol/sdk': '^1.29.0',
             zod: '^4.4.3',
-            '@core2ai/core': 'github:annettedorothea/core2ai#v0.0.3'
+            '@core2ai/core': 'github:annettedorothea/core2ai#v0.0.4'
         },
         resolvePackageRoot(dir) {
             const oneUp = path.resolve(dir, '..');
@@ -214,22 +214,35 @@ export async function generateOutput(model: Model, source: string, destination: 
     const usesInsecureTls = model.insecureEnv === true;
     const mcpServerIdentity = resolveMcpServerIdentityFromDestination(tsPath, bootstrapConfig);
     const mcpServerIdentityBlock = renderMcpServerIdentityExports(mcpServerIdentity.name, mcpServerIdentity.version);
-    const mcpHostAdapterBlock = renderMcpHostAdapterBlock(authKind);
+    const mcpHostAdapterBlockTs = renderMcpHostAdapterBlock(authKind, true);
+    const mcpHostAdapterBlockJs = renderMcpHostAdapterBlock(authKind, false);
 
     const hasCheckedOps = listCheckedToolNames(model).length > 0;
     const stubPaths = hasCheckedOps ? await ensureCheckedAuthStubs(source, model) : new Map<string, string>();
     const hasChecked = stubPaths.size > 0;
-    const parameterCheckerImports = hasChecked ? renderParameterCheckerImports(tsPath, stubPaths) : '';
-    const parameterCheckersMap = hasChecked ? renderParameterCheckersMap(stubPaths) : '';
-    const mcpHostJwtImport = MCP_HOST_JWT_IMPORT;
+    const parameterCheckerImportsTs = hasChecked ? renderParameterCheckerImports(tsPath, stubPaths, true) : '';
+    const parameterCheckerImportsJs = hasChecked ? renderParameterCheckerImports(tsPath, stubPaths, false) : '';
+    const parameterCheckersMapTs = hasChecked ? renderParameterCheckersMap(stubPaths, true) : '';
+    const parameterCheckersMapJs = hasChecked ? renderParameterCheckersMap(stubPaths, false) : '';
+    const mcpHostJwtImport = authKind === 'credential' ? MCP_HOST_JWT_IMPORT : '';
 
-    const authRuntimePrefix = parameterCheckersMap.length > 0 ? `${parameterCheckersMap}\n\n` : '';
+    const authRuntimePrefixTs = parameterCheckersMapTs.length > 0 ? `${parameterCheckersMapTs}\n\n` : '';
+    const authRuntimePrefixJs = parameterCheckersMapJs.length > 0 ? `${parameterCheckersMapJs}\n\n` : '';
 
-    const toolRuntimeBlock = `${authRuntimePrefix}${buildInputZodBlock(orderedSchemas)}\n${mcpHostAdapterBlock}\n${createSharedInvokeBlock(
+    const toolRuntimeBlockTs = `${authRuntimePrefixTs}${buildInputZodBlock(orderedSchemas)}\n${mcpHostAdapterBlockTs}\n${createSharedInvokeBlock(
         querySerializationLiteral,
         authKind,
         usesInsecureTls,
-        hasChecked
+        hasChecked,
+        true
+    )}`;
+
+    const toolRuntimeBlockJs = `${authRuntimePrefixJs}${buildInputZodBlock(orderedSchemas)}\n${mcpHostAdapterBlockJs}\n${createSharedInvokeBlock(
+        querySerializationLiteral,
+        authKind,
+        usesInsecureTls,
+        hasChecked,
+        false
     )}`;
 
     fs.writeFileSync(
@@ -237,12 +250,12 @@ export async function generateOutput(model: Model, source: string, destination: 
         renderTsModule(
             toolsLiteral,
             mcpServerIdentityBlock,
-            toolRuntimeBlock,
+            toolRuntimeBlockTs,
             model,
             source,
             authKind,
             usesInsecureTls,
-            parameterCheckerImports,
+            parameterCheckerImportsTs,
             mcpHostJwtImport
         )
     );
@@ -251,12 +264,12 @@ export async function generateOutput(model: Model, source: string, destination: 
         renderJsModule(
             toolsLiteral,
             mcpServerIdentityBlock,
-            toolRuntimeBlock,
+            toolRuntimeBlockJs,
             model,
             source,
             authKind,
             usesInsecureTls,
-            parameterCheckerImports,
+            parameterCheckerImportsJs,
             mcpHostJwtImport
         )
     );

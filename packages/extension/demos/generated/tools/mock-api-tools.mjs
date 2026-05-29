@@ -45,11 +45,9 @@ const parameterCheckers = {
 
 import * as z from 'zod/v4';
 
-const __core2aiPrimitiveUnion = z.union([z.string(), z.number(), z.boolean()]);
-
 export const inputZodByTool = {
-    "listCustomerOrders": z.object({ "pathParams": z.object({ "customerId": z.string().optional() }).strict().describe("Path parameters from OpenAPI.").optional(), "query": z.record(z.string(), __core2aiPrimitiveUnion).describe("Optional query overrides.").optional(), "headers": z.record(z.string(), z.string()).describe("Optional extra headers.").optional(), "body": z.record(z.string(), __core2aiPrimitiveUnion).describe("Request body JSON if applicable.").optional() }).strict().describe("Arguments for invoking the generated HTTP wrapper."),
-    "login": z.object({ "pathParams": z.object({ "customerId": z.string() }).strict().describe("Path parameters from OpenAPI."), "query": z.record(z.string(), __core2aiPrimitiveUnion).describe("Optional query overrides.").optional(), "headers": z.record(z.string(), z.string()).describe("Optional extra headers.").optional(), "body": z.record(z.string(), __core2aiPrimitiveUnion).describe("Request body JSON if applicable.").optional() }).strict().describe("Arguments for invoking the generated HTTP wrapper.")
+    "listCustomerOrders": z.object({ "pathParams": z.object({ "customerId": z.string().optional() }).strict().describe("Path parameters from OpenAPI.").optional(), "query": z.record(z.string(), z.union([z.string(), z.number(), z.boolean()])).describe("Optional query overrides.").optional(), "headers": z.record(z.string(), z.string()).describe("Optional extra headers.").optional(), "body": z.record(z.string(), z.union([z.string(), z.number(), z.boolean()])).describe("Request body JSON if applicable.").optional() }).strict().describe("Arguments for invoking the generated HTTP wrapper."),
+    "login": z.object({ "pathParams": z.object({ "customerId": z.string() }).strict().describe("Path parameters from OpenAPI."), "query": z.record(z.string(), z.union([z.string(), z.number(), z.boolean()])).describe("Optional query overrides.").optional(), "headers": z.record(z.string(), z.string()).describe("Optional extra headers.").optional(), "body": z.record(z.string(), z.union([z.string(), z.number(), z.boolean()])).describe("Request body JSON if applicable.").optional() }).strict().describe("Arguments for invoking the generated HTTP wrapper.")
 };
 
 const META_BASE_URL_ENV_KEY = 'MCP_HOST_BASE_URL_ENV_KEY';
@@ -130,9 +128,9 @@ export const mcpHostAdapter = {
             );
         }
 
+
         const authKey = process.env[META_AUTH_ENV_KEY]?.trim();
         const { credential, jwt } = resolveCredentialAndOptionalJwt(authKey);
-
         return { baseUrl, credential, jwt };
     },
 
@@ -218,7 +216,6 @@ export async function invokeTool(toolName, options = {}, hostContext) {
 
     const host = hostContext ?? mcpHostAdapter.resolveHostContext();
     const { baseUrl, credential } = host;
-
     if (tool.access !== 'public') {
         if (!credential || !String(credential).trim()) {
             throw new Error(

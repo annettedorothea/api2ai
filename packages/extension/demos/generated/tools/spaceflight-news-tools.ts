@@ -2,7 +2,6 @@
  * Generated from: spaceflight-news.api2ai
  * Referenced OpenAPI: ./openapi/spaceflight-news.openapi.yaml
  */
-import { resolveCredentialAndOptionalJwt } from '@core2ai/core/mcp-host';
 
 export const insecureTls = false;
 
@@ -97,6 +96,17 @@ export type InvokeOptions = {
     body?: unknown;
 };
 
+export type ApiHostContext = {
+    baseUrl: string;
+    credential?: string;
+    jwt?: Record<string, unknown>;
+};
+
+export type CheckedHostContext = {
+    credential: string;
+    jwt?: Record<string, unknown>;
+};
+
 export const requiresAuth = false;
 export const authConfig: undefined = undefined;
 
@@ -105,12 +115,13 @@ export const mcpServerVersion = '0.0.2';
 
 import * as z from 'zod/v4';
 
-const __core2aiPrimitiveUnion = z.union([z.string(), z.number(), z.boolean()]);
-
 export const inputZodByTool = {
     listSpaceflightArticles: z
         .object({
-            pathParams: z.record(z.string(), __core2aiPrimitiveUnion).describe('No path parameters.').optional(),
+            pathParams: z
+                .record(z.string(), z.union([z.string(), z.number(), z.boolean()]))
+                .describe('No path parameters.')
+                .optional(),
             query: z
                 .object({
                     event: z
@@ -226,7 +237,10 @@ export const inputZodByTool = {
                 .describe('Query parameters from OpenAPI.')
                 .optional(),
             headers: z.record(z.string(), z.string()).describe('Optional extra headers.').optional(),
-            body: z.record(z.string(), __core2aiPrimitiveUnion).describe('Request body JSON if applicable.').optional()
+            body: z
+                .record(z.string(), z.union([z.string(), z.number(), z.boolean()]))
+                .describe('Request body JSON if applicable.')
+                .optional()
         })
         .strict()
         .describe('Arguments for invoking the generated HTTP wrapper.'),
@@ -236,15 +250,24 @@ export const inputZodByTool = {
                 .object({ id: z.number().describe('A unique integer value identifying this article.') })
                 .strict()
                 .describe('Path parameters from OpenAPI.'),
-            query: z.record(z.string(), __core2aiPrimitiveUnion).describe('Optional query overrides.').optional(),
+            query: z
+                .record(z.string(), z.union([z.string(), z.number(), z.boolean()]))
+                .describe('Optional query overrides.')
+                .optional(),
             headers: z.record(z.string(), z.string()).describe('Optional extra headers.').optional(),
-            body: z.record(z.string(), __core2aiPrimitiveUnion).describe('Request body JSON if applicable.').optional()
+            body: z
+                .record(z.string(), z.union([z.string(), z.number(), z.boolean()]))
+                .describe('Request body JSON if applicable.')
+                .optional()
         })
         .strict()
         .describe('Arguments for invoking the generated HTTP wrapper.'),
     listSpaceflightBlogs: z
         .object({
-            pathParams: z.record(z.string(), __core2aiPrimitiveUnion).describe('No path parameters.').optional(),
+            pathParams: z
+                .record(z.string(), z.union([z.string(), z.number(), z.boolean()]))
+                .describe('No path parameters.')
+                .optional(),
             query: z
                 .object({
                     event: z
@@ -360,7 +383,10 @@ export const inputZodByTool = {
                 .describe('Query parameters from OpenAPI.')
                 .optional(),
             headers: z.record(z.string(), z.string()).describe('Optional extra headers.').optional(),
-            body: z.record(z.string(), __core2aiPrimitiveUnion).describe('Request body JSON if applicable.').optional()
+            body: z
+                .record(z.string(), z.union([z.string(), z.number(), z.boolean()]))
+                .describe('Request body JSON if applicable.')
+                .optional()
         })
         .strict()
         .describe('Arguments for invoking the generated HTTP wrapper.'),
@@ -370,15 +396,24 @@ export const inputZodByTool = {
                 .object({ id: z.number().describe('A unique integer value identifying this blog.') })
                 .strict()
                 .describe('Path parameters from OpenAPI.'),
-            query: z.record(z.string(), __core2aiPrimitiveUnion).describe('Optional query overrides.').optional(),
+            query: z
+                .record(z.string(), z.union([z.string(), z.number(), z.boolean()]))
+                .describe('Optional query overrides.')
+                .optional(),
             headers: z.record(z.string(), z.string()).describe('Optional extra headers.').optional(),
-            body: z.record(z.string(), __core2aiPrimitiveUnion).describe('Request body JSON if applicable.').optional()
+            body: z
+                .record(z.string(), z.union([z.string(), z.number(), z.boolean()]))
+                .describe('Request body JSON if applicable.')
+                .optional()
         })
         .strict()
         .describe('Arguments for invoking the generated HTTP wrapper.'),
     listSpaceflightReports: z
         .object({
-            pathParams: z.record(z.string(), __core2aiPrimitiveUnion).describe('No path parameters.').optional(),
+            pathParams: z
+                .record(z.string(), z.union([z.string(), z.number(), z.boolean()]))
+                .describe('No path parameters.')
+                .optional(),
             query: z
                 .object({
                     limit: z.number().describe('Number of results to return per page.').optional(),
@@ -481,7 +516,10 @@ export const inputZodByTool = {
                 .describe('Query parameters from OpenAPI.')
                 .optional(),
             headers: z.record(z.string(), z.string()).describe('Optional extra headers.').optional(),
-            body: z.record(z.string(), __core2aiPrimitiveUnion).describe('Request body JSON if applicable.').optional()
+            body: z
+                .record(z.string(), z.union([z.string(), z.number(), z.boolean()]))
+                .describe('Request body JSON if applicable.')
+                .optional()
         })
         .strict()
         .describe('Arguments for invoking the generated HTTP wrapper.'),
@@ -491,18 +529,33 @@ export const inputZodByTool = {
                 .object({ id: z.number().describe('A unique integer value identifying this report.') })
                 .strict()
                 .describe('Path parameters from OpenAPI.'),
-            query: z.record(z.string(), __core2aiPrimitiveUnion).describe('Optional query overrides.').optional(),
+            query: z
+                .record(z.string(), z.union([z.string(), z.number(), z.boolean()]))
+                .describe('Optional query overrides.')
+                .optional(),
             headers: z.record(z.string(), z.string()).describe('Optional extra headers.').optional(),
-            body: z.record(z.string(), __core2aiPrimitiveUnion).describe('Request body JSON if applicable.').optional()
+            body: z
+                .record(z.string(), z.union([z.string(), z.number(), z.boolean()]))
+                .describe('Request body JSON if applicable.')
+                .optional()
         })
         .strict()
         .describe('Arguments for invoking the generated HTTP wrapper.'),
     getSpaceflightInfo: z
         .object({
-            pathParams: z.record(z.string(), __core2aiPrimitiveUnion).describe('No path parameters.').optional(),
-            query: z.record(z.string(), __core2aiPrimitiveUnion).describe('Optional query overrides.').optional(),
+            pathParams: z
+                .record(z.string(), z.union([z.string(), z.number(), z.boolean()]))
+                .describe('No path parameters.')
+                .optional(),
+            query: z
+                .record(z.string(), z.union([z.string(), z.number(), z.boolean()]))
+                .describe('Optional query overrides.')
+                .optional(),
             headers: z.record(z.string(), z.string()).describe('Optional extra headers.').optional(),
-            body: z.record(z.string(), __core2aiPrimitiveUnion).describe('Request body JSON if applicable.').optional()
+            body: z
+                .record(z.string(), z.union([z.string(), z.number(), z.boolean()]))
+                .describe('Request body JSON if applicable.')
+                .optional()
         })
         .strict()
         .describe('Arguments for invoking the generated HTTP wrapper.')
@@ -512,7 +565,7 @@ const META_BASE_URL_ENV_KEY = 'MCP_HOST_BASE_URL_ENV_KEY';
 const META_AUTH_ENV_KEY = 'MCP_HOST_AUTH_ENV_KEY';
 const META_ENV_DIRS = 'MCP_HOST_ENV_DIRS';
 
-function applyHostEnvKeys(hostConfig, envDirs) {
+function applyHostEnvKeys(hostConfig: { baseUrlEnv: string; authEnv?: string }, envDirs: string[]): void {
     process.env[META_BASE_URL_ENV_KEY] = hostConfig.baseUrlEnv;
     if (hostConfig.authEnv) {
         process.env[META_AUTH_ENV_KEY] = hostConfig.authEnv;
@@ -527,9 +580,9 @@ function applyHostEnvKeys(hostConfig, envDirs) {
 }
 
 export const mcpHostAdapter = {
-    configureFromArgv(argv, envDirs) {
-        let baseUrlEnv;
-        let authEnv;
+    configureFromArgv(argv: string[], envDirs: string[]): void {
+        let baseUrlEnv: string | undefined;
+        let authEnv: string | undefined;
         for (let i = 0; i < argv.length; i++) {
             const arg = argv[i];
             if (arg === '--base-url-env') {
@@ -557,7 +610,7 @@ export const mcpHostAdapter = {
         applyHostEnvKeys({ baseUrlEnv, authEnv }, envDirs);
     },
 
-    validateAtStartup(requiresAuth) {
+    validateAtStartup(requiresAuth: boolean): void {
         const baseUrlEnvName = process.env[META_BASE_URL_ENV_KEY]?.trim();
         if (!baseUrlEnvName) {
             throw new Error('Host base URL env key is not configured.');
@@ -577,7 +630,7 @@ export const mcpHostAdapter = {
         }
     },
 
-    resolveHostContext() {
+    resolveHostContext(): ApiHostContext {
         const baseUrlKey = process.env[META_BASE_URL_ENV_KEY]?.trim();
         const baseUrl = baseUrlKey ? process.env[baseUrlKey]?.trim() : undefined;
         if (!baseUrl) {
@@ -586,19 +639,16 @@ export const mcpHostAdapter = {
             );
         }
 
-        const authKey = process.env[META_AUTH_ENV_KEY]?.trim();
-        const { credential, jwt } = resolveCredentialAndOptionalJwt(authKey);
-
-        return { baseUrl, credential, jwt };
+        return { baseUrl, credential: undefined, jwt: undefined };
     },
 
-    envDirsForReload() {
+    envDirsForReload(): string[] {
         const raw = process.env[META_ENV_DIRS];
         if (!raw?.trim()) {
             return [];
         }
         try {
-            const dirs = JSON.parse(raw);
+            const dirs: unknown = JSON.parse(raw);
             if (Array.isArray(dirs) && dirs.every((d) => typeof d === 'string')) {
                 return dirs;
             }
@@ -902,11 +952,18 @@ export const queryParamSerializationByTool = {
     getSpaceflightInfo: {}
 };
 
-function appendSerializedQueryParams(searchParams, toolName, query) {
+function appendSerializedQueryParams(
+    searchParams: URLSearchParams,
+    toolName: string,
+    query: InvokeOptions['query']
+): void {
     if (!query) {
         return;
     }
-    const hintsByParam = queryParamSerializationByTool[toolName] ?? {};
+    const hintsByParam: Record<string, { style?: string; explode?: boolean }> =
+        (queryParamSerializationByTool as Record<string, Record<string, { style?: string; explode?: boolean }>>)[
+            toolName
+        ] ?? {};
     for (const [key, value] of Object.entries(query)) {
         if (value === undefined || value === null) {
             continue;
@@ -947,15 +1004,19 @@ function appendSerializedQueryParams(searchParams, toolName, query) {
     }
 }
 
-export async function invokeTool(toolName, options = {}, hostContext) {
+export async function invokeTool(
+    toolName: string,
+    options: InvokeOptions = {},
+    hostContext?: ApiHostContext
+): Promise<unknown> {
     const tool = generatedTools.find((t) => t.toolName === toolName);
     if (!tool) {
         throw new Error('Unknown tool: ' + toolName);
     }
 
-    const host = hostContext ?? mcpHostAdapter.resolveHostContext();
+    const host: ApiHostContext =
+        hostContext !== undefined ? (hostContext as ApiHostContext) : mcpHostAdapter.resolveHostContext();
     const { baseUrl } = host;
-
     const optionsResolved = options;
     const normalizedBaseUrl = baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl;
     const pathParams = { ...(optionsResolved.pathParams ?? {}) };
@@ -966,12 +1027,12 @@ export async function invokeTool(toolName, options = {}, hostContext) {
 
     const url = new URL(normalizedBaseUrl + resolvedPath);
     appendSerializedQueryParams(url.searchParams, tool.toolName, optionsResolved.query);
-    const requestHeaders = {
+    const requestHeaders: Record<string, string> = {
         'content-type': 'application/json',
         ...(optionsResolved.headers ?? {})
     };
 
-    const requestInit = {
+    const requestInit: Record<string, unknown> = {
         method: tool.method,
         headers: requestHeaders
     };
@@ -980,7 +1041,7 @@ export async function invokeTool(toolName, options = {}, hostContext) {
         requestInit.body = JSON.stringify(optionsResolved.body);
     }
 
-    const response = await fetch(url, requestInit);
+    const response = await fetch(url, requestInit as RequestInit);
     if (!response.ok) {
         const retryAfter = response.headers.get('retry-after');
         let bodySnippet = '';

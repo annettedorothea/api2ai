@@ -89,15 +89,23 @@ export async function ensureCheckedAuthStubs(source: string, model: Model): Prom
     return importPaths;
 }
 
-export function renderParameterCheckerImports(tsPath: string, stubPaths: Map<string, string>): string {
+export function renderParameterCheckerImports(
+    tsPath: string,
+    stubPaths: Map<string, string>,
+    typescript: boolean
+): string {
     const lines: string[] = [];
     for (const [toolName, absStub] of stubPaths) {
+        const absImport = typescript ? path.resolve(path.dirname(absStub), `${toolName}.ts`) : path.resolve(absStub);
         let rel = path
-            .relative(path.dirname(path.resolve(tsPath)), path.resolve(absStub))
+            .relative(path.dirname(path.resolve(tsPath)), absImport)
             .split(path.sep)
             .join('/');
         if (!rel.startsWith('.')) {
             rel = `./${rel}`;
+        }
+        if (typescript) {
+            rel = rel.replace(/\.ts$/, '.js');
         }
         const fn = parameterCheckExportName(toolName);
         lines.push(`import { ${fn} } from '${rel}';`);
@@ -105,18 +113,25 @@ export function renderParameterCheckerImports(tsPath: string, stubPaths: Map<str
     return lines.join('\n');
 }
 
-export function renderParameterCheckersMap(stubPaths: Map<string, string>): string {
+export function renderParameterCheckersMap(stubPaths: Map<string, string>, typescript = false): string {
     if (stubPaths.size === 0) {
-        return 'const parameterCheckers = {};';
+        return typescript ? 'const parameterCheckers: Record<string, never> = {};' : 'const parameterCheckers = {};';
     }
+    const typeAnnotation = typescript
+        ? ': Record<string, (options: InvokeOptions, host: CheckedHostContext) => InvokeOptions | Promise<InvokeOptions>>'
+        : '';
     const entries = [...stubPaths.keys()].map((toolName) => {
         const fn = parameterCheckExportName(toolName);
         return `    ${JSON.stringify(toolName)}: ${fn}`;
     });
-    return `const parameterCheckers = {\n${entries.join(',\n')}\n};`;
+    return `const parameterCheckers${typeAnnotation} = {\n${entries.join(',\n')}\n};`;
 }
 
-export function renderInvokeCredentialAndParameterCheck(hasAuth: boolean, hasChecked: boolean): string {
+export function renderInvokeCredentialAndParameterCheck(
+    hasAuth: boolean,
+    hasChecked: boolean,
+    typescript = false
+): string {
     const credentialGuard = hasAuth
         ? `
     if (tool.access !== 'public') {
@@ -157,7 +172,7 @@ export function renderInvokeCredentialAndParameterCheck(hasAuth: boolean, hasChe
 
     const url = new URL(normalizedBaseUrl + resolvedPath);
     appendSerializedQueryParams(url.searchParams, tool.toolName, optionsResolved.query);
-    const requestHeaders = {
+    const requestHeaders${typescript ? ': Record<string, string>' : ''} = {
         'content-type': 'application/json',
         ...(optionsResolved.headers ?? {})
     };`;

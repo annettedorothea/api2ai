@@ -1,8 +1,6 @@
 /**
  * Generated JS module (types live in the sibling .ts file).
  */
-import { resolveCredentialAndOptionalJwt } from '@core2ai/core/mcp-host';
-
 
 export const insecureTls = false;
 
@@ -27,10 +25,8 @@ export const mcpServerVersion = "0.0.2";
 
 import * as z from 'zod/v4';
 
-const __core2aiPrimitiveUnion = z.union([z.string(), z.number(), z.boolean()]);
-
 export const inputZodByTool = {
-    "openMeteoGeocodeSearch": z.object({ "pathParams": z.record(z.string(), __core2aiPrimitiveUnion).describe("No path parameters.").optional(), "query": z.object({ "name": z.string().describe("City/place search text, e.g. Bernstein."), "count": z.number().describe("Number of matches to return.").optional(), "language": z.string().describe("Language code for result names, e.g. de or en.").optional(), "countryCode": z.string().describe("ISO country code filter, e.g. AT.").optional() }).strict().describe("Query parameters from OpenAPI.").optional(), "headers": z.record(z.string(), z.string()).describe("Optional extra headers.").optional(), "body": z.record(z.string(), __core2aiPrimitiveUnion).describe("Request body JSON if applicable.").optional() }).strict().describe("Arguments for invoking the generated HTTP wrapper.")
+    "openMeteoGeocodeSearch": z.object({ "pathParams": z.record(z.string(), z.union([z.string(), z.number(), z.boolean()])).describe("No path parameters.").optional(), "query": z.object({ "name": z.string().describe("City/place search text, e.g. Bernstein."), "count": z.number().describe("Number of matches to return.").optional(), "language": z.string().describe("Language code for result names, e.g. de or en.").optional(), "countryCode": z.string().describe("ISO country code filter, e.g. AT.").optional() }).strict().describe("Query parameters from OpenAPI.").optional(), "headers": z.record(z.string(), z.string()).describe("Optional extra headers.").optional(), "body": z.record(z.string(), z.union([z.string(), z.number(), z.boolean()])).describe("Request body JSON if applicable.").optional() }).strict().describe("Arguments for invoking the generated HTTP wrapper.")
 };
 
 const META_BASE_URL_ENV_KEY = 'MCP_HOST_BASE_URL_ENV_KEY';
@@ -111,10 +107,8 @@ export const mcpHostAdapter = {
             );
         }
 
-        const authKey = process.env[META_AUTH_ENV_KEY]?.trim();
-        const { credential, jwt } = resolveCredentialAndOptionalJwt(authKey);
 
-        return { baseUrl, credential, jwt };
+        return { baseUrl, credential: undefined, jwt: undefined };
     },
 
     envDirsForReload() {
@@ -209,7 +203,6 @@ export async function invokeTool(toolName, options = {}, hostContext) {
 
     const host = hostContext ?? mcpHostAdapter.resolveHostContext();
     const { baseUrl } = host;
-
     const optionsResolved = options;
     const normalizedBaseUrl = baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl;
     const pathParams = { ...(optionsResolved.pathParams ?? {}) };

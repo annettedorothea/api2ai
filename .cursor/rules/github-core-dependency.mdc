@@ -27,8 +27,9 @@ Show the current pin: **`npm run core2ai:pin`** (`--verbose` logs pin source).
 
 - Prefer **`npm run install:github-https`** over plain `npm install` if GitHub SSH or `known_hosts` errors appear.
 - The script rewrites GitHub SSH URLs to HTTPS for that process only. Do not modify global Git config unless the user explicitly asks.
-- After bumping the tag in **core2ai** (new Git tag + push), run **`npm run core2ai:refresh-pin`**, then `npm run build` and `npm run check`.
+- After bumping the tag in **core2ai** (new Git tag + push), run **`npm run core2ai:refresh-pin`**, then `npm run bundle:mcp-runtime`, `npm run generate:all`, `npm run build`, and `npm run check`.
 - For generated tools under `packages/extension/demos/`, also run **`npm run install:demos`** (or `install:github-https` in that folder).
+- See [core2ai-consumer-impact.mdc](./core2ai-consumer-impact.mdc) for the full MCP bundle + demo copy workflow.
 
 ## Do not use
 

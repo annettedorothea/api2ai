@@ -98,6 +98,17 @@ export type InvokeOptions = {
     body?: unknown;
 };
 
+export type ApiHostContext = {
+    baseUrl: string;
+    credential?: string;
+    jwt?: Record<string, unknown>;
+};
+
+export type CheckedHostContext = {
+    credential: string;
+    jwt?: Record<string, unknown>;
+};
+
 ${authDecl}
 
 ${mcpServerIdentityBlock}
