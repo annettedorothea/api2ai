@@ -61,7 +61,7 @@ function createBootstrapConfig(): ProjectBootstrapConfig {
         dependencyVersionFallbacks: {
             '@modelcontextprotocol/sdk': '^1.29.0',
             zod: '^4.4.3',
-            '@core2ai/core': 'github:annettedorothea/core2ai#v0.0.2'
+            '@core2ai/core': 'github:annettedorothea/core2ai#v0.0.3'
         },
         resolvePackageRoot(dir) {
             const oneUp = path.resolve(dir, '..');
