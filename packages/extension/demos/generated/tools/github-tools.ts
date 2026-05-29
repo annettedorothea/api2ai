@@ -12,7 +12,7 @@ export type GeneratedTool = {
     method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' | 'HEAD' | 'OPTIONS' | 'TRACE';
     path: string;
     example?: string;
-    access: 'public' | 'protected' | 'restricted';
+    access: 'public' | 'protected' | 'checked';
 };
 
 export const generatedTools: GeneratedTool[] = [

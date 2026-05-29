@@ -10,11 +10,11 @@ export const generatedTools = [
     {
         "toolName": "listCustomerOrders",
         "title": "List customer orders",
-        "description": "Intent:\nlist orders for the authenticated customer from the JWT, when the customerId is empty, it will be filled from the JWT\n\nAPI:\nRequires Bearer JWT; for role=user customerId in path must match JWT claim, role=admin may read any customer.\n\nMeta:\noperationId: list-customer-orders\n\nExample:\nList my orders\n\nResponse:\nHTTP 200\nOrder list\nproperties (top-level): customerId, orders\nDocumented errors:\nHTTP 401 — Missing or invalid token\nHTTP 403 — Token customerId does not match path\n\nRuntime: restricted — implement checkListCustomerOrdersParameters in src/auth/listCustomerOrders.ts (compiled to .mjs on generate); credential sent as header \"Authorization\" (prefix applied to the secret).",
+        "description": "Intent:\nlist orders for the authenticated customer from the JWT, when the customerId is empty, it will be filled from the JWT\n\nAPI:\nRequires Bearer JWT; for role=user customerId in path must match JWT claim, role=admin may read any customer.\n\nMeta:\noperationId: list-customer-orders\n\nExample:\nList my orders\n\nResponse:\nHTTP 200\nOrder list\nproperties (top-level): customerId, orders\nDocumented errors:\nHTTP 401 — Missing or invalid token\nHTTP 403 — Token customerId does not match path\n\nRuntime: checked — implement checkListCustomerOrdersParameters in src/auth/listCustomerOrders.ts (compiled to .mjs on generate); credential sent as header \"Authorization\" (prefix applied to the secret).",
         "method": "GET",
         "path": "/orders/{customerId}",
         "example": "List my orders",
-        "access": "restricted"
+        "access": "checked"
     },
     {
         "toolName": "login",
@@ -250,10 +250,10 @@ export async function invokeTool(toolName, options = {}, hostContext) {
         }
     }
     let optionsResolved = options;
-    if (tool.access === 'restricted') {
+    if (tool.access === 'checked') {
         const check = parameterCheckers[toolName];
         if (typeof check !== 'function') {
-            throw new Error('No parameter checker for restricted tool: ' + toolName);
+            throw new Error('No parameter checker for checked tool: ' + toolName);
         }
         optionsResolved = await Promise.resolve(
             check(options, {

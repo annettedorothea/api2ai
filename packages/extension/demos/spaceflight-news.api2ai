@@ -2,6 +2,7 @@ openapi "./openapi/spaceflight-news.openapi.yaml"
 
 GET "/v4/articles/" {
     toolName: "listSpaceflightArticles"
+    access: public
     intent: "list recent spaceflight news articles; API returns summary teaser only, full article text at each result url"
     summary: "List spaceflight articles (teaser only; full text at response url)"
     example: "Get the latest 5 articles"
@@ -9,6 +10,7 @@ GET "/v4/articles/" {
 
 GET "/v4/articles/{id}/" {
     toolName: "getSpaceflightArticleById"
+    access: public
     intent: "get one spaceflight article by id; API returns summary teaser only, full article text at url"
     summary: "Get article by ID (teaser only; full text at response url)"
     example: "Get article with id 1"
@@ -16,6 +18,7 @@ GET "/v4/articles/{id}/" {
 
 GET "/v4/blogs/" {
     toolName: "listSpaceflightBlogs"
+    access: public
     intent: "list recent spaceflight blog posts; API returns summary teaser only, full post text at each result url"
     summary: "List spaceflight blog posts (teaser only; full text at response url)"
     example: "Get the latest 5 blog posts"
@@ -23,6 +26,7 @@ GET "/v4/blogs/" {
 
 GET "/v4/blogs/{id}/" {
     toolName: "getSpaceflightBlogById"
+    access: public
     intent: "get one spaceflight blog post by id; API returns summary teaser only, full post text at url"
     summary: "Get blog post by ID (teaser only; full text at response url)"
     example: "Get blog post with id 1"
@@ -30,6 +34,7 @@ GET "/v4/blogs/{id}/" {
 
 GET "/v4/reports/" {
     toolName: "listSpaceflightReports"
+    access: public
     intent: "list recent spaceflight reports; API returns summary teaser only, full report text at each result url"
     summary: "List spaceflight reports (teaser only; full text at response url)"
     example: "Get the latest 5 reports"
@@ -37,6 +42,7 @@ GET "/v4/reports/" {
 
 GET "/v4/reports/{id}/" {
     toolName: "getSpaceflightReportById"
+    access: public
     intent: "get one spaceflight report by id; API returns summary teaser only, full report text at url"
     summary: "Get report by ID (teaser only; full text at response url)"
     example: "Get report with id 1"
@@ -44,6 +50,7 @@ GET "/v4/reports/{id}/" {
 
 GET "/v4/info/" {
     toolName: "getSpaceflightInfo"
+    access: public
     intent: "retrieve spaceflight API metadata and news sites"
     summary: "Spaceflight News API metadata"
     example: "Show API info and available news sites"

@@ -16,14 +16,27 @@ Auth:
 Operation:
     method=HttpMethod path=STRING '{'
         ('toolName' ':' toolName=STRING)?
+        'access' ':' access=Access
         ('intent' ':' intent=STRING)?
         ('summary' ':' summary=STRING)?
         ('description' ':' description=STRING)?
         ('example' ':' example=STRING)?
-        ('autofillParams' ':' '[' (autofillParams+=STRING (',' autofillParams+=STRING)*)? ']')?
-        (public?='public')?
-        (restricted?='restricted')?
     '}';
+
+Access:
+    PublicAccess | ProtectedAccess | CheckedAccess;
+
+PublicAccess:
+    {infer PublicAccess} 'public';
+
+ProtectedAccess:
+    {infer ProtectedAccess} 'protected';
+
+CheckedAccess:
+    {infer CheckedAccess} 'checked' ('{' checkedBody=CheckedAccessBody '}')?;
+
+CheckedAccessBody:
+    ('optionalParams' ':' '[' (optionalParams+=STRING (',' optionalParams+=STRING)*)? ']')?;
 
 AuthLocation returns string:
     'header' | 'query';

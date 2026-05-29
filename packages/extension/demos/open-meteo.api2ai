@@ -7,6 +7,7 @@ openapi "./openapi/open-meteo.openapi.yaml"
 // section.
 GET "/v1/forecast" {
     toolName: "openMeteoForecast"
+    access: public
     intent: "retrieve hourly weather forecast for coordinates"
     summary: "7 day weather forecast for coordinates"
     description: "Use this tool to get a 7 day weather forecast (hourly and daily) for specific WGS84 coordinates. Prefer small sets of hourly/daily variables to keep responses compact and focused on what the agent needs."

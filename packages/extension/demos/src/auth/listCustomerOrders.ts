@@ -1,6 +1,6 @@
-import type { InvokeOptions, RestrictedHostContext } from './api2ai-invoke-options.js';
+import type { InvokeOptions, CheckedHostContext } from './api2ai-invoke-options.js';
 
-export function checkListCustomerOrdersParameters(options: InvokeOptions, host: RestrictedHostContext): InvokeOptions {
+export function checkListCustomerOrdersParameters(options: InvokeOptions, host: CheckedHostContext): InvokeOptions {
     const jwt = host.jwt;
     if (!jwt || typeof jwt !== 'object') {
         throw new Error('listCustomerOrders requires a JWT in host context (--auth-env).');

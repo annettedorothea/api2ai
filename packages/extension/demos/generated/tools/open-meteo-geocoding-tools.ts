@@ -12,7 +12,7 @@ export type GeneratedTool = {
     method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' | 'HEAD' | 'OPTIONS' | 'TRACE';
     path: string;
     example?: string;
-    access: 'public' | 'protected' | 'restricted';
+    access: 'public' | 'protected' | 'checked';
 };
 
 export const generatedTools: GeneratedTool[] = [
@@ -20,7 +20,7 @@ export const generatedTools: GeneratedTool[] = [
         toolName: 'openMeteoGeocodeSearch',
         title: 'Resolve location names to coordinates',
         description:
-            'Intent:\nresolve a location name to latitude and longitude coordinates\n\nMeta:\noperationId: searchLocationByName\n\nExample:\nFind coordinates for Bernstein, Burgenland, Austria\n\nResponse:\nHTTP 200\nOK',
+            'Intent:\nresolve a location name to latitude and longitude coordinates\n\nMeta:\noperationId: searchLocationByName\n\nExample:\nFind coordinates for Bernstein, Burgenland, Austria\n\nResponse:\nHTTP 200\nOK\n\nRuntime: public endpoint — no Authorization header or MCP credential required.',
         method: 'GET',
         path: '/v1/search',
         example: 'Find coordinates for Bernstein, Burgenland, Austria',

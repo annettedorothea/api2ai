@@ -108,7 +108,7 @@ function appendSerializedQueryParams(searchParams, toolName, query) {
 function renderInvokeToolFunction(
     authKind: 'none' | 'credential',
     usesInsecureTls: boolean,
-    hasRestricted: boolean
+    hasChecked: boolean
 ): string {
     const credentialBinding = authKind === 'credential' ? ', credential' : '';
     const hasAuth = authKind === 'credential';
@@ -123,7 +123,7 @@ function renderInvokeToolFunction(
                 msg += ' The API may require authentication.';
             }`;
     const insecureTlsFetch = renderInsecureTlsFetch(usesInsecureTls);
-    const credentialAndParams = renderInvokeCredentialAndParameterCheck(hasAuth, hasRestricted);
+    const credentialAndParams = renderInvokeCredentialAndParameterCheck(hasAuth, hasChecked);
 
     return `export async function invokeTool(toolName, options = {}, hostContext) {
     const tool = generatedTools.find((t) => t.toolName === toolName);
@@ -186,12 +186,12 @@ export function createSharedInvokeBlock(
     querySerializationLiteralBody: string,
     authKind: 'none' | 'credential',
     usesInsecureTls: boolean,
-    hasRestricted: boolean
+    hasChecked: boolean
 ): string {
     return `${renderInsecureTlsSetup(usesInsecureTls)}
 ${renderQuerySerializationHelpers(querySerializationLiteralBody)}
 ${renderAuthHelpers(authKind)}
 
-${renderInvokeToolFunction(authKind, usesInsecureTls, hasRestricted)}
+${renderInvokeToolFunction(authKind, usesInsecureTls, hasChecked)}
 `.trim();
 }

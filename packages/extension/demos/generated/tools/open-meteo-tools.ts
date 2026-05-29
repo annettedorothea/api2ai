@@ -12,7 +12,7 @@ export type GeneratedTool = {
     method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' | 'HEAD' | 'OPTIONS' | 'TRACE';
     path: string;
     example?: string;
-    access: 'public' | 'protected' | 'restricted';
+    access: 'public' | 'protected' | 'checked';
 };
 
 export const generatedTools: GeneratedTool[] = [
@@ -20,7 +20,7 @@ export const generatedTools: GeneratedTool[] = [
         toolName: 'openMeteoForecast',
         title: '7 day weather forecast for coordinates',
         description:
-            'Intent:\nretrieve hourly weather forecast for coordinates\n\nAPI:\nUse this tool to get a 7 day weather forecast (hourly and daily) for specific WGS84 coordinates. Prefer small sets of hourly/daily variables to keep responses compact and focused on what the agent needs.\n\nMeta:\ntags: Weather Forecast APIs\n\nExample:\nGet hourly temperature forecast for Offenburg, Germany\n\nResponse:\nHTTP 200\nOK\nproperties (top-level): current_weather, daily, daily_units, elevation, generationtime_ms, hourly, hourly_units, latitude, longitude, utc_offset_seconds\nDocumented errors:\nHTTP 400 — Bad Request',
+            'Intent:\nretrieve hourly weather forecast for coordinates\n\nAPI:\nUse this tool to get a 7 day weather forecast (hourly and daily) for specific WGS84 coordinates. Prefer small sets of hourly/daily variables to keep responses compact and focused on what the agent needs.\n\nMeta:\ntags: Weather Forecast APIs\n\nExample:\nGet hourly temperature forecast for Offenburg, Germany\n\nResponse:\nHTTP 200\nOK\nproperties (top-level): current_weather, daily, daily_units, elevation, generationtime_ms, hourly, hourly_units, latitude, longitude, utc_offset_seconds\nDocumented errors:\nHTTP 400 — Bad Request\n\nRuntime: public endpoint — no Authorization header or MCP credential required.',
         method: 'GET',
         path: '/v1/forecast',
         example: 'Get hourly temperature forecast for Offenburg, Germany',

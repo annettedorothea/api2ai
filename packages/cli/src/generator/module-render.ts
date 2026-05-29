@@ -1,4 +1,5 @@
 import type { Model } from 'api-2-ai-dsl-language';
+import { getAccessKind } from 'api-2-ai-dsl-language';
 import { expandToNode, toString } from 'langium/generate';
 import * as path from 'node:path';
 
@@ -31,7 +32,7 @@ function requiresAuthLiteral(model: Model): string {
     if (!model.auth) {
         return 'false';
     }
-    const needsCredential = model.operations.some((op) => op.public !== true);
+    const needsCredential = model.operations.some((op) => getAccessKind(op) !== 'public');
     return needsCredential ? 'true' : 'false';
 }
 
@@ -43,7 +44,7 @@ export function renderTsModule(
     source: string,
     _authKind: 'none' | 'credential',
     usesInsecureTls: boolean,
-    restrictedImports = ''
+    parameterCheckerImports = ''
 ): string {
     const authConfigLiteral = renderAuthConfig(model);
     const sourceReference = renderSourceReference(source);
@@ -63,7 +64,7 @@ export const authConfig: AuthConfig | undefined = ${authConfigLiteral};`
         : `export const requiresAuth = false;
 export const authConfig: undefined = undefined;`;
 
-    const importPrefix = restrictedImports.length > 0 ? `${restrictedImports}\n\n` : '';
+    const importPrefix = parameterCheckerImports.length > 0 ? `${parameterCheckerImports}\n\n` : '';
 
     const fileNode = expandToNode`
 /**
@@ -78,7 +79,7 @@ export type GeneratedTool = {
     method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' | 'HEAD' | 'OPTIONS' | 'TRACE';
     path: string;
     example?: string;
-    access: 'public' | 'protected' | 'restricted';
+    access: 'public' | 'protected' | 'checked';
 };
 
 export const generatedTools: GeneratedTool[] = ${enrichedToolsLiteral};
@@ -107,9 +108,9 @@ export function renderJsModule(
     _source: string,
     _authKind: 'none' | 'credential',
     usesInsecureTls: boolean,
-    restrictedImports = ''
+    parameterCheckerImports = ''
 ): string {
-    const importPrefix = restrictedImports.length > 0 ? `${restrictedImports}\n\n` : '';
+    const importPrefix = parameterCheckerImports.length > 0 ? `${parameterCheckerImports}\n\n` : '';
     return `/**
  * Generated JS module (types live in the sibling .ts file).
  */

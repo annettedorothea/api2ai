@@ -371,25 +371,25 @@ export function openApiInvokeParameterNames(operation: OpenApiOperationDetails):
     return names;
 }
 
-export type UnknownAutofillParamWarning = {
+export type UnknownOptionalParamWarning = {
     index: number;
     name: string;
     message: string;
 };
 
-/** DSL autofill names that do not match any invoke parameter on the OpenAPI operation. */
-export function getUnknownAutofillParamWarnings(
-    autofillParams: readonly string[] | undefined,
+/** DSL optionalParams names that do not match any invoke parameter on the OpenAPI operation. */
+export function getUnknownOptionalParamWarnings(
+    optionalParams: readonly string[],
     openApiOperation: OpenApiOperationDetails,
     method: string,
     routePath: string
-): UnknownAutofillParamWarning[] {
-    if (!autofillParams?.length) {
+): UnknownOptionalParamWarning[] {
+    if (!optionalParams.length) {
         return [];
     }
     const known = openApiInvokeParameterNames(openApiOperation);
-    const warnings: UnknownAutofillParamWarning[] = [];
-    autofillParams.forEach((raw, index) => {
+    const warnings: UnknownOptionalParamWarning[] = [];
+    optionalParams.forEach((raw, index) => {
         const name = raw.trim();
         if (name.length === 0) {
             return;
@@ -400,7 +400,7 @@ export function getUnknownAutofillParamWarnings(
         warnings.push({
             index,
             name,
-            message: `autofillParams entry "${name}" is not a path, query, or header parameter on ${method} ${routePath} in the OpenAPI spec (no effect on the generated tool schema).`
+            message: `optionalParams entry "${name}" is not a path, query, or header parameter on ${method} ${routePath} in the OpenAPI spec (no effect on the generated tool schema).`
         });
     });
     return warnings;

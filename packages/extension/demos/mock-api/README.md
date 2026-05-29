@@ -40,7 +40,7 @@ curl -s -H "Authorization: Bearer <token>" "http://127.0.0.1:3847/orders/alice"
 After `npm run generate:mock-api-tools`, enable `api2ai-mock-api` in `.cursor/mcp.json` and reload MCP.
 
 - **`login`** (`public`) — `pathParams.customerId` returns `access_token` (no Bearer required)
-- **`listCustomerOrders`** (`restricted`) — requires `--auth-env` and `src/auth/listCustomerOrders.ts` (`checkListCustomerOrdersParameters` validates/enriches args from JWT); `pathParams.customerId` optional (filled from token if omitted)
+- **`listCustomerOrders`** (`access: checked`) — requires `--auth-env` and `src/auth/listCustomerOrders.ts` (`checkListCustomerOrdersParameters` validates/enriches args from JWT); `pathParams.customerId` optional in the tool schema (filled from token if omitted via `optionalParams`)
 
 Prompts: `api2ai login as alice` then `api2ai list my orders`.
 

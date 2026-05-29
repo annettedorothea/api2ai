@@ -5,7 +5,7 @@ export type InvokeOptions = {
     body?: unknown;
 };
 
-export type RestrictedHostContext = {
+export type CheckedHostContext = {
     credential: string;
     jwt?: Record<string, unknown>;
 };

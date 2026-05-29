@@ -1,10 +1,12 @@
 import path from 'node:path';
 import type { ValidationAcceptor, ValidationChecks } from 'langium';
 import type { Api2AiDslAstType, Model, Operation } from './generated/ast.js';
+import { isCheckedAccess } from './generated/ast.js';
 import type { Api2AiDslServices } from './api-2-ai-dsl-module.js';
+import { accessRequiresAuth, getOptionalParams } from './operation-access.js';
 import {
     getCookieParameterMessages,
-    getUnknownAutofillParamWarnings,
+    getUnknownOptionalParamWarnings,
     getUnsupportedSerializationMessages,
     loadOpenApi,
     makeOperationLookupKey
@@ -60,29 +62,17 @@ export class Api2AiDslValidator {
     }
 
     private checkOperationAccess(model: Model, accept: ValidationAcceptor): void {
-        const hasRestricted = model.operations.some((op) => op.restricted === true);
-        if (hasRestricted && !model.auth) {
+        if (!model.auth) {
             for (const operation of model.operations) {
-                if (operation.restricted === true) {
-                    accept('error', 'restricted requires an auth block on the model.', {
+                if (!operation.access) {
+                    continue;
+                }
+                if (accessRequiresAuth(operation)) {
+                    accept('error', 'access `protected` and `checked` require an auth block on the model.', {
                         node: operation,
-                        property: 'restricted'
+                        property: 'access'
                     });
                 }
-            }
-        }
-        for (const operation of model.operations) {
-            if (operation.public === true && operation.restricted === true) {
-                accept('error', 'Operation cannot be both public and restricted.', {
-                    node: operation,
-                    property: 'public'
-                });
-            }
-            if ((operation.autofillParams?.length ?? 0) > 0 && operation.restricted !== true) {
-                accept('error', 'autofillParams requires `restricted` on the operation.', {
-                    node: operation,
-                    property: 'autofillParams'
-                });
             }
         }
     }
@@ -188,15 +178,17 @@ export class Api2AiDslValidator {
                 });
             }
 
-            for (const warning of getUnknownAutofillParamWarnings(
-                operation.autofillParams,
+            const optionalParams = getOptionalParams(operation);
+            for (const warning of getUnknownOptionalParamWarnings(
+                optionalParams,
                 openApiOperation,
                 operation.method,
                 operation.path
             )) {
+                const body = isCheckedAccess(operation.access) ? operation.access.checkedBody : undefined;
                 accept('warning', warning.message, {
-                    node: operation,
-                    property: 'autofillParams',
+                    node: body ?? operation.access,
+                    property: 'optionalParams',
                     index: warning.index
                 });
             }

@@ -29,6 +29,7 @@ describe('Validating', () => {
             openapi "./petstore-mini.openapi.yaml"
             GET "/pet/{petId}" {
                 toolName: "getPetById"
+                access: public
                 intent: "get one pet"
             }
         `);
@@ -46,6 +47,7 @@ describe('Validating', () => {
             }
             GET "/pet/{petId}" {
                 toolName: "getPetById"
+                access: protected
                 intent: "get one pet"
             }
         `);
@@ -62,6 +64,7 @@ describe('Validating', () => {
             }
             GET "/pet/{petId}" {
                 toolName: "getPetById"
+                access: protected
                 intent: "get one pet"
             }
         `);
@@ -87,6 +90,7 @@ describe('Validating', () => {
             openapi "./petstore-mini.openapi.yaml"
             DELETE "/customers" {
                 toolName: "deleteCustomer"
+                access: public
                 intent: "delete customer"
             }
         `);
@@ -102,10 +106,12 @@ describe('Validating', () => {
             openapi "./petstore-mini.openapi.yaml"
             GET "/pet/{petId}" {
                 toolName: "petTool"
+                access: public
                 intent: "first"
             }
             POST "/pet" {
                 toolName: "petTool"
+                access: public
                 intent: "second"
             }
         `);
@@ -119,10 +125,12 @@ describe('Validating', () => {
             openapi "./petstore-mini.openapi.yaml"
             GET "/pet/{petId}" {
                 toolName: "petTool"
+                access: public
                 intent: "first"
             }
             POST "/pet" {
                 toolName: "  petTool  "
+                access: public
                 intent: "second"
             }
         `);
@@ -136,6 +144,7 @@ describe('Validating', () => {
             openapi "./swagger2.openapi.yaml"
             GET "/pet/{petId}" {
                 toolName: "getPetById"
+                access: public
                 intent: "get one pet"
             }
         `);
@@ -149,6 +158,7 @@ describe('Validating', () => {
             openapi "./unsupported-style.openapi.yaml"
             GET "/pets" {
                 toolName: "listPets"
+                access: public
                 intent: "list pets by filter object"
             }
         `);
@@ -162,6 +172,7 @@ describe('Validating', () => {
             openapi "./cookie-param.openapi.yaml"
             GET "/session" {
                 toolName: "getSession"
+                access: public
                 intent: "get one pet"
             }
         `);
@@ -175,6 +186,7 @@ describe('Validating', () => {
             openapi "./petstore-mini.openapi.yaml"
             GET "/pet/{petId}" {
                 intent: "get one pet"
+                access: public
             }
         `);
 
@@ -187,6 +199,7 @@ describe('Validating', () => {
             openapi "./petstore-mini.openapi.yaml"
             GET "/pet/{petId}" {
                 toolName: "getPetById"
+                access: public
             }
         `);
 
@@ -202,6 +215,7 @@ describe('Validating', () => {
             }
             GET "/pet/{petId}" {
                 toolName: "getPetById"
+                access: protected
                 intent: "get one pet"
             }
         `);
@@ -211,7 +225,35 @@ describe('Validating', () => {
         expect(diagnostics.some((d) => d.message.includes('auth requires `name'))).toBe(true);
     });
 
-    test('reports public and restricted together', async () => {
+    test('reports protected without auth block', async () => {
+        document = await parseValidated(`
+            openapi "./petstore-mini.openapi.yaml"
+            GET "/pet/{petId}" {
+                toolName: "getPetById"
+                access: protected
+                intent: "get one pet"
+            }
+        `);
+
+        const diagnostics = document.diagnostics ?? [];
+        expect(diagnostics.some((d) => d.message.includes('require an auth block'))).toBe(true);
+    });
+
+    test('reports checked without auth block', async () => {
+        document = await parseValidated(`
+            openapi "./petstore-mini.openapi.yaml"
+            GET "/pet/{petId}" {
+                toolName: "getPetById"
+                access: checked
+                intent: "get one pet"
+            }
+        `);
+
+        const diagnostics = document.diagnostics ?? [];
+        expect(diagnostics.some((d) => d.message.includes('require an auth block'))).toBe(true);
+    });
+
+    test('accepts optionalParams when parameter exists and is required in OpenAPI', async () => {
         document = await parseValidated(`
             openapi "./petstore-mini.openapi.yaml"
             auth {
@@ -220,42 +262,10 @@ describe('Validating', () => {
             }
             GET "/pet/{petId}" {
                 toolName: "getPetById"
+                access: checked {
+                    optionalParams: ["petId"]
+                }
                 intent: "get one pet"
-                public
-                restricted
-            }
-        `);
-
-        const diagnostics = document.diagnostics ?? [];
-        expect(diagnostics.some((d) => d.message.includes('cannot be both public and restricted'))).toBe(true);
-    });
-
-    test('reports restricted without auth block', async () => {
-        document = await parseValidated(`
-            openapi "./petstore-mini.openapi.yaml"
-            GET "/pet/{petId}" {
-                toolName: "getPetById"
-                intent: "get one pet"
-                restricted
-            }
-        `);
-
-        const diagnostics = document.diagnostics ?? [];
-        expect(diagnostics.some((d) => d.message.includes('restricted requires an auth block'))).toBe(true);
-    });
-
-    test('accepts autofillParams when parameter exists and is required in OpenAPI', async () => {
-        document = await parseValidated(`
-            openapi "./petstore-mini.openapi.yaml"
-            auth {
-                in: header
-                name: "Authorization"
-            }
-            GET "/pet/{petId}" {
-                toolName: "getPetById"
-                intent: "get one pet"
-                autofillParams: ["petId"]
-                restricted
             }
         `);
 
@@ -263,7 +273,7 @@ describe('Validating', () => {
         expect(diagnostics).toHaveLength(0);
     });
 
-    test('warns when autofillParams entry is not in OpenAPI', async () => {
+    test('warns when optionalParams entry is not in OpenAPI', async () => {
         document = await parseValidated(`
             openapi "./petstore-mini.openapi.yaml"
             auth {
@@ -272,20 +282,21 @@ describe('Validating', () => {
             }
             GET "/pet/{petId}" {
                 toolName: "getPetById"
+                access: checked {
+                    optionalParams: ["customerId"]
+                }
                 intent: "get one pet"
-                autofillParams: ["customerId"]
-                restricted
             }
         `);
 
         const diagnostics = document.diagnostics ?? [];
         expect(diagnostics).toHaveLength(1);
         expect(diagnostics[0]?.severity).toBe(2);
-        expect(diagnostics[0]?.message).toContain('autofillParams entry "customerId"');
+        expect(diagnostics[0]?.message).toContain('optionalParams entry "customerId"');
         expect(diagnostics[0]?.message).toContain('no effect on the generated tool schema');
     });
 
-    test('warns only for unknown autofillParams entries when list is mixed', async () => {
+    test('warns only for unknown optionalParams entries when list is mixed', async () => {
         document = await parseValidated(`
             openapi "./petstore-mini.openapi.yaml"
             auth {
@@ -294,9 +305,10 @@ describe('Validating', () => {
             }
             GET "/pet/{petId}" {
                 toolName: "getPetById"
+                access: checked {
+                    optionalParams: ["petId", "customerId"]
+                }
                 intent: "get one pet"
-                autofillParams: ["petId", "customerId"]
-                restricted
             }
         `);
 
@@ -306,21 +318,13 @@ describe('Validating', () => {
         expect(diagnostics[0]?.message).not.toContain('"petId"');
     });
 
-    test('reports autofillParams without restricted', async () => {
-        document = await parseValidated(`
-            openapi "./petstore-mini.openapi.yaml"
-            auth {
-                in: header
-                name: "Authorization"
-            }
-            GET "/pet/{petId}" {
-                toolName: "getPetById"
-                intent: "get one pet"
-                autofillParams: ["petId"]
-            }
-        `);
+    test('validates extension mock-api demo without diagnostics', async () => {
+        const demoPath = path.resolve(process.cwd(), '../extension/demos/mock-api.api2ai');
+        const content = await import('node:fs').then((fs) => fs.readFileSync(demoPath, 'utf8'));
+        caseIndex += 1;
+        document = await parse(content, { validation: true, documentUri: demoPath });
 
-        const diagnostics = document.diagnostics ?? [];
-        expect(diagnostics.some((d) => d.message.includes('autofillParams requires `restricted`'))).toBe(true);
+        expect(document.parseResult.parserErrors).toHaveLength(0);
+        expect(document.diagnostics ?? []).toHaveLength(0);
     });
 });

@@ -12,7 +12,7 @@ export type GeneratedTool = {
     method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' | 'HEAD' | 'OPTIONS' | 'TRACE';
     path: string;
     example?: string;
-    access: 'public' | 'protected' | 'restricted';
+    access: 'public' | 'protected' | 'checked';
 };
 
 export const generatedTools: GeneratedTool[] = [
@@ -20,7 +20,7 @@ export const generatedTools: GeneratedTool[] = [
         toolName: 'listSpaceflightArticles',
         title: 'List spaceflight articles (teaser only; full text at response url)',
         description:
-            'Intent:\nlist recent spaceflight news articles; API returns summary teaser only, full article text at each result url\n\nMeta:\ntags: articles | operationId: articles_list\n\nExample:\nGet the latest 5 articles\n\nResponse:\nHTTP 200\nproperties (top-level): count, next, previous, results',
+            'Intent:\nlist recent spaceflight news articles; API returns summary teaser only, full article text at each result url\n\nMeta:\ntags: articles | operationId: articles_list\n\nExample:\nGet the latest 5 articles\n\nResponse:\nHTTP 200\nproperties (top-level): count, next, previous, results\n\nRuntime: public endpoint — no Authorization header or MCP credential required.',
         method: 'GET',
         path: '/v4/articles/',
         example: 'Get the latest 5 articles',
@@ -30,7 +30,7 @@ export const generatedTools: GeneratedTool[] = [
         toolName: 'getSpaceflightArticleById',
         title: 'Get article by ID (teaser only; full text at response url)',
         description:
-            'Intent:\nget one spaceflight article by id; API returns summary teaser only, full article text at url\n\nMeta:\ntags: articles | operationId: articles_retrieve\n\nExample:\nGet article with id 1\n\nResponse:\nHTTP 200\nproperties (top-level): authors, events, featured, id, image_url, launches, news_site, published_at, summary, title, updated_at, url',
+            'Intent:\nget one spaceflight article by id; API returns summary teaser only, full article text at url\n\nMeta:\ntags: articles | operationId: articles_retrieve\n\nExample:\nGet article with id 1\n\nResponse:\nHTTP 200\nproperties (top-level): authors, events, featured, id, image_url, launches, news_site, published_at, summary, title, updated_at, url\n\nRuntime: public endpoint — no Authorization header or MCP credential required.',
         method: 'GET',
         path: '/v4/articles/{id}/',
         example: 'Get article with id 1',
@@ -40,7 +40,7 @@ export const generatedTools: GeneratedTool[] = [
         toolName: 'listSpaceflightBlogs',
         title: 'List spaceflight blog posts (teaser only; full text at response url)',
         description:
-            'Intent:\nlist recent spaceflight blog posts; API returns summary teaser only, full post text at each result url\n\nMeta:\ntags: blogs | operationId: blogs_list\n\nExample:\nGet the latest 5 blog posts\n\nResponse:\nHTTP 200\nproperties (top-level): count, next, previous, results',
+            'Intent:\nlist recent spaceflight blog posts; API returns summary teaser only, full post text at each result url\n\nMeta:\ntags: blogs | operationId: blogs_list\n\nExample:\nGet the latest 5 blog posts\n\nResponse:\nHTTP 200\nproperties (top-level): count, next, previous, results\n\nRuntime: public endpoint — no Authorization header or MCP credential required.',
         method: 'GET',
         path: '/v4/blogs/',
         example: 'Get the latest 5 blog posts',
@@ -50,7 +50,7 @@ export const generatedTools: GeneratedTool[] = [
         toolName: 'getSpaceflightBlogById',
         title: 'Get blog post by ID (teaser only; full text at response url)',
         description:
-            'Intent:\nget one spaceflight blog post by id; API returns summary teaser only, full post text at url\n\nMeta:\ntags: blogs | operationId: blogs_retrieve\n\nExample:\nGet blog post with id 1\n\nResponse:\nHTTP 200\nproperties (top-level): authors, events, featured, id, image_url, launches, news_site, published_at, summary, title, updated_at, url',
+            'Intent:\nget one spaceflight blog post by id; API returns summary teaser only, full post text at url\n\nMeta:\ntags: blogs | operationId: blogs_retrieve\n\nExample:\nGet blog post with id 1\n\nResponse:\nHTTP 200\nproperties (top-level): authors, events, featured, id, image_url, launches, news_site, published_at, summary, title, updated_at, url\n\nRuntime: public endpoint — no Authorization header or MCP credential required.',
         method: 'GET',
         path: '/v4/blogs/{id}/',
         example: 'Get blog post with id 1',
@@ -60,7 +60,7 @@ export const generatedTools: GeneratedTool[] = [
         toolName: 'listSpaceflightReports',
         title: 'List spaceflight reports (teaser only; full text at response url)',
         description:
-            'Intent:\nlist recent spaceflight reports; API returns summary teaser only, full report text at each result url\n\nMeta:\ntags: reports | operationId: reports_list\n\nExample:\nGet the latest 5 reports\n\nResponse:\nHTTP 200\nproperties (top-level): count, next, previous, results',
+            'Intent:\nlist recent spaceflight reports; API returns summary teaser only, full report text at each result url\n\nMeta:\ntags: reports | operationId: reports_list\n\nExample:\nGet the latest 5 reports\n\nResponse:\nHTTP 200\nproperties (top-level): count, next, previous, results\n\nRuntime: public endpoint — no Authorization header or MCP credential required.',
         method: 'GET',
         path: '/v4/reports/',
         example: 'Get the latest 5 reports',
@@ -70,7 +70,7 @@ export const generatedTools: GeneratedTool[] = [
         toolName: 'getSpaceflightReportById',
         title: 'Get report by ID (teaser only; full text at response url)',
         description:
-            'Intent:\nget one spaceflight report by id; API returns summary teaser only, full report text at url\n\nMeta:\ntags: reports | operationId: reports_retrieve\n\nExample:\nGet report with id 1\n\nResponse:\nHTTP 200\nproperties (top-level): authors, id, image_url, news_site, published_at, summary, title, updated_at, url',
+            'Intent:\nget one spaceflight report by id; API returns summary teaser only, full report text at url\n\nMeta:\ntags: reports | operationId: reports_retrieve\n\nExample:\nGet report with id 1\n\nResponse:\nHTTP 200\nproperties (top-level): authors, id, image_url, news_site, published_at, summary, title, updated_at, url\n\nRuntime: public endpoint — no Authorization header or MCP credential required.',
         method: 'GET',
         path: '/v4/reports/{id}/',
         example: 'Get report with id 1',
@@ -80,7 +80,7 @@ export const generatedTools: GeneratedTool[] = [
         toolName: 'getSpaceflightInfo',
         title: 'Spaceflight News API metadata',
         description:
-            'Intent:\nretrieve spaceflight API metadata and news sites\n\nMeta:\ntags: info | operationId: info_retrieve\n\nExample:\nShow API info and available news sites\n\nResponse:\nHTTP 200\nproperties (top-level): news_sites, version',
+            'Intent:\nretrieve spaceflight API metadata and news sites\n\nMeta:\ntags: info | operationId: info_retrieve\n\nExample:\nShow API info and available news sites\n\nResponse:\nHTTP 200\nproperties (top-level): news_sites, version\n\nRuntime: public endpoint — no Authorization header or MCP credential required.',
         method: 'GET',
         path: '/v4/info/',
         example: 'Show API info and available news sites',

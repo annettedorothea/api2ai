@@ -2,6 +2,8 @@ import { EmptyFileSystem, type LangiumDocument } from 'langium';
 import { parseHelper } from 'langium/test';
 import { beforeAll, describe, expect, test } from 'vitest';
 import { createApi2AiDslServices } from '../src/api-2-ai-dsl-module.js';
+import { getAccessKind, getOptionalParams } from '../src/operation-access.js';
+import { isCheckedAccess, isPublicAccess } from '../src/generated/ast.js';
 import type { Model } from '../src/generated/ast.js';
 
 let parse: ReturnType<typeof parseHelper<Model>>;
@@ -18,6 +20,7 @@ describe('Parsing tests', () => {
             openapi "./petstore.openapi.yaml"
             GET "/customers" {
                 toolName: "getAllCustomers"
+                access: public
                 intent: "get all customers"
             }
         `);
@@ -28,6 +31,7 @@ describe('Parsing tests', () => {
         expect(document.parseResult.value.operations[0].method).toBe('GET');
         expect(document.parseResult.value.operations[0].path).toBe('/customers');
         expect(document.parseResult.value.operations[0].toolName).toBe('getAllCustomers');
+        expect(getAccessKind(document.parseResult.value.operations[0])).toBe('public');
     });
 
     test('parses operation with optional overrides', async () => {
@@ -35,6 +39,7 @@ describe('Parsing tests', () => {
             openapi "./petstore.openapi.yaml"
             GET "/customers" {
                 toolName: "listCustomers"
+                access: public
                 intent: "list"
                 summary: "Custom summary override"
                 description: ""
@@ -52,6 +57,7 @@ describe('Parsing tests', () => {
             openapi "./petstore.openapi.yaml"
             GET "/customers" {
                 toolName: "listCustomers"
+                access: public
                 intent: "list"
                 title: "Legacy title"
             }
@@ -64,11 +70,9 @@ describe('Parsing tests', () => {
         document = await parse(`
             openapi "./petstore.openapi.yaml"
             GET "/customers" {
-                description: "long text"
-                summary: "the title"
-                example: "Example call"
-                intent: "list"
                 toolName: "listCustomers"
+                intent: "list"
+                access: public
             }
         `);
 
@@ -81,6 +85,7 @@ describe('Parsing tests', () => {
             insecureEnv
             GET "/customers" {
                 toolName: "listCustomers"
+                access: public
                 intent: "list"
             }
         `);
@@ -99,6 +104,7 @@ describe('Parsing tests', () => {
             }
             GET "/customers" {
                 toolName: "listCustomers"
+                access: protected
                 intent: "list"
             }
         `);
@@ -106,7 +112,7 @@ describe('Parsing tests', () => {
         expect(document.parseResult.parserErrors.length).toBeGreaterThan(0);
     });
 
-    test('parses restricted flag on operation', async () => {
+    test('parses checked access on operation', async () => {
         document = await parse(`
             openapi "./petstore.openapi.yaml"
             auth {
@@ -115,40 +121,44 @@ describe('Parsing tests', () => {
             }
             GET "/orders" {
                 toolName: "listOrders"
+                access: checked
                 intent: "list"
-                restricted
             }
         `);
 
         expect(document.parseResult.parserErrors).toHaveLength(0);
-        expect(document.parseResult.value.operations[0].restricted).toBe(true);
+        expect(getAccessKind(document.parseResult.value.operations[0])).toBe('checked');
     });
 
-    test('parses public flag on operation', async () => {
+    test('parses public access on operation', async () => {
         document = await parse(`
             openapi "./petstore.openapi.yaml"
             POST "/login/{id}" {
                 toolName: "login"
+                access: public
                 intent: "login"
-                public
             }
         `);
 
         expect(document.parseResult.parserErrors).toHaveLength(0);
-        expect(document.parseResult.value.operations[0].public).toBe(true);
+        expect(isPublicAccess(document.parseResult.value.operations[0].access)).toBe(true);
     });
 
-    test('parses autofillParams on operation', async () => {
+    test('parses optionalParams inside checked access', async () => {
         document = await parse(`
             openapi "./petstore.openapi.yaml"
             GET "/customers/{id}" {
                 toolName: "getCustomer"
+                access: checked {
+                    optionalParams: ["id"]
+                }
                 intent: "get customer"
-                autofillParams: ["id"]
             }
         `);
 
         expect(document.parseResult.parserErrors).toHaveLength(0);
-        expect(document.parseResult.value.operations[0].autofillParams).toEqual(['id']);
+        const op = document.parseResult.value.operations[0];
+        expect(isCheckedAccess(op.access)).toBe(true);
+        expect(getOptionalParams(op)).toEqual(['id']);
     });
 });

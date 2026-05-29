@@ -8,6 +8,7 @@ auth {
 
 GET "/3/search/movie" {
     toolName: "searchTmdbMovies"
+    access: protected
     intent: "search TMDB movies by title"
     summary: "Search movies by title"
     example: "Find movies named Dune"
@@ -15,6 +16,7 @@ GET "/3/search/movie" {
 
 GET "/3/movie/popular" {
     toolName: "getPopularTmdbMovies"
+    access: protected
     intent: "retrieve currently popular TMDB movies"
     summary: "Popular movies"
     example: "Show popular movies"
@@ -22,6 +24,7 @@ GET "/3/movie/popular" {
 
 GET "/3/movie/{movie_id}" {
     toolName: "getTmdbMovieDetails"
+    access: protected
     intent: "retrieve details for a TMDB movie by id"
     summary: "Movie details by ID"
     example: "Get details for movie id 693134"
@@ -29,6 +32,7 @@ GET "/3/movie/{movie_id}" {
 
 GET "/3/movie/{movie_id}/credits" {
     toolName: "getTmdbMovieCredits"
+    access: protected
     intent: "retrieve cast and crew credits for a TMDB movie"
     summary: "Movie cast and crew"
     example: "Who played in movie id 693134?"
@@ -36,6 +40,7 @@ GET "/3/movie/{movie_id}/credits" {
 
 GET "/3/discover/movie" {
     toolName: "discoverTmdbMovies"
+    access: protected
     intent: "discover TMDB movies using rich filters such as genre, year, and rating"
     summary: "Discover movies with filters"
     example: "Find highly rated science fiction movies from 2024"
@@ -43,6 +48,7 @@ GET "/3/discover/movie" {
 
 GET "/3/genre/movie/list" {
     toolName: "getTmdbMovieGenres"
+    access: protected
     intent: "retrieve TMDB movie genres for filtering and lookup"
     summary: "Movie genre list"
     example: "List available movie genres"
@@ -50,6 +56,7 @@ GET "/3/genre/movie/list" {
 
 GET "/3/trending/movie/{time_window}" {
     toolName: "getTmdbTrendingMovies"
+    access: protected
     intent: "retrieve trending TMDB movies for a selected time window"
     summary: "Trending movies"
     example: "Show trending movies this week"
@@ -57,6 +64,7 @@ GET "/3/trending/movie/{time_window}" {
 
 GET "/3/movie/{movie_id}/videos" {
     toolName: "getTmdbMovieVideos"
+    access: protected
     intent: "retrieve videos such as trailers for a TMDB movie"
     summary: "Movie videos and trailers"
     example: "Show trailers for movie id 693134"
@@ -64,6 +72,7 @@ GET "/3/movie/{movie_id}/videos" {
 
 GET "/3/search/multi" {
     toolName: "searchTmdbMulti"
+    access: protected
     intent: "search TMDB across movies, tv shows, and people"
     summary: "Multi search (movies, TV, people)"
     example: "Search TMDB for Dune across all media types"
@@ -71,6 +80,7 @@ GET "/3/search/multi" {
 
 GET "/3/movie/{movie_id}/release_dates" {
     toolName: "getTmdbMovieReleaseDates"
+    access: protected
     intent: "retrieve release dates for a TMDB movie"
     summary: "Movie release dates"
     example: "When was movie id 693134 released?"
@@ -78,6 +88,7 @@ GET "/3/movie/{movie_id}/release_dates" {
 
 GET "/3/movie/{movie_id}/recommendations" {
     toolName: "getTmdbMovieRecommendations"
+    access: protected
     intent: "retrieve recommendations for a TMDB movie"
     summary: "Movie recommendations"
     example: "Recommendations for movie id 693134"
@@ -85,6 +96,7 @@ GET "/3/movie/{movie_id}/recommendations" {
 
 GET "/3/movie/{movie_id}/similar" {
     toolName: "getTmdbMovieSimilar"
+    access: protected
     intent: "retrieve similar movies for a TMDB movie"
     summary: "Retrieve similar movies"
     example: "Find similar movies to 693134"
@@ -92,6 +104,7 @@ GET "/3/movie/{movie_id}/similar" {
 
 GET "/3/movie/{movie_id}/reviews" {
     toolName: "getTmdbMovieReviews"
+    access: protected
     intent: "retrieve reviews for a TMDB movie"
     summary: "Retrieve movie reviews"
     example: "Reviews for movie id 693134"

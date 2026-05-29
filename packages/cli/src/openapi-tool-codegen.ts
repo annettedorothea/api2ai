@@ -5,6 +5,7 @@ import type {
     OpenApiSchema,
     Operation
 } from 'api-2-ai-dsl-language';
+import { getAccessKind } from 'api-2-ai-dsl-language';
 
 /** JSON-schema-like dict emitted into generated modules / MCP. */
 export type JsonSchemaDict = Record<string, unknown>;
@@ -228,13 +229,13 @@ export function buildMcpDescription(
 
     sections.push(`Response:\n${buildResponseSection(details)}`);
 
-    if (operation.public === true) {
+    if (getAccessKind(operation) === 'public') {
         sections.push('Runtime: public endpoint — no Authorization header or MCP credential required.');
-    } else if (operation.restricted === true && auth) {
+    } else if (getAccessKind(operation) === 'checked' && auth) {
         const prefixNote =
             auth.prefix !== undefined && String(auth.prefix).trim().length > 0 ? ' (prefix applied to the secret)' : '';
         sections.push(
-            `Runtime: restricted — implement check${operation.toolName?.trim() ? operation.toolName.trim().charAt(0).toUpperCase() + operation.toolName.trim().slice(1) : 'Tool'}Parameters in src/auth/${operation.toolName?.trim() ?? 'tool'}.ts (compiled to .mjs on generate); credential sent as ${auth.location} "${auth.name}"${prefixNote}.`
+            `Runtime: checked — implement check${operation.toolName?.trim() ? operation.toolName.trim().charAt(0).toUpperCase() + operation.toolName.trim().slice(1) : 'Tool'}Parameters in src/auth/${operation.toolName?.trim() ?? 'tool'}.ts (compiled to .mjs on generate); credential sent as ${auth.location} "${auth.name}"${prefixNote}.`
         );
     } else if (auth) {
         const prefixNote =
@@ -546,28 +547,25 @@ function parametersByLocation(parameters: OpenApiParameterDetails[]): {
 /** Outer MCP tool input: pathParams | query | headers | body buckets. */
 export function buildToolInputSchema(
     details: OpenApiOperationDetails,
-    jwtBoundPathParam?: string,
-    autofillParams?: readonly string[]
+    optionalParams?: readonly string[]
 ): JsonSchemaDict {
     const { path, query, headers } = parametersByLocation(details.parameters);
-    const autofill = new Set((autofillParams ?? []).map((p) => p.trim()).filter((p) => p.length > 0));
+    const optional = new Set((optionalParams ?? []).map((p) => p.trim()).filter((p) => p.length > 0));
 
-    const pathEntries = path
-        .filter((p) => jwtBoundPathParam === undefined || p.name !== jwtBoundPathParam)
-        .map((p) => ({
-            name: p.name,
-            schema: parameterPropertySchema(p),
-            required: !autofill.has(p.name)
-        }));
+    const pathEntries = path.map((p) => ({
+        name: p.name,
+        schema: parameterPropertySchema(p),
+        required: !optional.has(p.name)
+    }));
     const queryEntries = query.map((p) => ({
         name: p.name,
         schema: parameterPropertySchema(p),
-        required: p.required && !autofill.has(p.name)
+        required: p.required && !optional.has(p.name)
     }));
     const headerEntries = headers.map((p) => ({
         name: p.name,
         schema: parameterPropertySchema(p),
-        required: p.required && !autofill.has(p.name)
+        required: p.required && !optional.has(p.name)
     }));
 
     const rootProps: Record<string, JsonSchemaDict> = {};

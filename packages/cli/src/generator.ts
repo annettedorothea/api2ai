@@ -1,6 +1,6 @@
 import type { Model, Operation } from 'api-2-ai-dsl-language';
 import type { LoadedOpenApi } from 'api-2-ai-dsl-language';
-import { loadOpenApi, makeOperationLookupKey } from 'api-2-ai-dsl-language';
+import { getAccessKind, getOptionalParams, loadOpenApi, makeOperationLookupKey } from 'api-2-ai-dsl-language';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import * as url from 'node:url';
@@ -16,11 +16,10 @@ import {
     type ProjectBootstrapConfig
 } from '@core2ai/core/codegen';
 import {
-    ensureRestrictedAuthStubs,
-    listRestrictedToolNames,
+    ensureCheckedAuthStubs,
+    listCheckedToolNames,
     renderParameterCheckerImports,
     renderParameterCheckersMap,
-    resolveToolAccess,
     type ToolAccess
 } from './generator/auth-stub-render.js';
 import { renderMcpHostAdapterBlock } from './generator/host-adapter-render.js';
@@ -109,7 +108,7 @@ function resolveToolsFromLoaded(model: Model, loaded: LoadedOpenApi): ResolvedTo
             method: operation.method,
             path: operation.path,
             example: operation.example,
-            access: model.auth ? resolveToolAccess(operation) : 'public'
+            access: getAccessKind(operation)
         };
     });
 }
@@ -132,7 +131,7 @@ function buildSchemasFromLoaded(model: Model, loaded: LoadedOpenApi): Record<str
         if (!details) {
             continue;
         }
-        const base = buildToolInputSchema(details, undefined, operation.autofillParams ?? []);
+        const base = buildToolInputSchema(details, getOptionalParams(operation));
         out[requireToolName(operation)] = base;
     }
     return out;
@@ -216,11 +215,11 @@ export async function generateOutput(model: Model, source: string, destination: 
     const mcpServerIdentityBlock = renderMcpServerIdentityExports(mcpServerIdentity.name, mcpServerIdentity.version);
     const mcpHostAdapterBlock = renderMcpHostAdapterBlock(authKind);
 
-    const hasRestrictedOps = listRestrictedToolNames(model).length > 0;
-    const stubPaths = hasRestrictedOps ? await ensureRestrictedAuthStubs(source, model) : new Map<string, string>();
-    const hasRestricted = stubPaths.size > 0;
-    const parameterCheckerImports = hasRestricted ? renderParameterCheckerImports(tsPath, stubPaths) : '';
-    const parameterCheckersMap = hasRestricted ? renderParameterCheckersMap(stubPaths) : '';
+    const hasCheckedOps = listCheckedToolNames(model).length > 0;
+    const stubPaths = hasCheckedOps ? await ensureCheckedAuthStubs(source, model) : new Map<string, string>();
+    const hasChecked = stubPaths.size > 0;
+    const parameterCheckerImports = hasChecked ? renderParameterCheckerImports(tsPath, stubPaths) : '';
+    const parameterCheckersMap = hasChecked ? renderParameterCheckersMap(stubPaths) : '';
 
     const authRuntimePrefix = parameterCheckersMap.length > 0 ? `${parameterCheckersMap}\n\n` : '';
 
@@ -228,7 +227,7 @@ export async function generateOutput(model: Model, source: string, destination: 
         querySerializationLiteral,
         authKind,
         usesInsecureTls,
-        hasRestricted
+        hasChecked
     )}`;
 
     fs.writeFileSync(

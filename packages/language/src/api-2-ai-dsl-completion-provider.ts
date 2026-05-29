@@ -15,13 +15,23 @@ const CANONICAL_KEYWORD_SORT: Record<string, string> = {
     name: '0101',
     prefix: '0102',
     toolName: '0200',
-    intent: '0201',
-    summary: '0202',
-    description: '0203',
-    example: '0204',
-    autofillParams: '0205',
-    public: '0206',
-    restricted: '0207'
+    access: '0201',
+    intent: '0202',
+    summary: '0203',
+    description: '0204',
+    example: '0205',
+    optionalParams: '0300',
+    public: '0210',
+    protected: '0211',
+    checked: '0212'
+};
+const ACCESS_KIND_INSERT: Record<string, string> = {
+    public: 'public',
+    protected: 'protected',
+    checked: 'checked {\n    optionalParams: ["$1"]\n}'
+};
+const CHECKED_BODY_KEYWORD_INSERT: Record<string, string> = {
+    optionalParams: 'optionalParams: ["$1"]$0'
 };
 const AUTH_KEYWORD_INSERT: Record<string, string> = {
     in: 'in: $1$0',
@@ -30,13 +40,11 @@ const AUTH_KEYWORD_INSERT: Record<string, string> = {
 };
 const OPERATION_KEYWORD_INSERT: Record<string, string> = {
     toolName: 'toolName: "$1"$0',
+    access: 'access: public$0',
     intent: 'intent: "$1"$0',
     summary: 'summary: "$1"$0',
     description: 'description: "$1"$0',
-    example: 'example: "$1"$0',
-    autofillParams: 'autofillParams: ["$1"]$0',
-    public: 'public',
-    restricted: 'restricted'
+    example: 'example: "$1"$0'
 };
 
 function debugCompletion(message: string, data?: unknown): void {
@@ -224,9 +232,6 @@ function usedBlockKeywords(blockText: string, keys: readonly string[]): Set<stri
     for (const match of blockText.matchAll(pattern)) {
         used.add(match[1]);
     }
-    if (keys.includes('public') && /\bpublic\b/.test(blockText)) {
-        used.add('public');
-    }
     return used;
 }
 
@@ -251,10 +256,20 @@ export class Api2AiDslCompletionProvider extends DefaultCompletionProvider {
         if (pathItems.length > 0) {
             return CompletionList.create(this.deduplicateItems(pathItems), false);
         }
-        const autofillItems = await this.buildAutofillParamCompletionItems(document, params.position);
-        debugCompletion('getCompletion autofillItems count', autofillItems.length);
-        if (autofillItems.length > 0) {
-            return CompletionList.create(this.deduplicateItems(autofillItems), false);
+        const accessKindItems = this.buildAccessKindCompletionItems(document, params.position);
+        debugCompletion('getCompletion accessKindItems count', accessKindItems.length);
+        if (accessKindItems.length > 0) {
+            return CompletionList.create(this.deduplicateItems(accessKindItems), false);
+        }
+        const checkedBodyItems = this.buildCheckedAccessBodyKeywordCompletionItems(document, params.position);
+        debugCompletion('getCompletion checkedBodyItems count', checkedBodyItems.length);
+        if (checkedBodyItems.length > 0) {
+            return CompletionList.create(this.deduplicateItems(checkedBodyItems), false);
+        }
+        const optionalParamItems = await this.buildOptionalParamCompletionItems(document, params.position);
+        debugCompletion('getCompletion optionalParamItems count', optionalParamItems.length);
+        if (optionalParamItems.length > 0) {
+            return CompletionList.create(this.deduplicateItems(optionalParamItems), false);
         }
         const keywordItems = this.buildIncompleteBlockKeywordCompletionItems(document, params.position);
         debugCompletion('getCompletion keywordItems count', keywordItems.length);
@@ -365,6 +380,88 @@ export class Api2AiDslCompletionProvider extends DefaultCompletionProvider {
             insertText: inserts[key],
             textEdit: TextEdit.replace(range, inserts[key])
         }));
+    }
+
+    private buildAccessKindCompletionItems(document: LangiumDocument, position: Position): CompletionItem[] {
+        const textDoc = document.textDocument;
+        const text = textDoc.getText();
+        const offset = textDoc.offsetAt(position);
+        const { line } = currentLineUntilOffset(text, offset);
+        if (textHasUnclosedString(line)) {
+            return [];
+        }
+        const match = /^\s*access\s*:\s*(\w*)$/.exec(line);
+        if (!match) {
+            return [];
+        }
+        const typedPrefix = match[1] ?? '';
+        const { prefix, range } = currentWordRange(text, offset, textDoc);
+        const effectivePrefix = typedPrefix.length > 0 ? typedPrefix : prefix;
+        const keys = Object.keys(ACCESS_KIND_INSERT).filter((key) => key.startsWith(effectivePrefix));
+        if (keys.length === 0) {
+            return [];
+        }
+        return keys.map((key) => ({
+            label: key,
+            kind: CompletionItemKind.EnumMember,
+            detail: 'Access level',
+            insertTextFormat: key === 'checked' ? InsertTextFormat.Snippet : InsertTextFormat.PlainText,
+            sortText: CANONICAL_KEYWORD_SORT[key],
+            insertText: ACCESS_KIND_INSERT[key],
+            textEdit: TextEdit.replace(range, ACCESS_KIND_INSERT[key])
+        }));
+    }
+
+    private buildCheckedAccessBodyKeywordCompletionItems(
+        document: LangiumDocument,
+        position: Position
+    ): CompletionItem[] {
+        const textDoc = document.textDocument;
+        const text = textDoc.getText();
+        const offset = textDoc.offsetAt(position);
+        const { line } = currentLineUntilOffset(text, offset);
+        if (textHasUnclosedString(line)) {
+            return [];
+        }
+        const root = document.parseResult.value?.$cstNode;
+        if (!root) {
+            return [];
+        }
+        const leafAt = CstUtils.findLeafNodeAtOffset(root, offset) ?? CstUtils.findLeafNodeBeforeOffset(root, offset);
+        const operation = leafAt ? AstUtils.getContainerOfType(leafAt.astNode as AstNode, isOperation) : undefined;
+        if (!operation) {
+            return [];
+        }
+        const operationStart = operation.$cstNode?.offset ?? 0;
+        const beforeCursor = text.slice(operationStart, offset);
+        const checkedBlockMatch = /access\s*:\s*checked\s*\{[^}]*$/.exec(beforeCursor);
+        if (!checkedBlockMatch) {
+            return [];
+        }
+        const openBraceOffset = beforeCursor.lastIndexOf('{');
+        if (openBraceOffset < 0) {
+            return [];
+        }
+        const blockText = beforeCursor.slice(openBraceOffset + 1);
+        if (/\boptionalParams\b\s*:/.test(blockText)) {
+            return [];
+        }
+        const { prefix, range } = currentWordRange(text, offset, textDoc);
+        if (prefix.length > 0 && !'optionalParams'.startsWith(prefix)) {
+            return [];
+        }
+        const insert = CHECKED_BODY_KEYWORD_INSERT.optionalParams;
+        return [
+            {
+                label: 'optionalParams',
+                kind: CompletionItemKind.Keyword,
+                detail: 'OpenAPI parameters optional in the tool schema',
+                insertTextFormat: InsertTextFormat.Snippet,
+                sortText: CANONICAL_KEYWORD_SORT.optionalParams,
+                insertText: insert,
+                textEdit: TextEdit.replace(range, insert)
+            }
+        ];
     }
 
     private async buildOpenApiPathCompletionItems(
@@ -481,7 +578,7 @@ export class Api2AiDslCompletionProvider extends DefaultCompletionProvider {
         return [];
     }
 
-    private async buildAutofillParamCompletionItems(
+    private async buildOptionalParamCompletionItems(
         document: LangiumDocument,
         position: Position
     ): Promise<CompletionItem[]> {
@@ -508,7 +605,7 @@ export class Api2AiDslCompletionProvider extends DefaultCompletionProvider {
             start: textDoc.positionAt(operationStart),
             end: position
         });
-        if (!/autofillParams\s*:\s*\[[^\]]*$/m.test(beforeCursor)) {
+        if (!/optionalParams\s*:\s*\[[^\]]*$/m.test(beforeCursor)) {
             return [];
         }
 
