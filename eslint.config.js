@@ -27,7 +27,7 @@ export default [
             '**/syntaxes/**',
             '**/*.mjs',
             'packages/cli/tmp/**',
-            'packages/extension/demos/tmp/**',
+            'packages/extension/demos/tmp/**'
         ]
     },
     js.configs.recommended,

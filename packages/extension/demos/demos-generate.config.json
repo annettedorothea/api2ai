@@ -1,0 +1,8 @@
+{
+    "productName": "api2ai",
+    "extensionIdPrefix": "api2ai.vscode-api2ai-",
+    "embedDirName": "embed-api2ai",
+    "cliEnvVar": "API2AI_CLI",
+    "embedHomeEnvVar": "API2AI_EMBED_HOME",
+    "dslExtension": ".api2ai"
+}
