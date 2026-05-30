@@ -28,7 +28,7 @@ describe('Validating', () => {
         document = await parseValidated(`
             openapi "./petstore-mini.openapi.yaml"
             GET "/pet/{petId}" {
-                toolName: "getPetById"
+                toolName: getPetById
                 access: public
                 intent: "get one pet"
             }
@@ -46,7 +46,7 @@ describe('Validating', () => {
                 prefix: "Bearer "
             }
             GET "/pet/{petId}" {
-                toolName: "getPetById"
+                toolName: getPetById
                 access: protected
                 intent: "get one pet"
             }
@@ -63,7 +63,7 @@ describe('Validating', () => {
                 name: ""
             }
             GET "/pet/{petId}" {
-                toolName: "getPetById"
+                toolName: getPetById
                 access: protected
                 intent: "get one pet"
             }
@@ -89,7 +89,7 @@ describe('Validating', () => {
         document = await parseValidated(`
             openapi "./petstore-mini.openapi.yaml"
             DELETE "/customers" {
-                toolName: "deleteCustomer"
+                toolName: deleteCustomer
                 access: public
                 intent: "delete customer"
             }
@@ -105,12 +105,12 @@ describe('Validating', () => {
         document = await parseValidated(`
             openapi "./petstore-mini.openapi.yaml"
             GET "/pet/{petId}" {
-                toolName: "petTool"
+                toolName: petTool
                 access: public
                 intent: "first"
             }
             POST "/pet" {
-                toolName: "petTool"
+                toolName: petTool
                 access: public
                 intent: "second"
             }
@@ -124,12 +124,12 @@ describe('Validating', () => {
         document = await parseValidated(`
             openapi "./petstore-mini.openapi.yaml"
             GET "/pet/{petId}" {
-                toolName: "petTool"
+                toolName: petTool
                 access: public
                 intent: "first"
             }
             POST "/pet" {
-                toolName: "  petTool  "
+                toolName:   petTool  
                 access: public
                 intent: "second"
             }
@@ -143,7 +143,7 @@ describe('Validating', () => {
         document = await parseValidated(`
             openapi "./swagger2.openapi.yaml"
             GET "/pet/{petId}" {
-                toolName: "getPetById"
+                toolName: getPetById
                 access: public
                 intent: "get one pet"
             }
@@ -157,7 +157,7 @@ describe('Validating', () => {
         document = await parseValidated(`
             openapi "./unsupported-style.openapi.yaml"
             GET "/pets" {
-                toolName: "listPets"
+                toolName: listPets
                 access: public
                 intent: "list pets by filter object"
             }
@@ -171,7 +171,7 @@ describe('Validating', () => {
         document = await parseValidated(`
             openapi "./cookie-param.openapi.yaml"
             GET "/session" {
-                toolName: "getSession"
+                toolName: getSession
                 access: public
                 intent: "get one pet"
             }
@@ -198,7 +198,7 @@ describe('Validating', () => {
         document = await parseValidated(`
             openapi "./petstore-mini.openapi.yaml"
             GET "/pet/{petId}" {
-                toolName: "getPetById"
+                toolName: getPetById
                 access: public
             }
         `);
@@ -214,7 +214,7 @@ describe('Validating', () => {
                 prefix: "Bearer "
             }
             GET "/pet/{petId}" {
-                toolName: "getPetById"
+                toolName: getPetById
                 access: protected
                 intent: "get one pet"
             }
@@ -229,7 +229,7 @@ describe('Validating', () => {
         document = await parseValidated(`
             openapi "./petstore-mini.openapi.yaml"
             GET "/pet/{petId}" {
-                toolName: "getPetById"
+                toolName: getPetById
                 access: protected
                 intent: "get one pet"
             }
@@ -243,7 +243,7 @@ describe('Validating', () => {
         document = await parseValidated(`
             openapi "./petstore-mini.openapi.yaml"
             GET "/pet/{petId}" {
-                toolName: "getPetById"
+                toolName: getPetById
                 access: checked
                 intent: "get one pet"
             }
@@ -261,9 +261,9 @@ describe('Validating', () => {
                 name: "Authorization"
             }
             GET "/pet/{petId}" {
-                toolName: "getPetById"
+                toolName: getPetById
                 access: checked {
-                    optionalParams: ["petId"]
+                    optionalParams: [petId]
                 }
                 intent: "get one pet"
             }
@@ -281,9 +281,9 @@ describe('Validating', () => {
                 name: "Authorization"
             }
             GET "/pet/{petId}" {
-                toolName: "getPetById"
+                toolName: getPetById
                 access: checked {
-                    optionalParams: ["customerId"]
+                    optionalParams: [customerId]
                 }
                 intent: "get one pet"
             }
@@ -304,9 +304,9 @@ describe('Validating', () => {
                 name: "Authorization"
             }
             GET "/pet/{petId}" {
-                toolName: "getPetById"
+                toolName: getPetById
                 access: checked {
-                    optionalParams: ["petId", "customerId"]
+                    optionalParams: [petId, customerId]
                 }
                 intent: "get one pet"
             }

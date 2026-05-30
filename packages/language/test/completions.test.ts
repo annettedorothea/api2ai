@@ -49,7 +49,7 @@ describe('Completion for operation path', () => {
     test('lists OpenAPI routes for GET', async () => {
         const header = `\nopenapi "./petstore-mini.openapi.yaml"\n\nGET "`;
         const inner = `/pet`;
-        const tail = `" {\n    toolName: "t"\n    intent: "x"\n    access: public\n}`;
+        const tail = `" {\n    toolName: t\n    intent: "x"\n    access: public\n}`;
         const content = header + inner + tail;
         const offset = header.length + Math.max(1, Math.floor(inner.length / 2));
 
@@ -63,7 +63,7 @@ describe('Completion for operation path', () => {
     test('filters POST routes by typed prefix', async () => {
         const header = `\nopenapi "./petstore-mini.openapi.yaml"\n\nPOST "`;
         const inner = `/pe`;
-        const tail = `" {\n    toolName: "t"\n    intent: "x"\n    access: public\n}`;
+        const tail = `" {\n    toolName: t\n    intent: "x"\n    access: public\n}`;
         const content = header + inner + tail;
         const offset = header.length + Math.max(1, inner.length - 1);
 
@@ -102,7 +102,7 @@ describe('Completion for operation path', () => {
 
     test('lists routes when caret is on the Operation opening brace after the path', async () => {
         const header = `\nopenapi "./petstore-mini.openapi.yaml"\n\nGET "/pe" `;
-        const braceAndBody = `{\n    toolName: "t"\n    intent: "x"\n    access: public\n}`;
+        const braceAndBody = `{\n    toolName: t\n    intent: "x"\n    access: public\n}`;
         const content = header + braceAndBody;
         const offset = content.indexOf('{');
 
@@ -117,7 +117,7 @@ describe('Completion for operation path', () => {
 describe('Completion for block keywords', () => {
     test('sorts auth keywords in canonical order', async () => {
         const marker = '/*caret*/';
-        const content = `\nopenapi "./petstore-mini.openapi.yaml"\nauth {\n    ${marker}\n}\nGET "/pet/{petId}" {\n    toolName: "t"\n    intent: "x"\n    access: public\n}`;
+        const content = `\nopenapi "./petstore-mini.openapi.yaml"\nauth {\n    ${marker}\n}\nGET "/pet/{petId}" {\n    toolName: t\n    intent: "x"\n    access: public\n}`;
         const list = await completionAt(content.replace(marker, ''), content.indexOf(marker));
 
         expect(
@@ -161,7 +161,7 @@ describe('Completion for block keywords', () => {
 
     test('suggests access kinds after access colon', async () => {
         const marker = '/*caret*/';
-        const content = `\nopenapi "./petstore-mini.openapi.yaml"\nGET "/pet/{petId}" {\n    toolName: "getPetById"\n    access: ${marker}\n    intent: "get one pet"\n}`;
+        const content = `\nopenapi "./petstore-mini.openapi.yaml"\nGET "/pet/{petId}" {\n    toolName: getPetById\n    access: ${marker}\n    intent: "get one pet"\n}`;
         const list = await completionAt(content.replace(marker, ''), content.indexOf(marker));
         const labels = (list?.items ?? []).map((item) => String(item.label));
         expect(labels).toEqual(expect.arrayContaining(['public', 'protected', 'checked']));
@@ -169,7 +169,7 @@ describe('Completion for block keywords', () => {
 
     test('suggests optionalParams inside checked access block', async () => {
         const marker = '/*caret*/';
-        const content = `\nopenapi "./petstore-mini.openapi.yaml"\nGET "/pet/{petId}" {\n    toolName: "getPetById"\n    access: checked {\n        ${marker}\n    }\n    intent: "get one pet"\n}`;
+        const content = `\nopenapi "./petstore-mini.openapi.yaml"\nGET "/pet/{petId}" {\n    toolName: getPetById\n    access: checked {\n        ${marker}\n    }\n    intent: "get one pet"\n}`;
         const list = await completionAt(content.replace(marker, ''), content.indexOf(marker));
         const labels = (list?.items ?? []).map((item) => String(item.label));
         expect(labels).toContain('optionalParams');
@@ -177,25 +177,25 @@ describe('Completion for block keywords', () => {
 
     test('suggests required OpenAPI params inside optionalParams list', async () => {
         const marker = '/*caret*/';
-        const content = `\nopenapi "./petstore-mini.openapi.yaml"\nGET "/pet/{petId}" {\n    toolName: "getPetById"\n    access: checked {\n        optionalParams: ["${marker}"]\n    }\n    intent: "get one pet"\n}`;
+        const content = `\nopenapi "./petstore-mini.openapi.yaml"\nGET "/pet/{petId}" {\n    toolName: getPetById\n    access: checked {\n        optionalParams: [${marker}]\n    }\n    intent: "get one pet"\n}`;
         const list = await completionAt(content.replace(marker, ''), content.indexOf(marker));
         const labels = (list?.items ?? []).map((item) => String(item.label));
-        expect(labels).toContain('"petId"');
+        expect(labels).toContain('petId');
     });
 
     test('suggests required OpenAPI params for empty optionalParams list slot', async () => {
         const marker = '/*caret*/';
-        const content = `\nopenapi "./petstore-mini.openapi.yaml"\nGET "/pet/{petId}" {\n    toolName: "getPetById"\n    access: checked {\n        optionalParams: [${marker}]\n    }\n    intent: "get one pet"\n}`;
+        const content = `\nopenapi "./petstore-mini.openapi.yaml"\nGET "/pet/{petId}" {\n    toolName: getPetById\n    access: checked {\n        optionalParams: [${marker}]\n    }\n    intent: "get one pet"\n}`;
         const list = await completionAt(content.replace(marker, ''), content.indexOf(marker));
         const labels = (list?.items ?? []).map((item) => String(item.label));
-        expect(labels).toContain('"petId"');
+        expect(labels).toContain('petId');
     });
 
     test('suggests required OpenAPI params when editing existing optionalParams value', async () => {
         const marker = '/*caret*/';
-        const content = `\nopenapi "./petstore-mini.openapi.yaml"\nGET "/pet/{petId}" {\n    toolName: "getPetById"\n    access: checked {\n        optionalParams: ["pet${marker}"]\n    }\n    intent: "get one pet"\n}`;
+        const content = `\nopenapi "./petstore-mini.openapi.yaml"\nGET "/pet/{petId}" {\n    toolName: getPetById\n    access: checked {\n        optionalParams: [pet${marker}]\n    }\n    intent: "get one pet"\n}`;
         const list = await completionAt(content.replace(marker, ''), content.indexOf(marker));
         const labels = (list?.items ?? []).map((item) => String(item.label));
-        expect(labels).toContain('"petId"');
+        expect(labels).toContain('petId');
     });
 });

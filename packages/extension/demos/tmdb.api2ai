@@ -7,7 +7,7 @@ auth {
 }
 
 GET "/3/search/movie" {
-    toolName: "searchTmdbMovies"
+    toolName: searchTmdbMovies
     access: protected
     intent: "search TMDB movies by title"
     summary: "Search movies by title"
@@ -15,7 +15,7 @@ GET "/3/search/movie" {
 }
 
 GET "/3/movie/popular" {
-    toolName: "getPopularTmdbMovies"
+    toolName: getPopularTmdbMovies
     access: protected
     intent: "retrieve currently popular TMDB movies"
     summary: "Popular movies"
@@ -23,7 +23,7 @@ GET "/3/movie/popular" {
 }
 
 GET "/3/movie/{movie_id}" {
-    toolName: "getTmdbMovieDetails"
+    toolName: getTmdbMovieDetails
     access: protected
     intent: "retrieve details for a TMDB movie by id"
     summary: "Movie details by ID"
@@ -31,7 +31,7 @@ GET "/3/movie/{movie_id}" {
 }
 
 GET "/3/movie/{movie_id}/credits" {
-    toolName: "getTmdbMovieCredits"
+    toolName: getTmdbMovieCredits
     access: protected
     intent: "retrieve cast and crew credits for a TMDB movie"
     summary: "Movie cast and crew"
@@ -39,7 +39,7 @@ GET "/3/movie/{movie_id}/credits" {
 }
 
 GET "/3/discover/movie" {
-    toolName: "discoverTmdbMovies"
+    toolName: discoverTmdbMovies
     access: protected
     intent: "discover TMDB movies using rich filters such as genre, year, and rating"
     summary: "Discover movies with filters"
@@ -47,7 +47,7 @@ GET "/3/discover/movie" {
 }
 
 GET "/3/genre/movie/list" {
-    toolName: "getTmdbMovieGenres"
+    toolName: getTmdbMovieGenres
     access: protected
     intent: "retrieve TMDB movie genres for filtering and lookup"
     summary: "Movie genre list"
@@ -55,7 +55,7 @@ GET "/3/genre/movie/list" {
 }
 
 GET "/3/trending/movie/{time_window}" {
-    toolName: "getTmdbTrendingMovies"
+    toolName: getTmdbTrendingMovies
     access: protected
     intent: "retrieve trending TMDB movies for a selected time window"
     summary: "Trending movies"
@@ -63,7 +63,7 @@ GET "/3/trending/movie/{time_window}" {
 }
 
 GET "/3/movie/{movie_id}/videos" {
-    toolName: "getTmdbMovieVideos"
+    toolName: getTmdbMovieVideos
     access: protected
     intent: "retrieve videos such as trailers for a TMDB movie"
     summary: "Movie videos and trailers"
@@ -71,7 +71,7 @@ GET "/3/movie/{movie_id}/videos" {
 }
 
 GET "/3/search/multi" {
-    toolName: "searchTmdbMulti"
+    toolName: searchTmdbMulti
     access: protected
     intent: "search TMDB across movies, tv shows, and people"
     summary: "Multi search (movies, TV, people)"
@@ -79,7 +79,7 @@ GET "/3/search/multi" {
 }
 
 GET "/3/movie/{movie_id}/release_dates" {
-    toolName: "getTmdbMovieReleaseDates"
+    toolName: getTmdbMovieReleaseDates
     access: protected
     intent: "retrieve release dates for a TMDB movie"
     summary: "Movie release dates"
@@ -87,7 +87,7 @@ GET "/3/movie/{movie_id}/release_dates" {
 }
 
 GET "/3/movie/{movie_id}/recommendations" {
-    toolName: "getTmdbMovieRecommendations"
+    toolName: getTmdbMovieRecommendations
     access: protected
     intent: "retrieve recommendations for a TMDB movie"
     summary: "Movie recommendations"
@@ -95,7 +95,7 @@ GET "/3/movie/{movie_id}/recommendations" {
 }
 
 GET "/3/movie/{movie_id}/similar" {
-    toolName: "getTmdbMovieSimilar"
+    toolName: getTmdbMovieSimilar
     access: protected
     intent: "retrieve similar movies for a TMDB movie"
     summary: "Retrieve similar movies"
@@ -103,7 +103,7 @@ GET "/3/movie/{movie_id}/similar" {
 }
 
 GET "/3/movie/{movie_id}/reviews" {
-    toolName: "getTmdbMovieReviews"
+    toolName: getTmdbMovieReviews
     access: protected
     intent: "retrieve reviews for a TMDB movie"
     summary: "Retrieve movie reviews"

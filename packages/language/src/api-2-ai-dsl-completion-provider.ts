@@ -28,10 +28,10 @@ const CANONICAL_KEYWORD_SORT: Record<string, string> = {
 const ACCESS_KIND_INSERT: Record<string, string> = {
     public: 'public',
     protected: 'protected',
-    checked: 'checked {\n    optionalParams: ["$1"]\n}'
+    checked: 'checked {\n    optionalParams: [$1]\n}'
 };
 const CHECKED_BODY_KEYWORD_INSERT: Record<string, string> = {
-    optionalParams: 'optionalParams: ["$1"]$0'
+    optionalParams: 'optionalParams: [$1]$0'
 };
 const AUTH_KEYWORD_INSERT: Record<string, string> = {
     in: 'in: $1$0',
@@ -39,7 +39,7 @@ const AUTH_KEYWORD_INSERT: Record<string, string> = {
     prefix: 'prefix: "$1"$0'
 };
 const OPERATION_KEYWORD_INSERT: Record<string, string> = {
-    toolName: 'toolName: "$1"$0',
+    toolName: 'toolName: $1$0',
     access: 'access: public$0',
     intent: 'intent: "$1"$0',
     summary: 'summary: "$1"$0',
@@ -621,29 +621,29 @@ export class Api2AiDslCompletionProvider extends DefaultCompletionProvider {
             return [];
         }
         const { line } = currentLineUntilOffset(textDoc.getText(), offset);
-        const quotedMatch = /"([^"]*)$/.exec(line);
+        const idPrefixMatch = /(?:\[\s*|,\s*)([a-zA-Z_][a-zA-Z0-9_]*)$/.exec(line);
         const listPositionMatch = /(?:\[\s*|,\s*)$/.test(line);
-        if (!quotedMatch && !listPositionMatch) {
+        if (!idPrefixMatch && !listPositionMatch) {
             return [];
         }
-        const typedPrefix = quotedMatch?.[1] ?? '';
+        const typedPrefix = idPrefixMatch?.[1] ?? '';
         const candidates = [...new Set(openApiRequiredNames)]
             .filter((name) => name.startsWith(typedPrefix))
             .sort((a, b) => a.localeCompare(b));
         if (candidates.length === 0) {
             return [];
         }
-        const replaceStart = quotedMatch ? offset - typedPrefix.length - 1 : offset;
+        const replaceStart = idPrefixMatch ? offset - typedPrefix.length : offset;
         const range = {
             start: textDoc.positionAt(replaceStart),
             end: position
         };
         return candidates.map((name) => ({
-            label: `"${name}"`,
+            label: name,
             kind: CompletionItemKind.Value,
             detail: 'Required OpenAPI parameter',
             insertTextFormat: InsertTextFormat.PlainText,
-            textEdit: TextEdit.replace(range, `"${name}"`)
+            textEdit: TextEdit.replace(range, name)
         }));
     }
 }

@@ -7,9 +7,9 @@ auth {
 }
 
 GET "/orders/{customerId}" {
-    toolName: "listCustomerOrders"
+    toolName: listCustomerOrders
     access: checked {
-        optionalParams: ["customerId"]
+        optionalParams: [customerId]
     }
     intent: "list orders for the authenticated customer from the JWT, when the customerId is empty, it will be filled from the JWT"
     summary: "List customer orders"
@@ -17,7 +17,7 @@ GET "/orders/{customerId}" {
 }
 
 POST "/login/{customerId}" {
-    toolName: "login"
+    toolName: login
     access: public
     intent: "login the customer"
     summary: "Login customer"

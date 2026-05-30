@@ -15,7 +15,7 @@ Auth:
 
 Operation:
     method=HttpMethod path=STRING '{'
-        ('toolName' ':' toolName=STRING)?
+        ('toolName' ':' toolName=ID)?
         'access' ':' access=Access
         ('intent' ':' intent=STRING)?
         ('summary' ':' summary=STRING)?
@@ -36,7 +36,7 @@ CheckedAccess:
     {infer CheckedAccess} 'checked' ('{' checkedBody=CheckedAccessBody '}')?;
 
 CheckedAccessBody:
-    ('optionalParams' ':' '[' (optionalParams+=STRING (',' optionalParams+=STRING)*)? ']')?;
+    ('optionalParams' ':' '[' (optionalParams+=ID (',' optionalParams+=ID)*)? ']')?;
 
 AuthLocation returns string:
     'header' | 'query';
@@ -45,6 +45,7 @@ HttpMethod returns string:
     'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' | 'HEAD' | 'OPTIONS' | 'TRACE';
 
 hidden terminal WS: /\s+/;
+terminal ID: /[a-zA-Z_][a-zA-Z0-9_]*/;
 terminal STRING: /"(\\.|[^"\\])*"|'(\\.|[^'\\])*'/;
 
 hidden terminal ML_COMMENT: /\/\*[\s\S]*?\*\//;

@@ -7,7 +7,7 @@ auth {
 }
 
 GET "/user" {
-    toolName: "getGitHubAuthenticatedUser"
+    toolName: getGitHubAuthenticatedUser
     access: protected
     intent: "return the GitHub user profile for the authenticated PAT; use to confirm which account the token represents before calling repo-scoped tools"
     summary: "Get the authenticated user"
@@ -15,7 +15,7 @@ GET "/user" {
 }
 
 GET "/user/repos" {
-    toolName: "listGitHubUserRepos"
+    toolName: listGitHubUserRepos
     access: protected
     intent: "list repositories the authenticated PAT can access; use to find owner/repo and to debug 404 on GET /repos/{owner}/{repo}"
     summary: "List repositories for the authenticated user"
@@ -23,7 +23,7 @@ GET "/user/repos" {
 }
 
 GET "/repos/{owner}/{repo}" {
-    toolName: "getGitHubRepository"
+    toolName: getGitHubRepository
     access: protected
     intent: "fetch GitHub repository metadata when the PAT can read the repo"
     summary: "Get a repository"

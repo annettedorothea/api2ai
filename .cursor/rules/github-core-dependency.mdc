@@ -23,6 +23,20 @@ That tells npm to install **exactly** the Git commit tagged `v0.0.2` on GitHub �
 
 Show the current pin: **`npm run core2ai:pin`** (`--verbose` logs pin source).
 
+## Hybrid dev link (local vs pin)
+
+Git commits use **GitHub pin only**. For sibling development under `MCP/`:
+
+```bash
+npm run core2ai:link-mode    # overall=local | pin | mixed
+npm run core2ai:use-local    # file:../core2ai + npm install
+npm run core2ai:use-pin        # refresh GitHub pin + reinstall
+```
+
+Pre-commit rejects staged `package.json` / `package-lock.json` with `file:…core2ai`. Before PR: **`core2ai:use-pin`** and verify **`core2ai:link-mode`** → `pin`.
+
+See **core2ai** rule [core2ai-dev-link-mode.mdc](../core2ai/.cursor/rules/core2ai-dev-link-mode.mdc) when changing `@core2ai/core` sources.
+
 ## Install
 
 - Prefer **`npm run install:github-https`** over plain `npm install` if GitHub SSH or `known_hosts` errors appear.

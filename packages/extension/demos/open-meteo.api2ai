@@ -6,7 +6,7 @@ openapi "./openapi/open-meteo.openapi.yaml"
 // overrides the OpenAPI description that would otherwise feed the MCP `API:`
 // section.
 GET "/v1/forecast" {
-    toolName: "openMeteoForecast"
+    toolName: openMeteoForecast
     access: public
     intent: "retrieve hourly weather forecast for coordinates"
     summary: "7 day weather forecast for coordinates"

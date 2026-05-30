@@ -38,6 +38,9 @@ set -eu
 
 cd "$(git rev-parse --show-toplevel)"
 
+echo "[pre-commit] @core2ai/core pin guard (no file: in staged package.json / package-lock.json)"
+node scripts/run-core2ai-script.mjs check-staged-core2ai-pin.mjs
+
 echo "[pre-commit] running npm run check"
 npm run check
 `;

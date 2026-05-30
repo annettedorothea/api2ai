@@ -80,7 +80,7 @@ export class Api2AiDslValidator {
     private checkOperationRequiredKeys(model: Model, accept: ValidationAcceptor): void {
         for (const operation of model.operations) {
             if (operation.toolName === undefined) {
-                accept('error', 'Operation requires `toolName: "..."`.', {
+                accept('error', 'Operation requires `toolName: <id>`.', {
                     node: operation,
                     property: 'toolName'
                 });

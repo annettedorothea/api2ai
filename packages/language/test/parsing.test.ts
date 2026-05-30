@@ -19,7 +19,7 @@ describe('Parsing tests', () => {
         document = await parse(`
             openapi "./petstore.openapi.yaml"
             GET "/customers" {
-                toolName: "getAllCustomers"
+                toolName: getAllCustomers
                 access: public
                 intent: "get all customers"
             }
@@ -38,7 +38,7 @@ describe('Parsing tests', () => {
         document = await parse(`
             openapi "./petstore.openapi.yaml"
             GET "/customers" {
-                toolName: "listCustomers"
+                toolName: listCustomers
                 access: public
                 intent: "list"
                 summary: "Custom summary override"
@@ -56,7 +56,7 @@ describe('Parsing tests', () => {
         document = await parse(`
             openapi "./petstore.openapi.yaml"
             GET "/customers" {
-                toolName: "listCustomers"
+                toolName: listCustomers
                 access: public
                 intent: "list"
                 title: "Legacy title"
@@ -70,7 +70,7 @@ describe('Parsing tests', () => {
         document = await parse(`
             openapi "./petstore.openapi.yaml"
             GET "/customers" {
-                toolName: "listCustomers"
+                toolName: listCustomers
                 intent: "list"
                 access: public
             }
@@ -84,7 +84,7 @@ describe('Parsing tests', () => {
             openapi "./petstore.openapi.yaml"
             insecureEnv
             GET "/customers" {
-                toolName: "listCustomers"
+                toolName: listCustomers
                 access: public
                 intent: "list"
             }
@@ -103,7 +103,7 @@ describe('Parsing tests', () => {
                 in: header
             }
             GET "/customers" {
-                toolName: "listCustomers"
+                toolName: listCustomers
                 access: protected
                 intent: "list"
             }
@@ -120,7 +120,7 @@ describe('Parsing tests', () => {
                 name: "Authorization"
             }
             GET "/orders" {
-                toolName: "listOrders"
+                toolName: listOrders
                 access: checked
                 intent: "list"
             }
@@ -134,7 +134,7 @@ describe('Parsing tests', () => {
         document = await parse(`
             openapi "./petstore.openapi.yaml"
             POST "/login/{id}" {
-                toolName: "login"
+                toolName: login
                 access: public
                 intent: "login"
             }
@@ -148,9 +148,9 @@ describe('Parsing tests', () => {
         document = await parse(`
             openapi "./petstore.openapi.yaml"
             GET "/customers/{id}" {
-                toolName: "getCustomer"
+                toolName: getCustomer
                 access: checked {
-                    optionalParams: ["id"]
+                    optionalParams: [id]
                 }
                 intent: "get customer"
             }
