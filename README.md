@@ -1,6 +1,6 @@
 # api2ai
 
-**api2ai** curates OpenAPI operations into MCP tools: an **`.api2ai` DSL** selects endpoints and adds AI-facing metadata (intent, examples, tool names, optional auth). A **code generator** (CLI + extension on save) emits tool modules and a stdio MCP host. The language stack is built with **[Langium](https://langium.org/)** (grammar, validation, completion).
+**api2ai** curates OpenAPI operations into MCP tools: an **.api2ai DSL** selects API operations and enriches them with AI-facing metadata (intent, examples, tool names, optional authentication settings). A **code generator** (CLI + extension on save) emits tool modules and a stdio MCP host. Built with **[Langium](https://langium.org/)** (grammar, validation, and completion).
 
 Sibling project: [db2ai](https://github.com/annettedorothea/db2ai) (relational DB to MCP). Shared library: [core2ai](https://github.com/annettedorothea/core2ai) (`@core2ai/core`).
 
@@ -52,9 +52,9 @@ Shared architecture (three layers, core2ai pin, build cheatsheet): **[core2ai do
 
 | Doc                                                                                 | When to read                            |
 | ----------------------------------------------------------------------------------- | --------------------------------------- |
-| [Three layers overview](../core2ai/docs/01-three-layers-overview.md)                | First visit — how api2ai fits the stack |
-| [Layer 2 — MCP server and tools](../core2ai/docs/03-layer2-mcp-server-and-tools.md) | OpenAPI tools and `mcp-serve.mjs`       |
-| [Layer 3 — Cursor and agent](../core2ai/docs/04-layer3-cursor-and-agent.md)         | Demos, `mcp.json`, chat testing         |
+| [Three layers overview](../core2ai/docs/00-three-layers-overview.md)                | First visit — how api2ai fits the stack |
+| [Layer 2 — MCP server and tools](../core2ai/docs/02-layer2-mcp-server-and-tools.md) | OpenAPI tools and `mcp-serve.mjs`       |
+| [Layer 3 — Cursor and agent](../core2ai/docs/03-layer3-cursor-and-agent.md)         | Demos, `mcp.json`, chat testing         |
 | [Build cheatsheet](../core2ai/docs/consumer-build-cheatsheet.md)                    | Which npm script to run                 |
 
 ## Project layout
