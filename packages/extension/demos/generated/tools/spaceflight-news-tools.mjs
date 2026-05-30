@@ -75,7 +75,7 @@ export const requiresAuth = false;
 export const authConfig = undefined;
 
 export const mcpServerName = "spaceflight-news-tools";
-export const mcpServerVersion = "0.0.3";
+export const mcpServerVersion = "0.0.4";
 
 import * as z from 'zod/v4';
 

@@ -73,7 +73,7 @@ export const authConfig: AuthConfig | undefined = {
 };
 
 export const mcpServerName = 'mock-api-tools';
-export const mcpServerVersion = '0.0.3';
+export const mcpServerVersion = '0.0.4';
 
 const parameterCheckers: Record<
     string,
