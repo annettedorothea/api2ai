@@ -3,27 +3,26 @@
 | Path                                         | Kind              | What it checks                                                                                   |
 | -------------------------------------------- | ----------------- | ------------------------------------------------------------------------------------------------ |
 | `integration/mock-api-direct-invoke.test.ts` | Integration test  | Generates mock API tools, calls public `login`, then authenticated `listCustomerOrders` directly |
-| `smoke/smoke-generated.ts`                   | Integration smoke | One `invokeTool` on a generated `*-tools.mjs` from demos (HTTP only, **no** MCP server)          |
-| `e2e/mcp-smoke-mock-api.ts`                  | E2E smoke         | Generates mock API tools, starts the mock API, and calls `login` through MCP stdio               |
+| `document-actions.test.ts`                   | Unit (Vitest)     | parse/validate gate (duplicate `toolName`)                                                       |
+| `smoke/smoke-generated.ts`                   | Integration smoke | One `invokeTool` on a generated `*-tools.mjs` (HTTP only, **no** MCP server)                     |
+| `e2e/mcp-smoke-mock-api.ts`                  | E2E smoke         | Mock API through MCP stdio host                                                                  |
 | `json-schema-to-zod-codegen.test.ts`         | Unit (Vitest)     | Zod emission from JSON Schema IR                                                                 |
 
 ## Run from repo root
 
 ```bash
-# All automated tests (Vitest suites + local MCP stdio smoke)
-npm test
+npm test                        # full suite including test:e2e
 
-# Integration smoke (generated tool module)
-npm run test:smoke
-npm run test:smoke:tmdb
-npm run test:smoke:mock-api
+npm run test:smoke              # all direct smokes (open-meteo, tmdb, mock-api)
+npm run test:smoke:mock-api     # one smoke
 
-# MCP stdio host + generated tools (starts server on stdio; Ctrl+C to stop)
-npm run test:mcp
-npm run test:mcp:mock-api
+npm run test:e2e                # MCP stdio e2e
+npm run test:mcp:mock-api       # same e2e alone
 ```
 
-`smoke-generated` is still exposed as a CLI subcommand (`node packages/cli/bin/cli.js smoke-generated …`) for ad-hoc generated-module runs; implementation lives in `packages/cli/test/smoke/`. MCP stdio smokes live in `packages/cli/test/e2e/`.
+Scenarios are defined in [`../../scripts/dev-smoke.config.json`](../../scripts/dev-smoke.config.json).
+
+Ad-hoc: `node packages/cli/bin/cli.js smoke-generated …`
 
 ---
 
