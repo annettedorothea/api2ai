@@ -25,15 +25,18 @@ Show the current pin: **`npm run core2ai:pin`** (`--verbose` logs pin source).
 
 ## Hybrid dev link (local vs pin)
 
-Git commits use **GitHub pin only**. For sibling development under `MCP/`:
+Local development with sibling `MCP/core2ai`:
 
 ```bash
-npm run core2ai:link-mode    # overall=local | pin | mixed
-npm run core2ai:use-local    # file:../core2ai + npm install
-npm run core2ai:use-pin        # refresh GitHub pin + reinstall
+npm run core2ai:link-mode       # overall=local | pin | mixed
+npm run core2ai:use-local       # file:../core2ai + clean reinstall
+npm run core2ai:use-pin         # refresh GitHub pin + clean reinstall
+npm run core2ai:check-resolved  # verify node_modules matches manifests
 ```
 
-Pre-commit rejects staged `package.json` / `package-lock.json` with `file:…core2ai`. Before PR: **`core2ai:use-pin`** and verify **`core2ai:link-mode`** → `pin`.
+**Commits** may include `file:…core2ai` (pre-commit runs `npm run check` against current installs).
+
+**Push** requires GitHub pin in branch tip manifests, matching `node_modules`, and passing `npm run check` (pre-push hook). Run **`core2ai:use-pin`**, commit, then push.
 
 See **core2ai** rule [core2ai-dev-link-mode.mdc](../core2ai/.cursor/rules/core2ai-dev-link-mode.mdc) when changing `@core2ai/core` sources.
 
@@ -47,4 +50,4 @@ See **core2ai** rule [core2ai-dev-link-mode.mdc](../core2ai/.cursor/rules/core2a
 
 ## Do not use
 
-- `file:…/core2ai` in committed `package.json` or lockfiles (local monorepo path only for ad-hoc experiments).
+- `file:…/core2ai` on **pushed** branches (pre-push hook blocks it; use `core2ai:use-pin` before push).

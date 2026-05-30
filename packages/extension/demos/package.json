@@ -14,7 +14,7 @@
         "generate:all": "npm run generate:open-meteo-tools && npm run generate:open-meteo-geocoding-tools && npm run generate:spaceflight-tools && npm run generate:tmdb-tools && npm run generate:github-tools && npm run generate:mock-api-tools"
     },
     "dependencies": {
-        "@core2ai/core": "github:annettedorothea/core2ai#v0.0.4",
+        "@core2ai/core": "file:../../../../core2ai",
         "@modelcontextprotocol/sdk": "^1.29.0",
         "undici": "^7.0.0",
         "zod": "^4.4.3"
