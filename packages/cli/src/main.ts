@@ -5,6 +5,7 @@ import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
 import { runSmokeGenerated } from '../test/smoke/smoke-generated.js';
 import { generateAction } from './generate-command.js';
+import { parseAction, validateAction } from './document-actions.js';
 const __dirname = url.fileURLToPath(new URL('.', import.meta.url));
 
 const packagePath = path.resolve(__dirname, '..', '..', 'package.json');
@@ -25,6 +26,19 @@ export default function (): void {
 
     // TODO: use Program API to declare the CLI
     const fileExtensions = Api2AiDslLanguageMetaData.fileExtensions.join(', ');
+
+    program
+        .command('parse')
+        .argument('<file>', `source file (extensions: ${fileExtensions})`)
+        .description('Parse an .api2ai file and report parser errors.')
+        .action(parseAction);
+
+    program
+        .command('validate')
+        .argument('<file>', `source file (extensions: ${fileExtensions})`)
+        .description('Parse and run Langium validation on an .api2ai file.')
+        .action(validateAction);
+
     program
         .command('generate')
         .argument('<file>', `source file (possible file extensions: ${fileExtensions})`)

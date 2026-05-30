@@ -1,15 +1,12 @@
 import { isModel } from 'api-2-ai-dsl-language';
-import { createApi2AiDslServices } from 'api-2-ai-dsl-language';
-import { assertDocumentValidForGenerate } from '@core2ai/core/codegen';
 import chalk from 'chalk';
 import * as path from 'node:path';
-import { NodeFileSystem } from 'langium/node';
 import { generateOutput } from './generator.js';
+import { assertDocumentValidOrExit } from './document-actions.js';
 
 export async function generateAction(source: string, destination: string): Promise<void> {
-    const services = createApi2AiDslServices(NodeFileSystem).Api2AiDsl;
-    const document = await assertDocumentValidForGenerate(source, services);
-    const model = document.parseResult?.value;
+    const document = await assertDocumentValidOrExit(source);
+    const model = document.parseResult.value;
     if (!isModel(model)) {
         console.error(chalk.red(`Cannot generate: ${path.basename(source)} is not a valid api2ai model.`));
         process.exit(1);
