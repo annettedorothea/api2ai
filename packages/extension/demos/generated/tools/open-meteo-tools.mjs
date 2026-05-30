@@ -21,7 +21,7 @@ export const requiresAuth = false;
 export const authConfig = undefined;
 
 export const mcpServerName = "open-meteo-tools";
-export const mcpServerVersion = "0.0.2";
+export const mcpServerVersion = "0.0.3";
 
 import * as z from 'zod/v4';
 
