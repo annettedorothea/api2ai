@@ -11,7 +11,7 @@ describe('generate validation gate', () => {
         const parse = parseHelper<Model>(services.Api2AiDsl);
         const document = await parse(
             `
-openapi "./petstore-mini.openapi.yaml"
+openapi "./langium-test-mini.openapi.yaml"
 
 GET "/pet/{petId}" {
     toolName: petTool

@@ -70,7 +70,6 @@
         "extension:vsix": "npm run langium:generate --prefix ../.. && npm run build --prefix ../.. && shx cp ../../LICENSE LICENSE && npx @vscode/vsce package --allow-missing-repository --no-rewrite-relative-links && shx rm -f LICENSE"
     },
     "dependencies": {
-        "@core2ai/core": "file:../../../../core2ai",
         "api-2-ai-dsl-language": "*",
         "vscode-languageclient": "~9.0.1",
         "vscode-languageserver": "~9.0.1"

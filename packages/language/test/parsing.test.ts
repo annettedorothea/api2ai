@@ -17,7 +17,7 @@ beforeAll(async () => {
 describe('Parsing tests', () => {
     test('parses minimal api2ai model with one operation', async () => {
         document = await parse(`
-            openapi "./petstore.openapi.yaml"
+            openapi "./langium-test-mini.openapi.yaml"
             GET "/customers" {
                 toolName: getAllCustomers
                 access: public
@@ -26,7 +26,7 @@ describe('Parsing tests', () => {
         `);
 
         expect(document.parseResult.parserErrors).toHaveLength(0);
-        expect(document.parseResult.value.openapi).toBe('./petstore.openapi.yaml');
+        expect(document.parseResult.value.openapi).toBe('./langium-test-mini.openapi.yaml');
         expect(document.parseResult.value.operations).toHaveLength(1);
         expect(document.parseResult.value.operations[0].method).toBe('GET');
         expect(document.parseResult.value.operations[0].path).toBe('/customers');
@@ -36,7 +36,7 @@ describe('Parsing tests', () => {
 
     test('parses operation with optional overrides', async () => {
         document = await parse(`
-            openapi "./petstore.openapi.yaml"
+            openapi "./langium-test-mini.openapi.yaml"
             GET "/customers" {
                 toolName: listCustomers
                 access: public
@@ -54,7 +54,7 @@ describe('Parsing tests', () => {
 
     test('rejects legacy `title:` field that has been removed from the DSL', async () => {
         document = await parse(`
-            openapi "./petstore.openapi.yaml"
+            openapi "./langium-test-mini.openapi.yaml"
             GET "/customers" {
                 toolName: listCustomers
                 access: public
@@ -68,7 +68,7 @@ describe('Parsing tests', () => {
 
     test('rejects operation properties outside the canonical order', async () => {
         document = await parse(`
-            openapi "./petstore.openapi.yaml"
+            openapi "./langium-test-mini.openapi.yaml"
             GET "/customers" {
                 toolName: listCustomers
                 intent: "list"
@@ -81,7 +81,7 @@ describe('Parsing tests', () => {
 
     test('parses optional insecureEnv flag', async () => {
         document = await parse(`
-            openapi "./petstore.openapi.yaml"
+            openapi "./langium-test-mini.openapi.yaml"
             insecureEnv
             GET "/customers" {
                 toolName: listCustomers
@@ -96,7 +96,7 @@ describe('Parsing tests', () => {
 
     test('rejects auth properties outside the canonical order', async () => {
         document = await parse(`
-            openapi "./petstore.openapi.yaml"
+            openapi "./langium-test-mini.openapi.yaml"
             auth {
                 prefix: "Bearer "
                 name: "Authorization"
@@ -114,7 +114,7 @@ describe('Parsing tests', () => {
 
     test('parses checked access on operation', async () => {
         document = await parse(`
-            openapi "./petstore.openapi.yaml"
+            openapi "./langium-test-mini.openapi.yaml"
             auth {
                 in: header
                 name: "Authorization"
@@ -132,7 +132,7 @@ describe('Parsing tests', () => {
 
     test('parses public access on operation', async () => {
         document = await parse(`
-            openapi "./petstore.openapi.yaml"
+            openapi "./langium-test-mini.openapi.yaml"
             POST "/login/{id}" {
                 toolName: login
                 access: public
@@ -146,7 +146,7 @@ describe('Parsing tests', () => {
 
     test('parses optionalParams inside checked access', async () => {
         document = await parse(`
-            openapi "./petstore.openapi.yaml"
+            openapi "./langium-test-mini.openapi.yaml"
             GET "/customers/{id}" {
                 toolName: getCustomer
                 access: checked {

@@ -47,7 +47,7 @@ async function completionAt(content: string, offset: number) {
 
 describe('Completion for operation path', () => {
     test('lists OpenAPI routes for GET', async () => {
-        const header = `\nopenapi "./petstore-mini.openapi.yaml"\n\nGET "`;
+        const header = `\nopenapi "./langium-test-mini.openapi.yaml"\n\nGET "`;
         const inner = `/pet`;
         const tail = `" {\n    toolName: t\n    intent: "x"\n    access: public\n}`;
         const content = header + inner + tail;
@@ -61,7 +61,7 @@ describe('Completion for operation path', () => {
     });
 
     test('filters POST routes by typed prefix', async () => {
-        const header = `\nopenapi "./petstore-mini.openapi.yaml"\n\nPOST "`;
+        const header = `\nopenapi "./langium-test-mini.openapi.yaml"\n\nPOST "`;
         const inner = `/pe`;
         const tail = `" {\n    toolName: t\n    intent: "x"\n    access: public\n}`;
         const content = header + inner + tail;
@@ -75,7 +75,7 @@ describe('Completion for operation path', () => {
     });
 
     test('inserts quoted paths after GET when path is not parsed yet (Ctrl+Space after verb)', async () => {
-        const header = `\nopenapi "./petstore-mini.openapi.yaml"\n\nGET `;
+        const header = `\nopenapi "./langium-test-mini.openapi.yaml"\n\nGET `;
         const content = header;
         const offset = content.length;
 
@@ -92,7 +92,7 @@ describe('Completion for operation path', () => {
     });
 
     test('lists routes for an unfinished path literal before the operation can parse', async () => {
-        const content = `\nopenapi "./petstore-mini.openapi.yaml"\n\nGET "/pe`;
+        const content = `\nopenapi "./langium-test-mini.openapi.yaml"\n\nGET "/pe`;
         const list = await completionAt(content, content.length);
 
         const labels = openApiPathLabels(list?.items ?? []);
@@ -101,7 +101,7 @@ describe('Completion for operation path', () => {
     });
 
     test('lists routes when caret is on the Operation opening brace after the path', async () => {
-        const header = `\nopenapi "./petstore-mini.openapi.yaml"\n\nGET "/pe" `;
+        const header = `\nopenapi "./langium-test-mini.openapi.yaml"\n\nGET "/pe" `;
         const braceAndBody = `{\n    toolName: t\n    intent: "x"\n    access: public\n}`;
         const content = header + braceAndBody;
         const offset = content.indexOf('{');
@@ -117,7 +117,7 @@ describe('Completion for operation path', () => {
 describe('Completion for block keywords', () => {
     test('sorts auth keywords in canonical order', async () => {
         const marker = '/*caret*/';
-        const content = `\nopenapi "./petstore-mini.openapi.yaml"\nauth {\n    ${marker}\n}\nGET "/pet/{petId}" {\n    toolName: t\n    intent: "x"\n    access: public\n}`;
+        const content = `\nopenapi "./langium-test-mini.openapi.yaml"\nauth {\n    ${marker}\n}\nGET "/pet/{petId}" {\n    toolName: t\n    intent: "x"\n    access: public\n}`;
         const list = await completionAt(content.replace(marker, ''), content.indexOf(marker));
 
         expect(
@@ -127,7 +127,7 @@ describe('Completion for block keywords', () => {
 
     test('sorts auth keywords even when the block is incomplete', async () => {
         const marker = '/*caret*/';
-        const content = `\nopenapi "./petstore-mini.openapi.yaml"\nauth {\n    name: "Authorization"\n    ${marker}`;
+        const content = `\nopenapi "./langium-test-mini.openapi.yaml"\nauth {\n    name: "Authorization"\n    ${marker}`;
         const list = await completionAt(content.replace(marker, ''), content.indexOf(marker));
 
         expect(
@@ -137,7 +137,7 @@ describe('Completion for block keywords', () => {
 
     test('sorts operation keywords in canonical order', async () => {
         const marker = '/*caret*/';
-        const content = `\nopenapi "./petstore-mini.openapi.yaml"\nGET "/pet/{petId}" {\n    ${marker}\n    access: public\n}`;
+        const content = `\nopenapi "./langium-test-mini.openapi.yaml"\nGET "/pet/{petId}" {\n    ${marker}\n    access: public\n}`;
         const list = await completionAt(content.replace(marker, ''), content.indexOf(marker));
 
         expect(
@@ -149,7 +149,7 @@ describe('Completion for block keywords', () => {
 
     test('sorts operation keywords before the block is complete', async () => {
         const marker = '/*caret*/';
-        const content = `\nopenapi "./petstore-mini.openapi.yaml"\nGET "/pet/{petId}" {\n    ${marker}`;
+        const content = `\nopenapi "./langium-test-mini.openapi.yaml"\nGET "/pet/{petId}" {\n    ${marker}`;
         const list = await completionAt(content.replace(marker, ''), content.indexOf(marker));
 
         expect(
@@ -161,7 +161,7 @@ describe('Completion for block keywords', () => {
 
     test('suggests access kinds after access colon', async () => {
         const marker = '/*caret*/';
-        const content = `\nopenapi "./petstore-mini.openapi.yaml"\nGET "/pet/{petId}" {\n    toolName: getPetById\n    access: ${marker}\n    intent: "get one pet"\n}`;
+        const content = `\nopenapi "./langium-test-mini.openapi.yaml"\nGET "/pet/{petId}" {\n    toolName: getPetById\n    access: ${marker}\n    intent: "get one pet"\n}`;
         const list = await completionAt(content.replace(marker, ''), content.indexOf(marker));
         const labels = (list?.items ?? []).map((item) => String(item.label));
         expect(labels).toEqual(expect.arrayContaining(['public', 'protected', 'checked']));
@@ -169,7 +169,7 @@ describe('Completion for block keywords', () => {
 
     test('suggests optionalParams inside checked access block', async () => {
         const marker = '/*caret*/';
-        const content = `\nopenapi "./petstore-mini.openapi.yaml"\nGET "/pet/{petId}" {\n    toolName: getPetById\n    access: checked {\n        ${marker}\n    }\n    intent: "get one pet"\n}`;
+        const content = `\nopenapi "./langium-test-mini.openapi.yaml"\nGET "/pet/{petId}" {\n    toolName: getPetById\n    access: checked {\n        ${marker}\n    }\n    intent: "get one pet"\n}`;
         const list = await completionAt(content.replace(marker, ''), content.indexOf(marker));
         const labels = (list?.items ?? []).map((item) => String(item.label));
         expect(labels).toContain('optionalParams');
@@ -177,7 +177,7 @@ describe('Completion for block keywords', () => {
 
     test('suggests required OpenAPI params inside optionalParams list', async () => {
         const marker = '/*caret*/';
-        const content = `\nopenapi "./petstore-mini.openapi.yaml"\nGET "/pet/{petId}" {\n    toolName: getPetById\n    access: checked {\n        optionalParams: [${marker}]\n    }\n    intent: "get one pet"\n}`;
+        const content = `\nopenapi "./langium-test-mini.openapi.yaml"\nGET "/pet/{petId}" {\n    toolName: getPetById\n    access: checked {\n        optionalParams: [${marker}]\n    }\n    intent: "get one pet"\n}`;
         const list = await completionAt(content.replace(marker, ''), content.indexOf(marker));
         const labels = (list?.items ?? []).map((item) => String(item.label));
         expect(labels).toContain('petId');
@@ -185,7 +185,7 @@ describe('Completion for block keywords', () => {
 
     test('suggests required OpenAPI params for empty optionalParams list slot', async () => {
         const marker = '/*caret*/';
-        const content = `\nopenapi "./petstore-mini.openapi.yaml"\nGET "/pet/{petId}" {\n    toolName: getPetById\n    access: checked {\n        optionalParams: [${marker}]\n    }\n    intent: "get one pet"\n}`;
+        const content = `\nopenapi "./langium-test-mini.openapi.yaml"\nGET "/pet/{petId}" {\n    toolName: getPetById\n    access: checked {\n        optionalParams: [${marker}]\n    }\n    intent: "get one pet"\n}`;
         const list = await completionAt(content.replace(marker, ''), content.indexOf(marker));
         const labels = (list?.items ?? []).map((item) => String(item.label));
         expect(labels).toContain('petId');
@@ -193,7 +193,7 @@ describe('Completion for block keywords', () => {
 
     test('suggests required OpenAPI params when editing existing optionalParams value', async () => {
         const marker = '/*caret*/';
-        const content = `\nopenapi "./petstore-mini.openapi.yaml"\nGET "/pet/{petId}" {\n    toolName: getPetById\n    access: checked {\n        optionalParams: [pet${marker}]\n    }\n    intent: "get one pet"\n}`;
+        const content = `\nopenapi "./langium-test-mini.openapi.yaml"\nGET "/pet/{petId}" {\n    toolName: getPetById\n    access: checked {\n        optionalParams: [pet${marker}]\n    }\n    intent: "get one pet"\n}`;
         const list = await completionAt(content.replace(marker, ''), content.indexOf(marker));
         const labels = (list?.items ?? []).map((item) => String(item.label));
         expect(labels).toContain('petId');

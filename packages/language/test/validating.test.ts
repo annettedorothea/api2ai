@@ -26,7 +26,7 @@ function parseValidated(input: string) {
 describe('Validating', () => {
     test('accepts an operation that exists in referenced OpenAPI 3.x', async () => {
         document = await parseValidated(`
-            openapi "./petstore-mini.openapi.yaml"
+            openapi "./langium-test-mini.openapi.yaml"
             GET "/pet/{petId}" {
                 toolName: getPetById
                 access: public
@@ -39,7 +39,7 @@ describe('Validating', () => {
 
     test('accepts auth metadata without secret values', async () => {
         document = await parseValidated(`
-            openapi "./petstore-mini.openapi.yaml"
+            openapi "./langium-test-mini.openapi.yaml"
             auth {
                 in: header
                 name: "Authorization"
@@ -57,7 +57,7 @@ describe('Validating', () => {
 
     test('reports an error for empty auth name', async () => {
         document = await parseValidated(`
-            openapi "./petstore-mini.openapi.yaml"
+            openapi "./langium-test-mini.openapi.yaml"
             auth {
                 in: header
                 name: ""
@@ -75,7 +75,7 @@ describe('Validating', () => {
 
     test('does not report OpenAPI existence for an incomplete operation before the path string', async () => {
         document = await parseValidated(`
-            openapi "./petstore-mini.openapi.yaml"
+            openapi "./langium-test-mini.openapi.yaml"
             GET 
         `);
 
@@ -87,7 +87,7 @@ describe('Validating', () => {
 
     test('reports an error for unknown method+path', async () => {
         document = await parseValidated(`
-            openapi "./petstore-mini.openapi.yaml"
+            openapi "./langium-test-mini.openapi.yaml"
             DELETE "/customers" {
                 toolName: deleteCustomer
                 access: public
@@ -103,7 +103,7 @@ describe('Validating', () => {
 
     test('reports an error for duplicate tool names', async () => {
         document = await parseValidated(`
-            openapi "./petstore-mini.openapi.yaml"
+            openapi "./langium-test-mini.openapi.yaml"
             GET "/pet/{petId}" {
                 toolName: petTool
                 access: public
@@ -122,7 +122,7 @@ describe('Validating', () => {
 
     test('reports an error when two tool names differ only by surrounding whitespace', async () => {
         document = await parseValidated(`
-            openapi "./petstore-mini.openapi.yaml"
+            openapi "./langium-test-mini.openapi.yaml"
             GET "/pet/{petId}" {
                 toolName: petTool
                 access: public
@@ -183,7 +183,7 @@ describe('Validating', () => {
 
     test('reports operation missing required toolName', async () => {
         document = await parseValidated(`
-            openapi "./petstore-mini.openapi.yaml"
+            openapi "./langium-test-mini.openapi.yaml"
             GET "/pet/{petId}" {
                 intent: "get one pet"
                 access: public
@@ -196,7 +196,7 @@ describe('Validating', () => {
 
     test('reports operation missing required intent', async () => {
         document = await parseValidated(`
-            openapi "./petstore-mini.openapi.yaml"
+            openapi "./langium-test-mini.openapi.yaml"
             GET "/pet/{petId}" {
                 toolName: getPetById
                 access: public
@@ -209,7 +209,7 @@ describe('Validating', () => {
 
     test('reports auth missing required in/name', async () => {
         document = await parseValidated(`
-            openapi "./petstore-mini.openapi.yaml"
+            openapi "./langium-test-mini.openapi.yaml"
             auth {
                 prefix: "Bearer "
             }
@@ -227,7 +227,7 @@ describe('Validating', () => {
 
     test('reports protected without auth block', async () => {
         document = await parseValidated(`
-            openapi "./petstore-mini.openapi.yaml"
+            openapi "./langium-test-mini.openapi.yaml"
             GET "/pet/{petId}" {
                 toolName: getPetById
                 access: protected
@@ -241,7 +241,7 @@ describe('Validating', () => {
 
     test('reports checked without auth block', async () => {
         document = await parseValidated(`
-            openapi "./petstore-mini.openapi.yaml"
+            openapi "./langium-test-mini.openapi.yaml"
             GET "/pet/{petId}" {
                 toolName: getPetById
                 access: checked
@@ -255,7 +255,7 @@ describe('Validating', () => {
 
     test('accepts optionalParams when parameter exists and is required in OpenAPI', async () => {
         document = await parseValidated(`
-            openapi "./petstore-mini.openapi.yaml"
+            openapi "./langium-test-mini.openapi.yaml"
             auth {
                 in: header
                 name: "Authorization"
@@ -275,7 +275,7 @@ describe('Validating', () => {
 
     test('warns when optionalParams entry is not in OpenAPI', async () => {
         document = await parseValidated(`
-            openapi "./petstore-mini.openapi.yaml"
+            openapi "./langium-test-mini.openapi.yaml"
             auth {
                 in: header
                 name: "Authorization"
@@ -298,7 +298,7 @@ describe('Validating', () => {
 
     test('warns only for unknown optionalParams entries when list is mixed', async () => {
         document = await parseValidated(`
-            openapi "./petstore-mini.openapi.yaml"
+            openapi "./langium-test-mini.openapi.yaml"
             auth {
                 in: header
                 name: "Authorization"

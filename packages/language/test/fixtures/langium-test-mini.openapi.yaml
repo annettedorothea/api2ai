@@ -1,6 +1,6 @@
 openapi: 3.0.3
 info:
-    title: Petstore Mini
+    title: Langium Test Mini
     version: 1.0.0
 paths:
     /pet/{petId}:

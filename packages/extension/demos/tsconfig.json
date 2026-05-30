@@ -5,5 +5,5 @@
         "rootDir": "."
     },
     "include": ["src/**/*.ts"],
-    "exclude": ["**/node_modules/**", "tmp/**", ".pagila-src/**"]
+    "exclude": ["**/node_modules/**", "tmp/**"]
 }
