@@ -1,76 +1,20 @@
-import { readGeneratedModule } from '@core2ai/core/mcp-host';
+import { readGeneratedToolModule } from '../support/generated-module.js';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { spawn, type ChildProcess } from 'node:child_process';
+import type { ChildProcess } from 'node:child_process';
 import * as fs from 'node:fs/promises';
-import * as net from 'node:net';
 import * as path from 'node:path';
-import { fileURLToPath, pathToFileURL } from 'node:url';
-import { generateAction } from '../../src/generate-command.js';
-import { compileGeneratedForSmoke } from '../support/compile-generated-fixture.js';
-
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const workspaceRoot = path.resolve(__dirname, '../../../..');
-const cliRoot = path.resolve(__dirname, '../..');
-const demosRoot = path.join(workspaceRoot, 'packages/extension/demos');
-const mockApiServerPath = path.join(demosRoot, 'mock-api/server.mjs');
-const sourceFixturePath = path.join(demosRoot, 'mock-api.api2ai');
-const openApiFixturePath = path.join(demosRoot, 'openapi/mock-api.openapi.yaml');
-const tmpRoot = path.join(cliRoot, 'tmp');
+import { pathToFileURL } from 'node:url';
+import {
+    findFreePort,
+    mockApiTmpRoot,
+    prepareMockApiGeneratedFixture,
+    startMockApiServer,
+    stopMockApiProcess,
+    waitForMockApi
+} from '../support/mock-api-fixture.js';
 
 let mockApiProcess: ChildProcess | undefined;
 let mockApiBaseUrl = '';
-
-async function findFreePort(): Promise<number> {
-    return new Promise((resolve, reject) => {
-        const server = net.createServer();
-        server.once('error', reject);
-        server.listen(0, '127.0.0.1', () => {
-            const address = server.address();
-            if (!address || typeof address === 'string') {
-                server.close(() => reject(new Error('Unable to allocate a free local port.')));
-                return;
-            }
-            const port = address.port;
-            server.close(() => resolve(port));
-        });
-    });
-}
-
-async function waitForMockApi(baseUrl: string, child: ChildProcess): Promise<void> {
-    const deadline = Date.now() + 10_000;
-    let lastError: unknown;
-    while (Date.now() < deadline) {
-        if (child.exitCode !== null) {
-            throw new Error(`Mock API exited before startup with code ${child.exitCode}.`);
-        }
-        try {
-            const response = await fetch(`${baseUrl}/login/alice`, { method: 'POST' });
-            if (response.ok) {
-                return;
-            }
-            lastError = new Error(`HTTP ${response.status}`);
-        } catch (error) {
-            lastError = error;
-        }
-        await new Promise((resolve) => setTimeout(resolve, 100));
-    }
-    throw new Error(`Mock API did not start in time: ${lastError instanceof Error ? lastError.message : lastError}`);
-}
-
-async function stopMockApi(): Promise<void> {
-    const child = mockApiProcess;
-    if (!child || child.exitCode !== null) {
-        return;
-    }
-    await new Promise<void>((resolve) => {
-        const timeout = setTimeout(resolve, 1_000);
-        child.once('close', () => {
-            clearTimeout(timeout);
-            resolve();
-        });
-        child.kill();
-    });
-}
 
 function asRecord(value: unknown): Record<string, unknown> {
     expect(value).toBeTypeOf('object');
@@ -90,44 +34,26 @@ describe('mock API generated module direct invocation', () => {
     beforeAll(async () => {
         const port = await findFreePort();
         mockApiBaseUrl = `http://127.0.0.1:${port}`;
-        mockApiProcess = spawn(process.execPath, [mockApiServerPath], {
-            env: {
-                ...process.env,
-                MOCK_API_PORT: String(port)
-            },
-            stdio: ['ignore', 'pipe', 'pipe']
-        });
+        mockApiProcess = await startMockApiServer(port);
         await waitForMockApi(mockApiBaseUrl, mockApiProcess);
     }, 15_000);
 
     afterAll(async () => {
-        await stopMockApi();
+        await stopMockApiProcess(mockApiProcess);
     });
 
     it('generates mock API tools and invokes public and authenticated calls', async () => {
-        const runRoot = await fs.mkdtemp(path.join(tmpRoot, 'mock-api-direct-'));
+        const runRoot = await fs.mkdtemp(path.join(mockApiTmpRoot, 'mock-api-direct-'));
         const fixtureRoot = path.join(runRoot, 'fixture');
-        const generatedTsPath = path.join(fixtureRoot, 'generated/tools/mock-api-tools.ts');
-        const generatedJsPath = path.join(fixtureRoot, 'generated/tools/mock-api-tools.js');
         const baseUrlEnv = 'MCP_HOST_BASE_URL';
         const credentialEnv = 'MCP_HOST_CREDENTIAL';
         const previousBaseUrl = process.env[baseUrlEnv];
         const previousCredential = process.env[credentialEnv];
 
         try {
-            await fs.mkdir(path.join(fixtureRoot, 'openapi'), { recursive: true });
-            await fs.copyFile(sourceFixturePath, path.join(fixtureRoot, 'mock-api.api2ai'));
-            await fs.copyFile(openApiFixturePath, path.join(fixtureRoot, 'openapi/mock-api.openapi.yaml'));
-
-            await generateAction(path.join(fixtureRoot, 'mock-api.api2ai'), generatedTsPath);
-            await fs.mkdir(path.join(fixtureRoot, 'src', 'auth'), { recursive: true });
-            await fs.copyFile(
-                path.join(demosRoot, 'src/auth/listCustomerOrders.ts'),
-                path.join(fixtureRoot, 'src/auth/listCustomerOrders.ts')
-            );
-            compileGeneratedForSmoke(fixtureRoot);
+            const { generatedJsPath } = await prepareMockApiGeneratedFixture(fixtureRoot);
             const imported = await import(`${pathToFileURL(generatedJsPath).href}?t=${Date.now()}`);
-            const generated = readGeneratedModule(imported as Record<string, unknown>);
+            const generated = readGeneratedToolModule(imported as Record<string, unknown>);
 
             const loginResult = asRecord(
                 await generated.invokeTool(

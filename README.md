@@ -34,7 +34,7 @@ Bundled demos: **[`./packages/extension/demos/README.md`](./packages/extension/d
 Prerequisite: **Node.js 20+** and sibling checkout **`../core2ai`**.
 
 ```bash
-npm run install:github-https
+npm install
 npm run install:demos
 npm run langium:generate && npm run build && npm run check
 ```
@@ -74,18 +74,16 @@ Package notes: [`packages/language/README.md`](./packages/language/README.md) ·
 
 ## Daily npm scripts (repository root)
 
-| Script         | Purpose                                                              |
-| -------------- | -------------------------------------------------------------------- |
-| `build`        | TypeScript project references + workspace builds                     |
-| `check`        | `format:check` + `typecheck` + `lint`                                |
-| `watch`        | TypeScript watch (monorepo)                                          |
-| `test`         | unit + MCP e2e                                                       |
-| `test:smoke`   | all direct generated-tool smokes                                     |
-| `test:e2e`     | MCP stdio e2e (mock API)                                             |
-| `generate:all` | regenerate all demo tools (forwards to demos)                        |
-| `release:vsix` | GitHub prerelease of tested VSIX (build with `extension:vsix` first) |
+| Script         | Purpose                                                                              |
+| -------------- | ------------------------------------------------------------------------------------ |
+| `build`        | TypeScript project references + workspace builds                                     |
+| `check`        | `format:check` + `typecheck` + `lint`                                                |
+| `watch`        | TypeScript watch (monorepo)                                                          |
+| `test`         | `langium:generate`, `build`, all Vitest (language + CLI integration incl. MCP stdio) |
+| `generate:all` | regenerate all demo tools (forwards to demos)                                        |
+| `release:vsix` | GitHub prerelease of tested VSIX (build with `extension:vsix` first)                 |
 
-Per-demo smokes: `npm run test:smoke:mock-api`, `test:smoke:open-meteo`, `test:smoke:tmdb`, `test:mcp:mock-api`. Scenarios: [`scripts/dev-smoke.config.json`](./scripts/dev-smoke.config.json).
+All tests: `npm test` (from repo root).
 
 Regenerate tools: `npm run generate:all` or per-demo scripts inside **`packages/extension/demos/`**.
 
