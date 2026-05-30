@@ -133,6 +133,12 @@ function registerGenerateOnSave(context: vscode.ExtensionContext): void {
 
 const DEMO_COPY_SKIP_DIRS = new Set(['node_modules', 'generated', 'tmp']);
 const DEMO_COPY_SKIP_FILES = new Set(['package-lock.json', '.env', '.env.local']);
+const DEMO_BUNDLE_REQUIRED = [
+    'package.json',
+    'demos-generate.config.json',
+    'scripts/generate.mjs',
+    'scripts/generate-all.mjs'
+];
 
 function registerCreateDemoWorkspaceCommand(context: vscode.ExtensionContext): void {
     const disposable = vscode.commands.registerCommand('api2ai.createDemoWorkspace', async () => {
@@ -155,6 +161,13 @@ function registerCreateDemoWorkspaceCommand(context: vscode.ExtensionContext): v
         if (!existsSync(sourceDir)) {
             void vscode.window.showErrorMessage(
                 'api2ai: Bundled demos folder missing. Reinstall the extension or rebuild the VSIX.'
+            );
+            return;
+        }
+        const missingBundled = DEMO_BUNDLE_REQUIRED.filter((relative) => !existsSync(path.join(sourceDir, relative)));
+        if (missingBundled.length > 0) {
+            void vscode.window.showErrorMessage(
+                `api2ai: Bundled demo workspace is incomplete (missing ${missingBundled.join(', ')}). Reinstall the extension or rebuild the VSIX.`
             );
             return;
         }

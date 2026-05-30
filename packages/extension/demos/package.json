@@ -11,10 +11,14 @@
         "generate:open-meteo-tools": "node ./scripts/generate.mjs open-meteo.api2ai generated/tools/open-meteo-tools.ts",
         "generate:open-meteo-geocoding-tools": "node ./scripts/generate.mjs open-meteo-geocoding.api2ai generated/tools/open-meteo-geocoding-tools.ts",
         "generate:mock-api-tools": "node ./scripts/generate.mjs mock-api.api2ai generated/tools/mock-api-tools.ts",
-        "generate:all": "npm run generate:open-meteo-tools && npm run generate:open-meteo-geocoding-tools && npm run generate:spaceflight-tools && npm run generate:tmdb-tools && npm run generate:github-tools && npm run generate:mock-api-tools"
+        "generate:all": "node ./scripts/generate-all.mjs",
+        "build:generated": "tsc -p tsconfig.generated.json",
+        "format:check": "prettier --check \"generated/**/*.ts\" \"src/auth/**/*.ts\"",
+        "typecheck": "tsc -p tsconfig.generated.json --noEmit",
+        "lint": "eslint --config ../../../eslint.config.js \"generated/**/*.ts\" \"src/auth/**/*.ts\"",
+        "check": "npm run format:check && npm run typecheck && npm run lint"
     },
     "dependencies": {
-        "@core2ai/core": "github:annettedorothea/core2ai#v0.0.5",
         "@modelcontextprotocol/sdk": "^1.29.0",
         "undici": "^7.0.0",
         "zod": "^4.4.3"

@@ -235,7 +235,7 @@ export function buildMcpDescription(
         const prefixNote =
             auth.prefix !== undefined && String(auth.prefix).trim().length > 0 ? ' (prefix applied to the secret)' : '';
         sections.push(
-            `Runtime: checked — implement check${operation.toolName?.trim() ? operation.toolName.trim().charAt(0).toUpperCase() + operation.toolName.trim().slice(1) : 'Tool'}Parameters in src/auth/${operation.toolName?.trim() ?? 'tool'}.ts (compiled to .mjs on generate); credential sent as ${auth.location} "${auth.name}"${prefixNote}.`
+            `Runtime: checked — implement check${operation.toolName?.trim() ? operation.toolName.trim().charAt(0).toUpperCase() + operation.toolName.trim().slice(1) : 'Tool'}Parameters in src/auth/${operation.toolName?.trim() ?? 'tool'}.ts (types from this tools module; run build:generated for .js); credential sent as ${auth.location} "${auth.name}"${prefixNote}.`
         );
     } else if (auth) {
         const prefixNote =

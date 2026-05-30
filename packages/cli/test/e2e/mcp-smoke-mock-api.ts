@@ -5,6 +5,7 @@ import * as net from 'node:net';
 import * as path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { generateAction } from '../../src/generate-command.js';
+import { compileGeneratedForSmoke } from '../support/compile-generated-fixture.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const cliRoot = path.resolve(__dirname, '../../..');
@@ -82,8 +83,8 @@ export async function runMockApiMcpSmoke(): Promise<void> {
     const runRoot = await fs.mkdtemp(path.join(tmpRoot, 'mock-api-mcp-'));
     const fixtureRoot = path.join(runRoot, 'fixture');
     const generatedTsPath = path.join(fixtureRoot, 'generated/tools/mock-api-tools.ts');
-    const generatedJsPath = path.join(fixtureRoot, 'generated/tools/mock-api-tools.mjs');
-    const mcpServePath = path.join(fixtureRoot, 'generated/cli/mcp-serve.mjs');
+    const generatedJsPath = path.join(fixtureRoot, 'generated/tools/mock-api-tools.js');
+    const mcpServePath = path.join(fixtureRoot, 'generated/cli/mcp-serve.js');
     const baseUrlEnv = 'MOCK_API_BASE_URL';
 
     try {
@@ -105,6 +106,7 @@ export async function runMockApiMcpSmoke(): Promise<void> {
             path.join(demosRoot, 'src/auth/listCustomerOrders.ts'),
             path.join(fixtureRoot, 'src/auth/listCustomerOrders.ts')
         );
+        compileGeneratedForSmoke(fixtureRoot);
 
         const smoke = await runMcpStdioSmoke({
             mcpServePath,

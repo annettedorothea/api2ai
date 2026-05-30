@@ -4,6 +4,6 @@
         "noEmit": true,
         "rootDir": "."
     },
-    "include": ["src/**/*.ts"],
+    "include": ["src/auth/**/*.ts", "generated/tools/**/*.ts"],
     "exclude": ["**/node_modules/**", "tmp/**"]
 }

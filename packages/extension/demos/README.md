@@ -15,19 +15,22 @@ Use the **api2ai** extension (VSIX or Extension Development Host). This folder i
     - Run `npm install`.
     - Copy [`.env.example`](./.env.example) to `.env.local`.
     - Set tokens for TMDB, GitHub, and mock-api if you want to use those demos. Open-Meteo needs no token.
-4. Generate tools:
-    - Run `npm run generate:all`.
-    - Alternatively, save each `.api2ai` file with the extension.
+4. Generate and compile:
+    - `npm run generate:all`
+    - `npm run build:generated`
+    - Or save each `.api2ai` with the extension, then `npm run build:generated`.
 5. Enable MCP:
     - Open the demo folder as the workspace.
     - Open Cursor Settings, then **Tools & MCP**.
     - Enable the `api2ai-*` MCP servers.
 
+Generated **`generated/cli/mcp-serve.ts`** is self-contained (no `@core2ai/core` at runtime). After generate, run **`npm run build:generated`** so MCP uses **`generated/cli/mcp-serve.js`**.
+
 ## What you can do here
 
-- Edit **`.api2ai`** — on save, the extension generates `generated/tools/*` and `generated/cli/mcp-serve.mjs`
+- Edit **`.api2ai`** — on save, the extension writes **`generated/tools/*.ts`** and **`generated/cli/mcp-serve.ts`**; run **`npm run build:generated`** for **`.js`** used by MCP.
 - Point MCP at public APIs (weather, spaceflight) or APIs that need tokens (TMDB, GitHub)
-- Try the local **JWT demo** ([`./mock-api/`](./mock-api/))
+- Try the local **JWT demo** ([`./mock-api/`](./mock-api/)) with checked access in [`./src/auth/`](./src/auth/)
 - Chat in Cursor with prompts prefixed by **`api2ai`** (see [Demo prompts](#demo-prompts))
 
 ## Getting started
@@ -39,11 +42,12 @@ Prerequisite: **Node.js 20+** and the **api2ai** extension.
     ```bash
     npm install
     ```
-3. Generate tool code:
+3. Generate and compile:
     ```bash
     npm run generate:all
+    npm run build:generated
     ```
-    For one API only, use a targeted script such as `npm run generate:open-meteo-tools` (see [`./package.json`](./package.json)).
+    For one API only, use a targeted script such as `npm run generate:open-meteo-tools`, then **`npm run build:generated`** (see [`./package.json`](./package.json)).
 4. Configure optional secrets:
     - Copy [`.env.example`](./.env.example) to `./.env.local`.
     - Set `TMDB_ACCESS_TOKEN`, `GITHUB_TOKEN`, or mock-api values only for the demos you want to use.
@@ -59,13 +63,14 @@ Prerequisite: **Node.js 20+** and the **api2ai** extension.
 - GitHub: `GITHUB_TOKEN` in `.env.local` or `mcp.json` `env` for `api2ai-github`.
 - After adding or changing a token, reload the matching MCP server so the new env value is available.
 
-### mock-api (JWT)
+### mock-api (JWT + checked access)
 
 1. `npm run demo:mock-api` (stop: `npm run demo:mock-api:kill`)
 2. `node mock-api/get-token.mjs alice`
 3. Add `MOCK_API_ACCESS_TOKEN` to `.env.local`
-4. `npm run generate:mock-api-tools`
-5. Enable `api2ai-mock-api`, then reload MCP
+4. `npm run generate:mock-api-tools && npm run build:generated`
+5. Implement or adjust [`./src/auth/listCustomerOrders.ts`](./src/auth/listCustomerOrders.ts) (types from `generated/tools/mock-api-tools.ts`)
+6. Enable `api2ai-mock-api`, then reload MCP
 
 Details: [`./mock-api/README.md`](./mock-api/README.md).
 
@@ -82,13 +87,13 @@ Details: [`./mock-api/README.md`](./mock-api/README.md).
 | GitHub      | `api2ai gib mir die user infos und meine repos` (PAT required) |
 | mock-api    | `api2ai list my orders` (after token / login demo)             |
 
-After editing `.api2ai`: save, **Generate tool code**, or `npm run generate:…`, then reload MCP.
+After editing `.api2ai`: save or `npm run generate:…`, then **`npm run build:generated`**, then reload MCP.
 
 ## MCP transport and credentials
 
-These demos serve tools through a **local MCP server over stdio**. Cursor (or another MCP client) starts [`generated/cli/mcp-serve.mjs`](./generated/cli/mcp-serve.mjs), loads the matching `generated/tools/*-tools.mjs`, and talks MCP on the stdio transport configured in [`.cursor/mcp.json`](./.cursor/mcp.json).
+These demos serve tools through a **local MCP server over stdio**. Cursor starts [`generated/cli/mcp-serve.js`](./generated/cli/mcp-serve.js), loads the matching `generated/tools/*-tools.js`, and talks MCP via [`.cursor/mcp.json`](./.cursor/mcp.json).
 
-There is **no sign-in step in MCP** itself. To call APIs as a particular user, put the token in [`.env.local`](./.env.example) (for example `GITHUB_TOKEN`, `TMDB_ACCESS_TOKEN`, or `MOCK_API_ACCESS_TOKEN` for the JWT demo). The MCP host reads those variables when it starts and passes them to the generated tools. Reload the MCP server after you change `.env.local`.
+There is **no sign-in step in MCP** itself. Put tokens in [`.env.local`](./.env.example) (`GITHUB_TOKEN`, `TMDB_ACCESS_TOKEN`, `MOCK_API_ACCESS_TOKEN`, …). Reload the MCP server after changing `.env.local`.
 
 ## MCP configuration
 
@@ -113,8 +118,11 @@ Prefix with **`api2ai`**: weather, SpaceX launch, TMDB Dune, GitHub user/repos.
 
 1. OpenAPI under `./openapi/`
 2. `my-api.api2ai` with curated operations
-3. Save, run **Generate tool code**, or use a `generate:*` script (add one in `package.json` like the others)
-4. Extend `mcp.json` and `.env.local`
+3. Save, **Generate tool code**, or add a `generate:*` script in `package.json`
+4. `npm run build:generated`
+5. Extend `mcp.json` and `.env.local`
+
+Generate scripts: [`./scripts/generate.mjs`](./scripts/generate.mjs), config [`./demos-generate.config.json`](./demos-generate.config.json).
 
 ---
 

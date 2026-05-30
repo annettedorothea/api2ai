@@ -5,8 +5,8 @@ import * as fs from 'node:fs/promises';
 import * as net from 'node:net';
 import * as path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
-import { compileAuthStubSources } from '@core2ai/core/codegen';
 import { generateAction } from '../../src/generate-command.js';
+import { compileGeneratedForSmoke } from '../support/compile-generated-fixture.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const workspaceRoot = path.resolve(__dirname, '../../../..');
@@ -108,7 +108,7 @@ describe('mock API generated module direct invocation', () => {
         const runRoot = await fs.mkdtemp(path.join(tmpRoot, 'mock-api-direct-'));
         const fixtureRoot = path.join(runRoot, 'fixture');
         const generatedTsPath = path.join(fixtureRoot, 'generated/tools/mock-api-tools.ts');
-        const generatedJsPath = path.join(fixtureRoot, 'generated/tools/mock-api-tools.mjs');
+        const generatedJsPath = path.join(fixtureRoot, 'generated/tools/mock-api-tools.js');
         const baseUrlEnv = 'MCP_HOST_BASE_URL';
         const credentialEnv = 'MCP_HOST_CREDENTIAL';
         const previousBaseUrl = process.env[baseUrlEnv];
@@ -125,7 +125,7 @@ describe('mock API generated module direct invocation', () => {
                 path.join(demosRoot, 'src/auth/listCustomerOrders.ts'),
                 path.join(fixtureRoot, 'src/auth/listCustomerOrders.ts')
             );
-            await compileAuthStubSources(path.join(fixtureRoot, 'src/auth'));
+            compileGeneratedForSmoke(fixtureRoot);
             const imported = await import(`${pathToFileURL(generatedJsPath).href}?t=${Date.now()}`);
             const generated = readGeneratedModule(imported as Record<string, unknown>);
 

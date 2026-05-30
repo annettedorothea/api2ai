@@ -2,7 +2,6 @@
  * Generated from: mock-api.api2ai
  * Referenced OpenAPI: ./openapi/mock-api.openapi.yaml
  */
-import { resolveCredentialAndOptionalJwt } from '@core2ai/core/mcp-host';
 import { checkListCustomerOrdersParameters } from '../../src/auth/listCustomerOrders.js';
 
 export const insecureTls = false;
@@ -22,7 +21,7 @@ export const generatedTools: GeneratedTool[] = [
         toolName: 'listCustomerOrders',
         title: 'List customer orders',
         description:
-            'Intent:\nlist orders for the authenticated customer from the JWT, when the customerId is empty, it will be filled from the JWT\n\nAPI:\nRequires Bearer JWT; for role=user customerId in path must match JWT claim, role=admin may read any customer.\n\nMeta:\noperationId: list-customer-orders\n\nExample:\nList my orders\n\nResponse:\nHTTP 200\nOrder list\nproperties (top-level): customerId, orders\nDocumented errors:\nHTTP 401 — Missing or invalid token\nHTTP 403 — Token customerId does not match path\n\nRuntime: checked — implement checkListCustomerOrdersParameters in src/auth/listCustomerOrders.ts (compiled to .mjs on generate); credential sent as header "Authorization" (prefix applied to the secret).',
+            'Intent:\nlist orders for the authenticated customer from the JWT, when the customerId is empty, it will be filled from the JWT\n\nAPI:\nRequires Bearer JWT; for role=user customerId in path must match JWT claim, role=admin may read any customer.\n\nMeta:\noperationId: list-customer-orders\n\nExample:\nList my orders\n\nResponse:\nHTTP 200\nOrder list\nproperties (top-level): customerId, orders\nDocumented errors:\nHTTP 401 — Missing or invalid token\nHTTP 403 — Token customerId does not match path\n\nRuntime: checked — implement checkListCustomerOrdersParameters in src/auth/listCustomerOrders.ts (types from this tools module; run build:generated for .js); credential sent as header "Authorization" (prefix applied to the secret).',
         method: 'GET',
         path: '/orders/{customerId}',
         example: 'List my orders',
@@ -121,6 +120,45 @@ export const inputZodByTool = {
         .describe('Arguments for invoking the generated HTTP wrapper.')
 };
 
+function decodeJwtPayloadUnsafe(token: string): Record<string, unknown> {
+    const parts = String(token).trim().split('.');
+    if (parts.length !== 3) {
+        throw new Error('credential is not a JWT (expected three dot-separated segments).');
+    }
+    let b64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+    while (b64.length % 4 !== 0) {
+        b64 += '=';
+    }
+    return JSON.parse(Buffer.from(b64, 'base64').toString('utf8')) as Record<string, unknown>;
+}
+
+function resolveCredentialFromEnv(authEnvKey: string | undefined): string | undefined {
+    const key = authEnvKey?.trim();
+    if (!key) {
+        return undefined;
+    }
+    const value = process.env[key]?.trim();
+    return value && value.length > 0 ? value : undefined;
+}
+
+function resolveCredentialAndOptionalJwt(authEnvKey: string | undefined): {
+    credential?: string;
+    jwt?: Record<string, unknown>;
+} {
+    const credential = resolveCredentialFromEnv(authEnvKey);
+    if (!credential) {
+        return {};
+    }
+    const segments = String(credential).trim().split('.');
+    if (segments.length !== 3) {
+        return { credential };
+    }
+    try {
+        return { credential, jwt: decodeJwtPayloadUnsafe(credential) };
+    } catch {
+        return { credential };
+    }
+}
 const META_BASE_URL_ENV_KEY = 'MCP_HOST_BASE_URL_ENV_KEY';
 const META_AUTH_ENV_KEY = 'MCP_HOST_AUTH_ENV_KEY';
 const META_ENV_DIRS = 'MCP_HOST_ENV_DIRS';
@@ -195,7 +233,7 @@ export const mcpHostAdapter = {
         const baseUrl = baseUrlKey ? process.env[baseUrlKey]?.trim() : undefined;
         if (!baseUrl) {
             throw new Error(
-                'Missing host base URL. Pass --base-url-env on mcp-serve.mjs and set the variable (or use smoke-generated).'
+                'Missing host base URL. Pass --base-url-env on mcp-serve.js and set the variable (or use smoke-generated).'
             );
         }
 
@@ -304,7 +342,7 @@ export async function invokeTool(
     if (tool.access !== 'public') {
         if (!credential || !String(credential).trim()) {
             throw new Error(
-                'Missing host credential. Pass --auth-env on mcp-serve.mjs and set the variable (re-read on every tool call).'
+                'Missing host credential. Pass --auth-env on mcp-serve.js and set the variable (re-read on every tool call).'
             );
         }
     }

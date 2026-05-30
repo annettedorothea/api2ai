@@ -1,6 +1,4 @@
-import type { InvokeOptions, CheckedHostContext } from '../../generated/tools/mock-api-tools.js';
-
-export function checkListCustomerOrdersParameters(options: InvokeOptions, host: CheckedHostContext): InvokeOptions {
+export function checkListCustomerOrdersParameters(options, host) {
     const jwt = host.jwt;
     if (!jwt || typeof jwt !== 'object') {
         throw new Error('listCustomerOrders requires a JWT in host context (--auth-env).');
@@ -13,7 +11,6 @@ export function checkListCustomerOrdersParameters(options: InvokeOptions, host: 
     if (role.length === 0) {
         throw new Error('JWT payload missing role claim.');
     }
-
     let customerId = options.pathParams?.customerId;
     if (customerId == null || String(customerId).trim() === '') {
         customerId = jwtCustomer;
@@ -25,7 +22,6 @@ export function checkListCustomerOrdersParameters(options: InvokeOptions, host: 
     if (role !== 'user' && role !== 'admin') {
         throw new Error(`Unsupported role "${role}".`);
     }
-
     return {
         ...options,
         pathParams: { ...options.pathParams, customerId: normalized }

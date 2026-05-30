@@ -1,73 +1,130 @@
 /**
- * Generated JS module (types live in the sibling .ts file).
+ * Generated from: mock-api.api2ai
+ * Referenced OpenAPI: ./openapi/mock-api.openapi.yaml
  */
-import { resolveCredentialAndOptionalJwt } from '@core2ai/core/mcp-host';
-import { checkListCustomerOrdersParameters } from '../../src/auth/listCustomerOrders.mjs';
-
-
+import { checkListCustomerOrdersParameters } from '../../src/auth/listCustomerOrders.js';
 export const insecureTls = false;
-
 export const generatedTools = [
     {
-        "toolName": "listCustomerOrders",
-        "title": "List customer orders",
-        "description": "Intent:\nlist orders for the authenticated customer from the JWT, when the customerId is empty, it will be filled from the JWT\n\nAPI:\nRequires Bearer JWT; for role=user customerId in path must match JWT claim, role=admin may read any customer.\n\nMeta:\noperationId: list-customer-orders\n\nExample:\nList my orders\n\nResponse:\nHTTP 200\nOrder list\nproperties (top-level): customerId, orders\nDocumented errors:\nHTTP 401 — Missing or invalid token\nHTTP 403 — Token customerId does not match path\n\nRuntime: checked — implement checkListCustomerOrdersParameters in src/auth/listCustomerOrders.ts (compiled to .mjs on generate); credential sent as header \"Authorization\" (prefix applied to the secret).",
-        "method": "GET",
-        "path": "/orders/{customerId}",
-        "example": "List my orders",
-        "access": "checked"
+        toolName: 'listCustomerOrders',
+        title: 'List customer orders',
+        description: 'Intent:\nlist orders for the authenticated customer from the JWT, when the customerId is empty, it will be filled from the JWT\n\nAPI:\nRequires Bearer JWT; for role=user customerId in path must match JWT claim, role=admin may read any customer.\n\nMeta:\noperationId: list-customer-orders\n\nExample:\nList my orders\n\nResponse:\nHTTP 200\nOrder list\nproperties (top-level): customerId, orders\nDocumented errors:\nHTTP 401 — Missing or invalid token\nHTTP 403 — Token customerId does not match path\n\nRuntime: checked — implement checkListCustomerOrdersParameters in src/auth/listCustomerOrders.ts (types from this tools module; run build:generated for .js); credential sent as header "Authorization" (prefix applied to the secret).',
+        method: 'GET',
+        path: '/orders/{customerId}',
+        example: 'List my orders',
+        access: 'checked'
     },
     {
-        "toolName": "login",
-        "title": "Login customer",
-        "description": "Intent:\nlogin the customer\n\nAPI:\nIssues a short-lived HS256 JWT with claims customerId and role (admin or user). No authentication required.\n\nMeta:\noperationId: login-customer\n\nExample:\nLogin\n\nResponse:\nHTTP 200\nAccess token\nproperties (top-level): access_token\nDocumented errors:\nHTTP 404 — Unknown customer\n\nRuntime: public endpoint — no Authorization header or MCP credential required.",
-        "method": "POST",
-        "path": "/login/{customerId}",
-        "example": "Login",
-        "access": "public"
+        toolName: 'login',
+        title: 'Login customer',
+        description: 'Intent:\nlogin the customer\n\nAPI:\nIssues a short-lived HS256 JWT with claims customerId and role (admin or user). No authentication required.\n\nMeta:\noperationId: login-customer\n\nExample:\nLogin\n\nResponse:\nHTTP 200\nAccess token\nproperties (top-level): access_token\nDocumented errors:\nHTTP 404 — Unknown customer\n\nRuntime: public endpoint — no Authorization header or MCP credential required.',
+        method: 'POST',
+        path: '/login/{customerId}',
+        example: 'Login',
+        access: 'public'
     }
 ];
-
 export const requiresAuth = true;
-
 export const authConfig = {
-    "location": "header",
-    "name": "Authorization",
-    "prefix": "Bearer "
+    location: 'header',
+    name: 'Authorization',
+    prefix: 'Bearer '
 };
-
-export const mcpServerName = "mock-api-tools";
-export const mcpServerVersion = "0.0.4";
-
+export const mcpServerName = 'mock-api-tools';
+export const mcpServerVersion = '0.0.4';
 const parameterCheckers = {
-    "listCustomerOrders": checkListCustomerOrdersParameters
+    listCustomerOrders: checkListCustomerOrdersParameters
 };
-
 import * as z from 'zod/v4';
-
 export const inputZodByTool = {
-    "listCustomerOrders": z.object({ "pathParams": z.object({ "customerId": z.string().optional() }).strict().describe("Path parameters from OpenAPI.").optional(), "query": z.record(z.string(), z.union([z.string(), z.number(), z.boolean()])).describe("Optional query overrides.").optional(), "headers": z.record(z.string(), z.string()).describe("Optional extra headers.").optional(), "body": z.record(z.string(), z.union([z.string(), z.number(), z.boolean()])).describe("Request body JSON if applicable.").optional() }).strict().describe("Arguments for invoking the generated HTTP wrapper."),
-    "login": z.object({ "pathParams": z.object({ "customerId": z.string() }).strict().describe("Path parameters from OpenAPI."), "query": z.record(z.string(), z.union([z.string(), z.number(), z.boolean()])).describe("Optional query overrides.").optional(), "headers": z.record(z.string(), z.string()).describe("Optional extra headers.").optional(), "body": z.record(z.string(), z.union([z.string(), z.number(), z.boolean()])).describe("Request body JSON if applicable.").optional() }).strict().describe("Arguments for invoking the generated HTTP wrapper.")
+    listCustomerOrders: z
+        .object({
+        pathParams: z
+            .object({ customerId: z.string().optional() })
+            .strict()
+            .describe('Path parameters from OpenAPI.')
+            .optional(),
+        query: z
+            .record(z.string(), z.union([z.string(), z.number(), z.boolean()]))
+            .describe('Optional query overrides.')
+            .optional(),
+        headers: z.record(z.string(), z.string()).describe('Optional extra headers.').optional(),
+        body: z
+            .record(z.string(), z.union([z.string(), z.number(), z.boolean()]))
+            .describe('Request body JSON if applicable.')
+            .optional()
+    })
+        .strict()
+        .describe('Arguments for invoking the generated HTTP wrapper.'),
+    login: z
+        .object({
+        pathParams: z.object({ customerId: z.string() }).strict().describe('Path parameters from OpenAPI.'),
+        query: z
+            .record(z.string(), z.union([z.string(), z.number(), z.boolean()]))
+            .describe('Optional query overrides.')
+            .optional(),
+        headers: z.record(z.string(), z.string()).describe('Optional extra headers.').optional(),
+        body: z
+            .record(z.string(), z.union([z.string(), z.number(), z.boolean()]))
+            .describe('Request body JSON if applicable.')
+            .optional()
+    })
+        .strict()
+        .describe('Arguments for invoking the generated HTTP wrapper.')
 };
-
+function decodeJwtPayloadUnsafe(token) {
+    const parts = String(token).trim().split('.');
+    if (parts.length !== 3) {
+        throw new Error('credential is not a JWT (expected three dot-separated segments).');
+    }
+    let b64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+    while (b64.length % 4 !== 0) {
+        b64 += '=';
+    }
+    return JSON.parse(Buffer.from(b64, 'base64').toString('utf8'));
+}
+function resolveCredentialFromEnv(authEnvKey) {
+    const key = authEnvKey?.trim();
+    if (!key) {
+        return undefined;
+    }
+    const value = process.env[key]?.trim();
+    return value && value.length > 0 ? value : undefined;
+}
+function resolveCredentialAndOptionalJwt(authEnvKey) {
+    const credential = resolveCredentialFromEnv(authEnvKey);
+    if (!credential) {
+        return {};
+    }
+    const segments = String(credential).trim().split('.');
+    if (segments.length !== 3) {
+        return { credential };
+    }
+    try {
+        return { credential, jwt: decodeJwtPayloadUnsafe(credential) };
+    }
+    catch {
+        return { credential };
+    }
+}
 const META_BASE_URL_ENV_KEY = 'MCP_HOST_BASE_URL_ENV_KEY';
 const META_AUTH_ENV_KEY = 'MCP_HOST_AUTH_ENV_KEY';
 const META_ENV_DIRS = 'MCP_HOST_ENV_DIRS';
-
 function applyHostEnvKeys(hostConfig, envDirs) {
     process.env[META_BASE_URL_ENV_KEY] = hostConfig.baseUrlEnv;
     if (hostConfig.authEnv) {
         process.env[META_AUTH_ENV_KEY] = hostConfig.authEnv;
-    } else {
+    }
+    else {
         delete process.env[META_AUTH_ENV_KEY];
     }
     if (envDirs.length > 0) {
         process.env[META_ENV_DIRS] = JSON.stringify(envDirs);
-    } else {
+    }
+    else {
         delete process.env[META_ENV_DIRS];
     }
 }
-
 export const mcpHostAdapter = {
     configureFromArgv(argv, envDirs) {
         let baseUrlEnv;
@@ -98,7 +155,6 @@ export const mcpHostAdapter = {
         }
         applyHostEnvKeys({ baseUrlEnv, authEnv }, envDirs);
     },
-
     validateAtStartup(requiresAuth) {
         const baseUrlEnvName = process.env[META_BASE_URL_ENV_KEY]?.trim();
         if (!baseUrlEnvName) {
@@ -106,9 +162,7 @@ export const mcpHostAdapter = {
         }
         const baseUrl = process.env[baseUrlEnvName]?.trim();
         if (!baseUrl) {
-            throw new Error(
-                'Environment variable "' + baseUrlEnvName + '" is missing or empty (required by --base-url-env).'
-            );
+            throw new Error('Environment variable "' + baseUrlEnvName + '" is missing or empty (required by --base-url-env).');
         }
         if (!requiresAuth) {
             return;
@@ -118,22 +172,16 @@ export const mcpHostAdapter = {
             throw new Error('Generated tools require auth; pass --auth-env <ENV_VAR_NAME> on the MCP host.');
         }
     },
-
     resolveHostContext() {
         const baseUrlKey = process.env[META_BASE_URL_ENV_KEY]?.trim();
         const baseUrl = baseUrlKey ? process.env[baseUrlKey]?.trim() : undefined;
         if (!baseUrl) {
-            throw new Error(
-                'Missing host base URL. Pass --base-url-env on mcp-serve.mjs and set the variable (or use smoke-generated).'
-            );
+            throw new Error('Missing host base URL. Pass --base-url-env on mcp-serve.js and set the variable (or use smoke-generated).');
         }
-
-
         const authKey = process.env[META_AUTH_ENV_KEY]?.trim();
         const { credential, jwt } = resolveCredentialAndOptionalJwt(authKey);
         return { baseUrl, credential, jwt };
     },
-
     envDirsForReload() {
         const raw = process.env[META_ENV_DIRS];
         if (!raw?.trim()) {
@@ -144,18 +192,17 @@ export const mcpHostAdapter = {
             if (Array.isArray(dirs) && dirs.every((d) => typeof d === 'string')) {
                 return dirs;
             }
-        } catch {
+        }
+        catch {
             // ignore malformed config
         }
         return [];
     }
 };
-
 export const queryParamSerializationByTool = {
-    "listCustomerOrders": {},
-    "login": {}
+    listCustomerOrders: {},
+    login: {}
 };
-
 function appendSerializedQueryParams(searchParams, toolName, query) {
     if (!query) {
         return;
@@ -170,13 +217,11 @@ function appendSerializedQueryParams(searchParams, toolName, query) {
             const style = hint && hint.style ? hint.style : 'form';
             const explode = hint && typeof hint.explode === 'boolean' ? hint.explode : true;
             if (style !== 'form') {
-                throw new Error(
-                    'invokeTool: query array param "' +
-                        key +
-                        '" uses OpenAPI style "' +
-                        style +
-                        '"; only style "form" is supported for arrays.'
-                );
+                throw new Error('invokeTool: query array param "' +
+                    key +
+                    '" uses OpenAPI style "' +
+                    style +
+                    '"; only style "form" is supported for arrays.');
             }
             const parts = [];
             for (const element of value) {
@@ -192,7 +237,8 @@ function appendSerializedQueryParams(searchParams, toolName, query) {
                 for (const p of parts) {
                     searchParams.append(key, p);
                 }
-            } else {
+            }
+            else {
                 searchParams.set(key, parts.join(','));
             }
             continue;
@@ -200,27 +246,22 @@ function appendSerializedQueryParams(searchParams, toolName, query) {
         searchParams.set(key, String(value));
     }
 }
-
 function resolveAuthSecret(authConfig, credential) {
     if (!credential || !String(credential).trim()) {
         throw new Error('Missing host credential (MCP host --auth-env).');
     }
     return (authConfig.prefix ?? '') + String(credential).trim();
 }
-
 export async function invokeTool(toolName, options = {}, hostContext) {
     const tool = generatedTools.find((t) => t.toolName === toolName);
     if (!tool) {
         throw new Error('Unknown tool: ' + toolName);
     }
-
-    const host = hostContext ?? mcpHostAdapter.resolveHostContext();
+    const host = hostContext !== undefined ? hostContext : mcpHostAdapter.resolveHostContext();
     const { baseUrl, credential } = host;
     if (tool.access !== 'public') {
         if (!credential || !String(credential).trim()) {
-            throw new Error(
-                'Missing host credential. Pass --auth-env on mcp-serve.mjs and set the variable (re-read on every tool call).'
-            );
+            throw new Error('Missing host credential. Pass --auth-env on mcp-serve.js and set the variable (re-read on every tool call).');
         }
     }
     let optionsResolved = options;
@@ -229,12 +270,10 @@ export async function invokeTool(toolName, options = {}, hostContext) {
         if (typeof check !== 'function') {
             throw new Error('No parameter checker for checked tool: ' + toolName);
         }
-        optionsResolved = await Promise.resolve(
-            check(options, {
-                credential: String(credential).trim(),
-                jwt: host.jwt
-            })
-        );
+        optionsResolved = await Promise.resolve(check(options, {
+            credential: String(credential).trim(),
+            jwt: host.jwt
+        }));
     }
     const normalizedBaseUrl = baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl;
     const pathParams = { ...(optionsResolved.pathParams ?? {}) };
@@ -242,7 +281,6 @@ export async function invokeTool(toolName, options = {}, hostContext) {
     for (const [key, value] of Object.entries(pathParams)) {
         resolvedPath = resolvedPath.split('{' + key + '}').join(encodeURIComponent(String(value)));
     }
-
     const url = new URL(normalizedBaseUrl + resolvedPath);
     appendSerializedQueryParams(url.searchParams, tool.toolName, optionsResolved.query);
     const requestHeaders = {
@@ -253,20 +291,18 @@ export async function invokeTool(toolName, options = {}, hostContext) {
         const authValue = resolveAuthSecret(authConfig, credential);
         if (authConfig.location === 'header') {
             requestHeaders[authConfig.name] = authValue;
-        } else {
+        }
+        else {
             url.searchParams.set(authConfig.name, authValue);
         }
     }
-
     const requestInit = {
         method: tool.method,
         headers: requestHeaders
     };
-
     if (optionsResolved.body !== undefined && tool.method !== 'GET' && tool.method !== 'HEAD') {
         requestInit.body = JSON.stringify(optionsResolved.body);
     }
-
     const response = await fetch(url, requestInit);
     if (!response.ok) {
         const retryAfter = response.headers.get('retry-after');
@@ -274,27 +310,26 @@ export async function invokeTool(toolName, options = {}, hostContext) {
         try {
             const t = await response.text();
             bodySnippet = t.length > 512 ? t.slice(0, 512) + '...' : t;
-        } catch {
+        }
+        catch {
             /* ignore unreadable error body */
         }
         let msg = 'HTTP ' + response.status + ' while invoking ' + tool.toolName + '.';
         if (response.status === 401) {
             msg += ' Unauthorized.';
             if (authConfig && tool.access !== 'public') {
-                msg +=
-                    ' Check MCP host --auth-env (' +
-                    authConfig.location +
-                    ' ' +
-                    authConfig.name +
-                    ').';
+                msg += ' Check MCP host --auth-env (' + authConfig.location + ' ' + authConfig.name + ').';
             }
-        } else if (response.status === 403) {
+        }
+        else if (response.status === 403) {
             msg += ' Forbidden: insufficient permission for this request.';
-        } else if (response.status === 429) {
+        }
+        else if (response.status === 429) {
             msg += ' Too Many Requests (rate limited).';
             if (retryAfter) {
                 msg += ' Retry-After: ' + retryAfter + ' (seconds or HTTP-date per server).';
-            } else {
+            }
+            else {
                 msg += ' Wait before retrying.';
             }
         }
@@ -303,7 +338,6 @@ export async function invokeTool(toolName, options = {}, hostContext) {
         }
         throw new Error(msg);
     }
-
     const contentType = response.headers.get('content-type') ?? '';
     if (contentType.includes('application/json')) {
         return response.json();

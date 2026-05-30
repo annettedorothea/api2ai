@@ -3,18 +3,18 @@
     "scenarios": {
         "open-meteo": {
             "kind": "smoke-generated",
-            "module": "./packages/extension/demos/generated/tools/open-meteo-tools.mjs",
+            "module": "./packages/extension/demos/generated/tools/open-meteo-tools.js",
             "tool": "openMeteoForecast"
         },
         "tmdb": {
             "kind": "smoke-generated",
-            "module": "./packages/extension/demos/generated/tools/tmdb-tools.mjs",
+            "module": "./packages/extension/demos/generated/tools/tmdb-tools.js",
             "tool": "searchTmdbMovies",
             "argsJson": "{\"query\":{\"query\":\"Dune\"}}"
         },
         "mock-api": {
             "kind": "smoke-generated",
-            "module": "./packages/extension/demos/generated/tools/mock-api-tools.mjs",
+            "module": "./packages/extension/demos/generated/tools/mock-api-tools.js",
             "tool": "listCustomerOrders"
         },
         "mcp-open-meteo": {
@@ -22,8 +22,8 @@
             "env": {
                 "OPEN_METEO_BASE_URL": "https://api.open-meteo.com"
             },
-            "serveScript": "./packages/extension/demos/generated/cli/mcp-serve.mjs",
-            "toolsModule": "./packages/extension/demos/generated/tools/open-meteo-tools.mjs",
+            "serveScript": "./packages/extension/demos/generated/cli/mcp-serve.js",
+            "toolsModule": "./packages/extension/demos/generated/tools/open-meteo-tools.js",
             "baseUrlEnv": "OPEN_METEO_BASE_URL"
         },
         "mcp-mock-api": {

@@ -8,12 +8,11 @@ const insecureTlsDispatcher = new Agent({ connect: { rejectUnauthorized: false }
         : '';
 }
 
-function renderAuthHelpers(authKind: 'none' | 'credential', typescript: boolean): string {
+function renderAuthHelpers(authKind: 'none' | 'credential'): string {
     if (authKind !== 'credential') {
         return '';
     }
-    if (typescript) {
-        return `
+    return `
 function resolveAuthSecret(
     authConfig: { location: 'header' | 'query'; name: string; prefix?: string },
     credential: string | undefined
@@ -23,24 +22,15 @@ function resolveAuthSecret(
     }
     return (authConfig.prefix ?? '') + String(credential).trim();
 }`;
-    }
-    return `
-function resolveAuthSecret(authConfig, credential) {
-    if (!credential || !String(credential).trim()) {
-        throw new Error('Missing host credential (MCP host --auth-env).');
-    }
-    return (authConfig.prefix ?? '') + String(credential).trim();
-}`;
 }
 
-function renderAuthApplicationBlock(authKind: 'none' | 'credential', typescript: boolean): string {
+function renderAuthApplicationBlock(authKind: 'none' | 'credential'): string {
     if (authKind === 'none') {
         return '';
     }
-    const authConfigGuard = typescript ? 'authConfig!' : 'authConfig';
     return `
     if (authConfig && tool.access !== 'public') {
-        const authValue = resolveAuthSecret(${authConfigGuard}, credential);
+        const authValue = resolveAuthSecret(authConfig!, credential);
         if (authConfig.location === 'header') {
             requestHeaders[authConfig.name] = authValue;
         } else {
@@ -69,26 +59,20 @@ function renderInsecureTlsFetch(usesInsecureTls: boolean): string {
         : '';
 }
 
-import { renderInvokeCredentialAndParameterCheck } from './auth-stub-render.js';
+import { renderInvokeCredentialAndParameterCheck } from './render-check-stubs.js';
 
-function renderQuerySerializationHelpers(querySerializationLiteralBody: string, typescript: boolean): string {
-    const appendSignature = typescript
-        ? `function appendSerializedQueryParams(
+function renderQuerySerializationHelpers(querySerializationLiteralBody: string): string {
+    return `export const queryParamSerializationByTool = ${querySerializationLiteralBody};
+
+function appendSerializedQueryParams(
     searchParams: URLSearchParams,
     toolName: string,
     query: InvokeOptions['query']
-): void`
-        : 'function appendSerializedQueryParams(searchParams, toolName, query)';
-    const hintsLine = typescript
-        ? '    const hintsByParam: Record<string, { style?: string; explode?: boolean }> = (queryParamSerializationByTool as Record<string, Record<string, { style?: string; explode?: boolean }>>)[toolName] ?? {};'
-        : '    const hintsByParam = queryParamSerializationByTool[toolName] ?? {};';
-    return `export const queryParamSerializationByTool = ${querySerializationLiteralBody};
-
-${appendSignature} {
+): void {
     if (!query) {
         return;
     }
-${hintsLine}
+    const hintsByParam: Record<string, { style?: string; explode?: boolean }> = (queryParamSerializationByTool as Record<string, Record<string, { style?: string; explode?: boolean }>>)[toolName] ?? {};
     for (const [key, value] of Object.entries(query)) {
         if (value === undefined || value === null) {
             continue;
@@ -106,7 +90,7 @@ ${hintsLine}
                         '"; only style "form" is supported for arrays.'
                 );
             }
-            ${typescript ? 'const parts: string[] = [];' : 'const parts = [];'}
+            const parts: string[] = [];
             for (const element of value) {
                 if (element === undefined || element === null) {
                     continue;
@@ -130,29 +114,23 @@ ${hintsLine}
 }`;
 }
 
-function renderHostBinding(typescript: boolean, authKind: 'none' | 'credential'): string {
+function renderHostBinding(authKind: 'none' | 'credential'): string {
     const credentialBinding = authKind === 'credential' ? ', credential' : '';
-    if (typescript) {
-        return `
+    return `
     const host: ApiHostContext =
         hostContext !== undefined
             ? (hostContext as ApiHostContext)
             : mcpHostAdapter.resolveHostContext();
-    const { baseUrl${credentialBinding} } = host;`;
-    }
-    return `
-    const host = hostContext ?? mcpHostAdapter.resolveHostContext();
     const { baseUrl${credentialBinding} } = host;`;
 }
 
 function renderInvokeToolFunction(
     authKind: 'none' | 'credential',
     usesInsecureTls: boolean,
-    hasChecked: boolean,
-    typescript: boolean
+    hasChecked: boolean
 ): string {
     const hasAuth = authKind === 'credential';
-    const resolveCall = renderAuthApplicationBlock(authKind, typescript);
+    const resolveCall = renderAuthApplicationBlock(authKind);
     const auth401Block = renderAuth401Hint(authKind);
     const auth401Section =
         authKind === 'credential'
@@ -163,42 +141,30 @@ function renderInvokeToolFunction(
                 msg += ' The API may require authentication.';
             }`;
     const insecureTlsFetch = renderInsecureTlsFetch(usesInsecureTls);
-    const credentialAndParams = renderInvokeCredentialAndParameterCheck(hasAuth, hasChecked, typescript);
-    const hostBinding = renderHostBinding(typescript, authKind);
-    const signature = typescript
-        ? `export async function invokeTool(
+    const credentialAndParams = renderInvokeCredentialAndParameterCheck(hasAuth, hasChecked);
+    const hostBinding = renderHostBinding(authKind);
+
+    return `export async function invokeTool(
     toolName: string,
     options: InvokeOptions = {},
     hostContext?: ApiHostContext
-): Promise<unknown>`
-        : 'export async function invokeTool(toolName, options = {}, hostContext)';
-    const requestInitDecl = typescript
-        ? `    const requestInit: Record<string, unknown> = {
-        method: tool.method,
-        headers: requestHeaders
-    };`
-        : `    const requestInit = {
-        method: tool.method,
-        headers: requestHeaders
-    };`;
-    const fetchCall = typescript
-        ? '    const response = await fetch(url, requestInit as RequestInit);'
-        : '    const response = await fetch(url, requestInit);';
-
-    return `${signature} {
+): Promise<unknown> {
     const tool = generatedTools.find((t) => t.toolName === toolName);
     if (!tool) {
         throw new Error('Unknown tool: ' + toolName);
     }
 ${hostBinding}${credentialAndParams}${resolveCall}
 
-${requestInitDecl}
+    const requestInit: Record<string, unknown> = {
+        method: tool.method,
+        headers: requestHeaders
+    };
 
     if (optionsResolved.body !== undefined && tool.method !== 'GET' && tool.method !== 'HEAD') {
         requestInit.body = JSON.stringify(optionsResolved.body);
     }${insecureTlsFetch}
 
-${fetchCall}
+    const response = await fetch(url, requestInit as RequestInit);
     if (!response.ok) {
         const retryAfter = response.headers.get('retry-after');
         let bodySnippet = '';
@@ -240,13 +206,12 @@ export function createSharedInvokeBlock(
     querySerializationLiteralBody: string,
     authKind: 'none' | 'credential',
     usesInsecureTls: boolean,
-    hasChecked: boolean,
-    typescript: boolean
+    hasChecked: boolean
 ): string {
     return `${renderInsecureTlsSetup(usesInsecureTls)}
-${renderQuerySerializationHelpers(querySerializationLiteralBody, typescript)}
-${renderAuthHelpers(authKind, typescript)}
+${renderQuerySerializationHelpers(querySerializationLiteralBody)}
+${renderAuthHelpers(authKind)}
 
-${renderInvokeToolFunction(authKind, usesInsecureTls, hasChecked, typescript)}
+${renderInvokeToolFunction(authKind, usesInsecureTls, hasChecked)}
 `.trim();
 }

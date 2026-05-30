@@ -2,7 +2,7 @@
 
 **api2ai** curates OpenAPI operations into MCP tools: an **.api2ai DSL** selects API operations and enriches them with AI-facing metadata (intent, examples, tool names, optional authentication settings). A **code generator** (CLI + extension on save) emits tool modules and a stdio MCP host. Built with **[Langium](https://langium.org/)** (grammar, validation, and completion).
 
-Sibling project: [db2ai](https://github.com/annettedorothea/db2ai) (relational DB to MCP). Shared library: [core2ai](https://github.com/annettedorothea/core2ai) (`@core2ai/core`).
+Sibling project: [db2ai](https://github.com/annettedorothea/db2ai) (relational DB to MCP). Shared library: [core2ai](https://github.com/annettedorothea/core2ai) (`@core2ai/core` via **npm link**).
 
 Keywords: **DSL** · **OpenAPI** · **code generator** · **MCP** · **Langium**
 
@@ -31,7 +31,7 @@ Bundled demos: **[`./packages/extension/demos/README.md`](./packages/extension/d
 
 ## Getting started
 
-Prerequisite: **Node.js 20+**.
+Prerequisite: **Node.js 20+** and sibling checkout **`../core2ai`**.
 
 ```bash
 npm run install:github-https
@@ -39,23 +39,27 @@ npm run install:demos
 npm run langium:generate && npm run build && npm run check
 ```
 
-**`@core2ai/core` pin:** Git tag in `packages/cli/package.json` (canonical: **core2ai** `scripts/core2ai-pin.json`). Show pin: `npm run core2ai:pin`. After a core2ai release: `npm run core2ai:use-pin` (+ `install:demos` if needed). Local core2ai work: `npm run core2ai:use-local` (switch back with `use-pin` before push).
+**`@core2ai/core`:** not on npm — link sibling core2ai once (see **[core2ai README](../core2ai/README.md#npm-link-api2ai--db2ai)**). While hacking core2ai, run **`npm run watch`** there so `out/` stays current.
 
 Edit `.api2ai` under `packages/extension/demos/`, then:
 
-- **Extension dev:** **Run api2ai Extension** (opens demos workspace; save regenerates tools).
-- **CLI:** `node ./packages/cli/bin/cli.js parse|validate|generate <file> …`
+| Workflow                    | How                                                                                                           |
+| --------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| **Extension dev (usual)**   | **Run api2ai Extension** — save regenerates tools                                                             |
+| **All demos from terminal** | `npm run generate:all`                                                                                        |
+| **One demo file**           | scripts in [`packages/extension/demos/`](./packages/extension/demos/)                                         |
+| **CLI (debug / scripts)**   | `npx api-2-ai-dsl-cli parse\|validate\|generate …` — see [`packages/cli/README.md`](./packages/cli/README.md) |
 
 ## Documentation
 
-Shared architecture (three layers, core2ai pin, build cheatsheet): **[core2ai docs hub](../core2ai/docs/README.md)** (sibling repo).
+Shared architecture: **[core2ai docs hub](../core2ai/docs/README.md)** (sibling repo).
 
-| Doc                                                                                 | When to read                            |
-| ----------------------------------------------------------------------------------- | --------------------------------------- |
-| [Three layers overview](../core2ai/docs/00-three-layers-overview.md)                | First visit — how api2ai fits the stack |
-| [Layer 2 — MCP server and tools](../core2ai/docs/02-layer2-mcp-server-and-tools.md) | OpenAPI tools and `mcp-serve.mjs`       |
-| [Layer 3 — Cursor and agent](../core2ai/docs/03-layer3-cursor-and-agent.md)         | Demos, `mcp.json`, chat testing         |
-| [Build cheatsheet](../core2ai/docs/consumer-build-cheatsheet.md)                    | Which npm script to run                 |
+| Doc                                                                      | When to read                    |
+| ------------------------------------------------------------------------ | ------------------------------- |
+| [Layer 1 — Tool Factory](../core2ai/docs/01-layer-1-tool-factory.md)     | Langium, generators, extensions |
+| [Layer 2 — Tool Authoring](../core2ai/docs/02-layer-2-tool-authoring.md) | `.api2ai` and generated tools   |
+| [Layer 3 — AI Runtime](../core2ai/docs/03-layer-3-ai-runtime.md)         | MCP, agents, execution          |
+| [Personas](../core2ai/docs/04-personas.md)                               | Roles across the stack          |
 
 ## Project layout
 
@@ -70,21 +74,20 @@ Package notes: [`packages/language/README.md`](./packages/language/README.md) ·
 
 ## Daily npm scripts (repository root)
 
-| Script              | Purpose                                                              |
-| ------------------- | -------------------------------------------------------------------- |
-| `build`             | TypeScript + `bundle:mcp-runtime` + workspaces                       |
-| `check`             | format + typecheck + lint + generated tools                          |
-| `test`              | unit + MCP e2e (`test:e2e`)                                          |
-| `test:smoke`        | all direct generated-tool smokes                                     |
-| `test:e2e`          | MCP stdio e2e (mock API)                                             |
-| `generate:all`      | regenerate all demo tools (forwards to demos)                        |
-| `core2ai:use-pin`   | apply GitHub pin after core2ai release                               |
-| `core2ai:use-local` | link sibling `../core2ai` for dev                                    |
-| `release:vsix`      | GitHub prerelease of tested VSIX (build with `extension:vsix` first) |
+| Script         | Purpose                                                              |
+| -------------- | -------------------------------------------------------------------- |
+| `build`        | TypeScript project references + workspace builds                     |
+| `check`        | `format:check` + `typecheck` + `lint`                                |
+| `watch`        | TypeScript watch (monorepo)                                          |
+| `test`         | unit + MCP e2e                                                       |
+| `test:smoke`   | all direct generated-tool smokes                                     |
+| `test:e2e`     | MCP stdio e2e (mock API)                                             |
+| `generate:all` | regenerate all demo tools (forwards to demos)                        |
+| `release:vsix` | GitHub prerelease of tested VSIX (build with `extension:vsix` first) |
 
-Per-demo smokes: `npm run test:smoke:mock-api`, `test:smoke:open-meteo`, `test:smoke:tmdb`, `test:mcp:mock-api`. Scenarios live in [`scripts/dev-smoke.config.json`](./scripts/dev-smoke.config.json).
+Per-demo smokes: `npm run test:smoke:mock-api`, `test:smoke:open-meteo`, `test:smoke:tmdb`, `test:mcp:mock-api`. Scenarios: [`scripts/dev-smoke.config.json`](./scripts/dev-smoke.config.json).
 
-Regenerate tools: `npm run generate:all` or `npm run generate:*` inside **`packages/extension/demos/`**.
+Regenerate tools: `npm run generate:all` or per-demo scripts inside **`packages/extension/demos/`**.
 
 ## Extension (VSIX)
 
@@ -111,7 +114,7 @@ Bump extension version: `npm run version:patch` (or `minor` / `major`). Details:
 | **api2ai: completion debug log**          | same + `API2AI_DSL_DEBUG_COMPLETION=1`             |
 | **Attach: api2ai Language Server (6009)** | attach debugger (port 6009)                        |
 
-Pre-launch task **Build api-2-ai-dsl**: `langium:generate` + `build` ([`./.vscode/tasks.json`](./.vscode/tasks.json)).
+Pre-launch task **Build api2ai**: `langium:generate` + `build` ([`./.vscode/tasks.json`](./.vscode/tasks.json) / workspace [`mcp-dsl.code-workspace`](../mcp-dsl.code-workspace)).
 
 ## License
 
