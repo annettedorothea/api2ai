@@ -61,17 +61,17 @@ Package notes: [`packages/language/README.md`](./packages/language/README.md) ·
 
 ## Daily npm scripts (repository root)
 
-| Script              | Purpose                                        |
-| ------------------- | ---------------------------------------------- |
-| `build`             | TypeScript + `bundle:mcp-runtime` + workspaces |
-| `check`             | format + typecheck + lint + generated tools    |
-| `test`              | unit + MCP e2e (`test:e2e`)                    |
-| `test:smoke`        | all direct generated-tool smokes               |
-| `test:e2e`          | MCP stdio e2e (mock API)                       |
-| `generate:all`      | regenerate all demo tools (forwards to demos)  |
-| `core2ai:use-pin`   | apply GitHub pin after core2ai release         |
-| `core2ai:use-local` | link sibling `../core2ai` for dev              |
-| `release:vsix`      | test + check + VSIX + GitHub prerelease        |
+| Script              | Purpose                                                              |
+| ------------------- | -------------------------------------------------------------------- |
+| `build`             | TypeScript + `bundle:mcp-runtime` + workspaces                       |
+| `check`             | format + typecheck + lint + generated tools                          |
+| `test`              | unit + MCP e2e (`test:e2e`)                                          |
+| `test:smoke`        | all direct generated-tool smokes                                     |
+| `test:e2e`          | MCP stdio e2e (mock API)                                             |
+| `generate:all`      | regenerate all demo tools (forwards to demos)                        |
+| `core2ai:use-pin`   | apply GitHub pin after core2ai release                               |
+| `core2ai:use-local` | link sibling `../core2ai` for dev                                    |
+| `release:vsix`      | GitHub prerelease of tested VSIX (build with `extension:vsix` first) |
 
 Per-demo smokes: `npm run test:smoke:mock-api`, `test:smoke:open-meteo`, `test:smoke:tmdb`, `test:mcp:mock-api`. Scenarios live in [`scripts/dev-smoke.config.json`](./scripts/dev-smoke.config.json).
 
@@ -85,10 +85,11 @@ Build locally:
 npm run extension:vsix -w packages/extension
 ```
 
-Prerelease (test + check + GitHub upload):
+Prerelease (after local VSIX build + manual test):
 
 ```bash
-npm run release:vsix
+npm run extension:vsix -w packages/extension   # build + install/test in Cursor
+npm run release:vsix                           # upload that VSIX to GitHub
 ```
 
 Bump extension version: `npm run version:patch` (or `minor` / `major`). Details: [`./packages/extension/README.md`](./packages/extension/README.md).
