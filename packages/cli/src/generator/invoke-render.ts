@@ -106,7 +106,7 @@ ${hintsLine}
                         '"; only style "form" is supported for arrays.'
                 );
             }
-            const parts = [];
+            ${typescript ? 'const parts: string[] = [];' : 'const parts = [];'}
             for (const element of value) {
                 if (element === undefined || element === null) {
                     continue;

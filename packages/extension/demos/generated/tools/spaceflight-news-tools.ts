@@ -981,7 +981,7 @@ function appendSerializedQueryParams(
                         '"; only style "form" is supported for arrays.'
                 );
             }
-            const parts = [];
+            const parts: string[] = [];
             for (const element of value) {
                 if (element === undefined || element === null) {
                     continue;
