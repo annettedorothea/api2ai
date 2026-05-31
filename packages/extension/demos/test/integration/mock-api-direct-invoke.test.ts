@@ -1,4 +1,4 @@
-import { readGeneratedToolModule } from '../support/generated-module.js';
+import { readGeneratedToolModule } from '@core2ai/core/test-fixtures';
 import { asRecord, restoreEnv } from '@core2ai/core/test-helpers';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import type { ChildProcess } from 'node:child_process';

@@ -3,7 +3,7 @@ import * as fs from 'node:fs/promises';
 import * as net from 'node:net';
 import * as path from 'node:path';
 import { generateAction } from '../../../../cli/src/generate-command.js';
-import { compileGeneratedForSmoke } from './compile-generated-fixture.js';
+import { compileGeneratedForSmoke } from '@core2ai/core/test-fixtures';
 import { demosRoot, demosTmpRoot } from './paths.js';
 
 export { demosRoot };

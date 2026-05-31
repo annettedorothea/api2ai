@@ -43,12 +43,12 @@ npm run langium:generate && npm run build && npm run check
 
 Edit `.api2ai` under `packages/extension/demos/`, then:
 
-| Workflow                    | How                                                                                                           |
-| --------------------------- | ------------------------------------------------------------------------------------------------------------- |
-| **Extension dev (usual)**   | **Run api2ai Extension** — save regenerates tools                                                             |
-| **All demos from terminal** | `npm run generate:all`                                                                                        |
-| **One demo file**           | scripts in [`packages/extension/demos/`](./packages/extension/demos/)                                         |
-| **CLI (debug / scripts)**   | `npx api-2-ai-dsl-cli parse\|validate\|generate …` — see [`packages/cli/README.md`](./packages/cli/README.md) |
+| Workflow                    | How                                                                                                             |
+| --------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| **Extension dev (usual)**   | **Run api2ai Extension** — save regenerates tools; run **`npm run build:generated`** in demos for MCP **`.js`** |
+| **All demos from terminal** | `npm run generate:all` in demos, then `npm run build:generated`                                                 |
+| **One demo file**           | scripts in [`packages/extension/demos/`](./packages/extension/demos/) (`generate:*`)                            |
+| **CLI (debug / scripts)**   | `npx api-2-ai-dsl-cli parse\|validate\|generate …` — see [`packages/cli/README.md`](./packages/cli/README.md)   |
 
 ## Documentation
 
@@ -74,18 +74,18 @@ Package notes: [`packages/language/README.md`](./packages/language/README.md) ·
 
 ## Daily npm scripts (repository root)
 
-| Script         | Purpose                                                                                          |
-| -------------- | ------------------------------------------------------------------------------------------------ |
-| `build`        | TypeScript project references + workspace builds                                                 |
-| `check`        | `format:check` + `typecheck` + `lint`                                                            |
-| `watch`        | TypeScript watch (monorepo)                                                                      |
-| `test`         | `langium:generate`, `build`, all Vitest (language + CLI unit + demo integration incl. MCP stdio) |
-| `generate:all` | regenerate all demo tools (forwards to demos)                                                    |
-| `release:vsix` | GitHub prerelease of tested VSIX (build with `extension:vsix` first)                             |
+| Script         | Purpose                                                                                              |
+| -------------- | ---------------------------------------------------------------------------------------------------- |
+| `build`        | TypeScript project references + workspace builds                                                     |
+| `check`        | `format:check` + `typecheck` + `lint`                                                                |
+| `watch`        | TypeScript watch (monorepo)                                                                          |
+| `test`         | `langium:generate`, `build`, all Vitest (language + CLI unit + demo integration; MCP stdio in demos) |
+| `generate:all` | regenerate all demo tools (forwards to demos)                                                        |
+| `release:vsix` | GitHub prerelease of tested VSIX (build with `extension:vsix` first)                                 |
 
 All tests: `npm test` (from repo root).
 
-Regenerate tools: `npm run generate:all` or per-demo scripts inside **`packages/extension/demos/`**.
+Regenerate tools: `npm run generate:all` or per-demo scripts inside **`packages/extension/demos/`** (then **`npm run build:generated`** for MCP **`.js`**).
 
 ## Extension (VSIX)
 
