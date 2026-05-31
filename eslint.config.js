@@ -41,7 +41,6 @@ export default [
             '**/*.mjs',
             '**/syntaxes/**',
             'packages/language/src/generated/**',
-            'packages/cli/tmp/**',
             'packages/extension/demos/tmp/**'
         ]
     },

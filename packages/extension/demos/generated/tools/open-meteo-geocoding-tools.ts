@@ -155,9 +155,7 @@ export const mcpHostAdapter = {
         const baseUrlKey = process.env[META_BASE_URL_ENV_KEY]?.trim();
         const baseUrl = baseUrlKey ? process.env[baseUrlKey]?.trim() : undefined;
         if (!baseUrl) {
-            throw new Error(
-                'Missing host base URL. Pass --base-url-env on mcp-serve.js and set the variable (or use smoke-generated).'
-            );
+            throw new Error('Missing host base URL. Pass --base-url-env on mcp-serve.js and set the variable.');
         }
 
         return { baseUrl, credential: undefined, jwt: undefined };

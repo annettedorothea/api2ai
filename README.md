@@ -66,7 +66,7 @@ Shared architecture: **[core2ai docs hub](../core2ai/docs/README.md)** (sibling 
 | Path                        | Role                                         |
 | --------------------------- | -------------------------------------------- |
 | `packages/language`         | Langium grammar, validation, OpenAPI linking |
-| `packages/cli`              | `parse`, `validate`, `generate`, smoke tests |
+| `packages/cli`              | `parse`, `validate`, `generate`, unit tests  |
 | `packages/extension`        | VS Code / Cursor extension; **`demos/`**     |
 | `packages/extension/demos/` | Sample DSL, OpenAPI, `generate:*`, MCP setup |
 
@@ -74,14 +74,14 @@ Package notes: [`packages/language/README.md`](./packages/language/README.md) ·
 
 ## Daily npm scripts (repository root)
 
-| Script         | Purpose                                                                              |
-| -------------- | ------------------------------------------------------------------------------------ |
-| `build`        | TypeScript project references + workspace builds                                     |
-| `check`        | `format:check` + `typecheck` + `lint`                                                |
-| `watch`        | TypeScript watch (monorepo)                                                          |
-| `test`         | `langium:generate`, `build`, all Vitest (language + CLI integration incl. MCP stdio) |
-| `generate:all` | regenerate all demo tools (forwards to demos)                                        |
-| `release:vsix` | GitHub prerelease of tested VSIX (build with `extension:vsix` first)                 |
+| Script         | Purpose                                                                                          |
+| -------------- | ------------------------------------------------------------------------------------------------ |
+| `build`        | TypeScript project references + workspace builds                                                 |
+| `check`        | `format:check` + `typecheck` + `lint`                                                            |
+| `watch`        | TypeScript watch (monorepo)                                                                      |
+| `test`         | `langium:generate`, `build`, all Vitest (language + CLI unit + demo integration incl. MCP stdio) |
+| `generate:all` | regenerate all demo tools (forwards to demos)                                                    |
+| `release:vsix` | GitHub prerelease of tested VSIX (build with `extension:vsix` first)                             |
 
 All tests: `npm test` (from repo root).
 
