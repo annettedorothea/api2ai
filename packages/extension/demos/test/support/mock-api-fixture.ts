@@ -2,9 +2,9 @@ import { spawn, type ChildProcess } from 'node:child_process';
 import * as fs from 'node:fs/promises';
 import * as net from 'node:net';
 import * as path from 'node:path';
-import { generateAction } from '../../../../cli/src/generate-command.js';
 import { compileGeneratedForSmoke } from '@core2ai/core/test-fixtures';
 import { demosRoot, demosTmpRoot } from './paths.js';
+import { runDemoGenerate } from './run-demo-generate.js';
 
 export { demosRoot };
 export const mockApiServerPath = path.join(demosRoot, 'mock-api/server.mjs');
@@ -77,7 +77,7 @@ export async function prepareMockApiGeneratedFixture(fixtureRoot: string): Promi
     await fs.mkdir(path.join(fixtureRoot, 'openapi'), { recursive: true });
     await fs.copyFile(sourceFixturePath, path.join(fixtureRoot, 'mock-api.api2ai'));
     await fs.copyFile(openApiFixturePath, path.join(fixtureRoot, 'openapi/mock-api.openapi.yaml'));
-    await generateAction(path.join(fixtureRoot, 'mock-api.api2ai'), generatedTsPath);
+    runDemoGenerate(path.join(fixtureRoot, 'mock-api.api2ai'), generatedTsPath);
     await fs.mkdir(path.join(fixtureRoot, 'src', 'auth'), { recursive: true });
     await fs.copyFile(
         path.join(demosRoot, 'src/auth/listCustomerOrders.ts'),

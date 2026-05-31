@@ -5,45 +5,22 @@
 export const insecureTls = false;
 export const generatedTools = [
     {
-        toolName: 'openMeteoGeocodeSearch',
-        title: 'Resolve location names to coordinates',
-        description: 'Intent:\nresolve a location name to latitude and longitude coordinates\n\nMeta:\noperationId: searchLocationByName\n\nExample:\nFind coordinates for Bernstein, Burgenland, Austria\n\nResponse:\nHTTP 200\nOK\n\nRuntime: public endpoint — no Authorization header or MCP credential required.',
-        method: 'GET',
-        path: '/v1/search',
-        example: 'Find coordinates for Bernstein, Burgenland, Austria',
-        access: 'public'
+        "toolName": "openMeteoGeocodeSearch",
+        "title": "Resolve location names to coordinates",
+        "description": "Intent:\nresolve a location name to latitude and longitude coordinates\n\nMeta:\noperationId: searchLocationByName\n\nExample:\nFind coordinates for Bernstein, Burgenland, Austria\n\nResponse:\nHTTP 200\nOK\n\nRuntime: public endpoint — no Authorization header or MCP credential required.",
+        "method": "GET",
+        "path": "/v1/search",
+        "example": "Find coordinates for Bernstein, Burgenland, Austria",
+        "access": "public"
     }
 ];
 export const requiresAuth = false;
 export const authConfig = undefined;
-export const mcpServerName = 'open-meteo-geocoding-tools';
-export const mcpServerVersion = '0.0.4';
+export const mcpServerName = "open-meteo-geocoding-tools";
+export const mcpServerVersion = "0.0.4";
 import * as z from 'zod/v4';
 export const inputZodByTool = {
-    openMeteoGeocodeSearch: z
-        .object({
-        pathParams: z
-            .record(z.string(), z.union([z.string(), z.number(), z.boolean()]))
-            .describe('No path parameters.')
-            .optional(),
-        query: z
-            .object({
-            name: z.string().describe('City/place search text, e.g. Bernstein.'),
-            count: z.number().describe('Number of matches to return.').optional(),
-            language: z.string().describe('Language code for result names, e.g. de or en.').optional(),
-            countryCode: z.string().describe('ISO country code filter, e.g. AT.').optional()
-        })
-            .strict()
-            .describe('Query parameters from OpenAPI.')
-            .optional(),
-        headers: z.record(z.string(), z.string()).describe('Optional extra headers.').optional(),
-        body: z
-            .record(z.string(), z.union([z.string(), z.number(), z.boolean()]))
-            .describe('Request body JSON if applicable.')
-            .optional()
-    })
-        .strict()
-        .describe('Arguments for invoking the generated HTTP wrapper.')
+    "openMeteoGeocodeSearch": z.object({ "pathParams": z.record(z.string(), z.union([z.string(), z.number(), z.boolean()])).describe("No path parameters.").optional(), "query": z.object({ "name": z.string().describe("City/place search text, e.g. Bernstein."), "count": z.number().describe("Number of matches to return.").optional(), "language": z.string().describe("Language code for result names, e.g. de or en.").optional(), "countryCode": z.string().describe("ISO country code filter, e.g. AT.").optional() }).strict().describe("Query parameters from OpenAPI.").optional(), "headers": z.record(z.string(), z.string()).describe("Optional extra headers.").optional(), "body": z.record(z.string(), z.union([z.string(), z.number(), z.boolean()])).describe("Request body JSON if applicable.").optional() }).strict().describe("Arguments for invoking the generated HTTP wrapper.")
 };
 const META_BASE_URL_ENV_KEY = 'MCP_HOST_BASE_URL_ENV_KEY';
 const META_AUTH_ENV_KEY = 'MCP_HOST_AUTH_ENV_KEY';
@@ -136,22 +113,22 @@ export const mcpHostAdapter = {
     }
 };
 export const queryParamSerializationByTool = {
-    openMeteoGeocodeSearch: {
-        name: {
-            style: 'form',
-            explode: true
+    "openMeteoGeocodeSearch": {
+        "name": {
+            "style": "form",
+            "explode": true
         },
-        count: {
-            style: 'form',
-            explode: true
+        "count": {
+            "style": "form",
+            "explode": true
         },
-        language: {
-            style: 'form',
-            explode: true
+        "language": {
+            "style": "form",
+            "explode": true
         },
-        countryCode: {
-            style: 'form',
-            explode: true
+        "countryCode": {
+            "style": "form",
+            "explode": true
         }
     }
 };
@@ -203,7 +180,9 @@ export async function invokeTool(toolName, options = {}, hostContext) {
     if (!tool) {
         throw new Error('Unknown tool: ' + toolName);
     }
-    const host = hostContext !== undefined ? hostContext : mcpHostAdapter.resolveHostContext();
+    const host = hostContext !== undefined
+        ? hostContext
+        : mcpHostAdapter.resolveHostContext();
     const { baseUrl } = host;
     const optionsResolved = options;
     const normalizedBaseUrl = baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl;

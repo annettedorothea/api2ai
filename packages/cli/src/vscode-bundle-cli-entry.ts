@@ -1,5 +1,5 @@
 /**
- * Separate CLI entry bundled into the VS Code extension VSIX ({@see packages/extension/embed-cli-bundle.mjs}).
+ * Separate CLI entry bundled into the VS Code extension VSIX ({@see packages/extension/scripts/embed-cli-bundle.mjs}).
  * Excluded from the normal `packages/cli` TypeScript compile (see tsconfig.exclude).
  */
 import { Api2AiDslLanguageMetaData } from 'api-2-ai-dsl-language';
