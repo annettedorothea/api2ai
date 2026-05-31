@@ -1,4 +1,5 @@
 import { readGeneratedToolModule } from '../support/generated-module.js';
+import { asRecord, restoreEnv } from '@core2ai/core/test-helpers';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import type { ChildProcess } from 'node:child_process';
 import * as fs from 'node:fs/promises';
@@ -15,20 +16,6 @@ import {
 
 let mockApiProcess: ChildProcess | undefined;
 let mockApiBaseUrl = '';
-
-function asRecord(value: unknown): Record<string, unknown> {
-    expect(value).toBeTypeOf('object');
-    expect(value).not.toBeNull();
-    return value as Record<string, unknown>;
-}
-
-function restoreEnv(name: string, previousValue: string | undefined): void {
-    if (previousValue === undefined) {
-        delete process.env[name];
-        return;
-    }
-    process.env[name] = previousValue;
-}
 
 describe('mock API generated module direct invocation', () => {
     beforeAll(async () => {

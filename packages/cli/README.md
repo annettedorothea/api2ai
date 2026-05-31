@@ -18,12 +18,12 @@ npx api-2-ai-dsl-cli generate <source.api2ai> <dest-tools.ts>
 
 Equivalent (same entrypoint): `node ./packages/cli/bin/cli.js …`
 
-| Workflow                  | Instead of raw CLI                                                                                               |
-| ------------------------- | ---------------------------------------------------------------------------------------------------------------- |
-| **Demos in the monorepo** | Extension Dev Host (save → regenerate) or `npm run generate:all` in [`../extension/demos/`](../extension/demos/) |
-| **One demo file**         | `node ../extension/demos/scripts/generate.mjs …` (from demos folder)                                             |
-| **Installed VSIX**        | Save in editor, or embedded `cli.cjs` via demo generate script                                                   |
-| **Integration tests**     | `npm test` from repo root — see [`test/README.md`](./test/README.md)                                             |
+| Workflow                  | Instead of raw CLI                                                                                                                                                             |
+| ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Demos in the monorepo** | Extension Dev Host (save → regenerate) or `npm run generate:all` in [`../extension/demos/`](../extension/demos/)                                                               |
+| **One demo file**         | `node ../extension/demos/scripts/generate.mjs …` (from demos folder)                                                                                                           |
+| **Installed VSIX**        | Save in editor, or embedded `cli.cjs` via demo generate script                                                                                                                 |
+| **Integration tests**     | `npm test` from repo root — mock-api tests in [`../extension/demos/test/README.md`](../extension/demos/test/README.md); CLI unit tests in [`test/README.md`](./test/README.md) |
 
 `validate` / `generate` block on DSL errors (shared gate from `@core2ai/core/codegen`).
 
@@ -31,7 +31,7 @@ Equivalent (same entrypoint): `node ./packages/cli/bin/cli.js …`
 
 - [`src/main.ts`](./src/main.ts) — Commander: `parse`, `validate`, `generate`
 - [`src/generator/`](./src/generator/) — code generation
-- [`test/`](./test/) — Vitest (direct invoke + MCP stdio)
+- [`test/`](./test/) — Vitest unit tests (integration tests live in [`../extension/demos/test/`](../extension/demos/test/))
 
 ---
 

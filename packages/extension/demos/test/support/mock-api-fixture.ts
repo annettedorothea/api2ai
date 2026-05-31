@@ -2,18 +2,15 @@ import { spawn, type ChildProcess } from 'node:child_process';
 import * as fs from 'node:fs/promises';
 import * as net from 'node:net';
 import * as path from 'node:path';
-import { fileURLToPath } from 'node:url';
-import { generateAction } from '../../src/generate-command.js';
+import { generateAction } from '../../../../cli/src/generate-command.js';
 import { compileGeneratedForSmoke } from './compile-generated-fixture.js';
+import { demosRoot, demosTmpRoot } from './paths.js';
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const workspaceRoot = path.resolve(__dirname, '../../../..');
-const cliRoot = path.resolve(__dirname, '../..');
-export const demosRoot = path.join(workspaceRoot, 'packages/extension/demos');
+export { demosRoot };
 export const mockApiServerPath = path.join(demosRoot, 'mock-api/server.mjs');
 export const sourceFixturePath = path.join(demosRoot, 'mock-api.api2ai');
 export const openApiFixturePath = path.join(demosRoot, 'openapi/mock-api.openapi.yaml');
-export const mockApiTmpRoot = path.join(cliRoot, 'tmp');
+export const mockApiTmpRoot = demosTmpRoot;
 
 export async function findFreePort(): Promise<number> {
     return new Promise((resolve, reject) => {

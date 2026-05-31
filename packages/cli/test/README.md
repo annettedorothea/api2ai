@@ -1,14 +1,12 @@
-# CLI tests
+# CLI tests (unit)
 
-| Path                                         | What it checks                                                            |
-| -------------------------------------------- | ------------------------------------------------------------------------- |
-| `integration/mock-api-direct-invoke.test.ts` | Generate mock-api tools; direct `invokeTool` (login + listCustomerOrders) |
-| `integration/mock-api-mcp-stdio.test.ts`     | Generated `mcp-serve.js`; MCP `listTools` + `callTool` over stdio         |
-| `document-actions.test.ts`                   | parse/validate gate                                                       |
-| `generate-validation.test.ts`                | generate blocked on DSL errors                                            |
-| `json-schema-to-zod-codegen.test.ts`         | Zod emission from JSON Schema IR                                          |
+| Path                                 | What it checks                   |
+| ------------------------------------ | -------------------------------- |
+| `document-actions.test.ts`           | parse/validate gate              |
+| `generate-validation.test.ts`        | generate blocked on DSL errors   |
+| `json-schema-to-zod-codegen.test.ts` | Zod emission from JSON Schema IR |
 
-Run from repo root: `npm test` (includes language + CLI Vitest).
+Run from repo root: `npm test` (language + CLI unit + demo integration in `packages/extension/demos/test/`).
 
 From `packages/cli` only: `npm test`.
 
