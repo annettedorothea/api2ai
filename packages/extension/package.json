@@ -45,7 +45,7 @@
         "commands": [
             {
                 "command": "api2ai.generateTools",
-                "title": "Generate tool code (.ts + .mjs + MCP host)"
+                "title": "Generate tool code (.ts + MCP host)"
             },
             {
                 "command": "api2ai.createDemoWorkspace",

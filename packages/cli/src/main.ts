@@ -5,17 +5,15 @@ import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
 import { generateAction } from './generate-command.js';
 import { parseAction, validateAction } from './document-actions.js';
-const __dirname = url.fileURLToPath(new URL('.', import.meta.url));
 
+const __dirname = url.fileURLToPath(new URL('.', import.meta.url));
 const packagePath = path.resolve(__dirname, '..', '..', 'package.json');
 const packageContent = await fs.readFile(packagePath, 'utf-8');
 
 export default function (): void {
     const program = new Command();
-
     program.version(JSON.parse(packageContent).version);
 
-    // TODO: use Program API to declare the CLI
     const fileExtensions = Api2AiDslLanguageMetaData.fileExtensions.join(', ');
 
     program
@@ -32,9 +30,9 @@ export default function (): void {
 
     program
         .command('generate')
-        .argument('<file>', `source file (possible file extensions: ${fileExtensions})`)
-        .argument('<destination>', 'destination file')
-        .description('Generates code for a provided source file.')
+        .argument('<file>', `source file (extensions: ${fileExtensions})`)
+        .argument('<destination>', 'destination .ts file (run tsc to emit companion .js)')
+        .description('Generate MCP tool modules from an .api2ai file.')
         .action(generateAction);
 
     program.parse(process.argv);

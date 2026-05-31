@@ -12,8 +12,8 @@ The full project (DSL, CLI, demos) lives in the [api2ai](https://github.com/anne
 ## Usage
 
 1. Open a workspace folder that contains `.api2ai` files (and optional `openapi/` specs).
-2. Edit `.api2ai` — on **save**, generated files appear under `generated/tools/` and `generated/cli/mcp-serve.mjs` (paths relative to the workspace).
-3. Command Palette: **Generate tool code (.ts + .mjs + MCP host)** for manual generation of the focused `.api2ai` file.
+2. Edit `.api2ai` — on **save**, the extension writes **`generated/tools/*.ts`** and **`generated/cli/mcp-serve.ts`**; run **`npm run build:generated`** for **`.js`** used by MCP.
+3. Command Palette: **Generate tool code (.ts + MCP host)** for manual generation of the focused `.api2ai` file.
 
 Base URLs and API tokens belong in the MCP host config (e.g. `.cursor/mcp.json` / env), not in the DSL.
 
@@ -28,9 +28,9 @@ Base URLs and API tokens belong in the MCP host config (e.g. `.cursor/mcp.json` 
     - Run `npm install`.
     - Copy `.env.example` to `.env.local`.
     - Set tokens for TMDB, GitHub, and mock-api if you want to use those demos. Open-Meteo needs no token.
-4. Generate tools:
-    - Run `npm run generate:all`.
-    - Alternatively, save each `.api2ai` file or run **Generate tool code**.
+4. Generate and compile:
+    - `npm run generate:all`
+    - `npm run build:generated`
 5. Open and enable:
     - Open the demo folder as the workspace.
     - In Cursor Settings, open **Tools & MCP** and enable the `api2ai-*` MCP servers.
