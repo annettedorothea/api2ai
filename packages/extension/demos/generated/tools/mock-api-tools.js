@@ -6,39 +6,71 @@ import { checkListCustomerOrdersParameters } from '../../src/auth/listCustomerOr
 export const insecureTls = false;
 export const generatedTools = [
     {
-        "toolName": "listCustomerOrders",
-        "title": "List customer orders",
-        "description": "Intent:\nlist orders for the authenticated customer from the JWT, when the customerId is empty, it will be filled from the JWT\n\nAPI:\nRequires Bearer JWT; for role=user customerId in path must match JWT claim, role=admin may read any customer.\n\nMeta:\noperationId: list-customer-orders\n\nExample:\nList my orders\n\nResponse:\nHTTP 200\nOrder list\nproperties (top-level): customerId, orders\nDocumented errors:\nHTTP 401 — Missing or invalid token\nHTTP 403 — Token customerId does not match path\n\nRuntime: checked — implement checkListCustomerOrdersParameters in src/auth/listCustomerOrders.ts (types from this tools module; run build:generated for .js); credential sent as header \"Authorization\" (prefix applied to the secret).",
-        "method": "GET",
-        "path": "/orders/{customerId}",
-        "example": "List my orders",
-        "access": "checked"
+        toolName: 'listCustomerOrders',
+        title: 'List customer orders',
+        description: 'Intent:\nlist orders for the authenticated customer from the JWT, when the customerId is empty, it will be filled from the JWT\n\nAPI:\nRequires Bearer JWT; for role=user customerId in path must match JWT claim, role=admin may read any customer.\n\nMeta:\noperationId: list-customer-orders\n\nExample:\nList my orders\n\nResponse:\nHTTP 200\nOrder list\nproperties (top-level): customerId, orders\nDocumented errors:\nHTTP 401 — Missing or invalid token\nHTTP 403 — Token customerId does not match path\n\nRuntime: checked — implement checkListCustomerOrdersParameters in src/auth/listCustomerOrders.ts (types from this tools module; run build:generated for .js); credential sent as header "Authorization" (prefix applied to the secret).',
+        method: 'GET',
+        path: '/orders/{customerId}',
+        example: 'List my orders',
+        access: 'checked'
     },
     {
-        "toolName": "login",
-        "title": "Login customer",
-        "description": "Intent:\nlogin the customer\n\nAPI:\nIssues a short-lived HS256 JWT with claims customerId and role (admin or user). No authentication required.\n\nMeta:\noperationId: login-customer\n\nExample:\nLogin\n\nResponse:\nHTTP 200\nAccess token\nproperties (top-level): access_token\nDocumented errors:\nHTTP 404 — Unknown customer\n\nRuntime: public endpoint — no Authorization header or MCP credential required.",
-        "method": "POST",
-        "path": "/login/{customerId}",
-        "example": "Login",
-        "access": "public"
+        toolName: 'login',
+        title: 'Login customer',
+        description: 'Intent:\nlogin the customer\n\nAPI:\nIssues a short-lived HS256 JWT with claims customerId and role (admin or user). No authentication required.\n\nMeta:\noperationId: login-customer\n\nExample:\nLogin\n\nResponse:\nHTTP 200\nAccess token\nproperties (top-level): access_token\nDocumented errors:\nHTTP 404 — Unknown customer\n\nRuntime: public endpoint — no Authorization header or MCP credential required.',
+        method: 'POST',
+        path: '/login/{customerId}',
+        example: 'Login',
+        access: 'public'
     }
 ];
 export const requiresAuth = true;
 export const authConfig = {
-    "location": "header",
-    "name": "Authorization",
-    "prefix": "Bearer "
+    location: 'header',
+    name: 'Authorization',
+    prefix: 'Bearer '
 };
-export const mcpServerName = "mock-api-tools";
-export const mcpServerVersion = "0.0.4";
+export const mcpServerName = 'mock-api-tools';
+export const mcpServerVersion = '0.0.4';
 const parameterCheckers = {
-    "listCustomerOrders": checkListCustomerOrdersParameters
+    listCustomerOrders: checkListCustomerOrdersParameters
 };
 import * as z from 'zod/v4';
 export const inputZodByTool = {
-    "listCustomerOrders": z.object({ "pathParams": z.object({ "customerId": z.string().optional() }).strict().describe("Path parameters from OpenAPI.").optional(), "query": z.record(z.string(), z.union([z.string(), z.number(), z.boolean()])).describe("Optional query overrides.").optional(), "headers": z.record(z.string(), z.string()).describe("Optional extra headers.").optional(), "body": z.record(z.string(), z.union([z.string(), z.number(), z.boolean()])).describe("Request body JSON if applicable.").optional() }).strict().describe("Arguments for invoking the generated HTTP wrapper."),
-    "login": z.object({ "pathParams": z.object({ "customerId": z.string() }).strict().describe("Path parameters from OpenAPI."), "query": z.record(z.string(), z.union([z.string(), z.number(), z.boolean()])).describe("Optional query overrides.").optional(), "headers": z.record(z.string(), z.string()).describe("Optional extra headers.").optional(), "body": z.record(z.string(), z.union([z.string(), z.number(), z.boolean()])).describe("Request body JSON if applicable.").optional() }).strict().describe("Arguments for invoking the generated HTTP wrapper.")
+    listCustomerOrders: z
+        .object({
+        pathParams: z
+            .object({ customerId: z.string().optional() })
+            .strict()
+            .describe('Path parameters from OpenAPI.')
+            .optional(),
+        query: z
+            .record(z.string(), z.union([z.string(), z.number(), z.boolean()]))
+            .describe('Optional query overrides.')
+            .optional(),
+        headers: z.record(z.string(), z.string()).describe('Optional extra headers.').optional(),
+        body: z
+            .record(z.string(), z.union([z.string(), z.number(), z.boolean()]))
+            .describe('Request body JSON if applicable.')
+            .optional()
+    })
+        .strict()
+        .describe('Arguments for invoking the generated HTTP wrapper.'),
+    login: z
+        .object({
+        pathParams: z.object({ customerId: z.string() }).strict().describe('Path parameters from OpenAPI.'),
+        query: z
+            .record(z.string(), z.union([z.string(), z.number(), z.boolean()]))
+            .describe('Optional query overrides.')
+            .optional(),
+        headers: z.record(z.string(), z.string()).describe('Optional extra headers.').optional(),
+        body: z
+            .record(z.string(), z.union([z.string(), z.number(), z.boolean()]))
+            .describe('Request body JSON if applicable.')
+            .optional()
+    })
+        .strict()
+        .describe('Arguments for invoking the generated HTTP wrapper.')
 };
 function decodeJwtPayloadUnsafe(token) {
     const parts = String(token).trim().split('.');
@@ -168,8 +200,8 @@ export const mcpHostAdapter = {
     }
 };
 export const queryParamSerializationByTool = {
-    "listCustomerOrders": {},
-    "login": {}
+    listCustomerOrders: {},
+    login: {}
 };
 function appendSerializedQueryParams(searchParams, toolName, query) {
     if (!query) {
@@ -225,9 +257,7 @@ export async function invokeTool(toolName, options = {}, hostContext) {
     if (!tool) {
         throw new Error('Unknown tool: ' + toolName);
     }
-    const host = hostContext !== undefined
-        ? hostContext
-        : mcpHostAdapter.resolveHostContext();
+    const host = hostContext !== undefined ? hostContext : mcpHostAdapter.resolveHostContext();
     const { baseUrl, credential } = host;
     if (tool.access !== 'public') {
         if (!credential || !String(credential).trim()) {
@@ -288,12 +318,7 @@ export async function invokeTool(toolName, options = {}, hostContext) {
         if (response.status === 401) {
             msg += ' Unauthorized.';
             if (authConfig && tool.access !== 'public') {
-                msg +=
-                    ' Check MCP host --auth-env (' +
-                        authConfig.location +
-                        ' ' +
-                        authConfig.name +
-                        ').';
+                msg += ' Check MCP host --auth-env (' + authConfig.location + ' ' + authConfig.name + ').';
             }
         }
         else if (response.status === 403) {
