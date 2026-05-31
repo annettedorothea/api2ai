@@ -2,7 +2,7 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import type { ChildProcess } from 'node:child_process';
 import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
-import { withMcpStdioSession } from '@core2ai/core/test-fixtures';
+import { withMcpStdioSession } from '../generated/index.js';
 import {
     findFreePort,
     mockApiTmpRoot,

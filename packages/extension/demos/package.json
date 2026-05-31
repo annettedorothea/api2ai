@@ -27,7 +27,6 @@
         "zod": "^4.4.3"
     },
     "devDependencies": {
-        "@core2ai/core": "0.0.5",
         "@eslint/js": "^10.0.1",
         "@types/node": "~20.17.48",
         "eslint": "^10.4.0",

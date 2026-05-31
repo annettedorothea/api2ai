@@ -24,11 +24,11 @@ Use the **api2ai** extension (VSIX or Extension Development Host). This folder i
     - Open Cursor Settings, then **Tools & MCP**.
     - Enable the `api2ai-*` MCP servers.
 
-Generated **`generated/cli/mcp-serve.ts`** is self-contained (no `@core2ai/core` at runtime). After generate, run **`npm run build:generated`** so MCP uses **`generated/cli/mcp-serve.js`**.
+Generated **`generated/cli/mcp-serve.ts`** is self-contained (no `@core2ai/core` at runtime). MCP uses **`generated/cli/mcp-serve.js`** — the extension compiles that on save; from the terminal use **`npm run build:generated`** after **`npm run generate:*`**. Only **`.ts`** is committed; **`.js`** is gitignored (run **`build:generated`** after clone).
 
 ## What you can do here
 
-- Edit **`.api2ai`** — on save, the extension writes **`generated/tools/*.ts`** and **`generated/cli/mcp-serve.ts`**; run **`npm run build:generated`** for **`.js`** used by MCP.
+- Edit **`.api2ai`** — on save, the extension writes **`generated/tools/*.ts`**, **`generated/cli/mcp-serve.ts`**, and compiles **`.js`** for MCP (requires **`npm install`** in this folder for TypeScript).
 - Point MCP at public APIs (weather, spaceflight) or APIs that need tokens (TMDB, GitHub)
 - Try the local **JWT demo** ([`./mock-api/`](./mock-api/)) with checked access in [`./src/auth/`](./src/auth/)
 - Chat in Cursor with prompts prefixed by **`api2ai`** (see [Demo prompts](#demo-prompts))

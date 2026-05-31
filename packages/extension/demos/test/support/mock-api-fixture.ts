@@ -2,7 +2,7 @@ import { spawn, type ChildProcess } from 'node:child_process';
 import * as fs from 'node:fs/promises';
 import * as net from 'node:net';
 import * as path from 'node:path';
-import { compileGeneratedForSmoke } from '@core2ai/core/test-fixtures';
+import { compileGeneratedForSmoke } from '../generated/index.js';
 import { demosRoot, demosTmpRoot } from './paths.js';
 import { runDemoGenerate } from './run-demo-generate.js';
 

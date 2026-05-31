@@ -12,7 +12,7 @@ The full project (DSL, CLI, demos) lives in the [api2ai](https://github.com/anne
 ## Usage
 
 1. Open a workspace folder that contains `.api2ai` files (and optional `openapi/` specs).
-2. Edit `.api2ai` — on **save**, the extension writes **`generated/tools/*.ts`** and **`generated/cli/mcp-serve.ts`**; run **`npm run build:generated`** for **`.js`** used by MCP.
+2. Edit `.api2ai` — on **save**, the extension writes **`generated/tools/*.ts`**, **`generated/cli/mcp-serve.ts`**, and compiles **`.js`** for MCP (same as **`npm run build:generated`**). Run **`npm install`** once in the demo workspace so TypeScript is available.
 3. Command Palette: **Generate tool code (.ts + MCP host)** for manual generation of the focused `.api2ai` file.
 
 Base URLs and API tokens belong in the MCP host config (e.g. `.cursor/mcp.json` / env), not in the DSL.
