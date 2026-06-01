@@ -79,7 +79,7 @@ export const authConfig: AuthConfig | undefined = {
 };
 
 export const mcpServerName = 'github-tools';
-export const mcpServerVersion = '0.0.4';
+export const mcpServerVersion = '0.0.5';
 
 import * as z from 'zod/v4';
 
