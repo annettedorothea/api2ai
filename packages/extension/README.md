@@ -1,8 +1,8 @@
 # api2ai
 
-Editor support for the **`.api2ai` DSL**: syntax highlighting, validation, completion, and **generate on save** (TypeScript/ESM tool modules + MCP host).
+Editor support for the **`.api2ai` DSL**: syntax highlighting, validation, completion, and **generate on save** (TypeScript tool modules + MCP host).
 
-The full project (DSL, CLI, demos) lives in the [api2ai](https://github.com/annettedorothea/api2ai) repository. Sibling: [db2ai](https://github.com/annettedorothea/db2ai) (PostgreSQL to MCP).
+The full project (DSL, CLI, demos) lives in the [api2ai](https://github.com/annettedorothea/api2ai) repository. Sibling: [db2ai](https://github.com/annettodorothea/db2ai) (relational DB to MCP).
 
 ## Requirements
 
@@ -12,30 +12,22 @@ The full project (DSL, CLI, demos) lives in the [api2ai](https://github.com/anne
 ## Usage
 
 1. Open a workspace folder that contains `.api2ai` files (and optional `openapi/` specs).
-2. Edit `.api2ai` — on **save**, the extension writes **`generated/tools/*.ts`**, **`generated/cli/mcp-serve.ts`**, and compiles **`.js`** for MCP (same as **`npm run build:generated`**). Run **`npm install`** once in the demo workspace so TypeScript is available.
+2. Edit `.api2ai` — on **save**, the extension writes **`generated/tools/*.ts`**, **`generated/cli/mcp-serve.ts`**, and compiles **`.js`** for MCP (same as **`npm run build:generated`**). Run **`npm install`** once in the workspace so TypeScript is available.
 3. Command Palette: **Generate tool code (.ts + MCP host)** for manual generation of the focused `.api2ai` file.
 
 Base URLs and API tokens belong in the MCP host config (e.g. `.cursor/mcp.json` / env), not in the DSL.
 
-## MCP demos without cloning the repo
+## MCP demo workspace
 
 1. Install this extension (VSIX).
-2. Create a demo workspace:
-    - Open the Command Palette.
-    - Run **api2ai: Create demo workspace (MCP examples)**.
-    - Pick an empty folder.
-3. Prepare the demo folder:
-    - Run `npm install`.
-    - Copy `.env.example` to `.env.local`.
-    - Set tokens for TMDB, GitHub, and mock-api if you want to use those demos. Open-Meteo needs no token.
-4. Generate and compile:
-    - `npm run generate:all`
-    - `npm run build:generated`
-5. Open and enable:
-    - Open the demo folder as the workspace.
-    - In Cursor Settings, open **Tools & MCP** and enable the `api2ai-*` MCP servers.
+2. Command Palette → **api2ai: Create demo workspace (MCP examples)** → choose an empty folder.
+3. In that folder run **`npm run init`** (creates `.env.local` from `.env.example` if missing, install, generate, compile, mock-api in background).
+4. Edit **`.env.local`** for optional tokens (TMDB, GitHub, mock-api). Open-Meteo needs no token.
+5. Open the demo folder as the workspace. In Cursor Settings → **Tools & MCP**, enable the **`api2ai-*`** servers.
 
-See the generated **`README.md`** in your demo folder for prompts and server names.
+**Reload MCP** after changing `.api2ai`, running generate/build, or env vars that MCP reads at server startup.
+
+Details, scripts, and example prompts: **`README.md`** in the demo folder.
 
 ## License
 

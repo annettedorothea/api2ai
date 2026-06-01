@@ -182,7 +182,7 @@ function registerCreateDemoWorkspaceCommand(context: vscode.ExtensionContext): v
         }
         const openFolder = 'Open folder';
         const choice = await vscode.window.showInformationMessage(
-            `api2ai: Demo workspace created in ${targetDir}. Run npm install, then npm run generate:all (or save .api2ai files).`,
+            `api2ai: Demo workspace created in ${targetDir}. Run npm run init, then enable MCP servers in Cursor.`,
             openFolder
         );
         if (choice === openFolder) {

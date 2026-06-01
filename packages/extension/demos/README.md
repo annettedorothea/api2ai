@@ -1,141 +1,130 @@
 # api2ai MCP demos
 
-Use the **api2ai** extension (VSIX or Extension Development Host). This folder is the recommended **Cursor/VS Code workspace**: `.api2ai` files, OpenAPI specs, generated MCP tools, and [`.cursor/mcp.json`](./.cursor/mcp.json).
+Demo workspace for **api2ai** MCP examples: `.api2ai` files, generated tools, and [`.cursor/mcp.json`](./.cursor/mcp.json). Project repo: [api2ai](https://github.com/annettedorothea/api2ai/blob/main/README.md).
 
-> **Links:** Paths are relative to **this demo workspace** unless noted. The api2ai project (DSL, build): [GitHub README](https://github.com/annettedorothea/api2ai/blob/main/README.md).
+## Quick start
 
-## Get demos without cloning the repo
+1. **`npm run init`** — creates `.env.local` from `.env.example` if missing, `npm install`, `generate:all`, `build:generated`, mock-api in background.
+2. Edit **`.env.local`** for optional API tokens (see [Credentials and env](#credentials-and-env)).
+3. Open **this folder** as the Cursor/VS Code workspace. Enable **`api2ai-*`** MCP servers under **Tools & MCP**.
+4. After DSL changes, generate/build, or env vars read at MCP startup: **reload** the affected MCP server.
 
-1. Install the **api2ai** VSIX.
-2. Create a demo workspace:
-    - Open the Command Palette.
-    - Run **api2ai: Create demo workspace (MCP examples)**.
-    - Choose an empty folder.
-3. Prepare the folder:
-    - Run `npm install`.
-    - Copy [`.env.example`](./.env.example) to `.env.local`.
-    - Set tokens for TMDB, GitHub, and mock-api if you want to use those demos. Open-Meteo needs no token.
-4. Generate and compile:
-    - `npm run generate:all`
-    - `npm run build:generated`
-    - Or save each `.api2ai` with the extension, then `npm run build:generated`.
-5. Enable MCP:
-    - Open the demo folder as the workspace.
-    - Open Cursor Settings, then **Tools & MCP**.
-    - Enable the `api2ai-*` MCP servers.
+## How it works
 
-Generated **`generated/cli/mcp-serve.ts`** is self-contained (no `@core2ai/core` at runtime). MCP uses **`generated/cli/mcp-serve.js`** — the extension compiles that on save; from the terminal use **`npm run build:generated`** after **`npm run generate:*`**. Only **`.ts`** is committed; **`.js`** is gitignored (run **`build:generated`** after clone).
+- You author **`.api2ai`** (and optional **`openapi/`** specs).
+- The **api2ai** extension or CLI generates **`generated/tools/*.ts`** and **`generated/cli/mcp-serve.ts`**.
+- **`npm run build:generated`** compiles **`generated/cli/mcp-serve.js`** for MCP.
+- [`.cursor/mcp.json`](./.cursor/mcp.json) starts `mcp-serve.js` per server over **stdio** and loads the matching tool module.
 
-## What you can do here
+## Example DSL
 
-- Edit **`.api2ai`** — on save, the extension writes **`generated/tools/*.ts`**, **`generated/cli/mcp-serve.ts`**, and compiles **`.js`** for MCP (requires **`npm install`** in this folder for TypeScript).
-- Point MCP at public APIs (weather, spaceflight) or APIs that need tokens (TMDB, GitHub)
-- Try the local **JWT demo** ([`./mock-api/`](./mock-api/)) with checked access in [`./src/auth/`](./src/auth/)
-- Chat in Cursor with prompts prefixed by **`api2ai`** (see [Demo prompts](#demo-prompts))
+```api2ai
+openapi "./openapi/open-meteo.openapi.yaml"
 
-## Getting started
-
-Prerequisite: **Node.js 20+** and the **api2ai** extension.
-
-1. Open **this folder** as the workspace so `.cursor/mcp.json` applies.
-2. Install dependencies:
-    ```bash
-    npm install
-    ```
-3. Generate and compile:
-    ```bash
-    npm run generate:all
-    npm run build:generated
-    ```
-    For one API only, use a targeted script such as `npm run generate:open-meteo-tools`, then **`npm run build:generated`** (see [`./package.json`](./package.json)).
-4. Configure optional secrets:
-    - Copy [`.env.example`](./.env.example) to `./.env.local`.
-    - Set `TMDB_ACCESS_TOKEN`, `GITHUB_TOKEN`, or mock-api values only for the demos you want to use.
-    - `.env.local` is gitignored.
-5. Enable MCP in Cursor:
-    - Open Settings, then **Tools & MCP**.
-    - Enable the `api2ai-*` servers.
-    - Reload MCP after changing `.env.local`; MCP servers read env values when they start, not on every tool call.
-
-### TMDB / GitHub (tokens)
-
-- TMDB: `TMDB_ACCESS_TOKEN` in `.env.local` ([TMDB settings](https://www.themoviedb.org/settings/api)).
-- GitHub: `GITHUB_TOKEN` in `.env.local` or `mcp.json` `env` for `api2ai-github`.
-- After adding or changing a token, reload the matching MCP server so the new env value is available.
-
-### mock-api (JWT + checked access)
-
-1. `npm run demo:mock-api` (stop: `npm run demo:mock-api:kill`)
-2. `node mock-api/get-token.mjs alice`
-3. Add `MOCK_API_ACCESS_TOKEN` to `.env.local`
-4. `npm run generate:mock-api-tools && npm run build:generated`
-5. Implement or adjust [`./src/auth/listCustomerOrders.ts`](./src/auth/listCustomerOrders.ts) (types from `generated/tools/mock-api-tools.ts`)
-6. Enable `api2ai-mock-api`, then reload MCP
-
-Details: [`./mock-api/README.md`](./mock-api/README.md).
-
-## Test in Cursor
-
-1. Workspace = this folder, MCP servers **on**.
-2. Prompts with prefix **`api2ai`** ([`./.cursor/rules/mcp-api2ai-only.mdc`](./.cursor/rules/mcp-api2ai-only.mdc)).
-
-| API         | Prompt (no token unless noted)                                 |
-| ----------- | -------------------------------------------------------------- |
-| Open-Meteo  | `api2ai wie ist das Wetter in Berlin`                          |
-| Spaceflight | `api2ai was ist die naechste SpaceX Mission`                   |
-| TMDB        | `api2ai suche Filme mit dem Titel Dune` (token required)       |
-| GitHub      | `api2ai gib mir die user infos und meine repos` (PAT required) |
-| mock-api    | `api2ai list my orders` (after token / login demo)             |
-
-After editing `.api2ai`: save or `npm run generate:…`, then **`npm run build:generated`**, then reload MCP.
-
-## MCP transport and credentials
-
-These demos serve tools through a **local MCP server over stdio**. Cursor starts [`generated/cli/mcp-serve.js`](./generated/cli/mcp-serve.js), loads the matching `generated/tools/*-tools.js`, and talks MCP via [`.cursor/mcp.json`](./.cursor/mcp.json).
-
-There is **no sign-in step in MCP** itself. Put tokens in [`.env.local`](./.env.example) (`GITHUB_TOKEN`, `TMDB_ACCESS_TOKEN`, `MOCK_API_ACCESS_TOKEN`, …). Reload the MCP server after changing `.env.local`.
-
-### HTTPS with self-signed certificates (dev only)
-
-Generated tools use Node’s global `fetch` with normal TLS verification. For **local** HTTPS backends with self-signed or untrusted certificates, set this on the MCP server entry in [`.cursor/mcp.json`](./.cursor/mcp.json) (not in generated code):
-
-```json
-"env": {
-    "NODE_TLS_REJECT_UNAUTHORIZED": "0",
-    "MY_API_BASE_URL": "https://internal.example/"
+GET "/v1/forecast" {
+    toolName: openMeteoForecast
+    access: public
+    intent: "retrieve hourly weather forecast for coordinates"
+    summary: "7 day weather forecast for coordinates"
+    example: "Get hourly temperature forecast for Berlin"
 }
 ```
 
-Use only for development. Never use in production. Node logs a security warning when this is set.
+See [`mock-api.api2ai`](./mock-api.api2ai) for `auth`, `checked`, and JWT demos.
 
-## MCP configuration
+## Demo files
 
-[`./.cursor/mcp.json`](./.cursor/mcp.json) — do not commit API keys.
+| DSL file                      | MCP server                    | Prerequisite                              |
+| ----------------------------- | ----------------------------- | ----------------------------------------- |
+| `open-meteo.api2ai`           | `api2ai-open-meteo`           | —                                         |
+| `open-meteo-geocoding.api2ai` | `api2ai-open-meteo-geocoding` | —                                         |
+| `spaceflight-news.api2ai`     | `api2ai-spaceflight-news`     | —                                         |
+| `tmdb.api2ai`                 | `api2ai-tmdb`                 | `TMDB_ACCESS_TOKEN`                       |
+| `github.api2ai`               | `api2ai-github`               | `GITHUB_TOKEN`                            |
+| `mock-api.api2ai`             | `api2ai-mock-api`             | mock-api running, `MOCK_API_ACCESS_TOKEN` |
+
+## Scripts
+
+| Script               | Purpose                                                                       |
+| -------------------- | ----------------------------------------------------------------------------- |
+| `init`               | Env from example, install, generate all, compile, start mock-api (background) |
+| `generate:all`       | Regenerate all demo tool modules                                              |
+| `generate:*`         | Single API (see `package.json`)                                               |
+| `build:generated`    | Compile `generated/**/*.ts` → `.js` for MCP                                   |
+| `demo:mock-api`      | Start mock-api in foreground                                                  |
+| `demo:mock-api:kill` | Stop background mock-api                                                      |
 
 ## MCP servers
 
-| Server                        | Auth         | Host `env`                                   |
-| ----------------------------- | ------------ | -------------------------------------------- |
-| `api2ai-open-meteo`           | —            | `OPEN_METEO_BASE_URL`                        |
-| `api2ai-open-meteo-geocoding` | —            | `OPEN_METEO_GEOCODING_BASE_URL`              |
-| `api2ai-spaceflight-news`     | —            | `SPACEFLIGHT_NEWS_BASE_URL`                  |
-| `api2ai-tmdb`                 | Bearer       | `TMDB_BASE_URL`, `TMDB_ACCESS_TOKEN`         |
-| `api2ai-github`               | Bearer       | `GITHUB_BASE_URL`, `GITHUB_TOKEN`            |
-| `api2ai-mock-api`             | Bearer + JWT | `MOCK_API_BASE_URL`, `MOCK_API_ACCESS_TOKEN` |
+| Server                        | Auth / env                                   | Prerequisite |
+| ----------------------------- | -------------------------------------------- | ------------ |
+| `api2ai-open-meteo`           | `OPEN_METEO_BASE_URL`                        | —            |
+| `api2ai-open-meteo-geocoding` | `OPEN_METEO_GEOCODING_BASE_URL`              | —            |
+| `api2ai-spaceflight-news`     | `SPACEFLIGHT_NEWS_BASE_URL`                  | —            |
+| `api2ai-tmdb`                 | `TMDB_BASE_URL`, `TMDB_ACCESS_TOKEN`         | Bearer token |
+| `api2ai-github`               | `GITHUB_BASE_URL`, `GITHUB_TOKEN`            | Bearer token |
+| `api2ai-mock-api`             | `MOCK_API_BASE_URL`, `MOCK_API_ACCESS_TOKEN` | JWT demo     |
 
-## Demo prompts
+Do not commit API keys; use `.env.local` (see [`.env.example`](./.env.example)).
 
-Prefix with **`api2ai`**: weather, SpaceX launch, TMDB Dune, GitHub user/repos.
+## Credentials and env
 
-## Own API (local)
+Env file: **`.env.local`** (from `.env.example` via `init`). MCP reads startup env when the server starts — reload MCP after changing those variables.
 
-1. OpenAPI under `./openapi/`
-2. `my-api.api2ai` with curated operations
-3. Save, **Generate tool code**, or add a `generate:*` script in `package.json`
-4. `npm run build:generated`
-5. Extend `mcp.json` and `.env.local`
+### Local backend
 
-Generate scripts: [`./scripts/generate.mjs`](./scripts/generate.mjs), config [`./demos-generate.config.json`](./demos-generate.config.json).
+**mock-api** (HTTPS JWT demo) starts in the background on **`npm run init`** (port **3847**, override `MOCK_API_PORT`). Stop: **`npm run demo:mock-api:kill`**.
+
+Token: `node mock-api/get-token.mjs alice` → set **`MOCK_API_ACCESS_TOKEN`** in `.env.local`. Checked tool stub: [`src/auth/listCustomerOrders.ts`](./src/auth/listCustomerOrders.ts).
+
+### Demo tokens
+
+| Variable                | Demo                             |
+| ----------------------- | -------------------------------- |
+| `TMDB_ACCESS_TOKEN`     | TMDB search                      |
+| `GITHUB_TOKEN`          | GitHub user/repos                |
+| `MOCK_API_ACCESS_TOKEN` | mock-api protected/checked tools |
+
+Open-Meteo and Spaceflight News need no token.
+
+### Dev TLS
+
+For **local HTTPS** with self-signed certificates, set on the MCP entry in [`.cursor/mcp.json`](./.cursor/mcp.json) (dev only):
+
+```json
+"env": {
+    "NODE_TLS_REJECT_UNAUTHORIZED": "0"
+}
+```
+
+Never use in production.
+
+## Example prompts
+
+Use prefix **`api2ai`** in chat ([`./.cursor/rules/mcp-api2ai-only.mdc`](./.cursor/rules/mcp-api2ai-only.mdc)).
+
+| Scenario    | Prompt                                          |
+| ----------- | ----------------------------------------------- |
+| Weather     | `api2ai wie ist das Wetter in Berlin`           |
+| Spaceflight | `api2ai was ist die naechste SpaceX Mission`    |
+| TMDB        | `api2ai suche Filme mit dem Titel Dune`         |
+| GitHub      | `api2ai gib mir die user infos und meine repos` |
+| mock-api    | `api2ai list my orders`                         |
+
+## Troubleshooting
+
+- **MCP tools missing or stale:** run `generate:*` or save `.api2ai`, then `npm run build:generated`, then reload MCP.
+- **401 / missing credential:** set token in `.env.local`, reload MCP.
+- **mock-api connection refused:** `npm run demo:mock-api` or re-run `init`; check port **3847**.
+- **Token changed in `.env.local`:** reload the matching MCP server.
+
+## Development
+
+From the **api2ai** monorepo root:
+
+```bash
+npm test --prefix packages/extension/demos
+```
 
 ---
 

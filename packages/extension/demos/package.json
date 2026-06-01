@@ -3,6 +3,7 @@
     "private": true,
     "type": "module",
     "scripts": {
+        "init": "node ./scripts/init.mjs",
         "demo:mock-api": "node ./mock-api/server.mjs",
         "demo:mock-api:kill": "node ./mock-api/kill-server.mjs",
         "generate:spaceflight-tools": "node ./scripts/generate.mjs spaceflight-news.api2ai generated/tools/spaceflight-news-tools.ts && npm run format",
