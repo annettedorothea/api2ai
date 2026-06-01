@@ -10,7 +10,15 @@ GET "/v1/forecast" {
     access: public
     intent: "retrieve hourly weather forecast for coordinates"
     summary: "7 day weather forecast for coordinates"
-    description: "Use this tool to get a 7 day weather forecast (hourly and daily) for specific WGS84 coordinates. Prefer small sets of hourly/daily variables to keep responses compact and focused on what the agent needs."
+    description: '''
+        - Fetch up to 7 days of weather forecast for fixed WGS84 coordinates (query: latitude, longitude).
+        - Supports hourly and daily aggregates; request only the variables needed (e.g. temperature_2m, precipitation_sum, weather_code).
+        - Prefer small hourly/daily arrays to keep MCP responses compact and agent-focused.
+        - Optional: timezone (e.g. Europe/Berlin), temperature_unit, wind_speed_unit, current_weather for nowcast.
+        - Resolve place names to coordinates first via openMeteoGeocodeSearch (api2ai-open-meteo-geocoding), then call this tool.
+        - Public endpoint; no API key. OpenAPI operation text is overridden here for clearer agent guidance.
+    '''
     example: "Get hourly temperature forecast for Offenburg, Germany"
 }
+
 

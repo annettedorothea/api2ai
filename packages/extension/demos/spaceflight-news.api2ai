@@ -3,7 +3,12 @@ openapi "./openapi/spaceflight-news.openapi.yaml"
 GET "/v4/articles/" {
     toolName: listSpaceflightArticles
     access: public
-    intent: "list recent spaceflight news articles; API returns summary teaser only, full article text at each result url"
+    intent: '''
+        - List recent spaceflight news articles (pagination: limit, offset, ordering).
+        - Response contains title, summary teaser, and url per item — not the full article body.
+        - Use search, has_launch, or news_site filters for SpaceX, launches, or specific outlets.
+        - Follow result url only when full text is needed (same pattern for blogs and reports tools).
+    '''
     summary: "List spaceflight articles (teaser only; full text at response url)"
     example: "Get the latest 5 articles"
 }

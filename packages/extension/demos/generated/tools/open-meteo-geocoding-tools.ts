@@ -18,7 +18,7 @@ export const generatedTools: GeneratedTool[] = [
         toolName: 'openMeteoGeocodeSearch',
         title: 'Resolve location names to coordinates',
         description:
-            'Intent:\nresolve a location name to latitude and longitude coordinates\n\nMeta:\noperationId: searchLocationByName\n\nExample:\nFind coordinates for Bernstein, Burgenland, Austria\n\nResponse:\nHTTP 200\nOK\n\nRuntime: public endpoint — no Authorization header or MCP credential required.',
+            'Intent:\n- Resolve a place name to WGS84 latitude and longitude (query: name, required).\n        - Optional: countryCode (e.g. DE), language (e.g. de), count to limit matches.\n        - Use before openMeteoForecast when the user gives a city or region, not coordinates.\n        - Pick the result that matches the intended admin region (e.g. Baden-Württemberg vs. Hessen for "Ortenberg").\n\nMeta:\noperationId: searchLocationByName\n\nExample:\nFind coordinates for Bernstein, Burgenland, Austria\n\nResponse:\nHTTP 200\nOK\n\nRuntime: public endpoint — no Authorization header or MCP credential required.',
         method: 'GET',
         path: '/v1/search',
         example: 'Find coordinates for Bernstein, Burgenland, Austria',

@@ -16,10 +16,10 @@ Operation:
     method=HttpMethod path=STRING '{'
         ('toolName' ':' toolName=ID)?
         'access' ':' access=Access
-        ('intent' ':' intent=STRING)?
-        ('summary' ':' summary=STRING)?
-        ('description' ':' description=STRING)?
-        ('example' ':' example=STRING)?
+        ('intent' ':' intent=DslText)?
+        ('summary' ':' summary=DslText)?
+        ('description' ':' description=DslText)?
+        ('example' ':' example=DslText)?
     '}';
 
 Access:
@@ -43,8 +43,12 @@ AuthLocation returns string:
 HttpMethod returns string:
     'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' | 'HEAD' | 'OPTIONS' | 'TRACE';
 
+DslText returns string:
+    STRING | MULTILINE_STRING;
+
 hidden terminal WS: /\s+/;
 terminal ID: /[a-zA-Z_][a-zA-Z0-9_]*/;
+terminal MULTILINE_STRING: /'''[\s\S]*?'''|"""[\s\S]*?"""/;
 terminal STRING: /"(\\.|[^"\\])*"|'(\\.|[^'\\])*'/;
 
 hidden terminal ML_COMMENT: /\/\*[\s\S]*?\*\//;

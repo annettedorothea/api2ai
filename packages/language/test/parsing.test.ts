@@ -34,6 +34,36 @@ describe('Parsing tests', () => {
         expect(getAccessKind(document.parseResult.value.operations[0])).toBe('public');
     });
 
+    test('parses multiline intent and description on operation', async () => {
+        document = await parse(`
+            openapi "./langium-test-mini.openapi.yaml"
+            GET "/customers" {
+                toolName: listCustomers
+                access: public
+                intent: '''
+                    List customers for support.
+                    Read-only.
+                '''
+                summary: "Customer list"
+                description: '''
+                    Returns all customers.
+                    Paginated via query params in OpenAPI.
+                '''
+                example: '''
+                    List first page
+                '''
+            }
+        `);
+
+        expect(document.parseResult.parserErrors).toHaveLength(0);
+        const op = document.parseResult.value.operations[0];
+        expect(op.intent).toContain('support');
+        expect(op.intent).toContain('\n');
+        expect(op.description).toContain('Paginated');
+        expect(op.description).toContain('\n');
+        expect(op.example).toContain('first page');
+    });
+
     test('parses operation with optional overrides', async () => {
         document = await parse(`
             openapi "./langium-test-mini.openapi.yaml"

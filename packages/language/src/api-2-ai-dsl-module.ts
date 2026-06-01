@@ -9,6 +9,7 @@ import {
 } from 'langium/lsp';
 import { Api2AiDslGeneratedModule, Api2AiDslGeneratedSharedModule } from './generated/module.js';
 import { Api2AiDslCompletionProvider } from './api-2-ai-dsl-completion-provider.js';
+import { Api2AiDslValueConverter } from './api-2-ai-dsl-value-converter.js';
 import { Api2AiDslValidator, registerValidationChecks } from './api-2-ai-dsl-validator.js';
 
 /**
@@ -32,6 +33,9 @@ export type Api2AiDslServices = LangiumServices & Api2AiDslAddedServices;
  * selected services, while the custom services must be fully specified.
  */
 export const Api2AiDslModule: Module<Api2AiDslServices, PartialLangiumServices & Api2AiDslAddedServices> = {
+    parser: {
+        ValueConverter: () => new Api2AiDslValueConverter()
+    },
     validation: {
         Api2AiDslValidator: () => new Api2AiDslValidator()
     },

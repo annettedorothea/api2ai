@@ -41,7 +41,12 @@ GET "/3/movie/{movie_id}/credits" {
 GET "/3/discover/movie" {
     toolName: discoverTmdbMovies
     access: protected
-    intent: "discover TMDB movies using rich filters such as genre, year, and rating"
+    intent: '''
+        - Discover movies with OpenAPI query filters (genre, year, vote_average, sort_by, etc.).
+        - Use getTmdbMovieGenres first when the user names a genre in natural language.
+        - Prefer searchTmdbMovies for a known title; use this tool for "best sci-fi 2024" style queries.
+        - Requires TMDB_ACCESS_TOKEN via MCP host --auth-env.
+    '''
     summary: "Discover movies with filters"
     example: "Find highly rated science fiction movies from 2024"
 }
