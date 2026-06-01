@@ -95,6 +95,19 @@ These demos serve tools through a **local MCP server over stdio**. Cursor starts
 
 There is **no sign-in step in MCP** itself. Put tokens in [`.env.local`](./.env.example) (`GITHUB_TOKEN`, `TMDB_ACCESS_TOKEN`, `MOCK_API_ACCESS_TOKEN`, …). Reload the MCP server after changing `.env.local`.
 
+### HTTPS with self-signed certificates (dev only)
+
+Generated tools use Node’s global `fetch` with normal TLS verification. For **local** HTTPS backends with self-signed or untrusted certificates, set this on the MCP server entry in [`.cursor/mcp.json`](./.cursor/mcp.json) (not in generated code):
+
+```json
+"env": {
+    "NODE_TLS_REJECT_UNAUTHORIZED": "0",
+    "MY_API_BASE_URL": "https://internal.example/"
+}
+```
+
+Use only for development. Never use in production. Node logs a security warning when this is set.
+
 ## MCP configuration
 
 [`./.cursor/mcp.json`](./.cursor/mcp.json) — do not commit API keys.

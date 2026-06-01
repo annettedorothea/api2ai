@@ -3,8 +3,6 @@
  * Referenced OpenAPI: ./openapi/open-meteo-geocoding.openapi.yaml
  */
 
-export const insecureTls = false;
-
 export type GeneratedTool = {
     toolName: string;
     title: string;

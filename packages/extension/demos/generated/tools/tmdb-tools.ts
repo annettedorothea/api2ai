@@ -3,8 +3,6 @@
  * Referenced OpenAPI: ./openapi/tmdb.openapi.json
  */
 
-export const insecureTls = false;
-
 export type GeneratedTool = {
     toolName: string;
     title: string;

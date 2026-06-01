@@ -4,8 +4,6 @@
  */
 import { checkListCustomerOrdersParameters } from '../../src/auth/listCustomerOrders.js';
 
-export const insecureTls = false;
-
 export type GeneratedTool = {
     toolName: string;
     title: string;

@@ -2,7 +2,6 @@ grammar Api2AiDsl
 
 entry Model:
     'openapi' openapi=STRING
-    (insecureEnv?='insecureEnv')?
     ('auth' auth=Auth)?
     (operations += Operation)*;
 

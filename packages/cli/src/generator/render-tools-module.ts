@@ -68,7 +68,7 @@ function resolveToolsFromLoaded(model: Model, loaded: LoadedOpenApi): ResolvedTo
         return {
             toolName: requireToolName(operation),
             title: buildMcpTitle(operation, details),
-            description: buildMcpDescription(operation, details, model.auth, model.insecureEnv),
+            description: buildMcpDescription(operation, details, model.auth),
             method: operation.method,
             path: operation.path,
             example: operation.example,
@@ -183,14 +183,10 @@ function assembleToolsModuleSource(
     toolRuntimeBlock: string,
     model: Model,
     source: string,
-    usesInsecureTls: boolean,
     parameterCheckerImports: string
 ): string {
     const authConfigLiteral = renderAuthConfig(model);
     const sourceReference = renderSourceReference(source);
-    const insecureTlsExport = usesInsecureTls
-        ? '\nexport const insecureTls = true;\n'
-        : '\nexport const insecureTls = false;\n';
 
     const authDecl = model.auth
         ? `type AuthConfig = {
@@ -211,7 +207,7 @@ export const authConfig: undefined = undefined;`;
  * Generated from: ${sourceReference}
  * Referenced OpenAPI: ${model.openapi}
  */
-${importPrefix}${insecureTlsExport}
+${importPrefix}
 export type GeneratedTool = {
     toolName: string;
     title: string;
@@ -264,7 +260,6 @@ export async function renderToolsModule(input: RenderToolsModuleInput): Promise<
         querySerialization
     );
     const authKind = authRuntimeKind(model);
-    const usesInsecureTls = model.insecureEnv === true;
     const mcpServerIdentity = resolveMcpServerIdentityFromDestination(destinationTsPath, bootstrapConfig);
     const mcpServerIdentityBlock = renderMcpServerIdentityExports(mcpServerIdentity.name, mcpServerIdentity.version);
     const mcpHostAdapterBlock = renderMcpHostAdapterBlock(authKind);
@@ -277,7 +272,6 @@ export async function renderToolsModule(input: RenderToolsModuleInput): Promise<
     const toolRuntimeBlock = `${authRuntimePrefix}${buildInputZodBlock(orderedSchemas)}\n${mcpHostAdapterBlock}\n${createSharedInvokeBlock(
         querySerializationLiteral,
         authKind,
-        usesInsecureTls,
         hasChecked
     )}`;
 
@@ -287,7 +281,6 @@ export async function renderToolsModule(input: RenderToolsModuleInput): Promise<
         toolRuntimeBlock,
         model,
         source,
-        usesInsecureTls,
         parameterCheckerImports
     );
 }

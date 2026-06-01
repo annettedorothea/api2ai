@@ -192,12 +192,7 @@ function buildResponseSection(details: OpenApiOperationDetails): string {
 }
 
 /** Pre-condition: `operation` has passed validation, so `intent` is present. */
-export function buildMcpDescription(
-    operation: Operation,
-    details: OpenApiOperationDetails,
-    auth?: Auth,
-    insecureEnv?: boolean
-): string {
+export function buildMcpDescription(operation: Operation, details: OpenApiOperationDetails, auth?: Auth): string {
     const sections: string[] = [];
 
     sections.push(`Intent:\n${operation.intent!.trim()}`);
@@ -242,12 +237,6 @@ export function buildMcpDescription(
             auth.prefix !== undefined && String(auth.prefix).trim().length > 0 ? ' (prefix applied to the secret)' : '';
         sections.push(
             `Runtime auth: MCP host injects the API credential via --auth-env; send as ${auth.location} "${auth.name}"${prefixNote}.`
-        );
-    }
-
-    if (insecureEnv) {
-        sections.push(
-            'TLS: generated client disables TLS certificate verification (insecureEnv in .api2ai). Use only for local/dev endpoints with self-signed certificates.'
         );
     }
 

@@ -79,21 +79,6 @@ describe('Parsing tests', () => {
         expect(document.parseResult.parserErrors.length).toBeGreaterThan(0);
     });
 
-    test('parses optional insecureEnv flag', async () => {
-        document = await parse(`
-            openapi "./langium-test-mini.openapi.yaml"
-            insecureEnv
-            GET "/customers" {
-                toolName: listCustomers
-                access: public
-                intent: "list"
-            }
-        `);
-
-        expect(document.parseResult.parserErrors).toHaveLength(0);
-        expect(document.parseResult.value.insecureEnv).toBe(true);
-    });
-
     test('rejects auth properties outside the canonical order', async () => {
         document = await parse(`
             openapi "./langium-test-mini.openapi.yaml"

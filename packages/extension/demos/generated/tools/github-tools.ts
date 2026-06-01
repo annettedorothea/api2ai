@@ -3,8 +3,6 @@
  * Referenced OpenAPI: ./openapi/github-user-min.openapi.yaml
  */
 
-export const insecureTls = false;
-
 export type GeneratedTool = {
     toolName: string;
     title: string;

@@ -1,13 +1,3 @@
-function renderInsecureTlsSetup(usesInsecureTls: boolean): string {
-    return usesInsecureTls
-        ? `
-import { Agent, fetch } from 'undici';
-
-const insecureTlsDispatcher = new Agent({ connect: { rejectUnauthorized: false } });
-`
-        : '';
-}
-
 function renderAuthHelpers(authKind: 'none' | 'credential'): string {
     if (authKind !== 'credential') {
         return '';
@@ -47,15 +37,6 @@ function renderAuth401Hint(authKind: 'none' | 'credential'): string {
                     ' ' +
                     authConfig.name +
                     ').';`
-        : '';
-}
-
-function renderInsecureTlsFetch(usesInsecureTls: boolean): string {
-    return usesInsecureTls
-        ? `
-    if (insecureTls) {
-        requestInit.dispatcher = insecureTlsDispatcher;
-    }`
         : '';
 }
 
@@ -124,12 +105,7 @@ function renderHostBinding(authKind: 'none' | 'credential'): string {
     const { baseUrl${credentialBinding} } = host;`;
 }
 
-function renderInvokeToolFunction(
-    authKind: 'none' | 'credential',
-    usesInsecureTls: boolean,
-    hasChecked: boolean
-): string {
-    const hasAuth = authKind === 'credential';
+function renderInvokeToolFunction(authKind: 'none' | 'credential', hasChecked: boolean): string {
     const resolveCall = renderAuthApplicationBlock(authKind);
     const auth401Block = renderAuth401Hint(authKind);
     const auth401Section =
@@ -140,8 +116,7 @@ function renderInvokeToolFunction(
             : `if (tool.access !== 'public') {
                 msg += ' The API may require authentication.';
             }`;
-    const insecureTlsFetch = renderInsecureTlsFetch(usesInsecureTls);
-    const credentialAndParams = renderInvokeCredentialAndParameterCheck(hasAuth, hasChecked);
+    const credentialAndParams = renderInvokeCredentialAndParameterCheck(authKind === 'credential', hasChecked);
     const hostBinding = renderHostBinding(authKind);
 
     return `export async function invokeTool(
@@ -162,7 +137,7 @@ ${hostBinding}${credentialAndParams}${resolveCall}
 
     if (optionsResolved.body !== undefined && tool.method !== 'GET' && tool.method !== 'HEAD') {
         requestInit.body = JSON.stringify(optionsResolved.body);
-    }${insecureTlsFetch}
+    }
 
     const response = await fetch(url, requestInit as RequestInit);
     if (!response.ok) {
@@ -205,13 +180,11 @@ ${hostBinding}${credentialAndParams}${resolveCall}
 export function createSharedInvokeBlock(
     querySerializationLiteralBody: string,
     authKind: 'none' | 'credential',
-    usesInsecureTls: boolean,
     hasChecked: boolean
 ): string {
-    return `${renderInsecureTlsSetup(usesInsecureTls)}
-${renderQuerySerializationHelpers(querySerializationLiteralBody)}
+    return `${renderQuerySerializationHelpers(querySerializationLiteralBody)}
 ${renderAuthHelpers(authKind)}
 
-${renderInvokeToolFunction(authKind, usesInsecureTls, hasChecked)}
+${renderInvokeToolFunction(authKind, hasChecked)}
 `.trim();
 }
