@@ -1,14 +1,17 @@
 #!/usr/bin/env node
 /**
- * Mini OAuth 2.1 authorization server for MCP demos (shopping-api).
- * Sync logic with db2ai access-demo/oauth-idp/server.mjs — ports/secrets differ.
+ * Mini OAuth 2.1 authorization server for MCP demos (bookings-api).
+ * Sync logic with db2ai orders-demo/oauth-idp/server.mjs — ports/secrets differ.
  */
 import { createHash, randomBytes, timingSafeEqual } from 'node:crypto';
 import { createServer } from 'node:http';
 import { getJwksDocument, mintCustomerToken } from './jwt.mjs';
 
 const PORT =
-    Number(process.env.SHOPPING_API_OAUTH_IDP_PORT) || Number(process.env.MOCK_API_OAUTH_IDP_PORT) || 3860;
+    Number(process.env.BOOKINGS_API_OAUTH_IDP_PORT) ||
+    Number(process.env.SHOPPING_API_OAUTH_IDP_PORT) ||
+    Number(process.env.MOCK_API_OAUTH_IDP_PORT) ||
+    3860;
 const CLIENT_ID = 'mcp-demo-local';
 const CURSOR_REDIRECT = 'cursor://anysphere.cursor-mcp/oauth/callback';
 const DEMO_USERS = [
@@ -93,9 +96,9 @@ function sendAuthorizeHelpPage(res, title) {
     res.writeHead(200, { 'content-type': 'text/html; charset=utf-8' });
     res.end(
         `<!doctype html><html><body><h1>${title}</h1>` +
-            '<p>Open login via <strong>Cursor MCP OAuth</strong> (&quot;Needs login&quot; on <code>shopping-api-oauth</code>), not by bookmarking <code>/authorize</code>.</p>' +
+            '<p>Open login via <strong>Cursor MCP OAuth</strong> (&quot;Needs login&quot; on <code>bookings-api-oauth</code>), not by bookmarking <code>/authorize</code>.</p>' +
             '<p>Cursor sends <code>response_type=code</code>, <code>client_id=mcp-demo-local</code>, PKCE <code>code_challenge</code>, and redirect <code>cursor://anysphere.cursor-mcp/oauth/callback</code>.</p>' +
-            '<p>Processes: <code>npm run demo:oauth-idp</code>, <code>npm run demo:mcp-oauth:shopping-api</code>, shopping-api backend.</p>' +
+            '<p>Processes: <code>npm run demo:oauth-idp</code>, <code>npm run demo:mcp-oauth:bookings-api</code>, bookings-api backend.</p>' +
             '</body></html>'
     );
 }
@@ -109,7 +112,7 @@ function handleAuthorize(req, res, url) {
 
     if (responseType !== 'code') {
         if (!responseType && !clientId && !redirectUri && !codeChallenge) {
-            sendAuthorizeHelpPage(res, 'shopping-api OAuth IDP');
+            sendAuthorizeHelpPage(res, 'bookings-api OAuth IDP');
             return;
         }
         sendJson(res, 400, { error: 'unsupported_response_type', detail: responseType || '(missing)' });
@@ -139,7 +142,7 @@ function handleAuthorize(req, res, url) {
         ).join('');
         res.writeHead(200, { 'content-type': 'text/html; charset=utf-8' });
         res.end(
-            `<!doctype html><html><body><h1>shopping-api OAuth IDP</h1><p>Login as:</p><ul>${links}</ul></body></html>`
+            `<!doctype html><html><body><h1>bookings-api OAuth IDP</h1><p>Login as:</p><ul>${links}</ul></body></html>`
         );
         return;
     }
@@ -248,7 +251,7 @@ const server = createServer(async (req, res) => {
 });
 
 server.listen(PORT, '127.0.0.1', () => {
-    console.error(`[shopping-api-oauth-idp] http://127.0.0.1:${PORT}`);
-    console.error(`[shopping-api-oauth-idp] Cursor redirect: ${CURSOR_REDIRECT}`);
-    console.error(`[shopping-api-oauth-idp] client_id: ${CLIENT_ID}`);
+    console.error(`[bookings-api-oauth-idp] http://127.0.0.1:${PORT}`);
+    console.error(`[bookings-api-oauth-idp] Cursor redirect: ${CURSOR_REDIRECT}`);
+    console.error(`[bookings-api-oauth-idp] client_id: ${CLIENT_ID}`);
 });

@@ -1,0 +1,81 @@
+openapi: 3.0.3
+info:
+    title: Bookings API (demo)
+    description: Local demo API for vacation rental bookings (JWT Bearer, OAuth MCP).
+    version: 0.1.0
+servers:
+    - url: http://127.0.0.1:3847
+paths:
+    /vacation-rentals:
+        get:
+            operationId: list-vacation-rentals
+            summary: List vacation rental units
+            description: |
+                Requires Bearer JWT. Admin sees guest names and booking details per unit.
+                User sees only occupied and free date ranges (no guest identity).
+            security:
+                - bearerAuth: []
+            responses:
+                '200':
+                    description: Vacation rental units
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    role:
+                                        type: string
+                                    units:
+                                        type: array
+                                        items:
+                                            type: object
+                '401':
+                    description: Missing or invalid token
+    /bookings/{customerId}:
+        get:
+            operationId: list-customer-bookings
+            summary: List bookings for a customer
+            description: Requires Bearer JWT; role=user path customerId must match JWT claim; admin may read any customer.
+            security:
+                - bearerAuth: []
+            parameters:
+                - name: customerId
+                  in: path
+                  required: true
+                  schema:
+                      type: string
+            responses:
+                '200':
+                    description: Booking list
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    customerId:
+                                        type: string
+                                    bookings:
+                                        type: array
+                                        items:
+                                            type: object
+                                            properties:
+                                                bookingId:
+                                                    type: string
+                                                unitId:
+                                                    type: string
+                                                checkIn:
+                                                    type: string
+                                                    format: date
+                                                checkOut:
+                                                    type: string
+                                                    format: date
+                '401':
+                    description: Missing or invalid token
+                '403':
+                    description: Token customerId does not match path
+components:
+    securitySchemes:
+        bearerAuth:
+            type: http
+            scheme: bearer
+            bearerFormat: JWT

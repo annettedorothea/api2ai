@@ -4,17 +4,17 @@
 import path from 'node:path';
 
 export const OAUTH_HTTP_DEMOS = {
-    'shopping-api': {
-        tools: 'shopping-api-tools.js',
-        baseUrlEnv: 'SHOPPING_API_BASE_URL',
+    'bookings-api': {
+        tools: 'bookings-api-tools.js',
+        baseUrlEnv: 'BOOKINGS_API_BASE_URL',
         defaultBaseUrl: 'http://127.0.0.1:3847',
-        oauthIdpUrlEnv: 'SHOPPING_API_OAUTH_IDP_URL',
+        oauthIdpUrlEnv: 'BOOKINGS_API_OAUTH_IDP_URL',
         defaultOAuthIdpUrl: 'http://127.0.0.1:3860',
-        jwtSecretEnv: 'SHOPPING_API_JWT_SECRET',
-        portEnv: 'SHOPPING_API_OAUTH_HTTP_PORT',
+        jwtSecretEnv: 'BOOKINGS_API_JWT_SECRET',
+        portEnv: 'BOOKINGS_API_OAUTH_HTTP_PORT',
         defaultPort: 3870,
         mcpUrl: 'http://127.0.0.1:3870/mcp',
-        prerequisite: 'shopping-api backend + oauth-idp (npm run demo:shopping-api, demo:oauth-idp)'
+        prerequisite: 'bookings-api backend + oauth-idp (npm run demo:bookings-api, demo:oauth-idp)'
     }
 };
 

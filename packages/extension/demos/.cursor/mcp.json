@@ -21,7 +21,7 @@
                 "GITHUB_BASE_URL": "https://api.github.com"
             }
         },
-        "shopping-api-oauth": {
+        "bookings-api-oauth": {
             "url": "http://127.0.0.1:3870/mcp",
             "auth": {
                 "CLIENT_ID": "mcp-demo-local"

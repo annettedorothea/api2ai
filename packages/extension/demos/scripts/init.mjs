@@ -77,22 +77,22 @@ runNpm(['install']);
 runNpm(['run', 'generate:all']);
 runNpm(['run', 'build:generated']);
 
-const shoppingPort = Number(process.env.SHOPPING_API_PORT) || 3847;
+const bookingsPort = Number(process.env.BOOKINGS_API_PORT) || 3847;
 startDetached(
-    'shopping-api',
-    path.join(demosRoot, 'shopping-api', 'server.mjs'),
-    { SHOPPING_API_PORT: String(shoppingPort) },
-    shoppingPort
+    'bookings-api',
+    path.join(demosRoot, 'bookings-api', 'server.mjs'),
+    { BOOKINGS_API_PORT: String(bookingsPort) },
+    bookingsPort
 );
 
 const todoPort = Number(process.env.TODO_API_PORT) || 3852;
 startDetached('todo-api', path.join(demosRoot, 'todo-api', 'server.mjs'), { TODO_API_PORT: String(todoPort) }, todoPort);
 
-const idpPort = Number(process.env.SHOPPING_API_OAUTH_IDP_PORT) || 3860;
+const idpPort = Number(process.env.BOOKINGS_API_OAUTH_IDP_PORT) || 3860;
 startDetached(
     'oauth-idp',
-    path.join(demosRoot, 'shopping-api', 'oauth-idp', 'server.mjs'),
-    { SHOPPING_API_OAUTH_IDP_PORT: String(idpPort) },
+    path.join(demosRoot, 'bookings-api', 'oauth-idp', 'server.mjs'),
+    { BOOKINGS_API_OAUTH_IDP_PORT: String(idpPort) },
     idpPort
 );
 

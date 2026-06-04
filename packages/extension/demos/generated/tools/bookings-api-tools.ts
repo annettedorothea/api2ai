@@ -1,8 +1,8 @@
 /**
- * Generated from: shopping-api.api2ai
- * Referenced OpenAPI: ./openapi/shopping-api.openapi.yaml
+ * Generated from: bookings-api.api2ai
+ * Referenced OpenAPI: ./openapi/bookings-api.openapi.yaml
  */
-import { checkListCustomerOrdersParameters } from '../../src/auth/listCustomerOrders.js';
+import { checkListBookingsParameters } from '../../src/auth/listBookings.js';
 
 export type GeneratedTool = {
     toolName: string;
@@ -16,13 +16,23 @@ export type GeneratedTool = {
 
 export const generatedTools: GeneratedTool[] = [
     {
-        toolName: 'listCustomerOrders',
-        title: 'List customer orders',
+        toolName: 'listVacationRentals',
+        title: 'List vacation rentals with availability or admin booking details',
         description:
-            'Intent:\n- List orders for the authenticated customer (Bearer JWT from MCP OAuth or --auth-env).\n        - Path parameter customerId is optional: when empty or omitted, it is filled from the JWT claim customerId.\n        - Role user: customerId in the path must match the JWT claim; otherwise the call fails with 403.\n        - Role admin: may list orders for any customerId in the path (e.g. alice, bob).\n        - Returns customerId and an orders array (orderId, product, amount).\n        - Use without pathParams for "my orders"; use pathParams.customerId only when admin or when it matches the token.\n\nAPI:\nRequires Bearer JWT; for role=user customerId in path must match JWT claim, role=admin may read any customer.\n\nMeta:\noperationId: list-customer-orders\n\nExample:\nList my orders\n\nResponse:\nHTTP 200\nOrder list\nproperties (top-level): customerId, orders\nDocumented errors:\nHTTP 401 — Missing or invalid token\nHTTP 403 — Token customerId does not match path\n\nRuntime: checked — implement checkListCustomerOrdersParameters in src/auth/listCustomerOrders.ts (types from this tools module; run build:generated for .js); credential sent as header "Authorization" (prefix applied to the secret).',
+            'Intent:\nList Ferienwohnungen (vacation rental units).\n        Requires Bearer JWT from MCP OAuth or --auth-env.\n        Admin: per unit, who booked which dates (customerId, checkIn, checkOut).\n        User: per unit, only occupied and free periods — no guest names.\n\nAPI:\nRequires Bearer JWT. Admin sees guest names and booking details per unit.\nUser sees only occupied and free date ranges (no guest identity).\n\nMeta:\noperationId: list-vacation-rentals\n\nExample:\nShow all vacation rentals and availability\n\nResponse:\nHTTP 200\nVacation rental units\nproperties (top-level): role, units\nDocumented errors:\nHTTP 401 — Missing or invalid token\n\nRuntime auth: MCP host injects the API credential via --auth-env; send as header "Authorization" (prefix applied to the secret).',
         method: 'GET',
-        path: '/orders/{customerId}',
-        example: 'List my orders',
+        path: '/vacation-rentals',
+        example: 'Show all vacation rentals and availability',
+        access: 'protected'
+    },
+    {
+        toolName: 'listBookings',
+        title: 'List customer vacation rental bookings',
+        description:
+            'Intent:\nList bookings for the authenticated customer (Bearer JWT).\n        Path customerId is optional: when empty or omitted, filled from JWT claim customerId.\n        Role user: path customerId must match JWT; role admin may list any customerId.\n        Returns bookingId, unitId, checkIn, checkOut for each stay.\n\nAPI:\nRequires Bearer JWT; role=user path customerId must match JWT claim; admin may read any customer.\n\nMeta:\noperationId: list-customer-bookings\n\nExample:\nList my bookings\n\nResponse:\nHTTP 200\nBooking list\nproperties (top-level): bookings, customerId\nDocumented errors:\nHTTP 401 — Missing or invalid token\nHTTP 403 — Token customerId does not match path\n\nRuntime: checked — implement checkListBookingsParameters in src/auth/listBookings.ts (types from this tools module; run build:generated for .js); credential sent as header "Authorization" (prefix applied to the secret).',
+        method: 'GET',
+        path: '/bookings/{customerId}',
+        example: 'List my bookings',
         access: 'checked'
     }
 ];
@@ -59,20 +69,38 @@ export const authConfig: AuthConfig | undefined = {
     prefix: 'Bearer '
 };
 
-export const mcpServerName = 'shopping-api-tools';
+export const mcpServerName = 'bookings-api-tools';
 export const mcpServerVersion = '0.0.5';
 
 const parameterCheckers: Record<
     string,
     (options: InvokeOptions, host: CheckedHostContext) => InvokeOptions | Promise<InvokeOptions>
 > = {
-    listCustomerOrders: checkListCustomerOrdersParameters
+    listBookings: checkListBookingsParameters
 };
 
 import * as z from 'zod/v4';
 
 export const inputZodByTool = {
-    listCustomerOrders: z
+    listVacationRentals: z
+        .object({
+            pathParams: z
+                .record(z.string(), z.union([z.string(), z.number(), z.boolean()]))
+                .describe('No path parameters.')
+                .optional(),
+            query: z
+                .record(z.string(), z.union([z.string(), z.number(), z.boolean()]))
+                .describe('Optional query overrides.')
+                .optional(),
+            headers: z.record(z.string(), z.string()).describe('Optional extra headers.').optional(),
+            body: z
+                .record(z.string(), z.union([z.string(), z.number(), z.boolean()]))
+                .describe('Request body JSON if applicable.')
+                .optional()
+        })
+        .strict()
+        .describe('Arguments for invoking the generated HTTP wrapper.'),
+    listBookings: z
         .object({
             pathParams: z
                 .object({ customerId: z.string().optional() })
@@ -94,7 +122,8 @@ export const inputZodByTool = {
 };
 
 export const queryParamSerializationByTool = {
-    listCustomerOrders: {}
+    listVacationRentals: {},
+    listBookings: {}
 };
 
 function appendSerializedQueryParams(

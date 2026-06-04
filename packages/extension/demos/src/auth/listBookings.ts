@@ -1,9 +1,9 @@
-import type { InvokeOptions, CheckedHostContext } from '../../generated/tools/shopping-api-tools.js';
+import type { InvokeOptions, CheckedHostContext } from '../../generated/tools/bookings-api-tools.js';
 
-export function checkListCustomerOrdersParameters(options: InvokeOptions, host: CheckedHostContext): InvokeOptions {
+export function checkListBookingsParameters(options: InvokeOptions, host: CheckedHostContext): InvokeOptions {
     const jwt = host.jwt;
     if (!jwt || typeof jwt !== 'object') {
-        throw new Error('listCustomerOrders requires a JWT in host context (--auth-env).');
+        throw new Error('listBookings requires a JWT in host context (--auth-env).');
     }
     const jwtCustomer = String(jwt.customerId ?? '').trim();
     if (jwtCustomer.length === 0) {

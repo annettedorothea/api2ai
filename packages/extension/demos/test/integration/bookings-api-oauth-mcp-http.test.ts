@@ -6,12 +6,12 @@ import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js';
 import {
     findFreePort,
-    prepareShoppingApiGeneratedFixture,
-    shoppingApiTmpRoot,
-    startShoppingApiServer,
-    stopShoppingApiProcess,
-    waitForShoppingApi
-} from '../support/shopping-api-fixture.js';
+    prepareBookingsApiGeneratedFixture,
+    bookingsApiTmpRoot,
+    startBookingsApiServer,
+    stopBookingsApiProcess,
+    waitForBookingsApi
+} from '../support/bookings-api-fixture.js';
 import { fetchOAuthTokenFromIdp, startOAuthIdpServer } from '../support/oauth-idp-fixture.js';
 import { demosRoot } from '../support/paths.js';
 
@@ -42,11 +42,11 @@ async function waitForMcpHttp(mcpUrl: string, child: ChildProcess | undefined): 
     );
 }
 
-describe('shopping-api generated oauth-http-mcp-server (MCP OAuth HTTP)', () => {
-    let shoppingApiProcess: ChildProcess | undefined;
+describe('bookings-api generated oauth-http-mcp-server (MCP OAuth HTTP)', () => {
+    let bookingsApiProcess: ChildProcess | undefined;
     let idpProcess: ChildProcess | undefined;
     let oauthHostProcess: ChildProcess | undefined;
-    let shoppingApiBaseUrl = '';
+    let bookingsApiBaseUrl = '';
     let idpBaseUrl = '';
     let mcpUrl = '';
     let runRoot = '';
@@ -57,21 +57,21 @@ describe('shopping-api generated oauth-http-mcp-server (MCP OAuth HTTP)', () => 
         const apiPort = await findFreePort();
         const idpPort = await findFreePort();
         const mcpPort = await findFreePort();
-        shoppingApiBaseUrl = `http://127.0.0.1:${apiPort}`;
+        bookingsApiBaseUrl = `http://127.0.0.1:${apiPort}`;
         idpBaseUrl = `http://127.0.0.1:${idpPort}`;
         mcpUrl = `http://127.0.0.1:${mcpPort}/mcp`;
 
-        shoppingApiProcess = await startShoppingApiServer(apiPort);
-        await waitForShoppingApi(shoppingApiBaseUrl, shoppingApiProcess);
+        bookingsApiProcess = await startBookingsApiServer(apiPort);
+        await waitForBookingsApi(bookingsApiBaseUrl, bookingsApiProcess);
 
-        idpProcess = startOAuthIdpServer('shopping-api/oauth-idp/server.mjs', idpPort, {
-            SHOPPING_API_OAUTH_IDP_PORT: String(idpPort)
+        idpProcess = startOAuthIdpServer('bookings-api/oauth-idp/server.mjs', idpPort, {
+            BOOKINGS_API_OAUTH_IDP_PORT: String(idpPort)
         });
         await new Promise((r) => setTimeout(r, 300));
         accessToken = await fetchOAuthTokenFromIdp(idpBaseUrl, 'alice');
 
-        runRoot = await fs.mkdtemp(path.join(shoppingApiTmpRoot, 'shopping-api-oauth-mcp-'));
-        await prepareShoppingApiGeneratedFixture(runRoot);
+        runRoot = await fs.mkdtemp(path.join(bookingsApiTmpRoot, 'bookings-api-oauth-mcp-'));
+        await prepareBookingsApiGeneratedFixture(runRoot);
         oauthHostPath = path.join(runRoot, 'generated/cli/oauth-http-mcp-server.js');
         await fs.mkdir(path.dirname(oauthHostPath), { recursive: true });
         await fs.copyFile(path.join(demosRoot, 'generated/cli/oauth-http-mcp-server.js'), oauthHostPath);
@@ -81,15 +81,15 @@ describe('shopping-api generated oauth-http-mcp-server (MCP OAuth HTTP)', () => 
             process.execPath,
             [
                 oauthHostPath,
-                path.join(runRoot, 'generated/tools/shopping-api-tools.js'),
+                path.join(runRoot, 'generated/tools/bookings-api-tools.js'),
                 '--base-url-env',
-                'SHOPPING_API_BASE_URL',
+                'BOOKINGS_API_BASE_URL',
                 '--oauth-idp-url',
                 idpBaseUrl,
                 '--oauth-scope',
-                'shopping-api',
+                'bookings-api',
                 '--jwt-secret-env',
-                'SHOPPING_API_JWT_SECRET',
+                'BOOKINGS_API_JWT_SECRET',
                 '--port',
                 String(mcpPort),
                 '--path',
@@ -99,8 +99,8 @@ describe('shopping-api generated oauth-http-mcp-server (MCP OAuth HTTP)', () => 
                 cwd: runRoot,
                 env: {
                     ...process.env,
-                    SHOPPING_API_BASE_URL: shoppingApiBaseUrl,
-                    SHOPPING_API_JWT_SECRET: 'demo-shopping-api-secret'
+                    BOOKINGS_API_BASE_URL: bookingsApiBaseUrl,
+                    BOOKINGS_API_JWT_SECRET: 'demo-bookings-api-secret'
                 },
                 stdio: ['ignore', 'pipe', 'pipe']
             }
@@ -115,7 +115,7 @@ describe('shopping-api generated oauth-http-mcp-server (MCP OAuth HTTP)', () => 
         if (idpProcess) {
             idpProcess.kill();
         }
-        await stopShoppingApiProcess(shoppingApiProcess);
+        await stopBookingsApiProcess(bookingsApiProcess);
         if (runRoot) {
             await fs.rm(runRoot, { recursive: true, force: true });
         }
@@ -127,7 +127,7 @@ describe('shopping-api generated oauth-http-mcp-server (MCP OAuth HTTP)', () => 
         await expect(client.connect(transport, { timeout: 30_000 })).rejects.toThrow();
     }, 30_000);
 
-    it('lists tools and calls listCustomerOrders with OAuth Bearer', async () => {
+    it('lists tools and calls listBookings with OAuth Bearer', async () => {
         const transport = new StreamableHTTPClientTransport(new URL(mcpUrl), {
             requestInit: {
                 headers: {
@@ -139,9 +139,10 @@ describe('shopping-api generated oauth-http-mcp-server (MCP OAuth HTTP)', () => 
         await client.connect(transport, { timeout: 30_000 });
 
         const tools = await client.listTools(undefined, { timeout: 30_000 });
-        expect(tools.tools.map((t) => t.name)).toContain('listCustomerOrders');
+        expect(tools.tools.map((t) => t.name)).toContain('listBookings');
+        expect(tools.tools.map((t) => t.name)).toContain('listVacationRentals');
 
-        const result = await client.callTool({ name: 'listCustomerOrders', arguments: {} }, undefined, {
+        const result = await client.callTool({ name: 'listBookings', arguments: {} }, undefined, {
             timeout: 30_000
         });
         expect(result.isError).not.toBe(true);
@@ -149,11 +150,11 @@ describe('shopping-api generated oauth-http-mcp-server (MCP OAuth HTTP)', () => 
     }, 60_000);
 });
 
-describe('shopping-api oauth-http-mcp-server (oidc JWKS validation)', () => {
-    let shoppingApiProcess: ChildProcess | undefined;
+describe('bookings-api oauth-http-mcp-server (oidc JWKS validation)', () => {
+    let bookingsApiProcess: ChildProcess | undefined;
     let idpProcess: ChildProcess | undefined;
     let oauthHostProcess: ChildProcess | undefined;
-    let shoppingApiBaseUrl = '';
+    let bookingsApiBaseUrl = '';
     let idpBaseUrl = '';
     let mcpUrl = '';
     let runRoot = '';
@@ -164,22 +165,22 @@ describe('shopping-api oauth-http-mcp-server (oidc JWKS validation)', () => {
         const apiPort = await findFreePort();
         const idpPort = await findFreePort();
         const mcpPort = await findFreePort();
-        shoppingApiBaseUrl = `http://127.0.0.1:${apiPort}`;
+        bookingsApiBaseUrl = `http://127.0.0.1:${apiPort}`;
         idpBaseUrl = `http://127.0.0.1:${idpPort}`;
         mcpUrl = `http://127.0.0.1:${mcpPort}/mcp`;
 
-        shoppingApiProcess = await startShoppingApiServer(apiPort);
-        await waitForShoppingApi(shoppingApiBaseUrl, shoppingApiProcess);
+        bookingsApiProcess = await startBookingsApiServer(apiPort);
+        await waitForBookingsApi(bookingsApiBaseUrl, bookingsApiProcess);
 
-        idpProcess = startOAuthIdpServer('shopping-api/oauth-idp/server.mjs', idpPort, {
-            SHOPPING_API_OAUTH_IDP_PORT: String(idpPort),
+        idpProcess = startOAuthIdpServer('bookings-api/oauth-idp/server.mjs', idpPort, {
+            BOOKINGS_API_OAUTH_IDP_PORT: String(idpPort),
             OAUTH_IDP_SIGN_ALG: 'RS256'
         });
         await new Promise((r) => setTimeout(r, 300));
         accessToken = await fetchOAuthTokenFromIdp(idpBaseUrl, 'alice');
 
-        runRoot = await fs.mkdtemp(path.join(shoppingApiTmpRoot, 'shopping-api-oauth-mcp-oidc-'));
-        await prepareShoppingApiGeneratedFixture(runRoot);
+        runRoot = await fs.mkdtemp(path.join(bookingsApiTmpRoot, 'bookings-api-oauth-mcp-oidc-'));
+        await prepareBookingsApiGeneratedFixture(runRoot);
         oauthHostPath = path.join(runRoot, 'generated/cli/oauth-http-mcp-server.js');
         await fs.mkdir(path.dirname(oauthHostPath), { recursive: true });
         await fs.copyFile(path.join(demosRoot, 'generated/cli/oauth-http-mcp-server.js'), oauthHostPath);
@@ -189,13 +190,13 @@ describe('shopping-api oauth-http-mcp-server (oidc JWKS validation)', () => {
             process.execPath,
             [
                 oauthHostPath,
-                path.join(runRoot, 'generated/tools/shopping-api-tools.js'),
+                path.join(runRoot, 'generated/tools/bookings-api-tools.js'),
                 '--base-url-env',
-                'SHOPPING_API_BASE_URL',
+                'BOOKINGS_API_BASE_URL',
                 '--oauth-idp-url',
                 idpBaseUrl,
                 '--oauth-scope',
-                'shopping-api',
+                'bookings-api',
                 '--oauth-token-validation',
                 'oidc',
                 '--oauth-issuer',
@@ -209,8 +210,8 @@ describe('shopping-api oauth-http-mcp-server (oidc JWKS validation)', () => {
                 cwd: runRoot,
                 env: {
                     ...process.env,
-                    SHOPPING_API_BASE_URL: shoppingApiBaseUrl,
-                    SHOPPING_API_JWT_SECRET: 'demo-shopping-api-secret'
+                    BOOKINGS_API_BASE_URL: bookingsApiBaseUrl,
+                    BOOKINGS_API_JWT_SECRET: 'demo-bookings-api-secret'
                 },
                 stdio: ['ignore', 'pipe', 'pipe']
             }
@@ -225,7 +226,7 @@ describe('shopping-api oauth-http-mcp-server (oidc JWKS validation)', () => {
         if (idpProcess) {
             idpProcess.kill();
         }
-        await stopShoppingApiProcess(shoppingApiProcess);
+        await stopBookingsApiProcess(bookingsApiProcess);
         if (runRoot) {
             await fs.rm(runRoot, { recursive: true, force: true });
         }
@@ -242,7 +243,7 @@ describe('shopping-api oauth-http-mcp-server (oidc JWKS validation)', () => {
         const client = new Client({ name: 'oauth-http-oidc-test', version: '0.0.1' });
         await client.connect(transport, { timeout: 30_000 });
         const tools = await client.listTools(undefined, { timeout: 30_000 });
-        expect(tools.tools.map((t) => t.name)).toContain('listCustomerOrders');
+        expect(tools.tools.map((t) => t.name)).toContain('listBookings');
         await client.close();
     }, 60_000);
 });

@@ -1,0 +1,38 @@
+{
+    "units": [
+        { "unitId": "seeblick-loft", "name": "Seeblick Loft", "location": "Hopfensee" },
+        { "unitId": "almhuette-garmisch", "name": "Almhütte Garmisch", "location": "Garmisch-Partenkirchen" },
+        { "unitId": "stadtpark-studio", "name": "Stadtpark Studio", "location": "München" }
+    ],
+    "bookings": [
+        {
+            "bookingId": "bk-alice-seeblick-jul",
+            "unitId": "seeblick-loft",
+            "customerId": "alice",
+            "checkIn": "2026-07-01",
+            "checkOut": "2026-07-14"
+        },
+        {
+            "bookingId": "bk-bob-seeblick-aug",
+            "unitId": "seeblick-loft",
+            "customerId": "bob",
+            "checkIn": "2026-08-10",
+            "checkOut": "2026-08-24"
+        },
+        {
+            "bookingId": "bk-alice-alm-may",
+            "unitId": "almhuette-garmisch",
+            "customerId": "alice",
+            "checkIn": "2026-05-20",
+            "checkOut": "2026-05-27"
+        },
+        {
+            "bookingId": "bk-bob-studio-sep",
+            "unitId": "stadtpark-studio",
+            "customerId": "bob",
+            "checkIn": "2026-09-05",
+            "checkOut": "2026-09-12"
+        }
+    ],
+    "season": { "from": "2026-01-01", "to": "2026-12-31" }
+}

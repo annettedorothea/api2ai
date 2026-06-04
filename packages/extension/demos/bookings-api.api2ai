@@ -1,0 +1,35 @@
+openapi "./openapi/bookings-api.openapi.yaml"
+
+auth {
+    in: header
+    name: "Authorization"
+    prefix: "Bearer "
+}
+
+GET "/vacation-rentals" {
+    toolName: listVacationRentals
+    access: protected
+    intent: '''
+        List Ferienwohnungen (vacation rental units).
+        Requires Bearer JWT from MCP OAuth or --auth-env.
+        Admin: per unit, who booked which dates (customerId, checkIn, checkOut).
+        User: per unit, only occupied and free periods — no guest names.
+    '''
+    summary: "List vacation rentals with availability or admin booking details"
+    example: "Show all vacation rentals and availability"
+}
+
+GET "/bookings/{customerId}" {
+    toolName: listBookings
+    access: checked {
+        optionalParams: [customerId]
+    }
+    intent: '''
+        List bookings for the authenticated customer (Bearer JWT).
+        Path customerId is optional: when empty or omitted, filled from JWT claim customerId.
+        Role user: path customerId must match JWT; role admin may list any customerId.
+        Returns bookingId, unitId, checkIn, checkOut for each stay.
+    '''
+    summary: "List customer vacation rental bookings"
+    example: "List my bookings"
+}

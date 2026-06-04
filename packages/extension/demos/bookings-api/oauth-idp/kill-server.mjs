@@ -2,7 +2,10 @@
 import { execSync } from 'node:child_process';
 
 const PORT =
-    Number(process.env.SHOPPING_API_OAUTH_IDP_PORT) || Number(process.env.MOCK_API_OAUTH_IDP_PORT) || 3860;
+    Number(process.env.BOOKINGS_API_OAUTH_IDP_PORT) ||
+    Number(process.env.SHOPPING_API_OAUTH_IDP_PORT) ||
+    Number(process.env.MOCK_API_OAUTH_IDP_PORT) ||
+    3860;
 
 try {
     const pids = execSync(`lsof -ti :${PORT}`, { encoding: 'utf8' }).trim();

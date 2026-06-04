@@ -1,11 +1,12 @@
-import { createHmac, randomBytes } from 'node:crypto';
+// Sync with orders-demo/oauth-idp/jwt.mjs (db2ai) — ports/secrets differ per product.
+import { createHmac } from 'node:crypto';
 
-const DEFAULT_SECRET = 'demo-shopping-api-secret';
+const DEFAULT_SECRET = 'demo-bookings-api-secret';
 
 export function jwtSecret() {
     return (
+        process.env.BOOKINGS_API_JWT_SECRET?.trim() ||
         process.env.SHOPPING_API_JWT_SECRET?.trim() ||
-        process.env.MOCK_API_JWT_SECRET?.trim() ||
         DEFAULT_SECRET
     );
 }
@@ -24,8 +25,8 @@ function base64urlDecodeJson(segment) {
 
 export function signJwt(payload, secret = jwtSecret()) {
     const header = { alg: 'HS256', typ: 'JWT' };
-    const headerSeg = base64urlEncode(JSON.stringify(header));
-    const payloadSeg = base64urlEncode(JSON.stringify(payload));
+    const headerSeg = base64urlEncode(Buffer.from(JSON.stringify(header)));
+    const payloadSeg = base64urlEncode(Buffer.from(JSON.stringify(payload)));
     const signingInput = `${headerSeg}.${payloadSeg}`;
     const sig = createHmac('sha256', secret).update(signingInput).digest();
     return `${signingInput}.${base64urlEncode(sig)}`;
@@ -56,13 +57,6 @@ export function verifyJwt(token, secret = jwtSecret()) {
     return { ok: true, payload };
 }
 
-export function mintCustomerToken(customerId, role = 'user', ttlSeconds = 3600) {
-    const now = Math.floor(Date.now() / 1000);
-    return signJwt({
-        customerId: String(customerId),
-        role: String(role),
-        iat: now,
-        exp: now + ttlSeconds,
-        jti: randomBytes(8).toString('hex')
-    });
+export function mintCustomerToken(customerId, role = 'user') {
+    return signJwt({ customerId, role });
 }

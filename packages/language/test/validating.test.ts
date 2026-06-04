@@ -318,8 +318,8 @@ describe('Validating', () => {
         expect(diagnostics[0]?.message).not.toContain('"petId"');
     });
 
-    test('validates extension mock-api demo without diagnostics', async () => {
-        const demoPath = path.resolve(process.cwd(), '../extension/demos/mock-api.api2ai');
+    test('validates extension bookings-api demo without diagnostics', async () => {
+        const demoPath = path.resolve(process.cwd(), '../extension/demos/bookings-api.api2ai');
         const content = await import('node:fs').then((fs) => fs.readFileSync(demoPath, 'utf8'));
         caseIndex += 1;
         document = await parse(content, { validation: true, documentUri: demoPath });

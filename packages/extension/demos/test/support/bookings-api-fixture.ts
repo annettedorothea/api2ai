@@ -7,10 +7,10 @@ import { demosRoot, demosTmpRoot } from './paths.js';
 import { runDemoGenerate } from './run-demo-generate.js';
 
 export { demosRoot };
-export const shoppingApiServerPath = path.join(demosRoot, 'shopping-api/server.mjs');
-export const sourceFixturePath = path.join(demosRoot, 'shopping-api.api2ai');
-export const openApiFixturePath = path.join(demosRoot, 'openapi/shopping-api.openapi.yaml');
-export const shoppingApiTmpRoot = demosTmpRoot;
+export const bookingsApiServerPath = path.join(demosRoot, 'bookings-api/server.mjs');
+export const sourceFixturePath = path.join(demosRoot, 'bookings-api.api2ai');
+export const openApiFixturePath = path.join(demosRoot, 'openapi/bookings-api.openapi.yaml');
+export const bookingsApiTmpRoot = demosTmpRoot;
 
 export async function findFreePort(): Promise<number> {
     return new Promise((resolve, reject) => {
@@ -28,15 +28,15 @@ export async function findFreePort(): Promise<number> {
     });
 }
 
-export async function waitForShoppingApi(baseUrl: string, child: ChildProcess): Promise<void> {
+export async function waitForBookingsApi(baseUrl: string, child: ChildProcess): Promise<void> {
     const deadline = Date.now() + 10_000;
     let lastError: unknown;
     while (Date.now() < deadline) {
         if (child.exitCode !== null) {
-            throw new Error(`shopping-api exited before startup with code ${child.exitCode}.`);
+            throw new Error(`bookings-api exited before startup with code ${child.exitCode}.`);
         }
         try {
-            const response = await fetch(`${baseUrl}/orders/admin`);
+            const response = await fetch(`${baseUrl}/vacation-rentals`);
             if (response.status === 401) {
                 return;
             }
@@ -47,11 +47,11 @@ export async function waitForShoppingApi(baseUrl: string, child: ChildProcess): 
         await new Promise((resolve) => setTimeout(resolve, 100));
     }
     throw new Error(
-        `shopping-api did not start in time: ${lastError instanceof Error ? lastError.message : lastError}`
+        `bookings-api did not start in time: ${lastError instanceof Error ? lastError.message : lastError}`
     );
 }
 
-export async function stopShoppingApiProcess(child: ChildProcess | undefined): Promise<void> {
+export async function stopBookingsApiProcess(child: ChildProcess | undefined): Promise<void> {
     if (!child || child.exitCode !== null) {
         return;
     }
@@ -65,37 +65,37 @@ export async function stopShoppingApiProcess(child: ChildProcess | undefined): P
     });
 }
 
-export type ShoppingApiGeneratedFixture = {
+export type BookingsApiGeneratedFixture = {
     fixtureRoot: string;
     generatedJsPath: string;
     stdioMcpServerPath: string;
 };
 
-export async function prepareShoppingApiGeneratedFixture(fixtureRoot: string): Promise<ShoppingApiGeneratedFixture> {
-    const generatedTsPath = path.join(fixtureRoot, 'generated/tools/shopping-api-tools.ts');
-    const generatedJsPath = path.join(fixtureRoot, 'generated/tools/shopping-api-tools.js');
+export async function prepareBookingsApiGeneratedFixture(fixtureRoot: string): Promise<BookingsApiGeneratedFixture> {
+    const generatedTsPath = path.join(fixtureRoot, 'generated/tools/bookings-api-tools.ts');
+    const generatedJsPath = path.join(fixtureRoot, 'generated/tools/bookings-api-tools.js');
     const stdioMcpServerPath = path.join(fixtureRoot, 'generated/cli/stdio-mcp-server.js');
 
     await fs.mkdir(path.join(fixtureRoot, 'openapi'), { recursive: true });
-    await fs.copyFile(sourceFixturePath, path.join(fixtureRoot, 'shopping-api.api2ai'));
-    await fs.copyFile(openApiFixturePath, path.join(fixtureRoot, 'openapi/shopping-api.openapi.yaml'));
-    runDemoGenerate(path.join(fixtureRoot, 'shopping-api.api2ai'), generatedTsPath);
+    await fs.copyFile(sourceFixturePath, path.join(fixtureRoot, 'bookings-api.api2ai'));
+    await fs.copyFile(openApiFixturePath, path.join(fixtureRoot, 'openapi/bookings-api.openapi.yaml'));
+    runDemoGenerate(path.join(fixtureRoot, 'bookings-api.api2ai'), generatedTsPath);
     await fs.mkdir(path.join(fixtureRoot, 'src', 'auth'), { recursive: true });
     await fs.copyFile(
-        path.join(demosRoot, 'src/auth/listCustomerOrders.ts'),
-        path.join(fixtureRoot, 'src/auth/listCustomerOrders.ts')
+        path.join(demosRoot, 'src/auth/listBookings.ts'),
+        path.join(fixtureRoot, 'src/auth/listBookings.ts')
     );
     compileGeneratedForSmoke(fixtureRoot);
 
     return { fixtureRoot, generatedJsPath, stdioMcpServerPath };
 }
 
-export async function startShoppingApiServer(port: number): Promise<ChildProcess> {
-    return spawn(process.execPath, [shoppingApiServerPath], {
+export async function startBookingsApiServer(port: number): Promise<ChildProcess> {
+    return spawn(process.execPath, [bookingsApiServerPath], {
         env: {
             ...process.env,
-            SHOPPING_API_PORT: String(port),
-            SHOPPING_API_JWT_SECRET: process.env.SHOPPING_API_JWT_SECRET ?? 'demo-shopping-api-secret'
+            BOOKINGS_API_PORT: String(port),
+            BOOKINGS_API_JWT_SECRET: process.env.BOOKINGS_API_JWT_SECRET ?? 'demo-bookings-api-secret'
         },
         stdio: ['ignore', 'pipe', 'pipe']
     });

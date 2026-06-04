@@ -7,19 +7,19 @@ import { withMcpStdioSession } from '../generated/index.js';
 import {
     demosRoot,
     findFreePort,
-    prepareShoppingApiGeneratedFixture,
-    shoppingApiTmpRoot,
-    startShoppingApiServer,
-    stopShoppingApiProcess,
-    waitForShoppingApi
-} from '../support/shopping-api-fixture.js';
+    prepareBookingsApiGeneratedFixture,
+    bookingsApiTmpRoot,
+    startBookingsApiServer,
+    stopBookingsApiProcess,
+    waitForBookingsApi
+} from '../support/bookings-api-fixture.js';
 
-const baseUrlEnv = 'SHOPPING_API_BASE_URL';
-const hostArgs = ['--base-url-env', baseUrlEnv, '--auth-env', 'SHOPPING_API_ACCESS_TOKEN'];
+const baseUrlEnv = 'BOOKINGS_API_BASE_URL';
+const hostArgs = ['--base-url-env', baseUrlEnv, '--auth-env', 'BOOKINGS_API_ACCESS_TOKEN'];
 
-describe('shopping-api generated stdio-mcp-server (MCP stdio)', () => {
-    let shoppingApiProcess: ChildProcess | undefined;
-    let shoppingApiBaseUrl = '';
+describe('bookings-api generated stdio-mcp-server (MCP stdio)', () => {
+    let bookingsApiProcess: ChildProcess | undefined;
+    let bookingsApiBaseUrl = '';
     let runRoot = '';
     let fixtureRoot = '';
     let stdioMcpServerPath = '';
@@ -28,24 +28,24 @@ describe('shopping-api generated stdio-mcp-server (MCP stdio)', () => {
 
     beforeAll(async () => {
         const port = await findFreePort();
-        shoppingApiBaseUrl = `http://127.0.0.1:${port}`;
-        shoppingApiProcess = await startShoppingApiServer(port);
-        await waitForShoppingApi(shoppingApiBaseUrl, shoppingApiProcess);
-        accessToken = execSync(`node ${path.join(demosRoot, 'shopping-api/get-token.mjs')} alice`, {
+        bookingsApiBaseUrl = `http://127.0.0.1:${port}`;
+        bookingsApiProcess = await startBookingsApiServer(port);
+        await waitForBookingsApi(bookingsApiBaseUrl, bookingsApiProcess);
+        accessToken = execSync(`node ${path.join(demosRoot, 'bookings-api/get-token.mjs')} alice`, {
             encoding: 'utf8'
         }).trim();
 
-        runRoot = await fs.mkdtemp(path.join(shoppingApiTmpRoot, 'shopping-api-mcp-'));
+        runRoot = await fs.mkdtemp(path.join(bookingsApiTmpRoot, 'bookings-api-mcp-'));
         fixtureRoot = path.join(runRoot, 'fixture');
         await fs.mkdir(fixtureRoot, { recursive: true });
 
-        const fixture = await prepareShoppingApiGeneratedFixture(fixtureRoot);
+        const fixture = await prepareBookingsApiGeneratedFixture(fixtureRoot);
         stdioMcpServerPath = fixture.stdioMcpServerPath;
         generatedJsPath = fixture.generatedJsPath;
     }, 30_000);
 
     afterAll(async () => {
-        await stopShoppingApiProcess(shoppingApiProcess);
+        await stopBookingsApiProcess(bookingsApiProcess);
         if (runRoot) {
             await fs.rm(runRoot, { recursive: true, force: true });
         }
@@ -58,8 +58,8 @@ describe('shopping-api generated stdio-mcp-server (MCP stdio)', () => {
             hostArgs,
             cwd: fixtureRoot,
             env: {
-                [baseUrlEnv]: shoppingApiBaseUrl,
-                SHOPPING_API_ACCESS_TOKEN: accessToken
+                [baseUrlEnv]: bookingsApiBaseUrl,
+                BOOKINGS_API_ACCESS_TOKEN: accessToken
             }
         };
     }
@@ -67,19 +67,19 @@ describe('shopping-api generated stdio-mcp-server (MCP stdio)', () => {
     it('lists tools via MCP stdio (listTools)', async () => {
         await withMcpStdioSession(mcpConnectOptions(), async (session) => {
             const toolNames = await session.listToolNames();
-            expect(toolNames).toContain('listCustomerOrders');
-            expect(toolNames).not.toContain('login');
+            expect(toolNames).toContain('listBookings');
+            expect(toolNames).toContain('listVacationRentals');
         });
     });
 
-    it('calls listCustomerOrders via MCP stdio (callTool)', async () => {
+    it('calls listBookings via MCP stdio (callTool)', async () => {
         await withMcpStdioSession(mcpConnectOptions(), async (session) => {
-            const response = await session.callTool('listCustomerOrders', {
+            const response = await session.callTool('listBookings', {
                 pathParams: { customerId: 'alice' }
             });
             expect(response).toMatchObject({
                 customerId: 'alice',
-                orders: expect.any(Array)
+                bookings: expect.any(Array)
             });
         });
     });

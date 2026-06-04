@@ -1,7 +1,0 @@
-{
-    "alice": [
-        { "orderId": "ord-alice-1", "product": "Widget A", "amount": 29.99 },
-        { "orderId": "ord-alice-2", "product": "Widget B", "amount": 49.5 }
-    ],
-    "bob": [{ "orderId": "ord-bob-1", "product": "Gadget X", "amount": 199.0 }]
-}
