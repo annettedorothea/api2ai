@@ -1,66 +1,12 @@
 {
     "mcpServers": {
-        "stdio-api2ai-spaceflight-news": {
-            "command": "node",
-            "args": [
-                "./generated/cli/stdio-mcp-server.js",
-                "./generated/tools/spaceflight-news-tools.js",
-                "--base-url-env",
-                "SPACEFLIGHT_NEWS_BASE_URL"
-            ],
-            "env": {
-                "SPACEFLIGHT_NEWS_BASE_URL": "https://api.spaceflightnewsapi.net"
+        "todo-api-http-stateless": {
+            "url": "http://127.0.0.1:3853/mcp",
+            "headers": {
+                "x-api-token": "demo-todo-api-key"
             }
         },
-        "http-api2ai-spaceflight-news": {
-            "url": "http://127.0.0.1:3849/mcp"
-        },
-        "stdio-api2ai-tmdb": {
-            "command": "node",
-            "envFile": ".env.local",
-            "args": [
-                "./generated/cli/stdio-mcp-server.js",
-                "./generated/tools/tmdb-tools.js",
-                "--base-url-env",
-                "TMDB_BASE_URL",
-                "--auth-env",
-                "TMDB_ACCESS_TOKEN"
-            ],
-            "env": {
-                "TMDB_BASE_URL": "https://api.themoviedb.org"
-            }
-        },
-        "stdio-api2ai-open-meteo": {
-            "command": "node",
-            "args": [
-                "./generated/cli/stdio-mcp-server.js",
-                "./generated/tools/open-meteo-tools.js",
-                "--base-url-env",
-                "OPEN_METEO_BASE_URL"
-            ],
-            "env": {
-                "OPEN_METEO_BASE_URL": "https://api.open-meteo.com"
-            }
-        },
-        "http-api2ai-open-meteo": {
-            "url": "http://127.0.0.1:3848/mcp"
-        },
-        "stdio-api2ai-open-meteo-geocoding": {
-            "command": "node",
-            "args": [
-                "./generated/cli/stdio-mcp-server.js",
-                "./generated/tools/open-meteo-geocoding-tools.js",
-                "--base-url-env",
-                "OPEN_METEO_GEOCODING_BASE_URL"
-            ],
-            "env": {
-                "OPEN_METEO_GEOCODING_BASE_URL": "https://geocoding-api.open-meteo.com"
-            }
-        },
-        "http-api2ai-open-meteo-geocoding": {
-            "url": "http://127.0.0.1:3851/mcp"
-        },
-        "stdio-api2ai-github": {
+        "github-stdio": {
             "command": "node",
             "envFile": ".env.local",
             "args": [
@@ -75,31 +21,52 @@
                 "GITHUB_BASE_URL": "https://api.github.com"
             }
         },
-        "stdio-api2ai-mock-api": {
+        "shopping-api-oauth": {
+            "url": "http://127.0.0.1:3870/mcp",
+            "auth": {
+                "CLIENT_ID": "mcp-demo-local"
+            }
+        },
+        "open-meteo-stdio": {
+            "command": "node",
+            "args": [
+                "./generated/cli/stdio-mcp-server.js",
+                "./generated/tools/open-meteo-tools.js",
+                "--base-url-env",
+                "OPEN_METEO_BASE_URL"
+            ],
+            "env": {
+                "OPEN_METEO_BASE_URL": "https://api.open-meteo.com"
+            }
+        },
+        "open-meteo-geocoding-stdio": {
+            "command": "node",
+            "args": [
+                "./generated/cli/stdio-mcp-server.js",
+                "./generated/tools/open-meteo-geocoding-tools.js",
+                "--base-url-env",
+                "OPEN_METEO_GEOCODING_BASE_URL"
+            ],
+            "env": {
+                "OPEN_METEO_GEOCODING_BASE_URL": "https://geocoding-api.open-meteo.com"
+            }
+        },
+        "spaceflight-news-http-stateless": {
+            "url": "http://127.0.0.1:3849/mcp"
+        },
+        "tmdb-stdio": {
             "command": "node",
             "envFile": ".env.local",
             "args": [
                 "./generated/cli/stdio-mcp-server.js",
-                "./generated/tools/mock-api-tools.js",
+                "./generated/tools/tmdb-tools.js",
                 "--base-url-env",
-                "MOCK_API_BASE_URL",
+                "TMDB_BASE_URL",
                 "--auth-env",
-                "MOCK_API_ACCESS_TOKEN"
+                "TMDB_ACCESS_TOKEN"
             ],
             "env": {
-                "MOCK_API_BASE_URL": "http://127.0.0.1:3847"
-            }
-        },
-        "http-api2ai-mock-api": {
-            "url": "http://127.0.0.1:3850/mcp",
-            "headers": {
-                "x-api-token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjdXN0b21lcklkIjoiYWRtaW4iLCJyb2xlIjoiYWRtaW4iLCJpYXQiOjE3ODA1NzIxODksImV4cCI6MTkzODI1MjE4OSwianRpIjoibWNwLWpzb24tZGVtbyJ9.cR5VDLiIqyz4JGZ4Oah642P7rGCPs5wJL5Lghd3TA3k"
-            }
-        },
-        "oauth-api2ai-mock-api": {
-            "url": "http://127.0.0.1:3870/mcp",
-            "auth": {
-                "CLIENT_ID": "mcp-demo-local"
+                "TMDB_BASE_URL": "https://api.themoviedb.org"
             }
         }
     }

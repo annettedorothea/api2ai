@@ -1,0 +1,52 @@
+openapi: 3.0.3
+info:
+    title: Shopping API (demo)
+    description: Local demo API for JWT Bearer auth and checked tools (OAuth MCP).
+    version: 0.2.0
+servers:
+    - url: http://127.0.0.1:3847
+paths:
+    /orders/{customerId}:
+        get:
+            operationId: list-customer-orders
+            summary: List orders for customer
+            description: Requires Bearer JWT; for role=user customerId in path must match JWT claim, role=admin may read any customer.
+            security:
+                - bearerAuth: []
+            parameters:
+                - name: customerId
+                  in: path
+                  required: true
+                  schema:
+                      type: string
+            responses:
+                '200':
+                    description: Order list
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    customerId:
+                                        type: string
+                                    orders:
+                                        type: array
+                                        items:
+                                            type: object
+                                            properties:
+                                                orderId:
+                                                    type: string
+                                                product:
+                                                    type: string
+                                                amount:
+                                                    type: number
+                '401':
+                    description: Missing or invalid token
+                '403':
+                    description: Token customerId does not match path
+components:
+    securitySchemes:
+        bearerAuth:
+            type: http
+            scheme: bearer
+            bearerFormat: JWT

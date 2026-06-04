@@ -1,3 +1,4 @@
+import { execSync } from 'node:child_process';
 import { asRecord, credentialWithOptionalJwt, readGeneratedToolModule, restoreEnv } from '../generated/index.js';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import type { ChildProcess } from 'node:child_process';
@@ -5,31 +6,32 @@ import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import {
+    demosRoot,
     findFreePort,
-    mockApiTmpRoot,
-    prepareMockApiGeneratedFixture,
-    startMockApiServer,
-    stopMockApiProcess,
-    waitForMockApi
-} from '../support/mock-api-fixture.js';
+    prepareShoppingApiGeneratedFixture,
+    shoppingApiTmpRoot,
+    startShoppingApiServer,
+    stopShoppingApiProcess,
+    waitForShoppingApi
+} from '../support/shopping-api-fixture.js';
 
-let mockApiProcess: ChildProcess | undefined;
-let mockApiBaseUrl = '';
+let shoppingApiProcess: ChildProcess | undefined;
+let shoppingApiBaseUrl = '';
 
-describe('mock API generated module direct invocation', () => {
+describe('shopping-api generated module direct invocation', () => {
     beforeAll(async () => {
         const port = await findFreePort();
-        mockApiBaseUrl = `http://127.0.0.1:${port}`;
-        mockApiProcess = await startMockApiServer(port);
-        await waitForMockApi(mockApiBaseUrl, mockApiProcess);
+        shoppingApiBaseUrl = `http://127.0.0.1:${port}`;
+        shoppingApiProcess = await startShoppingApiServer(port);
+        await waitForShoppingApi(shoppingApiBaseUrl, shoppingApiProcess);
     }, 15_000);
 
     afterAll(async () => {
-        await stopMockApiProcess(mockApiProcess);
+        await stopShoppingApiProcess(shoppingApiProcess);
     });
 
-    it('generates mock API tools and invokes public and authenticated calls', async () => {
-        const runRoot = await fs.mkdtemp(path.join(mockApiTmpRoot, 'mock-api-direct-'));
+    it('invokes listCustomerOrders with a minted JWT', async () => {
+        const runRoot = await fs.mkdtemp(path.join(shoppingApiTmpRoot, 'shopping-api-direct-'));
         const fixtureRoot = path.join(runRoot, 'fixture');
         const baseUrlEnv = 'MCP_HOST_BASE_URL';
         const credentialEnv = 'MCP_HOST_CREDENTIAL';
@@ -37,28 +39,23 @@ describe('mock API generated module direct invocation', () => {
         const previousCredential = process.env[credentialEnv];
 
         try {
-            const { generatedJsPath } = await prepareMockApiGeneratedFixture(fixtureRoot);
+            const { generatedJsPath } = await prepareShoppingApiGeneratedFixture(fixtureRoot);
             const imported = await import(`${pathToFileURL(generatedJsPath).href}?t=${Date.now()}`);
             const generated = readGeneratedToolModule(imported as Record<string, unknown>);
 
-            const loginResult = asRecord(
-                await generated.invokeTool(
-                    'login',
-                    { pathParams: { customerId: 'alice' } },
-                    { baseUrl: mockApiBaseUrl }
-                )
-            );
-            const accessToken = loginResult.access_token;
-            expect(accessToken).toBeTypeOf('string');
+            const accessToken = execSync(`node ${path.join(demosRoot, 'shopping-api/get-token.mjs')} alice`, {
+                encoding: 'utf8'
+            }).trim();
+            expect(accessToken.length).toBeGreaterThan(20);
 
-            process.env[baseUrlEnv] = mockApiBaseUrl;
-            process.env[credentialEnv] = String(accessToken);
+            process.env[baseUrlEnv] = shoppingApiBaseUrl;
+            process.env[credentialEnv] = accessToken;
 
             const ordersResult = asRecord(
                 await generated.invokeTool(
                     'listCustomerOrders',
                     { pathParams: { customerId: 'alice' } },
-                    { baseUrl: mockApiBaseUrl, ...credentialWithOptionalJwt(String(accessToken)) }
+                    { baseUrl: shoppingApiBaseUrl, ...credentialWithOptionalJwt(accessToken) }
                 )
             );
             expect(ordersResult.customerId).toBe('alice');

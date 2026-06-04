@@ -3,9 +3,9 @@ import { createServer } from 'node:http';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
-import { mintCustomerToken, verifyJwt } from './jwt.mjs';
+import { verifyJwt } from './jwt.mjs';
 
-const PORT = Number(process.env.MOCK_API_PORT) || 3847;
+const PORT = Number(process.env.SHOPPING_API_PORT) || 3847;
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ordersByCustomer = JSON.parse(readFileSync(path.join(__dirname, 'data', 'orders.json'), 'utf8'));
 
@@ -41,25 +41,9 @@ function matchPath(pathname, pattern) {
     return params;
 }
 
-function handleLogin(res, customerId) {
-    const normalized = String(customerId);
-    if (normalized !== 'admin' && !ordersByCustomer[normalized]) {
-        sendJson(res, 404, { error: 'unknown_customer', customerId });
-        return;
-    }
-    const role = normalized === 'admin' ? 'admin' : 'user';
-    sendJson(res, 200, { access_token: mintCustomerToken(normalized, role) });
-}
-
 const server = createServer((req, res) => {
     const url = new URL(req.url ?? '/', `http://127.0.0.1:${PORT}`);
     const method = req.method ?? 'GET';
-
-    const login = matchPath(url.pathname, '/login/{customerId}');
-    if (login && (method === 'GET' || method === 'POST')) {
-        handleLogin(res, login.customerId);
-        return;
-    }
 
     if (method !== 'GET') {
         sendJson(res, 405, { error: 'method_not_allowed' });
@@ -98,5 +82,5 @@ const server = createServer((req, res) => {
 });
 
 server.listen(PORT, '127.0.0.1', () => {
-    console.error(`[mock-api] listening on http://127.0.0.1:${PORT}`);
+    console.error(`[shopping-api] listening on http://127.0.0.1:${PORT}`);
 });

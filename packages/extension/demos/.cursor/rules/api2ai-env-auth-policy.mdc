@@ -11,24 +11,19 @@ Diese Regel gilt, wenn die Nutzeranfrage mit `api2ai` beginnt.
 
 - **Nicht lesen, schreiben oder aendern:** `.env`, `.env.local`, `.env.*` und vergleichbare Secret-/Config-Dateien.
 - **Kein Token aus Login-Antworten** in Env-Dateien oder Cursor-Settings schreiben — auch nicht „temporaer“ oder „damit der naechste MCP-Call klappt“.
-- Der Nutzer verwaltet Credentials selbst. Du darfst hoechstens **allgemein** sagen, welche Variable betroffen ist (z. B. `MOCK_API_ACCESS_TOKEN`) und dass der Nutzer sie bei Bedarf selbst setzen muss.
-- **mock-api stdio** (`stdio-api2ai-mock-api`): Token in `.env.local` als `MOCK_API_ACCESS_TOKEN`.
-- **mock-api HTTP** (`http-api2ai-mock-api`): Credential aus `headers.x-api-token` in `mcp.json` (Demo-Admin-JWT) oder vom Nutzer ersetzt; `MOCK_API_ACCESS_TOKEN` in `.env.local` reicht **nicht** fuer HTTP. **Nie** `mcp-http-exports.sh` oder `cursor-env` erwaehnen.
-- **tmdb / github:** nur `stdio-api2ai-tmdb`, `stdio-api2ai-github` (kein `http-api2ai-*`).
+- Der Nutzer verwaltet Credentials selbst. Du darfst hoechstens **allgemein** sagen, welche Variable betroffen ist (z. B. `GITHUB_TOKEN`, `TMDB_ACCESS_TOKEN`) und dass der Nutzer sie bei Bedarf selbst setzen muss.
+- **shopping-api-oauth:** Cursor OAuth / Sign-in — kein Token in Env schreiben.
+- **todo-api-http-stateless:** Demo-API-Key in `headers.x-api-token` in `mcp.json` (Upstream `x-api-key`).
+- **tmdb-stdio / github-stdio:** Token in `.env.local`.
 
 ## Auth-Fehler: Fehler melden, nicht umgehen
 
 - MCP-Server mit `--auth-env` nutzen **ausschliesslich** das vom Host injizierte Token — optionale `headers.Authorization` sind **kein** Ersatz.
 - Schlaegt ein authentifizierter MCP-Call fehl (z. B. `401`, `403`, „customerId does not match JWT claim“):
   - **Fehler woertlich** an den Nutzer melden,
-  - **sofort stoppen** — keinen zweiten Versuch mit anderem `customerId`, kein Admin-Login, kein erneutes `login` fuer eine andere Person,
+  - **sofort stoppen** — keinen zweiten Versuch mit anderem `customerId` oder anderem OAuth-Account als Workaround,
   - kurz erklaeren, dass der **vorhandene Token** nicht zur Anfrage passt und der Nutzer Token/Login selbst anpassen muss, wenn er andere Daten sehen will.
-- **Kein Workaround:** kein paralleles `login`, kein CLI aus `generated/**`, kein direkter HTTP-Call.
-
-## Wann `login` erlaubt ist
-
-- `login` (Mock-API) **nur**, wenn der Nutzer **explizit** einloggen will (z. B. „log mich als alice ein“).
-- Nach erfolgreichem `login`: Token in der Antwort **anzeigen**, **nicht** in Env schreiben und **nicht** automatisch Folge-Calls ausfuehren, es sei denn, der Nutzer verlangt das ausdruecklich **und** der vorhandene Token passt bereits.
+- **Kein Workaround:** kein CLI aus `generated/**`, kein direkter HTTP-Call.
 
 ## Beispiel
 
@@ -37,5 +32,5 @@ Diese Regel gilt, wenn die Nutzeranfrage mit `api2ai` beginnt.
 - ✅ Einmal `listCustomerOrders` mit `customerId: bob` aufrufen.
 - ✅ Bei Mismatch-Fehler melden: Token ist `alice`, angefragt wurde `bob`; Nutzer soll selbst als Bob einloggen und Token setzen.
 - ❌ `.env.local` aendern.
-- ❌ `login` fuer `bob` oder `admin` als Workaround.
+- ❌ OAuth erneut als `bob` anstossen, nur um die Anfrage zu umgehen.
 - ❌ Erneut `listCustomerOrders` nach eigenmaechtigem Token-Tausch.

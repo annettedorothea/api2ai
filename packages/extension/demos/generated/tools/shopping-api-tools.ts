@@ -1,6 +1,6 @@
 /**
- * Generated from: mock-api.api2ai
- * Referenced OpenAPI: ./openapi/mock-api.openapi.yaml
+ * Generated from: shopping-api.api2ai
+ * Referenced OpenAPI: ./openapi/shopping-api.openapi.yaml
  */
 import { checkListCustomerOrdersParameters } from '../../src/auth/listCustomerOrders.js';
 
@@ -19,21 +19,11 @@ export const generatedTools: GeneratedTool[] = [
         toolName: 'listCustomerOrders',
         title: 'List customer orders',
         description:
-            'Intent:\n- List orders for the authenticated customer (Bearer JWT from MCP host --auth-env).\n        - Path parameter customerId is optional: when empty or omitted, it is filled from the JWT claim customerId.\n        - Role user: customerId in the path must match the JWT claim; otherwise the call fails with 403.\n        - Role admin: may list orders for any customerId in the path (e.g. alice, bob).\n        - Returns customerId and an orders array (orderId, product, amount).\n        - Use without pathParams for "my orders"; use pathParams.customerId only when admin or when it matches the token.\n\nAPI:\nRequires Bearer JWT; for role=user customerId in path must match JWT claim, role=admin may read any customer.\n\nMeta:\noperationId: list-customer-orders\n\nExample:\nList my orders\n\nResponse:\nHTTP 200\nOrder list\nproperties (top-level): customerId, orders\nDocumented errors:\nHTTP 401 — Missing or invalid token\nHTTP 403 — Token customerId does not match path\n\nRuntime: checked — implement checkListCustomerOrdersParameters in src/auth/listCustomerOrders.ts (types from this tools module; run build:generated for .js); credential sent as header "Authorization" (prefix applied to the secret).',
+            'Intent:\n- List orders for the authenticated customer (Bearer JWT from MCP OAuth or --auth-env).\n        - Path parameter customerId is optional: when empty or omitted, it is filled from the JWT claim customerId.\n        - Role user: customerId in the path must match the JWT claim; otherwise the call fails with 403.\n        - Role admin: may list orders for any customerId in the path (e.g. alice, bob).\n        - Returns customerId and an orders array (orderId, product, amount).\n        - Use without pathParams for "my orders"; use pathParams.customerId only when admin or when it matches the token.\n\nAPI:\nRequires Bearer JWT; for role=user customerId in path must match JWT claim, role=admin may read any customer.\n\nMeta:\noperationId: list-customer-orders\n\nExample:\nList my orders\n\nResponse:\nHTTP 200\nOrder list\nproperties (top-level): customerId, orders\nDocumented errors:\nHTTP 401 — Missing or invalid token\nHTTP 403 — Token customerId does not match path\n\nRuntime: checked — implement checkListCustomerOrdersParameters in src/auth/listCustomerOrders.ts (types from this tools module; run build:generated for .js); credential sent as header "Authorization" (prefix applied to the secret).',
         method: 'GET',
         path: '/orders/{customerId}',
         example: 'List my orders',
         access: 'checked'
-    },
-    {
-        toolName: 'login',
-        title: 'Login customer',
-        description:
-            'Intent:\n- Log in a demo customer and obtain a short-lived HS256 JWT (access_token).\n        - Path parameter customerId is required (e.g. alice, bob, admin).\n        - No Authorization header or MCP credential required (public endpoint).\n        - Token claims include customerId and role (user or admin depending on the account).\n        - Copy access_token into .env.local as MOCK_API_ACCESS_TOKEN, then restart the MCP server for protected tools.\n        - Unknown customerId yields HTTP 404.\n\nAPI:\nIssues a short-lived HS256 JWT with claims customerId and role (admin or user). No authentication required.\n\nMeta:\noperationId: login-customer\n\nExample:\nLogin\n\nResponse:\nHTTP 200\nAccess token\nproperties (top-level): access_token\nDocumented errors:\nHTTP 404 — Unknown customer\n\nRuntime: public endpoint — no Authorization header or MCP credential required.',
-        method: 'POST',
-        path: '/login/{customerId}',
-        example: 'Login',
-        access: 'public'
     }
 ];
 
@@ -69,7 +59,7 @@ export const authConfig: AuthConfig | undefined = {
     prefix: 'Bearer '
 };
 
-export const mcpServerName = 'mock-api-tools';
+export const mcpServerName = 'shopping-api-tools';
 export const mcpServerVersion = '0.0.5';
 
 const parameterCheckers: Record<
@@ -100,27 +90,11 @@ export const inputZodByTool = {
                 .optional()
         })
         .strict()
-        .describe('Arguments for invoking the generated HTTP wrapper.'),
-    login: z
-        .object({
-            pathParams: z.object({ customerId: z.string() }).strict().describe('Path parameters from OpenAPI.'),
-            query: z
-                .record(z.string(), z.union([z.string(), z.number(), z.boolean()]))
-                .describe('Optional query overrides.')
-                .optional(),
-            headers: z.record(z.string(), z.string()).describe('Optional extra headers.').optional(),
-            body: z
-                .record(z.string(), z.union([z.string(), z.number(), z.boolean()]))
-                .describe('Request body JSON if applicable.')
-                .optional()
-        })
-        .strict()
         .describe('Arguments for invoking the generated HTTP wrapper.')
 };
 
 export const queryParamSerializationByTool = {
-    listCustomerOrders: {},
-    login: {}
+    listCustomerOrders: {}
 };
 
 function appendSerializedQueryParams(

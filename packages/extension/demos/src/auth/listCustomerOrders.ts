@@ -1,4 +1,4 @@
-import type { InvokeOptions, CheckedHostContext } from '../../generated/tools/mock-api-tools.js';
+import type { InvokeOptions, CheckedHostContext } from '../../generated/tools/shopping-api-tools.js';
 
 export function checkListCustomerOrdersParameters(options: InvokeOptions, host: CheckedHostContext): InvokeOptions {
     const jwt = host.jwt;

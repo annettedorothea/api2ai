@@ -7,10 +7,10 @@ import { demosRoot, demosTmpRoot } from './paths.js';
 import { runDemoGenerate } from './run-demo-generate.js';
 
 export { demosRoot };
-export const mockApiServerPath = path.join(demosRoot, 'mock-api/server.mjs');
-export const sourceFixturePath = path.join(demosRoot, 'mock-api.api2ai');
-export const openApiFixturePath = path.join(demosRoot, 'openapi/mock-api.openapi.yaml');
-export const mockApiTmpRoot = demosTmpRoot;
+export const shoppingApiServerPath = path.join(demosRoot, 'shopping-api/server.mjs');
+export const sourceFixturePath = path.join(demosRoot, 'shopping-api.api2ai');
+export const openApiFixturePath = path.join(demosRoot, 'openapi/shopping-api.openapi.yaml');
+export const shoppingApiTmpRoot = demosTmpRoot;
 
 export async function findFreePort(): Promise<number> {
     return new Promise((resolve, reject) => {
@@ -28,16 +28,16 @@ export async function findFreePort(): Promise<number> {
     });
 }
 
-export async function waitForMockApi(baseUrl: string, child: ChildProcess): Promise<void> {
+export async function waitForShoppingApi(baseUrl: string, child: ChildProcess): Promise<void> {
     const deadline = Date.now() + 10_000;
     let lastError: unknown;
     while (Date.now() < deadline) {
         if (child.exitCode !== null) {
-            throw new Error(`Mock API exited before startup with code ${child.exitCode}.`);
+            throw new Error(`shopping-api exited before startup with code ${child.exitCode}.`);
         }
         try {
-            const response = await fetch(`${baseUrl}/login/alice`, { method: 'POST' });
-            if (response.ok) {
+            const response = await fetch(`${baseUrl}/orders/admin`);
+            if (response.status === 401) {
                 return;
             }
             lastError = new Error(`HTTP ${response.status}`);
@@ -46,10 +46,12 @@ export async function waitForMockApi(baseUrl: string, child: ChildProcess): Prom
         }
         await new Promise((resolve) => setTimeout(resolve, 100));
     }
-    throw new Error(`Mock API did not start in time: ${lastError instanceof Error ? lastError.message : lastError}`);
+    throw new Error(
+        `shopping-api did not start in time: ${lastError instanceof Error ? lastError.message : lastError}`
+    );
 }
 
-export async function stopMockApiProcess(child: ChildProcess | undefined): Promise<void> {
+export async function stopShoppingApiProcess(child: ChildProcess | undefined): Promise<void> {
     if (!child || child.exitCode !== null) {
         return;
     }
@@ -63,21 +65,21 @@ export async function stopMockApiProcess(child: ChildProcess | undefined): Promi
     });
 }
 
-export type MockApiGeneratedFixture = {
+export type ShoppingApiGeneratedFixture = {
     fixtureRoot: string;
     generatedJsPath: string;
     stdioMcpServerPath: string;
 };
 
-export async function prepareMockApiGeneratedFixture(fixtureRoot: string): Promise<MockApiGeneratedFixture> {
-    const generatedTsPath = path.join(fixtureRoot, 'generated/tools/mock-api-tools.ts');
-    const generatedJsPath = path.join(fixtureRoot, 'generated/tools/mock-api-tools.js');
+export async function prepareShoppingApiGeneratedFixture(fixtureRoot: string): Promise<ShoppingApiGeneratedFixture> {
+    const generatedTsPath = path.join(fixtureRoot, 'generated/tools/shopping-api-tools.ts');
+    const generatedJsPath = path.join(fixtureRoot, 'generated/tools/shopping-api-tools.js');
     const stdioMcpServerPath = path.join(fixtureRoot, 'generated/cli/stdio-mcp-server.js');
 
     await fs.mkdir(path.join(fixtureRoot, 'openapi'), { recursive: true });
-    await fs.copyFile(sourceFixturePath, path.join(fixtureRoot, 'mock-api.api2ai'));
-    await fs.copyFile(openApiFixturePath, path.join(fixtureRoot, 'openapi/mock-api.openapi.yaml'));
-    runDemoGenerate(path.join(fixtureRoot, 'mock-api.api2ai'), generatedTsPath);
+    await fs.copyFile(sourceFixturePath, path.join(fixtureRoot, 'shopping-api.api2ai'));
+    await fs.copyFile(openApiFixturePath, path.join(fixtureRoot, 'openapi/shopping-api.openapi.yaml'));
+    runDemoGenerate(path.join(fixtureRoot, 'shopping-api.api2ai'), generatedTsPath);
     await fs.mkdir(path.join(fixtureRoot, 'src', 'auth'), { recursive: true });
     await fs.copyFile(
         path.join(demosRoot, 'src/auth/listCustomerOrders.ts'),
@@ -88,11 +90,12 @@ export async function prepareMockApiGeneratedFixture(fixtureRoot: string): Promi
     return { fixtureRoot, generatedJsPath, stdioMcpServerPath };
 }
 
-export async function startMockApiServer(port: number): Promise<ChildProcess> {
-    return spawn(process.execPath, [mockApiServerPath], {
+export async function startShoppingApiServer(port: number): Promise<ChildProcess> {
+    return spawn(process.execPath, [shoppingApiServerPath], {
         env: {
             ...process.env,
-            MOCK_API_PORT: String(port)
+            SHOPPING_API_PORT: String(port),
+            SHOPPING_API_JWT_SECRET: process.env.SHOPPING_API_JWT_SECRET ?? 'demo-shopping-api-secret'
         },
         stdio: ['ignore', 'pipe', 'pipe']
     });

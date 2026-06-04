@@ -11,12 +11,8 @@ import * as z from 'zod/v4';
 
 const LOCAL_ENV_FILES = ['.env', '.env.local'];
 
-type DatabaseDialect = 'postgres' | 'mysql';
-
 type ApiLikeHostContext = {
     baseUrl?: string;
-    connectionString?: string;
-    databaseDialect?: DatabaseDialect;
     credential?: string;
     jwt?: Record<string, unknown>;
 };
@@ -28,13 +24,7 @@ type GeneratedHostModule = {
     mcpServerName?: string;
     mcpServerVersion?: string;
     requiresAuth: boolean;
-    connectionEnv?: string;
-    databaseDialect?: DatabaseDialect;
 };
-
-function parseDatabaseDialect(value: unknown): DatabaseDialect | undefined {
-    return value === 'postgres' || value === 'mysql' ? value : undefined;
-}
 
 function stripOptionalQuotes(value: string): string {
     if (value.length < 2) {
@@ -145,13 +135,6 @@ function credentialWithOptionalJwt(credential: string | undefined): {
     }
 }
 
-function isExpectedDatabaseUrl(connectionString: string, dialect: DatabaseDialect): boolean {
-    if (dialect === 'mysql') {
-        return connectionString.startsWith('mysql://');
-    }
-    return connectionString.startsWith('postgresql://') || connectionString.startsWith('postgres://');
-}
-
 function formatToolError(err: unknown): string {
     if (err instanceof Error) {
         return err.message;
@@ -171,7 +154,6 @@ function readGeneratedModule(imported: Record<string, unknown>): GeneratedHostMo
     const inputZodByTool = imported.inputZodByTool;
     const mcpServerName = imported.mcpServerName;
     const mcpServerVersion = imported.mcpServerVersion;
-    const connectionEnv = imported.connectionEnv;
     return {
         generatedTools: generatedTools as Array<{ toolName: string; title?: string; description: string }>,
         invokeTool: invokeTool as (
@@ -185,9 +167,7 @@ function readGeneratedModule(imported: Record<string, unknown>): GeneratedHostMo
                 : undefined,
         mcpServerName: typeof mcpServerName === 'string' ? mcpServerName : undefined,
         mcpServerVersion: typeof mcpServerVersion === 'string' ? mcpServerVersion : undefined,
-        requiresAuth: imported.requiresAuth === true,
-        connectionEnv: typeof connectionEnv === 'string' ? connectionEnv : undefined,
-        databaseDialect: parseDatabaseDialect(imported.databaseDialect)
+        requiresAuth: imported.requiresAuth === true
     };
 }
 
@@ -217,7 +197,7 @@ function requireInputZodSchema(inputZodByTool: Record<string, unknown> | undefin
 async function registerMcpTools(
     server: McpServer,
     generated: GeneratedHostModule,
-    options: { envDirs: string[]; resolveContext: () => ApiLikeHostContext }
+    options: { envDirs: string[]; resolveContext: () => ApiLikeHostContext | Promise<ApiLikeHostContext> }
 ): Promise<void> {
     for (const tool of generated.generatedTools) {
         const inputSchema = requireInputZodSchema(generated.inputZodByTool, tool.toolName);
@@ -230,7 +210,7 @@ async function registerMcpTools(
             },
             async (args) => {
                 loadLocalEnvFiles(options.envDirs, { refresh: true });
-                const hostContext = options.resolveContext();
+                const hostContext = await Promise.resolve(options.resolveContext());
                 try {
                     const result = await generated.invokeTool(
                         tool.toolName,
@@ -304,58 +284,24 @@ function readCredentialFromEnv(authEnvKey: string | undefined): string | undefin
 }
 
 function validateHostAtStartup(hostConfig: HostRuntimeConfig, generated: GeneratedHostModule): void {
-    if (generated.connectionEnv) {
-        const connectionString = process.env[generated.connectionEnv]?.trim();
-        if (!connectionString) {
-            throw new Error(
-                'Environment variable "' + generated.connectionEnv + '" is missing or empty (database env from .db2ai).'
-            );
-        }
-        const dialect: DatabaseDialect = generated.databaseDialect ?? 'postgres';
-        if (!isExpectedDatabaseUrl(connectionString, dialect)) {
-            throw new Error(
-                'Environment variable "' +
-                    generated.connectionEnv +
-                    '" does not match generated database dialect "' +
-                    dialect +
-                    '".'
-            );
-        }
-    } else {
-        const baseUrlKey = hostConfig.baseUrlEnvKey?.trim();
-        if (!baseUrlKey) {
-            throw new Error('Required: --base-url-env <ENV_VAR_NAME>');
-        }
-        const baseUrl = process.env[baseUrlKey]?.trim();
-        if (!baseUrl) {
-            throw new Error(
-                'Environment variable "' + baseUrlKey + '" is missing or empty (required by --base-url-env).'
-            );
-        }
+    const baseUrlKey = hostConfig.baseUrlEnvKey?.trim();
+    if (!baseUrlKey) {
+        throw new Error('Required: --base-url-env <ENV_VAR_NAME>');
     }
+    const baseUrl = process.env[baseUrlKey]?.trim();
+    if (!baseUrl) {
+        throw new Error('Environment variable "' + baseUrlKey + '" is missing or empty (required by --base-url-env).');
+    }
+
     if (generated.requiresAuth && !hostConfig.authEnvKey?.trim()) {
         throw new Error('Generated tools require auth; pass --auth-env <ENV_VAR_NAME> on the MCP host.');
     }
 }
 
-function resolveHostContextForCall(hostConfig: HostRuntimeConfig, generated: GeneratedHostModule): ApiLikeHostContext {
+function resolveHostContextForCall(hostConfig: HostRuntimeConfig, _generated: GeneratedHostModule): ApiLikeHostContext {
     const credential = readCredentialFromEnv(hostConfig.authEnvKey);
     const { credential: c, jwt } = credentialWithOptionalJwt(credential);
-    if (generated.connectionEnv) {
-        const connectionString = process.env[generated.connectionEnv]?.trim();
-        if (!connectionString) {
-            throw new Error(
-                'Missing database URL. Set environment variable "' + generated.connectionEnv + '" (from .db2ai).'
-            );
-        }
-        const dialect: DatabaseDialect = generated.databaseDialect ?? 'postgres';
-        if (!isExpectedDatabaseUrl(connectionString, dialect)) {
-            throw new Error(
-                'Database URL from "' + generated.connectionEnv + '" does not match dialect "' + dialect + '".'
-            );
-        }
-        return { connectionString, databaseDialect: dialect, credential: c, jwt };
-    }
+
     const baseUrlKey = hostConfig.baseUrlEnvKey?.trim();
     const baseUrl = baseUrlKey ? process.env[baseUrlKey]?.trim() : undefined;
     if (!baseUrl) {
@@ -391,10 +337,8 @@ async function runStdioMcpStandaloneFromArgv(argv: string[]): Promise<void> {
     }
     const generated = readGeneratedModule(imported as Record<string, unknown>);
     const hostConfig = parseHostArgv(argv.slice(1), envDirs);
-    if (!generated.connectionEnv && !hostConfig.baseUrlEnvKey) {
-        throw new Error(
-            'Required: --base-url-env <ENV_VAR_NAME> (api2ai tools). db2ai uses connectionEnv from the tool module.'
-        );
+    if (!hostConfig.baseUrlEnvKey) {
+        throw new Error('Required: --base-url-env <ENV_VAR_NAME>');
     }
     validateHostAtStartup(hostConfig, generated);
     console.error('[mcp] host context refreshed each tool call');

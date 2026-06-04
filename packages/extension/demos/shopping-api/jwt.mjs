@@ -1,9 +1,13 @@
 import { createHmac, randomBytes } from 'node:crypto';
 
-const DEFAULT_SECRET = 'demo-mock-api-secret';
+const DEFAULT_SECRET = 'demo-shopping-api-secret';
 
 export function jwtSecret() {
-    return process.env.MOCK_API_JWT_SECRET?.trim() || DEFAULT_SECRET;
+    return (
+        process.env.SHOPPING_API_JWT_SECRET?.trim() ||
+        process.env.MOCK_API_JWT_SECRET?.trim() ||
+        DEFAULT_SECRET
+    );
 }
 
 function base64urlEncode(buf) {

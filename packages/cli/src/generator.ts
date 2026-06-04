@@ -36,6 +36,7 @@ const __generatorDirname = bundleSafeGeneratorImplementationDir();
 
 function createBootstrapConfig(): ProjectBootstrapConfig {
     return {
+        hostProduct: 'api2ai',
         generatorImplementationDir: __generatorDirname,
         embedHomeEnv: 'API2AI_EMBED_HOME',
         fallbackProjectName: 'api2ai-project',

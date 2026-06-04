@@ -2,7 +2,7 @@ import { afterAll, describe, expect, it } from 'vitest';
 import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
 import { compileGeneratedForSmoke, withMcpStatelessHttpSession } from '../generated/index.js';
-import { findFreePort } from '../support/mock-api-fixture.js';
+import { findFreePort } from '../support/shopping-api-fixture.js';
 import { demosRoot, demosTmpRoot } from '../support/paths.js';
 import { runDemoGenerate } from '../support/run-demo-generate.js';
 

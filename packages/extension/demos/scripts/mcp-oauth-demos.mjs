@@ -4,17 +4,17 @@
 import path from 'node:path';
 
 export const OAUTH_HTTP_DEMOS = {
-    'mock-api': {
-        tools: 'mock-api-tools.js',
-        baseUrlEnv: 'MOCK_API_BASE_URL',
+    'shopping-api': {
+        tools: 'shopping-api-tools.js',
+        baseUrlEnv: 'SHOPPING_API_BASE_URL',
         defaultBaseUrl: 'http://127.0.0.1:3847',
-        oauthIdpUrlEnv: 'MOCK_API_OAUTH_IDP_URL',
+        oauthIdpUrlEnv: 'SHOPPING_API_OAUTH_IDP_URL',
         defaultOAuthIdpUrl: 'http://127.0.0.1:3860',
-        jwtSecretEnv: 'MOCK_API_JWT_SECRET',
-        portEnv: 'MOCK_API_OAUTH_HTTP_PORT',
+        jwtSecretEnv: 'SHOPPING_API_JWT_SECRET',
+        portEnv: 'SHOPPING_API_OAUTH_HTTP_PORT',
         defaultPort: 3870,
         mcpUrl: 'http://127.0.0.1:3870/mcp',
-        prerequisite: 'mock-api backend + oauth-idp (npm run demo:mock-api, demo:oauth-idp)'
+        prerequisite: 'shopping-api backend + oauth-idp (npm run demo:shopping-api, demo:oauth-idp)'
     }
 };
 
@@ -51,6 +51,7 @@ export function buildOAuthHostLaunch(name, demosRoot, env) {
     const port = resolvePort(demo, env);
     const hostJs = path.join(demosRoot, 'generated/cli/oauth-http-mcp-server.js');
     const toolsJs = path.join(demosRoot, 'generated/tools', demo.tools);
+    const tokenValidation = (env.OAUTH_TOKEN_VALIDATION ?? 'hs256').trim();
     const args = [
         hostJs,
         toolsJs,
@@ -58,12 +59,28 @@ export function buildOAuthHostLaunch(name, demosRoot, env) {
         demo.baseUrlEnv,
         '--oauth-idp-url',
         env[demo.oauthIdpUrlEnv],
-        '--jwt-secret-env',
-        demo.jwtSecretEnv,
+        '--oauth-scope',
+        name,
+        '--oauth-token-validation',
+        tokenValidation,
         '--port',
         String(port),
         '--path',
         '/mcp'
     ];
+    if (tokenValidation === 'oidc') {
+        const issuer = (env.OAUTH_ISSUER ?? env[demo.oauthIdpUrlEnv]).trim();
+        args.push('--oauth-issuer', issuer);
+        const audience = env.OAUTH_AUDIENCE?.trim();
+        if (audience) {
+            args.push('--oauth-audience', audience);
+        }
+    } else {
+        args.push('--jwt-secret-env', demo.jwtSecretEnv);
+    }
     return { demo, port, args, mcpUrl: demo.mcpUrl };
+}
+
+export function listOAuthHttpPorts(env = process.env) {
+    return OAUTH_HTTP_DEMO_NAMES.map((name) => resolvePort(OAUTH_HTTP_DEMOS[name], env));
 }

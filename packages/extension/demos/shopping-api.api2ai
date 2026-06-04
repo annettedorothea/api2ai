@@ -1,4 +1,4 @@
-openapi "./openapi/mock-api.openapi.yaml"
+openapi "./openapi/shopping-api.openapi.yaml"
 
 auth {
     in: header
@@ -12,7 +12,7 @@ GET "/orders/{customerId}" {
         optionalParams: [customerId]
     }
     intent: '''
-        - List orders for the authenticated customer (Bearer JWT from MCP host --auth-env).
+        - List orders for the authenticated customer (Bearer JWT from MCP OAuth or --auth-env).
         - Path parameter customerId is optional: when empty or omitted, it is filled from the JWT claim customerId.
         - Role user: customerId in the path must match the JWT claim; otherwise the call fails with 403.
         - Role admin: may list orders for any customerId in the path (e.g. alice, bob).
@@ -21,19 +21,4 @@ GET "/orders/{customerId}" {
     '''
     summary: "List customer orders"
     example: "List my orders"
-}
-
-POST "/login/{customerId}" {
-    toolName: login
-    access: public
-    intent: '''
-        - Log in a demo customer and obtain a short-lived HS256 JWT (access_token).
-        - Path parameter customerId is required (e.g. alice, bob, admin).
-        - No Authorization header or MCP credential required (public endpoint).
-        - Token claims include customerId and role (user or admin depending on the account).
-        - Copy access_token into .env.local as MOCK_API_ACCESS_TOKEN, then restart the MCP server for protected tools.
-        - Unknown customerId yields HTTP 404.
-    '''
-    summary: "Login customer"
-    example: "Login"
 }

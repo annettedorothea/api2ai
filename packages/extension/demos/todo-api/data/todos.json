@@ -1,0 +1,30 @@
+[
+    {
+        "id": "t-1",
+        "title": "Review pull requests",
+        "status": "open",
+        "categoryId": "work",
+        "dueDate": "2026-06-10"
+    },
+    {
+        "id": "t-2",
+        "title": "Buy groceries",
+        "status": "open",
+        "categoryId": "errands",
+        "dueDate": "2026-06-05"
+    },
+    {
+        "id": "t-3",
+        "title": "Fix kitchen shelf",
+        "status": "done",
+        "categoryId": "home",
+        "dueDate": "2026-05-28"
+    },
+    {
+        "id": "t-4",
+        "title": "Prepare sprint notes",
+        "status": "open",
+        "categoryId": "work",
+        "dueDate": "2026-06-12"
+    }
+]

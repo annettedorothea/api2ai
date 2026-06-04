@@ -1,13 +1,14 @@
 #!/usr/bin/env node
 /**
- * Mini OAuth 2.1 authorization server for MCP demos (mock-api).
+ * Mini OAuth 2.1 authorization server for MCP demos (shopping-api).
  * Sync logic with db2ai access-demo/oauth-idp/server.mjs — ports/secrets differ.
  */
 import { createHash, randomBytes, timingSafeEqual } from 'node:crypto';
 import { createServer } from 'node:http';
-import { mintCustomerToken } from './jwt.mjs';
+import { getJwksDocument, mintCustomerToken } from './jwt.mjs';
 
-const PORT = Number(process.env.MOCK_API_OAUTH_IDP_PORT) || 3860;
+const PORT =
+    Number(process.env.SHOPPING_API_OAUTH_IDP_PORT) || Number(process.env.MOCK_API_OAUTH_IDP_PORT) || 3860;
 const CLIENT_ID = 'mcp-demo-local';
 const CURSOR_REDIRECT = 'cursor://anysphere.cursor-mcp/oauth/callback';
 const DEMO_USERS = [
@@ -70,26 +71,31 @@ function issuerUrl(req) {
     return `http://127.0.0.1:${PORT}`;
 }
 
-function handleMetadata(res) {
-    const base = issuerUrl();
-    sendJson(res, 200, {
+function openIdConfigurationDocument(base) {
+    return {
         issuer: base,
         authorization_endpoint: `${base}/authorize`,
         token_endpoint: `${base}/token`,
+        jwks_uri: `${base}/jwks`,
         response_types_supported: ['code'],
         grant_types_supported: ['authorization_code'],
         code_challenge_methods_supported: ['S256'],
         token_endpoint_auth_methods_supported: ['none']
-    });
+    };
+}
+
+function handleMetadata(req, res) {
+    const base = issuerUrl(req);
+    sendJson(res, 200, openIdConfigurationDocument(base));
 }
 
 function sendAuthorizeHelpPage(res, title) {
     res.writeHead(200, { 'content-type': 'text/html; charset=utf-8' });
     res.end(
         `<!doctype html><html><body><h1>${title}</h1>` +
-            '<p>Open login via <strong>Cursor MCP OAuth</strong> (&quot;Needs login&quot; on <code>oauth-api2ai-mock-api</code>), not by bookmarking <code>/authorize</code>.</p>' +
+            '<p>Open login via <strong>Cursor MCP OAuth</strong> (&quot;Needs login&quot; on <code>shopping-api-oauth</code>), not by bookmarking <code>/authorize</code>.</p>' +
             '<p>Cursor sends <code>response_type=code</code>, <code>client_id=mcp-demo-local</code>, PKCE <code>code_challenge</code>, and redirect <code>cursor://anysphere.cursor-mcp/oauth/callback</code>.</p>' +
-            '<p>Processes: <code>npm run demo:oauth-idp</code>, <code>npm run demo:mcp-oauth:mock-api</code>, mock-api backend.</p>' +
+            '<p>Processes: <code>npm run demo:oauth-idp</code>, <code>npm run demo:mcp-oauth:shopping-api</code>, shopping-api backend.</p>' +
             '</body></html>'
     );
 }
@@ -103,7 +109,7 @@ function handleAuthorize(req, res, url) {
 
     if (responseType !== 'code') {
         if (!responseType && !clientId && !redirectUri && !codeChallenge) {
-            sendAuthorizeHelpPage(res, 'mock-api OAuth IDP');
+            sendAuthorizeHelpPage(res, 'shopping-api OAuth IDP');
             return;
         }
         sendJson(res, 400, { error: 'unsupported_response_type', detail: responseType || '(missing)' });
@@ -133,7 +139,7 @@ function handleAuthorize(req, res, url) {
         ).join('');
         res.writeHead(200, { 'content-type': 'text/html; charset=utf-8' });
         res.end(
-            `<!doctype html><html><body><h1>mock-api OAuth IDP</h1><p>Login as:</p><ul>${links}</ul></body></html>`
+            `<!doctype html><html><body><h1>shopping-api OAuth IDP</h1><p>Login as:</p><ul>${links}</ul></body></html>`
         );
         return;
     }
@@ -195,7 +201,7 @@ async function handleToken(req, res) {
     }
     pendingCodes.delete(code);
 
-    const accessToken = mintCustomerToken(pending.customerId, pending.role);
+    const accessToken = mintCustomerToken(pending.customerId, pending.role, 3600, issuerUrl(req));
     sendJson(res, 200, {
         access_token: accessToken,
         token_type: 'Bearer',
@@ -206,8 +212,16 @@ async function handleToken(req, res) {
 const server = createServer(async (req, res) => {
     const url = new URL(req.url ?? '/', issuerUrl(req));
 
-    if (url.pathname === '/.well-known/oauth-authorization-server' && req.method === 'GET') {
-        handleMetadata(res);
+    if (
+        (url.pathname === '/.well-known/oauth-authorization-server' ||
+            url.pathname === '/.well-known/openid-configuration') &&
+        req.method === 'GET'
+    ) {
+        handleMetadata(req, res);
+        return;
+    }
+    if (url.pathname === '/jwks' && req.method === 'GET') {
+        sendJson(res, 200, getJwksDocument());
         return;
     }
     if (url.pathname === '/authorize' && req.method === 'GET') {
@@ -234,7 +248,7 @@ const server = createServer(async (req, res) => {
 });
 
 server.listen(PORT, '127.0.0.1', () => {
-    console.error(`[mock-api-oauth-idp] http://127.0.0.1:${PORT}`);
-    console.error(`[mock-api-oauth-idp] Cursor redirect: ${CURSOR_REDIRECT}`);
-    console.error(`[mock-api-oauth-idp] client_id: ${CLIENT_ID}`);
+    console.error(`[shopping-api-oauth-idp] http://127.0.0.1:${PORT}`);
+    console.error(`[shopping-api-oauth-idp] Cursor redirect: ${CURSOR_REDIRECT}`);
+    console.error(`[shopping-api-oauth-idp] client_id: ${CLIENT_ID}`);
 });

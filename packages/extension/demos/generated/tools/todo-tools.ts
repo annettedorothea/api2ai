@@ -1,6 +1,6 @@
 /**
- * Generated from: github.api2ai
- * Referenced OpenAPI: ./openapi/github-user-min.openapi.yaml
+ * Generated from: todo.api2ai
+ * Referenced OpenAPI: ./openapi/todo-api.openapi.yaml
  */
 
 export type GeneratedTool = {
@@ -15,33 +15,43 @@ export type GeneratedTool = {
 
 export const generatedTools: GeneratedTool[] = [
     {
-        toolName: 'getGitHubAuthenticatedUser',
-        title: 'Get the authenticated user',
+        toolName: 'listCategories',
+        title: 'List todo categories',
         description:
-            'Intent:\nreturn the GitHub user profile for the authenticated PAT; use to confirm which account the token represents before calling repo-scoped tools\n\nAPI:\nRequires a user PAT with at least read:user (classic) or equivalent fine-grained scope.\n\nMeta:\noperationId: get-authenticated-user\n\nExample:\nNo path or query parameters\n\nResponse:\nHTTP 200\nOK\ntype: object (no inlined properties)\nDocumented errors:\nHTTP 401 — Unauthorized\nHTTP 403 — Forbidden (rate limit or insufficient token scope)\n\nRuntime auth: MCP host injects the API credential via --auth-env; send as header "Authorization" (prefix applied to the secret).',
+            'Intent:\n- List all todo categories (id, name, color).\n        - Requires API key on the upstream API (passed from MCP as x-api-token → x-api-key).\n\nMeta:\noperationId: list-categories\n\nExample:\nList todo categories\n\nResponse:\nHTTP 200\nCategory list\nproperties (top-level): categories\nDocumented errors:\nHTTP 401 — Missing or invalid API key\n\nRuntime auth: MCP host injects the API credential via --auth-env; send as header "x-api-key".',
         method: 'GET',
-        path: '/user',
-        example: 'No path or query parameters',
+        path: '/categories',
+        example: 'List todo categories',
         access: 'protected'
     },
     {
-        toolName: 'listGitHubUserRepos',
-        title: 'List repositories for the authenticated user',
+        toolName: 'listTodos',
+        title: 'List todos',
         description:
-            'Intent:\n- List repositories the authenticated PAT can access (pagination via query page, per_page).\n        - Use to discover owner/repo names before getGitHubRepository.\n        - Helpful when GET /repos/{owner}/{repo} returns 404 (wrong owner, private repo, or missing scope).\n        - Requires a PAT with repo read access; token comes from MCP host --auth-env.\n\nAPI:\nLists repositories the authenticated user has **direct** access to (your own repos, collaborations, org repos the token can see).\n\n**Classic PAT:** use scope `repo` if you need private repositories; without it, private repos may be omitted or single-repo `GET /repos/{owner}/{repo}` can return **404** (GitHub hides existence of private repos you cannot read).\n\n**Fine-grained PAT:** grant **Repository permissions** (e.g. Metadata read) on each repository or via organization/team rules; missing scope often surfaces as **404** on `GET /repos/{owner}/{repo}`, not 403.\n\nPrefer this endpoint to discover `owner`/`repo` names before calling `GET /repos/{owner}/{repo}`.\n\nMeta:\noperationId: list-repositories-for-the-authenticated-user\n\nExample:\nFirst page, 10 per page: query per_page=10 page=1\n\nResponse:\nHTTP 200\nOK — array of repository objects\ntype: array of object\nDocumented errors:\nHTTP 401 — Unauthorized\nHTTP 403 — Forbidden (rate limit or insufficient token)\n\nRuntime auth: MCP host injects the API credential via --auth-env; send as header "Authorization" (prefix applied to the secret).',
+            'Intent:\n- List todos; optional query status (open|done) and categoryId.\n        - Returns todos array with id, title, status, categoryId, dueDate.\n\nMeta:\noperationId: list-todos\n\nExample:\nList open todos\n\nResponse:\nHTTP 200\nTodo list\nproperties (top-level): todos\nDocumented errors:\nHTTP 401 — Missing or invalid API key\n\nRuntime auth: MCP host injects the API credential via --auth-env; send as header "x-api-key".',
         method: 'GET',
-        path: '/user/repos',
-        example: 'First page, 10 per page: query per_page=10 page=1',
+        path: '/todos',
+        example: 'List open todos',
         access: 'protected'
     },
     {
-        toolName: 'getGitHubRepository',
-        title: 'Get a repository',
+        toolName: 'listTodosByCategory',
+        title: 'List todos by category',
         description:
-            'Intent:\nfetch GitHub repository metadata when the PAT can read the repo\n\nAPI:\nReturns metadata for one repository.\n\n**404 on private repos:** GitHub often returns **404 Not Found** (not 403) when the repo is private and the token **cannot** read it, or when `owner`/`repo` is wrong — this avoids leaking whether a private repo exists.\n\nIf you are sure the PAT should have access: verify the token in the MCP host (`--auth-env` / `GITHUB_TOKEN`), PAT type (classic `repo` vs fine-grained repo access), exact `owner`/`repo` spelling, and try `GET /user/repos` to confirm the repo appears in the list for this token.\n\nMeta:\noperationId: get-a-repository\n\nExample:\nGet public repo octocat/Hello-World\n\nResponse:\nHTTP 200\nOK\ntype: object (no inlined properties)\nDocumented errors:\nHTTP 404 — Not Found (e.g. private repo or no access)\n\nRuntime auth: MCP host injects the API credential via --auth-env; send as header "Authorization" (prefix applied to the secret).',
+            'Intent:\n- List todos for one category (path categoryId, e.g. work, home, errands).\n        - Optional query status: open or done.\n        - Returns categoryId and todos array; HTTP 404 if categoryId is unknown.\n\nMeta:\noperationId: list-todos-by-category\n\nExample:\nList open todos in category work\n\nResponse:\nHTTP 200\nTodos for category\nproperties (top-level): categoryId, todos\nDocumented errors:\nHTTP 401 — Missing or invalid API key\nHTTP 404 — Unknown category\n\nRuntime auth: MCP host injects the API credential via --auth-env; send as header "x-api-key".',
         method: 'GET',
-        path: '/repos/{owner}/{repo}',
-        example: 'Get public repo octocat/Hello-World',
+        path: '/categories/{categoryId}/todos',
+        example: 'List open todos in category work',
+        access: 'protected'
+    },
+    {
+        toolName: 'getTodo',
+        title: 'Get todo by id',
+        description:
+            'Intent:\n- Fetch a single todo by id (path todoId).\n        - Returns todo object or HTTP 404 when unknown.\n\nMeta:\noperationId: get-todo\n\nExample:\nGet todo t-1\n\nResponse:\nHTTP 200\nSingle todo\nproperties (top-level): todo\nDocumented errors:\nHTTP 401 — Missing or invalid API key\nHTTP 404 — Todo not found\n\nRuntime auth: MCP host injects the API credential via --auth-env; send as header "x-api-key".',
+        method: 'GET',
+        path: '/todos/{todoId}',
+        example: 'Get todo t-1',
         access: 'protected'
     }
 ];
@@ -74,17 +84,17 @@ type AuthConfig = {
 export const requiresAuth = true;
 export const authConfig: AuthConfig | undefined = {
     location: 'header',
-    name: 'Authorization',
-    prefix: 'Bearer '
+    name: 'x-api-key',
+    prefix: ''
 };
 
-export const mcpServerName = 'github-tools';
+export const mcpServerName = 'todo-tools';
 export const mcpServerVersion = '0.0.5';
 
 import * as z from 'zod/v4';
 
 export const inputZodByTool = {
-    getGitHubAuthenticatedUser: z
+    listCategories: z
         .object({
             pathParams: z
                 .record(z.string(), z.union([z.string(), z.number(), z.boolean()]))
@@ -102,7 +112,7 @@ export const inputZodByTool = {
         })
         .strict()
         .describe('Arguments for invoking the generated HTTP wrapper.'),
-    listGitHubUserRepos: z
+    listTodos: z
         .object({
             pathParams: z
                 .record(z.string(), z.union([z.string(), z.number(), z.boolean()]))
@@ -110,14 +120,8 @@ export const inputZodByTool = {
                 .optional(),
             query: z
                 .object({
-                    type: z
-                        .union([z.literal('all'), z.literal('owner'), z.literal('member')])
-                        .describe(
-                            '`all` (default), `owner` (repos owned by user), or `member` (repos user is member of but does not own).'
-                        )
-                        .optional(),
-                    per_page: z.number().describe('Results per page (max 100).').optional(),
-                    page: z.number().describe('Page number of results.').optional()
+                    status: z.union([z.literal('open'), z.literal('done')]).optional(),
+                    categoryId: z.string().optional()
                 })
                 .strict()
                 .describe('Query parameters from OpenAPI.')
@@ -130,12 +134,25 @@ export const inputZodByTool = {
         })
         .strict()
         .describe('Arguments for invoking the generated HTTP wrapper.'),
-    getGitHubRepository: z
+    listTodosByCategory: z
         .object({
-            pathParams: z
-                .object({ owner: z.string(), repo: z.string() })
+            pathParams: z.object({ categoryId: z.string() }).strict().describe('Path parameters from OpenAPI.'),
+            query: z
+                .object({ status: z.union([z.literal('open'), z.literal('done')]).optional() })
                 .strict()
-                .describe('Path parameters from OpenAPI.'),
+                .describe('Query parameters from OpenAPI.')
+                .optional(),
+            headers: z.record(z.string(), z.string()).describe('Optional extra headers.').optional(),
+            body: z
+                .record(z.string(), z.union([z.string(), z.number(), z.boolean()]))
+                .describe('Request body JSON if applicable.')
+                .optional()
+        })
+        .strict()
+        .describe('Arguments for invoking the generated HTTP wrapper.'),
+    getTodo: z
+        .object({
+            pathParams: z.object({ todoId: z.string() }).strict().describe('Path parameters from OpenAPI.'),
             query: z
                 .record(z.string(), z.union([z.string(), z.number(), z.boolean()]))
                 .describe('Optional query overrides.')
@@ -151,22 +168,24 @@ export const inputZodByTool = {
 };
 
 export const queryParamSerializationByTool = {
-    getGitHubAuthenticatedUser: {},
-    listGitHubUserRepos: {
-        type: {
+    listCategories: {},
+    listTodos: {
+        status: {
             style: 'form',
             explode: true
         },
-        per_page: {
-            style: 'form',
-            explode: true
-        },
-        page: {
+        categoryId: {
             style: 'form',
             explode: true
         }
     },
-    getGitHubRepository: {}
+    listTodosByCategory: {
+        status: {
+            style: 'form',
+            explode: true
+        }
+    },
+    getTodo: {}
 };
 
 function appendSerializedQueryParams(

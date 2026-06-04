@@ -6,8 +6,8 @@ alwaysApply: true
 # MCP-Nutzung auf api2ai-Server beschraenken
 
 - Diese Regel greift nur, wenn die Nutzeranfrage mit `api2ai` beginnt.
-- In Cursor ist pro Demo nur **ein** Server aktiv: `stdio-api2ai-*` **oder** `http-api2ai-*` (siehe `.cursor/mcp.json`); kein separates `http api2ai`-Prefix.
-- Dann stelle ausschliesslich MCP-Anfragen an Server, deren Name `stdio-api2ai-` oder `http-api2ai-` enthaelt (z. B. `http-api2ai-open-meteo`, `project-0-examples-api2ai-*`).
+- In Cursor ist pro API genau **ein** Eintrag in `.cursor/mcp.json` (Name: `<api>-stdio`, `<api>-http-stateless`, `<api>-oauth`, …).
+- Dann stelle ausschliesslich MCP-Anfragen an diese konfigurierten Server (z. B. `open-meteo-stdio`, `todo-api-http-stateless`, `shopping-api-oauth`).
 - Nutze in diesem Fall keine anderen MCP-Server, auch wenn sie verfuegbar sind.
 - Nutze in diesem Fall **keine** allgemeine Recherche ausserhalb der erlaubten `api2ai*`-MCPs:
   - **keine Websuche** (z. B. `WebSearch`),
@@ -31,7 +31,7 @@ alwaysApply: true
 - **Dann sofort stoppen** (max. **ein** gezielter MCP-Aufruf pro betroffenem Server, kein zweiter Versuch mit anderem Identifier, kein `stdio-api2ai-tmdb` vs. `project-0-examples-api2ai-tmdb` durchprobieren):
   - **Keine** Websuche, kein WebFetch, keine direkte API, kein `invokeTool`/CLI aus `generated/**`, kein Lesen von `.env*` oder Tokens.
   - **Keine** langen Diagnose-Abschnitte oder Workarounds in derselben Antwort.
-- **Nutzer-Nachricht (kurz, auf Deutsch):** klar sagen, dass die Antwort **ohne laufende `api2ai*`-MCP-Tools** nicht geliefert werden kann; welcher **`serverName`** aus `mcp.json` fehlt oder fehlschlug (z. B. `http-api2ai-mock-api`); **konkrete Schritte** (z. B. MCP aktivieren, `npm run demo:mcp-http:all`, Mock-Backend `demo:mock-api`, Token: `.env.local` bei **`stdio-api2ai-*`**; bei **`http-api2ai-mock-api`** `headers.x-api-token` in `mcp.json` pruefen/ersetzen). **Nicht** `mcp-http-exports.sh` oder `cursor-env` nennen. Danach **aufhoeren** — keine inhaltliche Antwort aus Gedaechtnis.
+- **Nutzer-Nachricht (kurz, auf Deutsch):** klar sagen, dass die Antwort **ohne laufende MCP-Tools** nicht geliefert werden kann; welcher **`serverName`** aus `mcp.json` fehlt oder fehlschlug (z. B. `todo-api-http-stateless`); **konkrete Schritte** (z. B. `npm run init`, MCP aktivieren, `shopping-api-oauth` Sign-in). Danach **aufhoeren** — keine inhaltliche Antwort aus Gedaechtnis.
 - **Audit:** den fehlgeschlagenen (oder entfallenen) Versuch trotzdem dokumentieren; keine weiteren MCP-Eintraege erfinden.
 
 ## Tool-Wahl und Parameter ohne Workspace-/OpenAPI-Wissen

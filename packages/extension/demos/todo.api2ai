@@ -1,0 +1,52 @@
+openapi "./openapi/todo-api.openapi.yaml"
+
+auth {
+    in: header
+    name: "x-api-key"
+    prefix: ""
+}
+
+GET "/categories" {
+    toolName: listCategories
+    access: protected
+    intent: '''
+        - List all todo categories (id, name, color).
+        - Requires API key on the upstream API (passed from MCP as x-api-token → x-api-key).
+    '''
+    summary: "List todo categories"
+    example: "List todo categories"
+}
+
+GET "/todos" {
+    toolName: listTodos
+    access: protected
+    intent: '''
+        - List todos; optional query status (open|done) and categoryId.
+        - Returns todos array with id, title, status, categoryId, dueDate.
+    '''
+    summary: "List todos"
+    example: "List open todos"
+}
+
+GET "/categories/{categoryId}/todos" {
+    toolName: listTodosByCategory
+    access: protected
+    intent: '''
+        - List todos for one category (path categoryId, e.g. work, home, errands).
+        - Optional query status: open or done.
+        - Returns categoryId and todos array; HTTP 404 if categoryId is unknown.
+    '''
+    summary: "List todos by category"
+    example: "List open todos in category work"
+}
+
+GET "/todos/{todoId}" {
+    toolName: getTodo
+    access: protected
+    intent: '''
+        - Fetch a single todo by id (path todoId).
+        - Returns todo object or HTTP 404 when unknown.
+    '''
+    summary: "Get todo by id"
+    example: "Get todo t-1"
+}

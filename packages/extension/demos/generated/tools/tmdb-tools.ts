@@ -866,7 +866,9 @@ function resolveAuthSecret(
     credential: string | undefined
 ): string {
     if (!credential || !String(credential).trim()) {
-        throw new Error('Missing host credential (MCP host --auth-env).');
+        throw new Error(
+            'Missing host credential (stdio: --auth-env; HTTP: auth header; OAuth HTTP: Bearer after MCP login).'
+        );
     }
     return (authConfig.prefix ?? '') + String(credential).trim();
 }
@@ -889,7 +891,7 @@ export async function invokeTool(
     if (tool.access !== 'public') {
         if (!credential || !String(credential).trim()) {
             throw new Error(
-                'Missing host credential. Set the variable named by --auth-env on stdio-mcp-server (re-read on every tool call).'
+                'Missing host credential. stdio: set env for --auth-env on stdio-mcp-server; stateless HTTP: MCP auth header (e.g. x-api-token); OAuth HTTP: complete MCP login (Authorization Bearer from Cursor).'
             );
         }
     }

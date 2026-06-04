@@ -4,14 +4,6 @@
 import path from 'node:path';
 
 export const HTTP_DEMOS = {
-    'open-meteo': {
-        tools: 'open-meteo-tools.js',
-        baseUrlEnv: 'OPEN_METEO_BASE_URL',
-        defaultBaseUrl: 'https://api.open-meteo.com',
-        portEnv: 'OPEN_METEO_HTTP_PORT',
-        defaultPort: 3848,
-        mcpUrl: 'http://127.0.0.1:3848/mcp'
-    },
     'spaceflight-news': {
         tools: 'spaceflight-news-tools.js',
         baseUrlEnv: 'SPACEFLIGHT_NEWS_BASE_URL',
@@ -20,24 +12,19 @@ export const HTTP_DEMOS = {
         defaultPort: 3849,
         mcpUrl: 'http://127.0.0.1:3849/mcp'
     },
-    'mock-api': {
-        tools: 'mock-api-tools.js',
-        baseUrlEnv: 'MOCK_API_BASE_URL',
-        defaultBaseUrl: 'http://127.0.0.1:3847',
-        portEnv: 'MOCK_API_HTTP_PORT',
-        defaultPort: 3850,
-        mcpUrl: 'http://127.0.0.1:3850/mcp',
-        prerequisite: 'mock-api backend on MOCK_API_BASE_URL (npm run demo:mock-api or init)'
-    },
-    'open-meteo-geocoding': {
-        tools: 'open-meteo-geocoding-tools.js',
-        baseUrlEnv: 'OPEN_METEO_GEOCODING_BASE_URL',
-        defaultBaseUrl: 'https://geocoding-api.open-meteo.com',
-        portEnv: 'OPEN_METEO_GEOCODING_HTTP_PORT',
-        defaultPort: 3851,
-        mcpUrl: 'http://127.0.0.1:3851/mcp'
+    'todo-api': {
+        tools: 'todo-tools.js',
+        baseUrlEnv: 'TODO_API_BASE_URL',
+        defaultBaseUrl: 'http://127.0.0.1:3852',
+        portEnv: 'TODO_API_HTTP_PORT',
+        defaultPort: 3853,
+        mcpUrl: 'http://127.0.0.1:3853/mcp',
+        prerequisite: 'todo-api backend (npm run demo:todo-api or init)'
     }
 };
+
+/** Hosts started by `npm run init` (matches .cursor/mcp.json http-stateless entries). */
+export const HTTP_INIT_DEMO_NAMES = ['todo-api', 'spaceflight-news'];
 
 export const HTTP_DEMO_NAMES = Object.keys(HTTP_DEMOS);
 
@@ -84,4 +71,8 @@ export function buildHostLaunch(name, demosRoot, env) {
 
 export function listHttpPorts(env = process.env) {
     return HTTP_DEMO_NAMES.map((name) => resolvePort(HTTP_DEMOS[name], env));
+}
+
+export function listInitHttpPorts(env = process.env) {
+    return HTTP_INIT_DEMO_NAMES.map((name) => resolvePort(HTTP_DEMOS[name], env));
 }
