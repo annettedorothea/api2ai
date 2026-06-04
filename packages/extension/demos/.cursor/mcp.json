@@ -95,6 +95,12 @@
             "headers": {
                 "x-api-token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjdXN0b21lcklkIjoiYWRtaW4iLCJyb2xlIjoiYWRtaW4iLCJpYXQiOjE3ODA1NzIxODksImV4cCI6MTkzODI1MjE4OSwianRpIjoibWNwLWpzb24tZGVtbyJ9.cR5VDLiIqyz4JGZ4Oah642P7rGCPs5wJL5Lghd3TA3k"
             }
+        },
+        "oauth-api2ai-mock-api": {
+            "url": "http://127.0.0.1:3870/mcp",
+            "auth": {
+                "CLIENT_ID": "mcp-demo-local"
+            }
         }
     }
 }

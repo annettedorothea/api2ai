@@ -8,7 +8,9 @@ function resolveAuthSecret(
     credential: string | undefined
 ): string {
     if (!credential || !String(credential).trim()) {
-        throw new Error('Missing host credential (MCP host --auth-env).');
+        throw new Error(
+            'Missing host credential (stdio: --auth-env; HTTP: auth header; OAuth HTTP: Bearer after MCP login).'
+        );
     }
     return (authConfig.prefix ?? '') + String(credential).trim();
 }`;

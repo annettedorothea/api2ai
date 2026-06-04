@@ -22,7 +22,7 @@ type ApiLikeHostContext = {
 };
 
 type GeneratedHostModule = {
-    generatedTools: Array<{ toolName: string; title?: string; description: string }>;
+    generatedTools: Array<{ toolName: string; title?: string; description: string; access?: string }>;
     invokeTool: (toolName: string, args?: Record<string, unknown>, hostContext?: unknown) => Promise<unknown>;
     inputZodByTool?: Record<string, unknown>;
     mcpServerName?: string;

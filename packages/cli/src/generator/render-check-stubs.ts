@@ -40,7 +40,7 @@ export function renderInvokeCredentialAndParameterCheck(hasAuth: boolean, hasChe
     if (tool.access !== 'public') {
         if (!credential || !String(credential).trim()) {
             throw new Error(
-                'Missing host credential. Set the variable named by --auth-env on stdio-mcp-server (re-read on every tool call).'
+                'Missing host credential. stdio: set env for --auth-env on stdio-mcp-server; stateless HTTP: MCP auth header (e.g. x-api-token); OAuth HTTP: complete MCP login (Authorization Bearer from Cursor).'
             );
         }
     }`
