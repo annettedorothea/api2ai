@@ -12,6 +12,9 @@ Diese Regel gilt, wenn die Nutzeranfrage mit `api2ai` beginnt.
 - **Nicht lesen, schreiben oder aendern:** `.env`, `.env.local`, `.env.*` und vergleichbare Secret-/Config-Dateien.
 - **Kein Token aus Login-Antworten** in Env-Dateien oder Cursor-Settings schreiben — auch nicht „temporaer“ oder „damit der naechste MCP-Call klappt“.
 - Der Nutzer verwaltet Credentials selbst. Du darfst hoechstens **allgemein** sagen, welche Variable betroffen ist (z. B. `MOCK_API_ACCESS_TOKEN`) und dass der Nutzer sie bei Bedarf selbst setzen muss.
+- **mock-api stdio** (`stdio-api2ai-mock-api`): Token in `.env.local` als `MOCK_API_ACCESS_TOKEN`.
+- **mock-api HTTP** (`http-api2ai-mock-api`): Credential aus `headers.x-api-token` in `mcp.json` (Demo-Admin-JWT) oder vom Nutzer ersetzt; `MOCK_API_ACCESS_TOKEN` in `.env.local` reicht **nicht** fuer HTTP. **Nie** `mcp-http-exports.sh` oder `cursor-env` erwaehnen.
+- **tmdb / github:** nur `stdio-api2ai-tmdb`, `stdio-api2ai-github` (kein `http-api2ai-*`).
 
 ## Auth-Fehler: Fehler melden, nicht umgehen
 

@@ -37,10 +37,19 @@ curl -s -H "Authorization: Bearer <token>" "http://127.0.0.1:3847/orders/alice"
 
 ## MCP
 
-After `npm run generate:mock-api-tools`, enable `api2ai-mock-api` in `.cursor/mcp.json` and reload MCP.
+### stdio (`stdio-api2ai-mock-api`)
 
-- **`login`** (`public`) — `pathParams.customerId` returns `access_token` (no Bearer required)
-- **`listCustomerOrders`** (`access: checked`) — requires `--auth-env` and `src/auth/listCustomerOrders.ts` (`checkListCustomerOrdersParameters` validates/enriches args from JWT); `pathParams.customerId` optional in the tool schema (filled from token if omitted via `optionalParams`)
+After `npm run generate:mock-api-tools`, enable **`stdio-api2ai-mock-api`** in [`.cursor/mcp.json`](../.cursor/mcp.json) and reload MCP. Token in **`.env.local`** as `MOCK_API_ACCESS_TOKEN` (see above).
+
+### HTTP (`http-api2ai-mock-api`)
+
+1. Backend: `npm run demo:mock-api` (port **3847**).
+2. Host: `npm run demo:mcp-http:mock-api` (port **3850**).
+3. Enable **`http-api2ai-mock-api`** only; reload MCP.
+4. JWT via **`headers.x-api-token`** in `mcp.json` (demo **admin** token for local test). Replace with `node get-token.mjs <customerId>` when needed.
+
+- **`login`** (`public`) — works without JWT
+- **`listCustomerOrders`** (`checked`) — needs credential (stdio: env; HTTP: header in `mcp.json` or Cursor MCP UI)
 
 Prompts: `api2ai login as alice` then `api2ai list my orders`.
 

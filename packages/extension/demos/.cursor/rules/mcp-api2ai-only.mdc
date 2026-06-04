@@ -6,7 +6,8 @@ alwaysApply: true
 # MCP-Nutzung auf api2ai-Server beschraenken
 
 - Diese Regel greift nur, wenn die Nutzeranfrage mit `api2ai` beginnt.
-- Dann stelle ausschliesslich MCP-Anfragen an Server, deren Name mit `api2ai` beginnt oder `api2ai` enthaelt (z. B. `project-0-examples-api2ai-*`).
+- In Cursor ist pro Demo nur **ein** Server aktiv: `stdio-api2ai-*` **oder** `http-api2ai-*` (siehe `.cursor/mcp.json`); kein separates `http api2ai`-Prefix.
+- Dann stelle ausschliesslich MCP-Anfragen an Server, deren Name `stdio-api2ai-` oder `http-api2ai-` enthaelt (z. B. `http-api2ai-open-meteo`, `project-0-examples-api2ai-*`).
 - Nutze in diesem Fall keine anderen MCP-Server, auch wenn sie verfuegbar sind.
 - Nutze in diesem Fall **keine** allgemeine Recherche ausserhalb der erlaubten `api2ai*`-MCPs:
   - **keine Websuche** (z. B. `WebSearch`),
@@ -27,10 +28,10 @@ alwaysApply: true
   - Server/Tool existiert nicht in der Session,
   - Auth-/Verbindungsfehler ohne erkennbare Behebung im Chat,
   - wiederholter identischer Fehler beim zweiten Versuch mit gleichem Tool.
-- **Dann sofort stoppen** (max. **ein** gezielter MCP-Aufruf pro betroffenem Server, kein zweiter Versuch mit anderem Identifier, kein `api2ai-tmdb` vs. `project-0-examples-api2ai-tmdb` durchprobieren):
+- **Dann sofort stoppen** (max. **ein** gezielter MCP-Aufruf pro betroffenem Server, kein zweiter Versuch mit anderem Identifier, kein `stdio-api2ai-tmdb` vs. `project-0-examples-api2ai-tmdb` durchprobieren):
   - **Keine** Websuche, kein WebFetch, keine direkte API, kein `invokeTool`/CLI aus `generated/**`, kein Lesen von `.env*` oder Tokens.
   - **Keine** langen Diagnose-Abschnitte oder Workarounds in derselben Antwort.
-- **Nutzer-Nachricht (kurz, auf Deutsch):** klar sagen, dass die Antwort **ohne laufende `api2ai*`-MCP-Tools** nicht geliefert werden kann; welcher **`serverName`** aus `mcp.json` fehlt oder fehlschlug; **konkrete Schritte** (z. B. MCP in Cursor Settings aktivieren, `.cursor/mcp.json` pruefen, Server neu starten, Token in `.env.local` fuer auth-pflichtige Server). Danach **aufhoeren** — keine inhaltliche Antwort aus Gedaechtnis.
+- **Nutzer-Nachricht (kurz, auf Deutsch):** klar sagen, dass die Antwort **ohne laufende `api2ai*`-MCP-Tools** nicht geliefert werden kann; welcher **`serverName`** aus `mcp.json` fehlt oder fehlschlug (z. B. `http-api2ai-mock-api`); **konkrete Schritte** (z. B. MCP aktivieren, `npm run demo:mcp-http:all`, Mock-Backend `demo:mock-api`, Token: `.env.local` bei **`stdio-api2ai-*`**; bei **`http-api2ai-mock-api`** `headers.x-api-token` in `mcp.json` pruefen/ersetzen). **Nicht** `mcp-http-exports.sh` oder `cursor-env` nennen. Danach **aufhoeren** — keine inhaltliche Antwort aus Gedaechtnis.
 - **Audit:** den fehlgeschlagenen (oder entfallenen) Versuch trotzdem dokumentieren; keine weiteren MCP-Eintraege erfinden.
 
 ## Tool-Wahl und Parameter ohne Workspace-/OpenAPI-Wissen
@@ -68,7 +69,7 @@ alwaysApply: true
 
 **Darunter je Eintrag (Bullet-Liste):**
 
-- **MCP-Server:** `serverName` aus `mcp.json` (z. B. `api2ai-open-meteo`)
+- **MCP-Server:** `serverName` aus `mcp.json` (z. B. `stdio-api2ai-open-meteo` oder `http-api2ai-open-meteo`)
 - **MCP-Tool:** technischer Toolname (z. B. `openMeteoForecast`) — genau einmal, nicht als Ueberschrift wiederholen
 - **Params:** exakt uebergebene Parameter/Argumente
 - **Antwort:** relevante Rohantwort (oder Fehler)
@@ -83,4 +84,4 @@ Wenn kein MCP-Request moeglich/erfolgreich war, dokumentiere das explizit.
 
 **Benennung:** „MCP-Server“ und „MCP-Tool“ verwenden — nicht nur „Server“/„Tool“. Der MCP-Server ist der `serverName`-Eintrag in `.cursor/mcp.json`.
 
-**MCP-Server-Name im Audit:** Immer **`serverName`** (z. B. `api2ai-open-meteo`), **nicht** den Cursor-`serverIdentifier` (`project-0-examples-…`). Identifier nur auf Nachfrage in Klammern.
+**MCP-Server-Name im Audit:** Immer **`serverName`** (z. B. `http-api2ai-open-meteo`), **nicht** den Cursor-`serverIdentifier` (`project-0-examples-…`). Identifier nur auf Nachfrage in Klammern.
