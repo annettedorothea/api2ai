@@ -1,1 +1,22 @@
-["package.json", "demos-generate.config.json", "scripts/generate.mjs", "scripts/generate-all.mjs", "scripts/init.mjs"]
+[
+    "package.json",
+    "demos-generate.config.json",
+    ".env.example",
+    ".cursor/mcp.json",
+    "bookings-api.api2ai",
+    "openapi/bookings-api.openapi.yaml",
+    "bookings-api/server.mjs",
+    "bookings-api/data/rentals.json",
+    "bookings-api/oauth-idp/server.mjs",
+    "bookings-api/oauth-idp/demo-rsa-private.pem",
+    "todo.api2ai",
+    "openapi/todo-api.openapi.yaml",
+    "todo-api/server.mjs",
+    "src/auth/listBookings.ts",
+    "scripts/generate.mjs",
+    "scripts/generate-all.mjs",
+    "scripts/init.mjs",
+    "scripts/kill-all-demos.mjs",
+    "scripts/mcp-http-demos.mjs",
+    "scripts/mcp-oauth-demos.mjs"
+]

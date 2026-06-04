@@ -70,7 +70,7 @@ export const authConfig: AuthConfig | undefined = {
 };
 
 export const mcpServerName = 'bookings-api-tools';
-export const mcpServerVersion = '0.0.5';
+export const mcpServerVersion = '0.0.6';
 
 const parameterCheckers: Record<
     string,
