@@ -3,7 +3,7 @@
         "api2ai-spaceflight-news": {
             "command": "node",
             "args": [
-                "./generated/cli/mcp-serve.js",
+                "./generated/cli/stdio-mcp-server.js",
                 "./generated/tools/spaceflight-news-tools.js",
                 "--base-url-env",
                 "SPACEFLIGHT_NEWS_BASE_URL"
@@ -15,7 +15,7 @@
         "api2ai-tmdb": {
             "command": "node",
             "args": [
-                "./generated/cli/mcp-serve.js",
+                "./generated/cli/stdio-mcp-server.js",
                 "./generated/tools/tmdb-tools.js",
                 "--base-url-env",
                 "TMDB_BASE_URL",
@@ -29,7 +29,7 @@
         "api2ai-open-meteo": {
             "command": "node",
             "args": [
-                "./generated/cli/mcp-serve.js",
+                "./generated/cli/stdio-mcp-server.js",
                 "./generated/tools/open-meteo-tools.js",
                 "--base-url-env",
                 "OPEN_METEO_BASE_URL"
@@ -41,7 +41,7 @@
         "api2ai-open-meteo-geocoding": {
             "command": "node",
             "args": [
-                "./generated/cli/mcp-serve.js",
+                "./generated/cli/stdio-mcp-server.js",
                 "./generated/tools/open-meteo-geocoding-tools.js",
                 "--base-url-env",
                 "OPEN_METEO_GEOCODING_BASE_URL"
@@ -53,7 +53,7 @@
         "api2ai-github": {
             "command": "node",
             "args": [
-                "./generated/cli/mcp-serve.js",
+                "./generated/cli/stdio-mcp-server.js",
                 "./generated/tools/github-tools.js",
                 "--base-url-env",
                 "GITHUB_BASE_URL",
@@ -67,7 +67,7 @@
         "api2ai-mock-api": {
             "command": "node",
             "args": [
-                "./generated/cli/mcp-serve.js",
+                "./generated/cli/stdio-mcp-server.js",
                 "./generated/tools/mock-api-tools.js",
                 "--base-url-env",
                 "MOCK_API_BASE_URL",

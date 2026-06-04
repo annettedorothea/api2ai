@@ -15,12 +15,12 @@ import {
 const baseUrlEnv = 'MOCK_API_BASE_URL';
 const hostArgs = ['--base-url-env', baseUrlEnv, '--auth-env', 'MOCK_API_ACCESS_TOKEN'];
 
-describe('mock API generated mcp-serve (MCP stdio)', () => {
+describe('mock API generated stdio-mcp-server (MCP stdio)', () => {
     let mockApiProcess: ChildProcess | undefined;
     let mockApiBaseUrl = '';
     let runRoot = '';
     let fixtureRoot = '';
-    let mcpServePath = '';
+    let stdioMcpServerPath = '';
     let generatedJsPath = '';
 
     beforeAll(async () => {
@@ -34,7 +34,7 @@ describe('mock API generated mcp-serve (MCP stdio)', () => {
         await fs.mkdir(fixtureRoot, { recursive: true });
 
         const fixture = await prepareMockApiGeneratedFixture(fixtureRoot);
-        mcpServePath = fixture.mcpServePath;
+        stdioMcpServerPath = fixture.stdioMcpServerPath;
         generatedJsPath = fixture.generatedJsPath;
     }, 30_000);
 
@@ -47,7 +47,7 @@ describe('mock API generated mcp-serve (MCP stdio)', () => {
 
     function mcpConnectOptions() {
         return {
-            mcpServePath,
+            stdioMcpServerPath,
             generatedModulePath: generatedJsPath,
             hostArgs,
             cwd: fixtureRoot,

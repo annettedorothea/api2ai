@@ -12,9 +12,9 @@ Demo workspace for **api2ai** MCP examples: `.api2ai` files, generated tools, an
 ## How it works
 
 - You author **`.api2ai`** (and optional **`openapi/`** specs).
-- The **api2ai** extension or CLI generates **`generated/tools/*.ts`** and **`generated/cli/mcp-serve.ts`**.
-- **`npm run build:generated`** compiles **`generated/cli/mcp-serve.js`** for MCP.
-- [`.cursor/mcp.json`](./.cursor/mcp.json) starts `mcp-serve.js` per server over **stdio** and loads the matching tool module.
+- The **api2ai** extension or CLI generates **`generated/tools/*.ts`** and **`generated/cli/stdio-mcp-server.ts`**.
+- **`npm run build:generated`** compiles **`generated/cli/stdio-mcp-server.js`** for MCP.
+- [`.cursor/mcp.json`](./.cursor/mcp.json) starts `stdio-mcp-server.js` per server over **stdio** and loads the matching tool module.
 
 ## Example DSL
 

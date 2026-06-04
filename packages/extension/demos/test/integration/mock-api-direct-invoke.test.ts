@@ -1,4 +1,4 @@
-import { asRecord, readGeneratedToolModule, restoreEnv } from '../generated/index.js';
+import { asRecord, credentialWithOptionalJwt, readGeneratedToolModule, restoreEnv } from '../generated/index.js';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import type { ChildProcess } from 'node:child_process';
 import * as fs from 'node:fs/promises';
@@ -53,17 +53,12 @@ describe('mock API generated module direct invocation', () => {
 
             process.env[baseUrlEnv] = mockApiBaseUrl;
             process.env[credentialEnv] = String(accessToken);
-            generated.adapter.configureFromArgv(
-                ['--base-url-env', baseUrlEnv, '--auth-env', credentialEnv],
-                [fixtureRoot]
-            );
-            generated.adapter.validateAtStartup(generated.requiresAuth === true);
 
             const ordersResult = asRecord(
                 await generated.invokeTool(
                     'listCustomerOrders',
                     { pathParams: { customerId: 'alice' } },
-                    generated.adapter.resolveHostContext()
+                    { baseUrl: mockApiBaseUrl, ...credentialWithOptionalJwt(String(accessToken)) }
                 )
             );
             expect(ordersResult.customerId).toBe('alice');

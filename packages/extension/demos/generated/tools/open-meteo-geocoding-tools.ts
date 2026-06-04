@@ -27,7 +27,7 @@ export const generatedTools: GeneratedTool[] = [
 ];
 
 export type InvokeOptions = {
-    /** MCP tool arguments only (not visible to the agent: host context via mcpHostAdapter). */
+    /** MCP tool arguments only (host context is supplied by stdio-mcp-server / http-mcp-server). */
     pathParams?: Record<string, string | number | boolean>;
     query?: Record<string, string | number | boolean | ReadonlyArray<string | number | boolean>>;
     headers?: Record<string, string>;
@@ -78,102 +78,6 @@ export const inputZodByTool = {
         })
         .strict()
         .describe('Arguments for invoking the generated HTTP wrapper.')
-};
-
-const META_BASE_URL_ENV_KEY = 'MCP_HOST_BASE_URL_ENV_KEY';
-const META_AUTH_ENV_KEY = 'MCP_HOST_AUTH_ENV_KEY';
-const META_ENV_DIRS = 'MCP_HOST_ENV_DIRS';
-
-function applyHostEnvKeys(hostConfig: { baseUrlEnv: string; authEnv?: string }, envDirs: string[]): void {
-    process.env[META_BASE_URL_ENV_KEY] = hostConfig.baseUrlEnv;
-    if (hostConfig.authEnv) {
-        process.env[META_AUTH_ENV_KEY] = hostConfig.authEnv;
-    } else {
-        delete process.env[META_AUTH_ENV_KEY];
-    }
-    if (envDirs.length > 0) {
-        process.env[META_ENV_DIRS] = JSON.stringify(envDirs);
-    } else {
-        delete process.env[META_ENV_DIRS];
-    }
-}
-
-export const mcpHostAdapter = {
-    configureFromArgv(argv: string[], envDirs: string[]): void {
-        let baseUrlEnv: string | undefined;
-        let authEnv: string | undefined;
-        for (let i = 0; i < argv.length; i++) {
-            const arg = argv[i];
-            if (arg === '--base-url-env') {
-                baseUrlEnv = argv[++i];
-                if (!baseUrlEnv) {
-                    throw new Error('Missing value after --base-url-env');
-                }
-                continue;
-            }
-            if (arg === '--auth-env') {
-                authEnv = argv[++i];
-                if (!authEnv) {
-                    throw new Error('Missing value after --auth-env');
-                }
-                continue;
-            }
-            if (arg.startsWith('-')) {
-                throw new Error('Unknown option: ' + arg);
-            }
-            throw new Error('Unexpected positional argument: ' + arg);
-        }
-        if (!baseUrlEnv) {
-            throw new Error('Required: --base-url-env <ENV_VAR_NAME>');
-        }
-        applyHostEnvKeys({ baseUrlEnv, authEnv }, envDirs);
-    },
-
-    validateAtStartup(requiresAuth: boolean): void {
-        const baseUrlEnvName = process.env[META_BASE_URL_ENV_KEY]?.trim();
-        if (!baseUrlEnvName) {
-            throw new Error('Host base URL env key is not configured.');
-        }
-        const baseUrl = process.env[baseUrlEnvName]?.trim();
-        if (!baseUrl) {
-            throw new Error(
-                'Environment variable "' + baseUrlEnvName + '" is missing or empty (required by --base-url-env).'
-            );
-        }
-        if (!requiresAuth) {
-            return;
-        }
-        const authEnvName = process.env[META_AUTH_ENV_KEY]?.trim();
-        if (!authEnvName) {
-            throw new Error('Generated tools require auth; pass --auth-env <ENV_VAR_NAME> on the MCP host.');
-        }
-    },
-
-    resolveHostContext(): ApiHostContext {
-        const baseUrlKey = process.env[META_BASE_URL_ENV_KEY]?.trim();
-        const baseUrl = baseUrlKey ? process.env[baseUrlKey]?.trim() : undefined;
-        if (!baseUrl) {
-            throw new Error('Missing host base URL. Pass --base-url-env on mcp-serve.js and set the variable.');
-        }
-
-        return { baseUrl, credential: undefined, jwt: undefined };
-    },
-
-    envDirsForReload(): string[] {
-        const raw = process.env[META_ENV_DIRS];
-        if (!raw?.trim()) {
-            return [];
-        }
-        try {
-            const dirs: unknown = JSON.parse(raw);
-            if (Array.isArray(dirs) && dirs.every((d) => typeof d === 'string')) {
-                return dirs;
-            }
-        } catch {
-            // ignore malformed config
-        }
-        return [];
-    }
 };
 
 export const queryParamSerializationByTool = {
@@ -259,8 +163,10 @@ export async function invokeTool(
         throw new Error('Unknown tool: ' + toolName);
     }
 
-    const host: ApiHostContext =
-        hostContext !== undefined ? (hostContext as ApiHostContext) : mcpHostAdapter.resolveHostContext();
+    if (hostContext === undefined) {
+        throw new Error('invokeTool requires hostContext from the MCP host (stdio-mcp-server or http-mcp-server).');
+    }
+    const host = hostContext as ApiHostContext;
     const { baseUrl } = host;
     const optionsResolved = options;
     const normalizedBaseUrl = baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl;

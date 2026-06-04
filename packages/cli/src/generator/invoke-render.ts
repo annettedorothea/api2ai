@@ -32,7 +32,7 @@ function renderAuthApplicationBlock(authKind: 'none' | 'credential'): string {
 function renderAuth401Hint(authKind: 'none' | 'credential'): string {
     return authKind === 'credential'
         ? `msg +=
-                    ' Check MCP host --auth-env (' +
+                    ' Check MCP host --auth-env on stdio-mcp-server (' +
                     authConfig.location +
                     ' ' +
                     authConfig.name +
@@ -96,13 +96,14 @@ function appendSerializedQueryParams(
 }
 
 function renderHostBinding(authKind: 'none' | 'credential'): string {
-    const credentialBinding = authKind === 'credential' ? ', credential' : '';
     return `
-    const host: ApiHostContext =
-        hostContext !== undefined
-            ? (hostContext as ApiHostContext)
-            : mcpHostAdapter.resolveHostContext();
-    const { baseUrl${credentialBinding} } = host;`;
+    if (hostContext === undefined) {
+        throw new Error(
+            'invokeTool requires hostContext from the MCP host (stdio-mcp-server or http-mcp-server).'
+        );
+    }
+    const host = hostContext as ApiHostContext;
+    const { baseUrl${authKind === 'credential' ? ', credential' : ''} } = host;`;
 }
 
 function renderInvokeToolFunction(authKind: 'none' | 'credential', hasChecked: boolean): string {

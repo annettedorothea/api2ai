@@ -15,7 +15,6 @@ import {
     buildToolInputSchema,
     type JsonSchemaDict
 } from '../openapi-tool-codegen.js';
-import { renderMcpHostAdapterBlock } from './host-adapter-render.js';
 import { createSharedInvokeBlock } from './invoke-render.js';
 import { renderParameterCheckerImports, renderParameterCheckersMap, type ToolAccess } from './render-check-stubs.js';
 
@@ -221,7 +220,7 @@ export type GeneratedTool = {
 export const generatedTools: GeneratedTool[] = ${enrichedToolsLiteral};
 
 export type InvokeOptions = {
-    /** MCP tool arguments only (not visible to the agent: host context via mcpHostAdapter). */
+    /** MCP tool arguments only (host context is supplied by stdio-mcp-server / http-mcp-server). */
     pathParams?: Record<string, string | number | boolean>;
     query?: Record<string, string | number | boolean | ReadonlyArray<string | number | boolean>>;
     headers?: Record<string, string>;
@@ -262,14 +261,13 @@ export async function renderToolsModule(input: RenderToolsModuleInput): Promise<
     const authKind = authRuntimeKind(model);
     const mcpServerIdentity = resolveMcpServerIdentityFromDestination(destinationTsPath, bootstrapConfig);
     const mcpServerIdentityBlock = renderMcpServerIdentityExports(mcpServerIdentity.name, mcpServerIdentity.version);
-    const mcpHostAdapterBlock = renderMcpHostAdapterBlock(authKind);
 
     const hasChecked = stubPaths.size > 0;
     const parameterCheckerImports = hasChecked ? renderParameterCheckerImports(destinationTsPath, stubPaths) : '';
     const parameterCheckersMap = hasChecked ? renderParameterCheckersMap(stubPaths) : '';
     const authRuntimePrefix = parameterCheckersMap.length > 0 ? `${parameterCheckersMap}\n\n` : '';
 
-    const toolRuntimeBlock = `${authRuntimePrefix}${buildInputZodBlock(orderedSchemas)}\n${mcpHostAdapterBlock}\n${createSharedInvokeBlock(
+    const toolRuntimeBlock = `${authRuntimePrefix}${buildInputZodBlock(orderedSchemas)}\n${createSharedInvokeBlock(
         querySerializationLiteral,
         authKind,
         hasChecked

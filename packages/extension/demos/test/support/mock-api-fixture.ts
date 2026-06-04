@@ -66,13 +66,13 @@ export async function stopMockApiProcess(child: ChildProcess | undefined): Promi
 export type MockApiGeneratedFixture = {
     fixtureRoot: string;
     generatedJsPath: string;
-    mcpServePath: string;
+    stdioMcpServerPath: string;
 };
 
 export async function prepareMockApiGeneratedFixture(fixtureRoot: string): Promise<MockApiGeneratedFixture> {
     const generatedTsPath = path.join(fixtureRoot, 'generated/tools/mock-api-tools.ts');
     const generatedJsPath = path.join(fixtureRoot, 'generated/tools/mock-api-tools.js');
-    const mcpServePath = path.join(fixtureRoot, 'generated/cli/mcp-serve.js');
+    const stdioMcpServerPath = path.join(fixtureRoot, 'generated/cli/stdio-mcp-server.js');
 
     await fs.mkdir(path.join(fixtureRoot, 'openapi'), { recursive: true });
     await fs.copyFile(sourceFixturePath, path.join(fixtureRoot, 'mock-api.api2ai'));
@@ -85,7 +85,7 @@ export async function prepareMockApiGeneratedFixture(fixtureRoot: string): Promi
     );
     compileGeneratedForSmoke(fixtureRoot);
 
-    return { fixtureRoot, generatedJsPath, mcpServePath };
+    return { fixtureRoot, generatedJsPath, stdioMcpServerPath };
 }
 
 export async function startMockApiServer(port: number): Promise<ChildProcess> {
