@@ -1,12 +1,30 @@
 {
     "mcpServers": {
-        "todo-api-http-stateless": {
-            "url": "http://127.0.0.1:3853/mcp",
-            "headers": {
-                "x-api-token": "demo-todo-api-key"
+        "open-meteo": {
+            "command": "node",
+            "args": [
+                "./generated/cli/stdio-mcp-server.js",
+                "./generated/tools/open-meteo-tools.js",
+                "--base-url-env",
+                "OPEN_METEO_BASE_URL"
+            ],
+            "env": {
+                "OPEN_METEO_BASE_URL": "https://api.open-meteo.com"
             }
         },
-        "github-stdio": {
+        "open-meteo-geocoding": {
+            "command": "node",
+            "args": [
+                "./generated/cli/stdio-mcp-server.js",
+                "./generated/tools/open-meteo-geocoding-tools.js",
+                "--base-url-env",
+                "OPEN_METEO_GEOCODING_BASE_URL"
+            ],
+            "env": {
+                "OPEN_METEO_GEOCODING_BASE_URL": "https://geocoding-api.open-meteo.com"
+            }
+        },
+        "github": {
             "command": "node",
             "envFile": ".env.local",
             "args": [
@@ -23,40 +41,7 @@
                 "GITHUB_BASE_URL": "https://api.github.com"
             }
         },
-        "bookings-api-oauth": {
-            "url": "http://127.0.0.1:3870/mcp",
-            "auth": {
-                "CLIENT_ID": "mcp-demo-local"
-            }
-        },
-        "open-meteo-stdio": {
-            "command": "node",
-            "args": [
-                "./generated/cli/stdio-mcp-server.js",
-                "./generated/tools/open-meteo-tools.js",
-                "--base-url-env",
-                "OPEN_METEO_BASE_URL"
-            ],
-            "env": {
-                "OPEN_METEO_BASE_URL": "https://api.open-meteo.com"
-            }
-        },
-        "open-meteo-geocoding-stdio": {
-            "command": "node",
-            "args": [
-                "./generated/cli/stdio-mcp-server.js",
-                "./generated/tools/open-meteo-geocoding-tools.js",
-                "--base-url-env",
-                "OPEN_METEO_GEOCODING_BASE_URL"
-            ],
-            "env": {
-                "OPEN_METEO_GEOCODING_BASE_URL": "https://geocoding-api.open-meteo.com"
-            }
-        },
-        "spaceflight-news-http-stateless": {
-            "url": "http://127.0.0.1:3849/mcp"
-        },
-        "tmdb-stdio": {
+        "tmdb": {
             "command": "node",
             "envFile": ".env.local",
             "args": [
@@ -71,6 +56,27 @@
             ],
             "env": {
                 "TMDB_BASE_URL": "https://api.themoviedb.org"
+            }
+        },
+        "spaceflight-news": {
+            "url": "http://127.0.0.1:3849/mcp"
+        },
+        "todo": {
+            "url": "http://127.0.0.1:3853/mcp",
+            "headers": {
+                "x-api-token": "demo-todo-api-key"
+            }
+        },
+        "bookings-oauth": {
+            "url": "http://127.0.0.1:3872/mcp",
+            "auth": {
+                "CLIENT_ID": "mcp-demo-local"
+            }
+        },
+        "cakes": {
+            "url": "http://127.0.0.1:3874/mcp",
+            "auth": {
+                "CLIENT_ID": "mcp-demo-local"
             }
         }
     }

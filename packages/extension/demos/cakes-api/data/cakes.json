@@ -1,0 +1,164 @@
+{
+    "cakes": [
+        {
+            "id": "schwarzwaelder-kirschtorte",
+            "title": "Schwarzwälder Kirschtorte",
+            "keywords": ["Schokolade", "Kirschen", "Sahne", "Biskuit"],
+            "prepMinutes": 120,
+            "servings": 12,
+            "ingredients": ["Biskuitböden", "Kirschwasser", "Sauerkirschen", "Sahne", "Schokoladenraspel"]
+        },
+        {
+            "id": "erdbeer-biskuitrolle",
+            "title": "Erdbeer-Biskuitrolle",
+            "keywords": ["Erdbeer", "Biskuit", "Rührteig", "Sahne"],
+            "prepMinutes": 75,
+            "servings": 8,
+            "ingredients": ["Eier", "Zucker", "Mehl", "Erdbeeren", "Sahne", "Puderzucker"]
+        },
+        {
+            "id": "apfelkuchen-guss",
+            "title": "Apfelkuchen mit Guss",
+            "keywords": ["Apfel", "Rührteig", "Zimt"],
+            "prepMinutes": 65,
+            "servings": 10,
+            "ingredients": ["Äpfel", "Butter", "Zucker", "Mehl", "Eier", "Zimt"]
+        },
+        {
+            "id": "kaesekuchen-ohne-boden",
+            "title": "Käsekuchen ohne Boden",
+            "keywords": ["Käsekuchen", "Quark", "Rührteig"],
+            "prepMinutes": 70,
+            "servings": 12,
+            "ingredients": ["Quark", "Eier", "Zucker", "Vanille", "Speisestärke", "Butter"]
+        },
+        {
+            "id": "bienenstich",
+            "title": "Bienenstich",
+            "keywords": ["Hefeteig", "Mandel", "Honig", "Pudding"],
+            "prepMinutes": 150,
+            "servings": 16,
+            "ingredients": ["Hefeteig", "Mandelblättchen", "Honig", "Butter", "Vanillepudding", "Sahne"]
+        },
+        {
+            "id": "sachertorte",
+            "title": "Sachertorte",
+            "keywords": ["Schokolade", "Marillenmarmelade", "Biskuit"],
+            "prepMinutes": 180,
+            "servings": 12,
+            "ingredients": ["Zartbitterschokolade", "Butter", "Eier", "Marillenmarmelade", "Glasur"]
+        },
+        {
+            "id": "erdbeer-torte",
+            "title": "Erdbeer-Torte mit Sahne",
+            "keywords": ["Erdbeer", "Sahne", "Biskuit"],
+            "prepMinutes": 90,
+            "servings": 10,
+            "ingredients": ["Biskuitböden", "Erdbeeren", "Sahne", "Gelatine", "Zucker"]
+        },
+        {
+            "id": "marmorkuchen",
+            "title": "Marmorkuchen",
+            "keywords": ["Rührteig", "Schokolade", "Vanille"],
+            "prepMinutes": 55,
+            "servings": 10,
+            "ingredients": ["Butter", "Zucker", "Eier", "Mehl", "Kakaopulver", "Vanille"]
+        },
+        {
+            "id": "zwetschgenkuchen-hefeteig",
+            "title": "Zwetschgenkuchen vom Blech",
+            "keywords": ["Hefeteig", "Zwetschgen", "Streusel"],
+            "prepMinutes": 140,
+            "servings": 20,
+            "ingredients": ["Hefeteig", "Zwetschgen", "Streusel", "Zimt", "Butter", "Mehl"]
+        },
+        {
+            "id": "donauwelle",
+            "title": "Donauwelle",
+            "keywords": ["Schokolade", "Kirschen", "Buttercreme", "Rührteig"],
+            "prepMinutes": 100,
+            "servings": 15,
+            "ingredients": ["Rührteig", "Sauerkirschen", "Buttercreme", "Kakaoglasur"]
+        },
+        {
+            "id": "kirschstreuselkuchen",
+            "title": "Kirsch-Streuselkuchen",
+            "keywords": ["Kirschen", "Streusel", "Rührteig"],
+            "prepMinutes": 60,
+            "servings": 12,
+            "ingredients": ["Sauerkirschen", "Streusel", "Butter", "Mehl", "Zucker"]
+        },
+        {
+            "id": "mandelkuchen",
+            "title": "Mandelkuchen",
+            "keywords": ["Mandel", "Rührteig", "Zitrone"],
+            "prepMinutes": 50,
+            "servings": 8,
+            "ingredients": ["Mandelmehl", "Eier", "Zucker", "Zitrone", "Butter"]
+        },
+        {
+            "id": "heidelbeer-cheesecake",
+            "title": "Heidelbeer-Cheesecake",
+            "keywords": ["Heidelbeer", "Käsekuchen", "Frischkäse"],
+            "prepMinutes": 80,
+            "servings": 10,
+            "ingredients": ["Frischkäse", "Heidelbeeren", "Keksboden", "Gelatine", "Zucker"]
+        },
+        {
+            "id": "russischer-zupfkuchen",
+            "title": "Russischer Zupfkuchen",
+            "keywords": ["Quark", "Schokolade", "Rührteig"],
+            "prepMinutes": 75,
+            "servings": 12,
+            "ingredients": ["Quark", "Schokoladenguss", "Rührteig", "Kakao"]
+        },
+        {
+            "id": "apfel-streuselkuchen",
+            "title": "Apfel-Streuselkuchen",
+            "keywords": ["Apfel", "Streusel", "Hefeteig"],
+            "prepMinutes": 130,
+            "servings": 14,
+            "ingredients": ["Hefeteig", "Äpfel", "Streusel", "Zimt"]
+        },
+        {
+            "id": "schoko-hefekranz",
+            "title": "Schoko-Hefekranz",
+            "keywords": ["Hefeteig", "Schokolade", "Nuss"],
+            "prepMinutes": 160,
+            "servings": 16,
+            "ingredients": ["Hefeteig", "Schokoladenfüllung", "Haselnüsse", "Hagelzucker"]
+        },
+        {
+            "id": "erdbeer-rhabarber-kuchen",
+            "title": "Erdbeer-Rhabarber-Kuchen",
+            "keywords": ["Erdbeer", "Rhabarber", "Rührteig"],
+            "prepMinutes": 60,
+            "servings": 10,
+            "ingredients": ["Erdbeeren", "Rhabarber", "Mehl", "Zucker", "Eier"]
+        },
+        {
+            "id": "linzer-torte",
+            "title": "Linzer Torte",
+            "keywords": ["Mandel", "Marmelade", "Mürbeteig"],
+            "prepMinutes": 90,
+            "servings": 12,
+            "ingredients": ["Mandelmehl", "Mehl", "Butter", "Johannisbeermarmelade", "Zimt"]
+        },
+        {
+            "id": "butterkuchen",
+            "title": "Butterkuchen mit Mandeln",
+            "keywords": ["Hefeteig", "Butter", "Mandel"],
+            "prepMinutes": 120,
+            "servings": 18,
+            "ingredients": ["Hefeteig", "Butter", "Mandelblättchen", "Zucker"]
+        },
+        {
+            "id": "schoko-truffel-torte",
+            "title": "Schoko-Trüffel-Torte",
+            "keywords": ["Schokolade", "Trüffel", "Biskuit"],
+            "prepMinutes": 110,
+            "servings": 10,
+            "ingredients": ["Zartbitterschokolade", "Sahne", "Biskuitböden", "Kakaopulver"]
+        }
+    ]
+}

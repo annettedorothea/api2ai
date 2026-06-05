@@ -8,7 +8,7 @@ import { spawn, spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { loadDemoEnvLocal } from './load-env-local.mjs';
 import { buildHostLaunch, HTTP_INIT_DEMO_NAMES } from './mcp-http-demos.mjs';
-import { buildOAuthHostLaunch, OAUTH_HTTP_DEMO_NAMES } from './mcp-oauth-demos.mjs';
+import { buildOAuthHostLaunch, OAUTH_HTTP_INIT_DEMO_NAMES } from './mcp-oauth-demos.mjs';
 
 const demosRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 
@@ -88,12 +88,28 @@ startDetached(
 const todoPort = Number(process.env.TODO_API_PORT) || 3852;
 startDetached('todo-api', path.join(demosRoot, 'todo-api', 'server.mjs'), { TODO_API_PORT: String(todoPort) }, todoPort);
 
-const idpPort = Number(process.env.BOOKINGS_API_OAUTH_IDP_PORT) || 3860;
+const idpPort = Number(process.env.BOOKINGS_OAUTH_IDP_PORT) || 3860;
 startDetached(
     'oauth-idp',
-    path.join(demosRoot, 'bookings-api', 'oauth-idp', 'server.mjs'),
-    { BOOKINGS_API_OAUTH_IDP_PORT: String(idpPort) },
+    path.join(demosRoot, 'oauth-idp', 'server.mjs'),
+    { BOOKINGS_OAUTH_IDP_PORT: String(idpPort) },
     idpPort
+);
+
+const idpOidcPort = Number(process.env.BOOKINGS_OAUTH_IDP_OIDC_PORT) || 3861;
+startDetached(
+    'oauth-idp-oidc',
+    path.join(demosRoot, 'oauth-idp', 'server.mjs'),
+    { BOOKINGS_OAUTH_IDP_PORT: String(idpOidcPort), OAUTH_IDP_SIGN_ALG: 'RS256' },
+    idpOidcPort
+);
+
+const cakesPort = Number(process.env.CAKES_API_PORT) || 3856;
+startDetached(
+    'cakes-api',
+    path.join(demosRoot, 'cakes-api', 'server.mjs'),
+    { CAKES_API_PORT: String(cakesPort) },
+    cakesPort
 );
 
 for (const name of HTTP_INIT_DEMO_NAMES) {
@@ -101,9 +117,9 @@ for (const name of HTTP_INIT_DEMO_NAMES) {
     startNodeArgsDetached(`mcp-http:${name} (${mcpUrl})`, args);
 }
 
-for (const name of OAUTH_HTTP_DEMO_NAMES) {
+for (const name of OAUTH_HTTP_INIT_DEMO_NAMES) {
     const { port, args, mcpUrl } = buildOAuthHostLaunch(name, demosRoot, process.env);
     startNodeArgsDetached(`mcp-oauth:${name} (${mcpUrl})`, args);
 }
 
-console.log('[init] Done. Enable MCP servers in .cursor/mcp.json, then reload MCP.');
+console.log('[init] Done. Cursor Settings → Tools & MCPs: enable servers, then reload MCP.');

@@ -5,7 +5,7 @@ import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import { verifyJwt } from './jwt.mjs';
 
-const PORT = Number(process.env.BOOKINGS_API_PORT) || Number(process.env.SHOPPING_API_PORT) || 3847;
+const PORT = Number(process.env.BOOKINGS_API_PORT) || 3847;
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const { units, bookings, season } = JSON.parse(readFileSync(path.join(__dirname, 'data', 'rentals.json'), 'utf8'));
 
@@ -39,7 +39,7 @@ function matchPath(pathname, pattern) {
         }
     }
     return params;
-}
+} 
 
 function requireAuth(req, res) {
     const token = parseBearer(req);

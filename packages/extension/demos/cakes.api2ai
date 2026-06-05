@@ -1,0 +1,30 @@
+openapi "./openapi/cakes-api.openapi.yaml"
+
+auth {
+    in: header
+    name: "Authorization"
+    prefix: "Bearer "
+}
+
+GET "/cakes" {
+    toolName: searchCakes
+    access: protected
+    intent: '''
+        Search cake and torte recipes by keyword (query q).
+        Matches title and keywords such as Erdbeer, Hefeteig, Rührteig, Schwarzwälder Kirschtorte.
+        Empty q returns all cakes. Requires Bearer JWT validated by the upstream API.
+    '''
+    summary: "Search cake recipes by keyword"
+    example: "Search cakes with Erdbeer"
+}
+
+GET "/cakes/{cakeId}" {
+    toolName: getCake
+    access: protected
+    intent: '''
+        Fetch one cake recipe by id (path cakeId), including ingredients and prep time.
+        Requires Bearer JWT validated by the upstream API.
+    '''
+    summary: "Get cake recipe by id"
+    example: "Get Schwarzwälder Kirschtorte recipe"
+}

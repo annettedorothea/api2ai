@@ -62,3 +62,27 @@ export function startOAuthIdpServer(
         stdio: ['ignore', 'pipe', 'pipe']
     });
 }
+
+export async function waitForOAuthIdp(idpBaseUrl: string, child: ChildProcess | undefined): Promise<void> {
+    const deadline = Date.now() + 10_000;
+    const discoveryUrl = `${idpBaseUrl.replace(/\/$/, '')}/.well-known/oauth-authorization-server`;
+    let lastError: unknown;
+    while (Date.now() < deadline) {
+        if (child?.exitCode !== null && child?.exitCode !== undefined) {
+            throw new Error(`OAuth IdP exited before startup with code ${child.exitCode}.`);
+        }
+        try {
+            const response = await fetch(discoveryUrl);
+            if (response.ok) {
+                return;
+            }
+            lastError = new Error(`HTTP ${response.status}`);
+        } catch (error) {
+            lastError = error;
+        }
+        await new Promise((resolve) => setTimeout(resolve, 100));
+    }
+    throw new Error(
+        `OAuth IdP did not start in time: ${lastError instanceof Error ? lastError.message : String(lastError)}`
+    );
+}

@@ -2,7 +2,7 @@ import { createPublicKey, createSign, randomBytes } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { signJwt } from '../jwt.mjs';
+import { signJwt } from '../bookings-api/jwt.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const DEMO_KID = 'demo-rs256';

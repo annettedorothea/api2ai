@@ -1,0 +1,71 @@
+openapi: 3.0.3
+info:
+    title: Cakes API (demo)
+    description: Local demo API for cake recipes (JWT Bearer, OAuth opaque MCP).
+    version: 0.1.0
+servers:
+    - url: http://127.0.0.1:3856
+paths:
+    /cakes:
+        get:
+            operationId: search-cakes
+            summary: Search cake recipes by keyword
+            description: Requires Bearer JWT. Optional query q matches title and keywords (case-insensitive).
+            security:
+                - bearerAuth: []
+            parameters:
+                - name: q
+                  in: query
+                  required: false
+                  schema:
+                      type: string
+            responses:
+                '200':
+                    description: Matching cakes
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    query:
+                                        type: string
+                                    count:
+                                        type: integer
+                                    cakes:
+                                        type: array
+                                        items:
+                                            type: object
+                '401':
+                    description: Missing or invalid token
+    /cakes/{cakeId}:
+        get:
+            operationId: get-cake
+            summary: Get one cake recipe
+            security:
+                - bearerAuth: []
+            parameters:
+                - name: cakeId
+                  in: path
+                  required: true
+                  schema:
+                      type: string
+            responses:
+                '200':
+                    description: Cake recipe
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    cake:
+                                        type: object
+                '401':
+                    description: Missing or invalid token
+                '404':
+                    description: Unknown cake id
+components:
+    securitySchemes:
+        bearerAuth:
+            type: http
+            scheme: bearer
+            bearerFormat: JWT

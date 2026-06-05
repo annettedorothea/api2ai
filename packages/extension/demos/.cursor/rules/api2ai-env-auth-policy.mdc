@@ -12,9 +12,9 @@ Diese Regel gilt, wenn die Nutzeranfrage mit `api2ai` beginnt.
 - **Nicht lesen, schreiben oder aendern:** `.env`, `.env.local`, `.env.*` und vergleichbare Secret-/Config-Dateien.
 - **Kein Token aus Login-Antworten** in Env-Dateien oder Cursor-Settings schreiben — auch nicht „temporaer“ oder „damit der naechste MCP-Call klappt“.
 - Der Nutzer verwaltet Credentials selbst. Du darfst hoechstens **allgemein** sagen, welche Variable betroffen ist (z. B. `GITHUB_TOKEN`, `TMDB_ACCESS_TOKEN`) und dass der Nutzer sie bei Bedarf selbst setzen muss.
-- **bookings-api-oauth:** Cursor OAuth / Sign-in — kein Token in Env schreiben.
-- **todo-api-http-stateless:** Demo-API-Key in `headers.x-api-token` in `mcp.json` (Upstream `x-api-key`).
-- **tmdb-stdio / github-stdio:** Token in `.env.local`.
+- **bookings-oauth / cakes:** Cursor OAuth / Sign-in — kein Token in Env schreiben.
+- **todo:** Demo-API-Key in `headers.x-api-token` in `mcp.json` (Upstream `x-api-key`).
+- **tmdb / github:** Token in `.env.local`.
 
 ## Auth-Fehler: Fehler melden, nicht umgehen
 

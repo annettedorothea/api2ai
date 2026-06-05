@@ -16,7 +16,7 @@ function main() {
     if (!name || !HTTP_DEMOS[name]) {
         console.error(`Usage: node scripts/start-mcp-http.mjs <${HTTP_DEMO_NAMES.join('|')}>`);
         console.error('All hosts (background): npm run demo:mcp-http:all');
-        console.error('stdio-only (secrets): tmdb-stdio, github-stdio in mcp.json.');
+        console.error('stdio-only (secrets): tmdb, github in mcp.json.');
         process.exit(1);
     }
 
@@ -33,10 +33,9 @@ function main() {
     if (demo.prerequisite) {
         console.error(`[mcp-http:${name}] prerequisite: ${demo.prerequisite}`);
     }
-    if (name === 'todo-api') {
+    if (name === 'todo') {
         console.error(`[mcp-http:${name}] set demo API key in mcp.json headers.${authHeader} (default: demo-todo-api-key)`);
     }
-
     const result = spawnSync(process.execPath, args, {
         cwd: demosRoot,
         stdio: 'inherit',
