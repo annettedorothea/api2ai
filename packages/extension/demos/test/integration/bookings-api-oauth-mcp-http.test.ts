@@ -88,6 +88,8 @@ describe('bookings-api generated oauth-http-mcp-server (MCP OAuth HTTP)', () => 
                 idpBaseUrl,
                 '--oauth-scope',
                 'bookings-api',
+                '--oauth-token-validation',
+                'hs256',
                 '--jwt-secret-env',
                 'BOOKINGS_API_JWT_SECRET',
                 '--port',

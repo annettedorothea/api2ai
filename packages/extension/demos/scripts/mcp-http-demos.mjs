@@ -19,7 +19,9 @@ export const HTTP_DEMOS = {
         portEnv: 'TODO_API_HTTP_PORT',
         defaultPort: 3853,
         mcpUrl: 'http://127.0.0.1:3853/mcp',
-        prerequisite: 'todo-api backend (npm run demo:todo-api or init)'
+        prerequisite: 'todo-api backend (npm run demo:todo-api or init)',
+        credentialValidation: 'static',
+        authExpectedEnv: 'TODO_API_KEY'
     }
 };
 
@@ -66,7 +68,13 @@ export function buildHostLaunch(name, demosRoot, env) {
         '--path',
         '/mcp'
     ];
-    return { demo, port, args, mcpUrl: demo.mcpUrl };
+    if (demo.credentialValidation) {
+        args.push('--credential-validation', demo.credentialValidation);
+        if (demo.authExpectedEnv) {
+            args.push('--auth-expected-env', demo.authExpectedEnv);
+        }
+    }
+    return { demo, port, args, mcpUrl: demo.mcpUrl, credentialValidation: demo.credentialValidation };
 }
 
 export function listHttpPorts(env = process.env) {

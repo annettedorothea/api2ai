@@ -15,7 +15,16 @@ import {
 } from '../support/bookings-api-fixture.js';
 
 const baseUrlEnv = 'BOOKINGS_API_BASE_URL';
-const hostArgs = ['--base-url-env', baseUrlEnv, '--auth-env', 'BOOKINGS_API_ACCESS_TOKEN'];
+const hostArgs = [
+    '--base-url-env',
+    baseUrlEnv,
+    '--auth-env',
+    'BOOKINGS_API_ACCESS_TOKEN',
+    '--credential-validation',
+    'hs256',
+    '--jwt-secret-env',
+    'BOOKINGS_API_JWT_SECRET'
+];
 
 describe('bookings-api generated stdio-mcp-server (MCP stdio)', () => {
     let bookingsApiProcess: ChildProcess | undefined;
@@ -59,7 +68,8 @@ describe('bookings-api generated stdio-mcp-server (MCP stdio)', () => {
             cwd: fixtureRoot,
             env: {
                 [baseUrlEnv]: bookingsApiBaseUrl,
-                BOOKINGS_API_ACCESS_TOKEN: accessToken
+                BOOKINGS_API_ACCESS_TOKEN: accessToken,
+                BOOKINGS_API_JWT_SECRET: 'demo-bookings-api-secret'
             }
         };
     }
