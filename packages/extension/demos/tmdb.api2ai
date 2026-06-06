@@ -45,6 +45,9 @@ GET "/3/discover/movie" {
         - Discover movies with OpenAPI query filters (genre, year, vote_average, sort_by, etc.).
         - Use getTmdbMovieGenres first when the user names a genre in natural language.
         - Prefer searchTmdbMovies for a known title; use this tool for "best sci-fi 2024" style queries.
+        - with_genres: genre id as string (e.g. "878" for sci-fi from getTmdbMovieGenres); comma/pipe for AND/OR.
+        - primary_release_year: number (e.g. 2024), not a string.
+        - Example query: with_genres "878", primary_release_year 2024, sort_by vote_average.desc.
         - Requires TMDB_ACCESS_TOKEN via MCP host --auth-env.
     '''
     summary: "Discover movies with filters"
@@ -62,9 +65,13 @@ GET "/3/genre/movie/list" {
 GET "/3/trending/movie/{time_window}" {
     toolName: getTmdbTrendingMovies
     access: protected
-    intent: "retrieve trending TMDB movies for a selected time window"
+    intent: '''
+        - Trending TMDB movies for a time window; pathParams.time_window required: "day" or "week".
+        - Not the same as getPopularTmdbMovies — do not pass query.page here (trending has no page filter in this tool).
+        - Optional query.language only (ISO code).
+    '''
     summary: "Trending movies"
-    example: "Show trending movies this week"
+    example: "Trending movies this week → pathParams.time_window week"
 }
 
 GET "/3/movie/{movie_id}/videos" {

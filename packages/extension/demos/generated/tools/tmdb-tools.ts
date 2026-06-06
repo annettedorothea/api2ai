@@ -59,7 +59,7 @@ export const generatedTools: GeneratedTool[] = [
         toolName: 'discoverTmdbMovies',
         title: 'Discover movies with filters',
         description:
-            'Intent:\n- Discover movies with OpenAPI query filters (genre, year, vote_average, sort_by, etc.).\n        - Use getTmdbMovieGenres first when the user names a genre in natural language.\n        - Prefer searchTmdbMovies for a known title; use this tool for "best sci-fi 2024" style queries.\n        - Requires TMDB_ACCESS_TOKEN via MCP host --auth-env.\n\nAPI:\nFind movies using over 30 filters and sort options.\n\nMeta:\noperationId: discover-movie\n\nExample:\nFind highly rated science fiction movies from 2024\n\nResponse:\nHTTP 200\n200\nproperties (top-level): page, results, total_pages, total_results\n\nRuntime auth: MCP host injects the API credential via --auth-env; send as header "Authorization" (prefix applied to the secret).',
+            'Intent:\n- Discover movies with OpenAPI query filters (genre, year, vote_average, sort_by, etc.).\n        - Use getTmdbMovieGenres first when the user names a genre in natural language.\n        - Prefer searchTmdbMovies for a known title; use this tool for "best sci-fi 2024" style queries.\n        - with_genres: genre id as string (e.g. "878" for sci-fi from getTmdbMovieGenres); comma/pipe for AND/OR.\n        - primary_release_year: number (e.g. 2024), not a string.\n        - Example query: with_genres "878", primary_release_year 2024, sort_by vote_average.desc.\n        - Requires TMDB_ACCESS_TOKEN via MCP host --auth-env.\n\nAPI:\nFind movies using over 30 filters and sort options.\n\nMeta:\noperationId: discover-movie\n\nExample:\nFind highly rated science fiction movies from 2024\n\nResponse:\nHTTP 200\n200\nproperties (top-level): page, results, total_pages, total_results\n\nRuntime auth: MCP host injects the API credential via --auth-env; send as header "Authorization" (prefix applied to the secret).',
         method: 'GET',
         path: '/3/discover/movie',
         example: 'Find highly rated science fiction movies from 2024',
@@ -79,10 +79,10 @@ export const generatedTools: GeneratedTool[] = [
         toolName: 'getTmdbTrendingMovies',
         title: 'Trending movies',
         description:
-            'Intent:\nretrieve trending TMDB movies for a selected time window\n\nAPI:\nGet the trending movies on TMDB.\n\nMeta:\noperationId: trending-movies\n\nExample:\nShow trending movies this week\n\nResponse:\nHTTP 200\n200\nproperties (top-level): page, results, total_pages, total_results\n\nRuntime auth: MCP host injects the API credential via --auth-env; send as header "Authorization" (prefix applied to the secret).',
+            'Intent:\n- Trending TMDB movies for a time window; pathParams.time_window required: "day" or "week".\n        - Not the same as getPopularTmdbMovies — do not pass query.page here (trending has no page filter in this tool).\n        - Optional query.language only (ISO code).\n\nAPI:\nGet the trending movies on TMDB.\n\nMeta:\noperationId: trending-movies\n\nExample:\nTrending movies this week → pathParams.time_window week\n\nResponse:\nHTTP 200\n200\nproperties (top-level): page, results, total_pages, total_results\n\nRuntime auth: MCP host injects the API credential via --auth-env; send as header "Authorization" (prefix applied to the secret).',
         method: 'GET',
         path: '/3/trending/movie/{time_window}',
-        example: 'Show trending movies this week',
+        example: 'Trending movies this week → pathParams.time_window week',
         access: 'protected'
     },
     {

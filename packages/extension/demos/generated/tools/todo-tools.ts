@@ -54,6 +54,36 @@ export const generatedTools: GeneratedTool[] = [
         path: '/todos/{todoId}',
         example: 'Get todo t-1',
         access: 'protected'
+    },
+    {
+        toolName: 'createTodo',
+        title: 'Create todo',
+        description:
+            'Intent:\n- Create a todo (body: title, categoryId required; optional status open|done, dueDate).\n        - Returns created todo with generated id; HTTP 404 if categoryId is unknown.\n\nMeta:\noperationId: create-todo\n\nExample:\nCreate todo Buy milk in errands\n\nResponse:\nHTTP 201\nTodo created\nproperties (top-level): todo\nDocumented errors:\nHTTP 400 — Invalid input\nHTTP 401 — Missing or invalid API key\nHTTP 404 — Unknown category\n\nRuntime auth: MCP host injects the API credential via --auth-env; send as header "x-api-key".',
+        method: 'POST',
+        path: '/todos',
+        example: 'Create todo Buy milk in errands',
+        access: 'protected'
+    },
+    {
+        toolName: 'updateTodo',
+        title: 'Update todo',
+        description:
+            'Intent:\n- Update a todo by id (path todoId; body fields title, status, categoryId, dueDate all optional).\n        - Returns updated todo; HTTP 404 when todo or categoryId is unknown.\n\nMeta:\noperationId: update-todo\n\nExample:\nMark todo t-1 as done\n\nResponse:\nHTTP 200\nUpdated todo\nproperties (top-level): todo\nDocumented errors:\nHTTP 400 — Invalid input\nHTTP 401 — Missing or invalid API key\nHTTP 404 — Todo or category not found\n\nRuntime auth: MCP host injects the API credential via --auth-env; send as header "x-api-key".',
+        method: 'PATCH',
+        path: '/todos/{todoId}',
+        example: 'Mark todo t-1 as done',
+        access: 'protected'
+    },
+    {
+        toolName: 'deleteTodo',
+        title: 'Delete todo',
+        description:
+            'Intent:\n- Delete a todo by id (path todoId).\n        - Returns todoId and deleted true; HTTP 404 when unknown.\n\nMeta:\noperationId: delete-todo\n\nExample:\nDelete todo t-2\n\nResponse:\nHTTP 200\nTodo deleted\nproperties (top-level): deleted, todoId\nDocumented errors:\nHTTP 401 — Missing or invalid API key\nHTTP 404 — Todo not found\n\nRuntime auth: MCP host injects the API credential via --auth-env; send as header "x-api-key".',
+        method: 'DELETE',
+        path: '/todos/{todoId}',
+        example: 'Delete todo t-2',
+        access: 'protected'
     }
 ];
 
@@ -165,6 +195,62 @@ export const inputZodByTool = {
                 .optional()
         })
         .strict()
+        .describe('Arguments for invoking the generated HTTP wrapper.'),
+    createTodo: z
+        .object({
+            pathParams: z
+                .record(z.string(), z.union([z.string(), z.number(), z.boolean()]))
+                .describe('No path parameters.')
+                .optional(),
+            query: z
+                .record(z.string(), z.union([z.string(), z.number(), z.boolean()]))
+                .describe('Optional query overrides.')
+                .optional(),
+            headers: z.record(z.string(), z.string()).describe('Optional extra headers.').optional(),
+            body: z
+                .object({
+                    title: z.string(),
+                    categoryId: z.string(),
+                    status: z.union([z.literal('open'), z.literal('done')]).optional(),
+                    dueDate: z.string().optional()
+                })
+                .strict()
+        })
+        .strict()
+        .describe('Arguments for invoking the generated HTTP wrapper.'),
+    updateTodo: z
+        .object({
+            pathParams: z.object({ todoId: z.string() }).strict().describe('Path parameters from OpenAPI.'),
+            query: z
+                .record(z.string(), z.union([z.string(), z.number(), z.boolean()]))
+                .describe('Optional query overrides.')
+                .optional(),
+            headers: z.record(z.string(), z.string()).describe('Optional extra headers.').optional(),
+            body: z
+                .object({
+                    title: z.string().optional(),
+                    status: z.union([z.literal('open'), z.literal('done')]).optional(),
+                    categoryId: z.string().optional(),
+                    dueDate: z.string().optional()
+                })
+                .strict()
+        })
+        .strict()
+        .describe('Arguments for invoking the generated HTTP wrapper.'),
+    deleteTodo: z
+        .object({
+            pathParams: z.object({ todoId: z.string() }).strict().describe('Path parameters from OpenAPI.'),
+            query: z
+                .record(z.string(), z.union([z.string(), z.number(), z.boolean()]))
+                .describe('Optional query overrides.')
+                .optional(),
+            headers: z.record(z.string(), z.string()).describe('Optional extra headers.').optional(),
+            body: z
+                .record(z.string(), z.union([z.string(), z.number(), z.boolean()]))
+                .describe('Request body JSON if applicable.')
+                .optional()
+        })
+        .strict()
         .describe('Arguments for invoking the generated HTTP wrapper.')
 };
 
@@ -186,7 +272,10 @@ export const queryParamSerializationByTool = {
             explode: true
         }
     },
-    getTodo: {}
+    getTodo: {},
+    createTodo: {},
+    updateTodo: {},
+    deleteTodo: {}
 };
 
 function appendSerializedQueryParams(

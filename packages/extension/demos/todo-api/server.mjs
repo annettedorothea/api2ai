@@ -9,7 +9,9 @@ const PORT = Number(process.env.TODO_API_PORT) || 3852;
 const DEMO_API_KEY = process.env.TODO_API_KEY?.trim() || 'demo-todo-api-key';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const categories = JSON.parse(readFileSync(path.join(__dirname, 'data', 'categories.json'), 'utf8'));
-const todos = JSON.parse(readFileSync(path.join(__dirname, 'data', 'todos.json'), 'utf8'));
+const seedTodos = JSON.parse(readFileSync(path.join(__dirname, 'data', 'todos.json'), 'utf8'));
+/** In-memory store — seeded from JSON at startup, mutations are not persisted. */
+const todos = structuredClone(seedTodos);
 
 function sendJson(res, status, body) {
     res.writeHead(status, { 'content-type': 'application/json; charset=utf-8' });
@@ -43,7 +45,46 @@ function matchPath(pathname, pattern) {
     return params;
 }
 
-const server = createServer((req, res) => {
+function readJsonBody(req) {
+    return new Promise((resolve, reject) => {
+        const chunks = [];
+        req.on('data', (chunk) => chunks.push(chunk));
+        req.on('end', () => {
+            const raw = Buffer.concat(chunks).toString('utf8').trim();
+            if (!raw) {
+                resolve(undefined);
+                return;
+            }
+            try {
+                resolve(JSON.parse(raw));
+            } catch {
+                reject(new Error('invalid_json'));
+            }
+        });
+        req.on('error', reject);
+    });
+}
+
+function nextTodoId() {
+    let max = 0;
+    for (const todo of todos) {
+        const match = /^t-(\d+)$/.exec(todo.id);
+        if (match) {
+            max = Math.max(max, Number(match[1]));
+        }
+    }
+    return `t-${max + 1}`;
+}
+
+function findCategory(categoryId) {
+    return categories.find((c) => c.id === categoryId);
+}
+
+function validateStatus(status) {
+    return status === undefined || status === 'open' || status === 'done';
+}
+
+const server = createServer(async (req, res) => {
     const url = new URL(req.url ?? '/', `http://127.0.0.1:${PORT}`);
     const method = req.method ?? 'GET';
     loggingAdapter.debug(`${method} ${url.pathname}`);
@@ -55,22 +96,16 @@ const server = createServer((req, res) => {
         return;
     }
 
-    if (method !== 'GET') {
-        loggingAdapter.warn('method not allowed', { method, path: url.pathname });
-        sendJson(res, 405, { error: 'method_not_allowed' });
-        return;
-    }
-
-    if (url.pathname === '/categories') {
+    if (method === 'GET' && url.pathname === '/categories') {
         loggingAdapter.debug('list categories', { count: categories.length });
         sendJson(res, 200, { categories });
         return;
     }
 
     const byCategory = matchPath(url.pathname, '/categories/{categoryId}/todos');
-    if (byCategory) {
+    if (method === 'GET' && byCategory) {
         const categoryId = byCategory.categoryId;
-        const category = categories.find((c) => c.id === categoryId);
+        const category = findCategory(categoryId);
         if (!category) {
             loggingAdapter.warn('not found', { error: 'category_not_found', categoryId });
             sendJson(res, 404, { error: 'category_not_found', categoryId });
@@ -86,7 +121,7 @@ const server = createServer((req, res) => {
         return;
     }
 
-    if (url.pathname === '/todos') {
+    if (method === 'GET' && url.pathname === '/todos') {
         const status = url.searchParams.get('status')?.trim();
         const categoryId = url.searchParams.get('categoryId')?.trim();
         let list = todos;
@@ -101,16 +136,123 @@ const server = createServer((req, res) => {
         return;
     }
 
+    if (method === 'POST' && url.pathname === '/todos') {
+        let body;
+        try {
+            body = await readJsonBody(req);
+        } catch {
+            loggingAdapter.warn('bad request', { error: 'invalid_json' });
+            sendJson(res, 400, { error: 'invalid_json' });
+            return;
+        }
+        if (!body || typeof body !== 'object') {
+            sendJson(res, 400, { error: 'invalid_body' });
+            return;
+        }
+        const title = typeof body.title === 'string' ? body.title.trim() : '';
+        const categoryId = typeof body.categoryId === 'string' ? body.categoryId.trim() : '';
+        const status = body.status ?? 'open';
+        const dueDate = typeof body.dueDate === 'string' ? body.dueDate.trim() : undefined;
+        if (!title || !categoryId) {
+            sendJson(res, 400, { error: 'missing_fields', required: ['title', 'categoryId'] });
+            return;
+        }
+        if (!validateStatus(status)) {
+            sendJson(res, 400, { error: 'invalid_status', allowed: ['open', 'done'] });
+            return;
+        }
+        if (!findCategory(categoryId)) {
+            sendJson(res, 404, { error: 'category_not_found', categoryId });
+            return;
+        }
+        const todo = { id: nextTodoId(), title, status, categoryId, ...(dueDate ? { dueDate } : {}) };
+        todos.push(todo);
+        loggingAdapter.debug('create todo', { todoId: todo.id });
+        sendJson(res, 201, { todo });
+        return;
+    }
+
     const one = matchPath(url.pathname, '/todos/{todoId}');
     if (one) {
-        const todo = todos.find((t) => t.id === one.todoId);
-        if (!todo) {
+        const index = todos.findIndex((t) => t.id === one.todoId);
+        if (index === -1) {
             loggingAdapter.warn('not found', { error: 'todo_not_found', todoId: one.todoId });
             sendJson(res, 404, { error: 'todo_not_found', todoId: one.todoId });
             return;
         }
-        loggingAdapter.debug('get todo', { todoId: one.todoId });
-        sendJson(res, 200, { todo });
+
+        if (method === 'GET') {
+            loggingAdapter.debug('get todo', { todoId: one.todoId });
+            sendJson(res, 200, { todo: todos[index] });
+            return;
+        }
+
+        if (method === 'PATCH') {
+            let body;
+            try {
+                body = await readJsonBody(req);
+            } catch {
+                loggingAdapter.warn('bad request', { error: 'invalid_json' });
+                sendJson(res, 400, { error: 'invalid_json' });
+                return;
+            }
+            if (!body || typeof body !== 'object' || Object.keys(body).length === 0) {
+                sendJson(res, 400, { error: 'empty_update' });
+                return;
+            }
+            const current = todos[index];
+            if (body.title !== undefined) {
+                if (typeof body.title !== 'string' || !body.title.trim()) {
+                    sendJson(res, 400, { error: 'invalid_title' });
+                    return;
+                }
+                current.title = body.title.trim();
+            }
+            if (body.status !== undefined) {
+                if (!validateStatus(body.status)) {
+                    sendJson(res, 400, { error: 'invalid_status', allowed: ['open', 'done'] });
+                    return;
+                }
+                current.status = body.status;
+            }
+            if (body.categoryId !== undefined) {
+                if (typeof body.categoryId !== 'string' || !body.categoryId.trim()) {
+                    sendJson(res, 400, { error: 'invalid_categoryId' });
+                    return;
+                }
+                const categoryId = body.categoryId.trim();
+                if (!findCategory(categoryId)) {
+                    sendJson(res, 404, { error: 'category_not_found', categoryId });
+                    return;
+                }
+                current.categoryId = categoryId;
+            }
+            if (body.dueDate !== undefined) {
+                if (body.dueDate === null || body.dueDate === '') {
+                    delete current.dueDate;
+                } else if (typeof body.dueDate === 'string') {
+                    current.dueDate = body.dueDate.trim();
+                } else {
+                    sendJson(res, 400, { error: 'invalid_dueDate' });
+                    return;
+                }
+            }
+            loggingAdapter.debug('update todo', { todoId: one.todoId });
+            sendJson(res, 200, { todo: current });
+            return;
+        }
+
+        if (method === 'DELETE') {
+            todos.splice(index, 1);
+            loggingAdapter.debug('delete todo', { todoId: one.todoId });
+            sendJson(res, 200, { todoId: one.todoId, deleted: true });
+            return;
+        }
+    }
+
+    if (method !== 'GET') {
+        loggingAdapter.warn('method not allowed', { method, path: url.pathname });
+        sendJson(res, 405, { error: 'method_not_allowed' });
         return;
     }
 

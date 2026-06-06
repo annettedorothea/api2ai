@@ -101,6 +101,33 @@ paths:
                                             $ref: '#/components/schemas/Todo'
                 '401':
                     description: Missing or invalid API key
+        post:
+            operationId: create-todo
+            summary: Create a todo
+            security:
+                - apiKeyAuth: []
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/TodoCreateInput'
+            responses:
+                '201':
+                    description: Todo created
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    todo:
+                                        $ref: '#/components/schemas/Todo'
+                '400':
+                    description: Invalid input
+                '401':
+                    description: Missing or invalid API key
+                '404':
+                    description: Unknown category
     /todos/{todoId}:
         get:
             operationId: get-todo
@@ -127,6 +154,66 @@ paths:
                     description: Missing or invalid API key
                 '404':
                     description: Todo not found
+        patch:
+            operationId: update-todo
+            summary: Update a todo
+            security:
+                - apiKeyAuth: []
+            parameters:
+                - name: todoId
+                  in: path
+                  required: true
+                  schema:
+                      type: string
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/TodoUpdateInput'
+            responses:
+                '200':
+                    description: Updated todo
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    todo:
+                                        $ref: '#/components/schemas/Todo'
+                '400':
+                    description: Invalid input
+                '401':
+                    description: Missing or invalid API key
+                '404':
+                    description: Todo or category not found
+        delete:
+            operationId: delete-todo
+            summary: Delete a todo
+            security:
+                - apiKeyAuth: []
+            parameters:
+                - name: todoId
+                  in: path
+                  required: true
+                  schema:
+                      type: string
+            responses:
+                '200':
+                    description: Todo deleted
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    todoId:
+                                        type: string
+                                    deleted:
+                                        type: boolean
+                '401':
+                    description: Missing or invalid API key
+                '404':
+                    description: Todo not found
 components:
     securitySchemes:
         apiKeyAuth:
@@ -143,6 +230,32 @@ components:
                     type: string
                 status:
                     type: string
+                    enum: [open, done]
+                categoryId:
+                    type: string
+                dueDate:
+                    type: string
+        TodoCreateInput:
+            type: object
+            required: [title, categoryId]
+            properties:
+                title:
+                    type: string
+                categoryId:
+                    type: string
+                status:
+                    type: string
+                    enum: [open, done]
+                dueDate:
+                    type: string
+        TodoUpdateInput:
+            type: object
+            properties:
+                title:
+                    type: string
+                status:
+                    type: string
+                    enum: [open, done]
                 categoryId:
                     type: string
                 dueDate:
