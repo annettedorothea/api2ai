@@ -72,7 +72,7 @@ describe('bookings-api oauth-http-mcp-server (oidc JWKS validation)', () => {
         accessToken = await fetchOAuthTokenFromIdp(idpBaseUrl, 'alice');
 
         runRoot = await fs.mkdtemp(path.join(bookingsApiTmpRoot, 'bookings-api-oauth-mcp-oidc-'));
-        await prepareBookingsApiGeneratedFixture(runRoot);
+        await prepareBookingsApiGeneratedFixture(runRoot, bookingsApiBaseUrl);
         oauthHostPath = path.join(runRoot, 'generated/cli/oauth-http-mcp-server.js');
         await fs.mkdir(path.dirname(oauthHostPath), { recursive: true });
         await fs.copyFile(path.join(demosRoot, 'generated/cli/oauth-http-mcp-server.js'), oauthHostPath);

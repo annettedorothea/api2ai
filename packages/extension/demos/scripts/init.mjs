@@ -196,6 +196,14 @@ async function main() {
         cakesPort
     );
 
+    const bankingPort = Number(process.env.BANKING_API_PORT) || 3858;
+    startService(
+        'banking-api',
+        [path.join(demosRoot, 'banking-api', 'server.mjs')],
+        { BANKING_API_PORT: String(bankingPort) },
+        bankingPort
+    );
+
     const idpPort = Number(process.env.BOOKINGS_OAUTH_IDP_PORT) || 3860;
     startService(
         'oauth-idp',
@@ -213,11 +221,21 @@ async function main() {
         idpOidcPort
     );
 
+    const enterpriseIdpPort = Number(process.env.ENTERPRISE_IDP_PORT) || 3862;
+    const enterpriseIdpBaseUrl = `http://127.0.0.1:${enterpriseIdpPort}`;
+    startService(
+        'enterprise-idp',
+        [path.join(demosRoot, 'oauth-idp', 'server.mjs')],
+        { BOOKINGS_OAUTH_IDP_PORT: String(enterpriseIdpPort), OAUTH_IDP_SIGN_ALG: 'RS256' },
+        enterpriseIdpPort
+    );
+
     console.log('[init] waiting for mock API backends…');
     for (const [label, port] of [
         ['bookings-api', bookingsPort],
         ['todo-api', todoPort],
-        ['cakes-api', cakesPort]
+        ['cakes-api', cakesPort],
+        ['banking-api', bankingPort]
     ]) {
         try {
             await waitForTcpListen(port, { label });
@@ -243,6 +261,16 @@ async function main() {
     } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
         console.warn(`[init] ${message} — cakes OAuth MCP may fail if IdP is not ready.`);
+    }
+
+    console.log(`[init] waiting for enterprise-idp at ${enterpriseIdpBaseUrl}…`);
+    try {
+        await waitForHttpOk(`${enterpriseIdpBaseUrl}/.well-known/openid-configuration`, {
+            label: 'enterprise-idp openid-configuration'
+        });
+    } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        console.warn(`[init] ${message} — banking-oauth MCP may fail if enterprise IdP is not ready.`);
     }
 
     for (const name of HTTP_INIT_DEMO_NAMES) {

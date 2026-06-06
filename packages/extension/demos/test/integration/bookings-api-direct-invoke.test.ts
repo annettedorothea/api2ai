@@ -39,7 +39,7 @@ describe('bookings-api generated module direct invocation', () => {
         const previousCredential = process.env[credentialEnv];
 
         try {
-            const { generatedJsPath } = await prepareBookingsApiGeneratedFixture(fixtureRoot);
+            const { generatedJsPath } = await prepareBookingsApiGeneratedFixture(fixtureRoot, bookingsApiBaseUrl);
             const imported = await import(`${pathToFileURL(generatedJsPath).href}?t=${Date.now()}`);
             const generated = readGeneratedToolModule(imported as Record<string, unknown>);
 
@@ -77,7 +77,7 @@ describe('bookings-api generated module direct invocation', () => {
         const fixtureRoot = path.join(runRoot, 'fixture');
 
         try {
-            const { generatedJsPath } = await prepareBookingsApiGeneratedFixture(fixtureRoot);
+            const { generatedJsPath } = await prepareBookingsApiGeneratedFixture(fixtureRoot, bookingsApiBaseUrl);
             const imported = await import(`${pathToFileURL(generatedJsPath).href}?t=${Date.now()}`);
             const generated = readGeneratedToolModule(imported as Record<string, unknown>);
 

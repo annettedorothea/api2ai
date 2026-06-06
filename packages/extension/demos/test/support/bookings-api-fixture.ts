@@ -71,7 +71,20 @@ export type BookingsApiGeneratedFixture = {
     stdioMcpServerPath: string;
 };
 
-export async function prepareBookingsApiGeneratedFixture(fixtureRoot: string): Promise<BookingsApiGeneratedFixture> {
+export async function copyLoggingAdapterStub(targetRoot: string): Promise<void> {
+    await fs.mkdir(path.join(targetRoot, 'src', 'utils'), { recursive: true });
+    for (const ext of ['ts', 'js'] as const) {
+        await fs.copyFile(
+            path.join(demosRoot, 'src', 'utils', `logging-adapter.${ext}`),
+            path.join(targetRoot, 'src', 'utils', `logging-adapter.${ext}`)
+        );
+    }
+}
+
+export async function prepareBookingsApiGeneratedFixture(
+    fixtureRoot: string,
+    bookingsApiBaseUrl = process.env.BOOKINGS_API_BASE_URL ?? 'http://127.0.0.1:3847'
+): Promise<BookingsApiGeneratedFixture> {
     const generatedTsPath = path.join(fixtureRoot, 'generated/tools/bookings-api-tools.ts');
     const generatedJsPath = path.join(fixtureRoot, 'generated/tools/bookings-api-tools.js');
     const stdioMcpServerPath = path.join(fixtureRoot, 'generated/cli/stdio-mcp-server.js');
@@ -80,6 +93,8 @@ export async function prepareBookingsApiGeneratedFixture(fixtureRoot: string): P
     await fs.copyFile(sourceFixturePath, path.join(fixtureRoot, 'bookings-api.api2ai'));
     await fs.copyFile(openApiFixturePath, path.join(fixtureRoot, 'openapi/bookings-api.openapi.yaml'));
     runDemoGenerate(path.join(fixtureRoot, 'bookings-api.api2ai'), generatedTsPath);
+    await copyLoggingAdapterStub(fixtureRoot);
+    await fs.writeFile(path.join(fixtureRoot, '.env.local'), `BOOKINGS_API_BASE_URL=${bookingsApiBaseUrl}\n`, 'utf8');
     await fs.mkdir(path.join(fixtureRoot, 'src', 'auth', 'bookings-api-tools'), { recursive: true });
     await fs.copyFile(
         path.join(demosRoot, 'src/auth/bookings-api-tools/listBookings.ts'),

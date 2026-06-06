@@ -2,7 +2,7 @@ import { afterAll, describe, expect, it } from 'vitest';
 import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
 import { compileGeneratedForSmoke, withMcpStatelessHttpSession } from '../generated/index.js';
-import { findFreePort } from '../support/bookings-api-fixture.js';
+import { copyLoggingAdapterStub, findFreePort } from '../support/bookings-api-fixture.js';
 import { demosRoot, demosTmpRoot } from '../support/paths.js';
 import { runDemoGenerate } from '../support/run-demo-generate.js';
 
@@ -23,6 +23,7 @@ describe('open-meteo generated stateless-http-mcp-server (MCP HTTP)', () => {
         const generatedTsPath = path.join(runRoot, 'generated/tools/open-meteo-tools.ts');
         await fs.mkdir(path.dirname(generatedTsPath), { recursive: true });
         runDemoGenerate(path.join(demosRoot, 'open-meteo.api2ai'), generatedTsPath);
+        await copyLoggingAdapterStub(runRoot);
         compileGeneratedForSmoke(runRoot);
 
         const mcpUrl = `http://127.0.0.1:${port}/mcp`;

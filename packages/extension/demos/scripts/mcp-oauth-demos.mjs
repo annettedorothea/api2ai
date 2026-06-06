@@ -29,11 +29,26 @@ export const OAUTH_HTTP_DEMOS = {
         oauthScope: 'cakes-api',
         mcpServerName: 'cakes',
         prerequisite: 'cakes-api :3856 + oauth-idp :3860'
+    },
+    'banking-oauth': {
+        tools: 'banking-tools.js',
+        baseUrlEnv: 'BANKING_API_BASE_URL',
+        defaultBaseUrl: 'http://127.0.0.1:3858',
+        oauthIdpUrlEnv: 'ENTERPRISE_IDP_URL',
+        defaultOAuthIdpUrl: 'http://127.0.0.1:3862',
+        portEnv: 'BANKING_OAUTH_HTTP_PORT',
+        defaultPort: 3876,
+        tokenValidation: 'opaque',
+        oauthScope: 'banking-api',
+        mcpServerName: 'banking-oauth',
+        credentialTransformModule: 'src/auth/banking-tools/credentialTransform.js',
+        prerequisite:
+            'banking-api :3858 + enterprise-idp :3862; --credential-transform-module src/auth/banking-tools/credentialTransform.js'
     }
 };
 
 /** OAuth MCP hosts started by `npm run init`. */
-export const OAUTH_HTTP_INIT_DEMO_NAMES = ['bookings-oauth', 'cakes'];
+export const OAUTH_HTTP_INIT_DEMO_NAMES = ['bookings-oauth', 'cakes', 'banking-oauth'];
 
 export const OAUTH_HTTP_DEMO_NAMES = Object.keys(OAUTH_HTTP_DEMOS);
 
@@ -93,6 +108,11 @@ export function buildOAuthHostLaunch(name, demosRoot, env) {
         if (audience) {
             args.push('--oauth-audience', audience);
         }
+    }
+    if (demo.credentialTransformModule) {
+        const fromEnv = env.CREDENTIAL_TRANSFORM_MODULE?.trim();
+        const rel = fromEnv || demo.credentialTransformModule;
+        args.push('--credential-transform-module', path.join(demosRoot, rel));
     }
     const mcpUrl = `http://127.0.0.1:${port}/mcp`;
     return { demo, port, args, mcpUrl, tokenValidation };

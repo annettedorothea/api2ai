@@ -48,7 +48,7 @@ describe('bookings-api generated stdio-mcp-server (MCP stdio)', () => {
         fixtureRoot = path.join(runRoot, 'fixture');
         await fs.mkdir(fixtureRoot, { recursive: true });
 
-        const fixture = await prepareBookingsApiGeneratedFixture(fixtureRoot);
+        const fixture = await prepareBookingsApiGeneratedFixture(fixtureRoot, bookingsApiBaseUrl);
         stdioMcpServerPath = fixture.stdioMcpServerPath;
         generatedJsPath = fixture.generatedJsPath;
     }, 30_000);

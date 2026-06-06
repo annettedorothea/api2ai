@@ -1,0 +1,34 @@
+openapi "./openapi/banking-api.openapi.yaml"
+
+auth {
+    in: header
+    name: "Authorization"
+    prefix: "Bearer "
+}
+
+GET "/accounts/{customerId}" {
+    toolName: listAccounts
+    access: checked {
+        optionalParams: [customerId]
+    }
+    intent: '''
+        List bank accounts for the authenticated customer (opaque API Bearer token).
+        Path customerId is optional: when empty or omitted, filled from exchanged token claim customerId.
+        Role user: path customerId must match token claim; role admin may list any customerId.
+        Returns accountId, type, iban, balance, and currency per account.
+    '''
+    summary: "List customer bank accounts"
+    example: "List my bank accounts"
+}
+
+GET "/accounts/{accountId}/transactions" {
+    toolName: listTransactions
+    access: protected
+    intent: '''
+        List transactions for one bank account by accountId (path accountId).
+        Requires opaque API Bearer token from credential transform — IdP JWT is rejected by upstream.
+        Returns transactionId, date, description, amount, and currency per entry.
+    '''
+    summary: "List account transactions"
+    example: "Show transactions for acc-alice-checking"
+}

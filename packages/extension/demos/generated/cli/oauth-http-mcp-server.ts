@@ -16,6 +16,75 @@ import * as z from 'zod/v4';
 import { createRemoteJWKSet, jwtVerify } from 'jose';
 import { loggingAdapter } from '../../src/utils/logging-adapter.js';
 
+type CredentialTransformInput = {
+    inboundCredential: string;
+    inboundClaims?: Record<string, unknown>;
+};
+
+type CredentialTransformResult = {
+    upstreamCredential: string;
+    sessionJwtClaims?: Record<string, unknown>;
+};
+
+type CredentialTransformFn = (input: CredentialTransformInput) => Promise<CredentialTransformResult>;
+
+/** Set at startup when --credential-transform-module is passed; otherwise inbound credential pass-through. */
+let credentialTransformFn: CredentialTransformFn | undefined;
+
+function resolveCredentialTransformModulePath(raw: string, envDirs: string[]): string {
+    const trimmed = raw.trim();
+    if (path.isAbsolute(trimmed)) {
+        return path.resolve(trimmed);
+    }
+    const fromCwd = path.resolve(process.cwd(), trimmed);
+    if (fs.existsSync(fromCwd)) {
+        return fromCwd;
+    }
+    for (const dir of envDirs) {
+        const candidate = path.resolve(dir, trimmed);
+        if (fs.existsSync(candidate)) {
+            return candidate;
+        }
+    }
+    return fromCwd;
+}
+
+function missingCredentialTransformModuleError(resolvedPath: string, raw: string): string {
+    return (
+        '[credential-transform] --credential-transform-module points to a missing file: ' +
+        resolvedPath +
+        ' (argument: ' +
+        raw +
+        '). Create a credential transform module, e.g. src/auth/<mcpModule>/credentialTransform.ts ' +
+        'exporting async function transformCredential(), run build:generated for credentialTransform.js, ' +
+        'then pass --credential-transform-module with the path to that .js file.'
+    );
+}
+
+async function loadCredentialTransformModule(httpHostConfig: OAuthHttpHostRuntimeConfig): Promise<void> {
+    const raw = httpHostConfig.credentialTransformModule?.trim();
+    if (!raw) {
+        credentialTransformFn = undefined;
+        return;
+    }
+    const modulePath = resolveCredentialTransformModulePath(raw, httpHostConfig.envDirs);
+    if (!fs.existsSync(modulePath)) {
+        throw new Error(missingCredentialTransformModuleError(modulePath, raw));
+    }
+    const imported = await import(pathToFileURL(modulePath).href);
+    const fn = imported?.transformCredential;
+    if (typeof fn !== 'function') {
+        throw new Error(
+            '[credential-transform] Module "' +
+                modulePath +
+                '" must export async function transformCredential() ' +
+                '(hook for --credential-transform-module).'
+        );
+    }
+    credentialTransformFn = fn as CredentialTransformFn;
+    loggingAdapter.info('[mcp] credential transform module loaded', { module: modulePath });
+}
+
 const LOCAL_ENV_FILES = ['.env', '.env.local'];
 
 type ApiLikeHostContext = {
@@ -109,37 +178,6 @@ function loadLocalEnvFiles(startDirs: string[], options?: { refresh?: boolean })
         }
     }
     return loadedFiles;
-}
-
-function decodeJwtPayloadUnsafe(token: string): Record<string, unknown> {
-    const parts = String(token).trim().split('.');
-    if (parts.length !== 3) {
-        throw new Error('credential is not a JWT (expected three dot-separated segments).');
-    }
-    let b64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
-    while (b64.length % 4 !== 0) {
-        b64 += '=';
-    }
-    return JSON.parse(Buffer.from(b64, 'base64').toString('utf8')) as Record<string, unknown>;
-}
-
-function credentialWithOptionalJwt(credential: string | undefined): {
-    credential?: string;
-    jwt?: Record<string, unknown>;
-} {
-    if (!credential?.trim()) {
-        return {};
-    }
-    const trimmed = credential.trim();
-    const segments = trimmed.split('.');
-    if (segments.length !== 3) {
-        return { credential: trimmed };
-    }
-    try {
-        return { credential: trimmed, jwt: decodeJwtPayloadUnsafe(trimmed) };
-    } catch {
-        return { credential: trimmed };
-    }
 }
 
 type HostCredentialValidationMode = 'hs256' | 'static' | 'opaque' | 'oidc';
@@ -415,11 +453,14 @@ type OAuthHttpHostRuntimeConfig = CredentialValidationFields & {
     oauthAudience?: string;
     jwtClaimCustomerId: string;
     jwtClaimRole: string;
+    credentialTransformModule?: string;
 };
 
 type McpOAuthSession = {
     sessionId: string;
     upstreamCredential?: string;
+    sessionJwtClaims?: Record<string, unknown>;
+    exchangedAt?: number;
     createdAt: number;
 };
 
@@ -439,6 +480,7 @@ function parseOAuthHttpHostArgv(argv: string[], envDirs: string[]): OAuthHttpHos
     let jwtClaimCustomerId = 'customerId';
     let jwtClaimRole = 'role';
     let oauthScope = 'mcp';
+    let credentialTransformModule: string | undefined;
     for (let i = 0; i < argv.length; i++) {
         const arg = argv[i];
         if (arg === '--base-url-env') {
@@ -501,6 +543,13 @@ function parseOAuthHttpHostArgv(argv: string[], envDirs: string[]): OAuthHttpHos
             }
             continue;
         }
+        if (arg === '--credential-transform-module') {
+            credentialTransformModule = argv[++i];
+            if (!credentialTransformModule?.trim()) {
+                throw new Error('Missing value after --credential-transform-module');
+            }
+            continue;
+        }
         if (arg === '--host') {
             listenHost = argv[++i];
             if (!listenHost) {
@@ -559,7 +608,8 @@ function parseOAuthHttpHostArgv(argv: string[], envDirs: string[]): OAuthHttpHos
         oauthIssuer: issuer,
         oauthAudience: oauthAudience?.trim(),
         jwtClaimCustomerId: jwtClaimCustomerId.trim(),
-        jwtClaimRole: jwtClaimRole.trim()
+        jwtClaimRole: jwtClaimRole.trim(),
+        credentialTransformModule: credentialTransformModule?.trim()
     };
 }
 
@@ -635,21 +685,6 @@ async function verifyOAuthBearerToken(
     }
 }
 
-function hostContextFromOAuthCredential(
-    httpHostConfig: OAuthHttpHostRuntimeConfig,
-    credential: string | undefined,
-    verifiedPayload: Record<string, unknown> | undefined
-): { credential?: string; jwt?: Record<string, unknown> } {
-    if (!credential?.trim()) {
-        return {};
-    }
-    const trimmed = credential.trim();
-    if (verifiedPayload) {
-        return { credential: trimmed, jwt: normalizeHostJwtClaims(verifiedPayload, httpHostConfig) };
-    }
-    return credentialWithOptionalJwt(trimmed);
-}
-
 function generatedHasPublicTool(generated: GeneratedHostModule): boolean {
     return generated.generatedTools.some((t) => t.access === 'public');
 }
@@ -677,16 +712,23 @@ async function validateOAuthHttpHostAtStartup(
     }
 }
 
-async function resolveHostContextForOAuthSession(
+function resolveOAuthHostBaseUrl(httpHostConfig: OAuthHttpHostRuntimeConfig): string {
+    const baseUrlKey = httpHostConfig.baseUrlEnvKey?.trim();
+    const baseUrl = baseUrlKey ? process.env[baseUrlKey]?.trim() : undefined;
+    if (!baseUrl) {
+        throw new Error('Missing host base URL. Pass --base-url-env on oauth-http-mcp-server.js and set the variable.');
+    }
+    return baseUrl;
+}
+
+async function resolveHostContextOAuthPassThrough(
     httpHostConfig: OAuthHttpHostRuntimeConfig,
-    _generated: GeneratedHostModule,
-    headers: Record<string, string | string[] | undefined>,
+    bearer: string | undefined,
     sessionStore: Map<string, McpOAuthSession>,
     sessionId: string | undefined
 ): Promise<ApiLikeHostContext> {
     let credential: string | undefined;
     let verifiedPayload: Record<string, unknown> | undefined;
-    const bearer = readBearerFromHeaders(headers);
     if (bearer) {
         const verified = await verifyOAuthBearerToken(httpHostConfig, bearer);
         if (verified.ok) {
@@ -721,14 +763,95 @@ async function resolveHostContextForOAuthSession(
             }
         }
     }
-    const { credential: c, jwt } = hostContextFromOAuthCredential(httpHostConfig, credential, verifiedPayload);
-
-    const baseUrlKey = httpHostConfig.baseUrlEnvKey?.trim();
-    const baseUrl = baseUrlKey ? process.env[baseUrlKey]?.trim() : undefined;
-    if (!baseUrl) {
-        throw new Error('Missing host base URL. Pass --base-url-env on oauth-http-mcp-server.js and set the variable.');
+    const baseUrl = resolveOAuthHostBaseUrl(httpHostConfig);
+    if (!credential?.trim()) {
+        return { baseUrl };
     }
-    return { baseUrl, credential: c, jwt };
+    const trimmed = credential.trim();
+    const jwt = verifiedPayload ? normalizeHostJwtClaims(verifiedPayload, httpHostConfig) : undefined;
+    return { baseUrl, credential: trimmed, jwt };
+}
+
+async function resolveHostContextWithCredentialTransform(
+    httpHostConfig: OAuthHttpHostRuntimeConfig,
+    bearer: string | undefined,
+    sessionStore: Map<string, McpOAuthSession>,
+    sessionId: string | undefined
+): Promise<ApiLikeHostContext> {
+    let session = sessionId ? sessionStore.get(sessionId) : undefined;
+    if (sessionId && !session) {
+        session = { sessionId, createdAt: Date.now() };
+        sessionStore.set(sessionId, session);
+    }
+
+    if (session?.exchangedAt && session.upstreamCredential) {
+        const jwt =
+            session.sessionJwtClaims && Object.keys(session.sessionJwtClaims).length > 0
+                ? session.sessionJwtClaims
+                : undefined;
+        return {
+            baseUrl: resolveOAuthHostBaseUrl(httpHostConfig),
+            credential: session.upstreamCredential,
+            jwt
+        };
+    }
+
+    let idpToken = bearer?.trim();
+    if (!idpToken && session?.upstreamCredential && !session.exchangedAt) {
+        idpToken = session.upstreamCredential.trim();
+    }
+    if (!idpToken) {
+        return { baseUrl: resolveOAuthHostBaseUrl(httpHostConfig) };
+    }
+
+    const verified = await verifyOAuthBearerToken(httpHostConfig, idpToken);
+    if (!verified.ok) {
+        throw new Error('Invalid OAuth Bearer token.');
+    }
+
+    const idpClaims = verified.payload ? normalizeHostJwtClaims(verified.payload, httpHostConfig) : undefined;
+    if (!credentialTransformFn) {
+        throw new Error('Credential transform module is not loaded.');
+    }
+    const exchanged = await credentialTransformFn({
+        inboundCredential: idpToken,
+        inboundClaims: idpClaims
+    });
+    const accessToken = exchanged.upstreamCredential.trim();
+    if (accessToken.length === 0) {
+        throw new Error('Credential transform module returned an empty upstream credential.');
+    }
+    const claims =
+        exchanged.sessionJwtClaims && typeof exchanged.sessionJwtClaims === 'object'
+            ? normalizeHostJwtClaims(exchanged.sessionJwtClaims as Record<string, unknown>, httpHostConfig)
+            : {};
+    if (session) {
+        session.upstreamCredential = accessToken;
+        session.sessionJwtClaims = claims;
+        session.exchangedAt = Date.now();
+    }
+
+    const jwt = claims && Object.keys(claims).length > 0 ? claims : undefined;
+    return {
+        baseUrl: resolveOAuthHostBaseUrl(httpHostConfig),
+        credential: accessToken,
+        jwt
+    };
+}
+
+async function resolveHostContextForOAuthSession(
+    httpHostConfig: OAuthHttpHostRuntimeConfig,
+    _generated: GeneratedHostModule,
+    headers: Record<string, string | string[] | undefined>,
+    sessionStore: Map<string, McpOAuthSession>,
+    sessionId: string | undefined
+): Promise<ApiLikeHostContext> {
+    const bearer = readBearerFromHeaders(headers);
+    const hostContext = credentialTransformFn
+        ? await resolveHostContextWithCredentialTransform(httpHostConfig, bearer, sessionStore, sessionId)
+        : await resolveHostContextOAuthPassThrough(httpHostConfig, bearer, sessionStore, sessionId);
+
+    return hostContext;
 }
 
 function oauthResourceMetadataDocument(httpHostConfig: OAuthHttpHostRuntimeConfig): Record<string, unknown> {
@@ -904,7 +1027,7 @@ async function runOAuthHttpMcpStandaloneFromArgv(argv: string[]): Promise<void> 
     const modulePath = argv[0];
     if (!modulePath) {
         throw new Error(
-            'Usage: node oauth-http-mcp-server.js <path-to-*-tools.js> [--base-url-env ENV] --oauth-idp-url URL --port N [--oauth-token-validation hs256|oidc|opaque] [--jwt-secret-env ENV] [--oauth-issuer URL] [--oauth-audience AUD] [--host HOST] [--path /mcp]'
+            'Usage: node oauth-http-mcp-server.js <path-to-*-tools.js> [--base-url-env ENV] --oauth-idp-url URL --port N [--oauth-token-validation hs256|oidc|opaque] [--jwt-secret-env ENV] [--oauth-issuer URL] [--oauth-audience AUD] [--credential-transform-module PATH] [--host HOST] [--path /mcp]'
         );
     }
     const envDirs = [process.cwd(), path.dirname(path.resolve(modulePath))];
@@ -915,6 +1038,7 @@ async function runOAuthHttpMcpStandaloneFromArgv(argv: string[]): Promise<void> 
     }
     const generated = readGeneratedModule(imported as Record<string, unknown>);
     const httpHostConfig = parseOAuthHttpHostArgv(argv.slice(1), envDirs);
+    await loadCredentialTransformModule(httpHostConfig);
     if (!httpHostConfig.baseUrlEnvKey) {
         throw new Error('Required: --base-url-env <ENV_VAR_NAME>');
     }
