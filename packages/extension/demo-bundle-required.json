@@ -15,6 +15,7 @@
     "demos-generate.config.json",
     "github.api2ai",
     "oauth-idp/demo-rsa-private.pem",
+    "oauth-idp/idp-pages.mjs",
     "oauth-idp/jwt.mjs",
     "oauth-idp/kill-server-oidc.mjs",
     "oauth-idp/kill-server.mjs",

@@ -6,15 +6,20 @@
 import { createHash, randomBytes, timingSafeEqual } from 'node:crypto';
 import { createServer } from 'node:http';
 import { getJwksDocument, mintCustomerToken } from './jwt.mjs';
+import {
+    renderAuthorizeConsentPage,
+    renderAuthorizeHelpPage,
+    sendHtml
+} from './idp-pages.mjs';
 import { loggingAdapter } from '../src/utils/logging-adapter.js';
 
 const PORT = Number(process.env.BOOKINGS_OAUTH_IDP_PORT) || 3860;
 const CLIENT_ID = 'mcp-demo-local';
 const CURSOR_REDIRECT = 'cursor://anysphere.cursor-mcp/oauth/callback';
 const DEMO_USERS = [
-    { customerId: 'alice', role: 'user', label: 'alice (user)' },
-    { customerId: 'bob', role: 'user', label: 'bob (user)' },
-    { customerId: 'admin', role: 'admin', label: 'admin' }
+    { customerId: 'alice', role: 'user' },
+    { customerId: 'bob', role: 'user' },
+    { customerId: 'admin', role: 'admin' }
 ];
 
 /** @type {Map<string, { customerId: string; role: string; redirectUri: string; codeChallenge: string; expiresAt: number }>} */
@@ -89,14 +94,12 @@ function handleMetadata(req, res) {
     sendJson(res, 200, openIdConfigurationDocument(base));
 }
 
-function sendAuthorizeHelpPage(res, title) {
-    res.writeHead(200, { 'content-type': 'text/html; charset=utf-8' });
-    res.end(
-        `<!doctype html><html><body><h1>${title}</h1>` +
-            '<p>Open login via <strong>Cursor MCP OAuth</strong> (&quot;Needs login&quot; on <code>bookings-oauth</code> or <code>cakes</code>), not by bookmarking <code>/authorize</code>.</p>' +
-            '<p>Cursor sends <code>response_type=code</code>, <code>client_id=mcp-demo-local</code>, PKCE <code>code_challenge</code>, and redirect <code>cursor://anysphere.cursor-mcp/oauth/callback</code>.</p>' +
-            '<p>Processes: <code>npm run demo:oauth-idp</code> (:3860 cakes), <code>npm run demo:oauth-idp-oidc</code> (:3861 bookings-oauth).</p>' +
-            '</body></html>'
+function sendAuthorizeHelpPage(res) {
+    sendHtml(
+        res,
+        renderAuthorizeHelpPage(
+            'Use <strong>Cursor MCP OAuth</strong> on <code>bookings-oauth</code> or <code>cakes</code> (<code>npm run demo:oauth-idp</code> / <code>demo:oauth-idp-oidc</code>).'
+        )
     );
 }
 
@@ -110,7 +113,7 @@ function handleAuthorize(req, res, url) {
     if (responseType !== 'code') {
         if (!responseType && !clientId && !redirectUri && !codeChallenge) {
             loggingAdapter.debug('authorize help page');
-            sendAuthorizeHelpPage(res, 'bookings-api OAuth IDP');
+            sendAuthorizeHelpPage(res);
             return;
         }
         loggingAdapter.warn('authorize rejected', { error: 'unsupported_response_type', detail: responseType || '(missing)' });
@@ -135,18 +138,16 @@ function handleAuthorize(req, res, url) {
 
     const pick = url.searchParams.get('customerId');
     if (!pick) {
-        loggingAdapter.debug('authorize login picker', { clientId, state: state || undefined });
-        const links = DEMO_USERS.map(
-            (u) =>
-                `<li><a href="${url.pathname}?${new URLSearchParams({
-                    ...Object.fromEntries(url.searchParams),
-                    customerId: u.customerId
-                }).toString()}">${u.label}</a></li>`
-        ).join('');
-        res.writeHead(200, { 'content-type': 'text/html; charset=utf-8' });
-        res.end(
-            `<!doctype html><html><body><h1>bookings-api OAuth IDP</h1><p>Login as:</p><ul>${links}</ul></body></html>`
-        );
+        loggingAdapter.debug('authorize consent page', { clientId, state: state || undefined });
+        const users = DEMO_USERS.map((u) => ({
+            customerId: u.customerId,
+            role: u.role,
+            href: `${url.pathname}?${new URLSearchParams({
+                ...Object.fromEntries(url.searchParams),
+                customerId: u.customerId
+            }).toString()}`
+        }));
+        sendHtml(res, renderAuthorizeConsentPage(users));
         return;
     }
 
