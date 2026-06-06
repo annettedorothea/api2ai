@@ -192,7 +192,12 @@ function buildResponseSection(details: OpenApiOperationDetails): string {
 }
 
 /** Pre-condition: `operation` has passed validation, so `intent` is present. */
-export function buildMcpDescription(operation: Operation, details: OpenApiOperationDetails, auth?: Auth): string {
+export function buildMcpDescription(
+    operation: Operation,
+    details: OpenApiOperationDetails,
+    auth?: Auth,
+    mcpModuleName?: string
+): string {
     const sections: string[] = [];
 
     sections.push(`Intent:\n${operation.intent!.trim()}`);
@@ -230,7 +235,7 @@ export function buildMcpDescription(operation: Operation, details: OpenApiOperat
         const prefixNote =
             auth.prefix !== undefined && String(auth.prefix).trim().length > 0 ? ' (prefix applied to the secret)' : '';
         sections.push(
-            `Runtime: checked — implement check${operation.toolName?.trim() ? operation.toolName.trim().charAt(0).toUpperCase() + operation.toolName.trim().slice(1) : 'Tool'}Parameters in src/auth/${operation.toolName?.trim() ?? 'tool'}.ts (types from this tools module; run build:generated for .js); credential sent as ${auth.location} "${auth.name}"${prefixNote}.`
+            `Runtime: checked — implement check${operation.toolName?.trim() ? operation.toolName.trim().charAt(0).toUpperCase() + operation.toolName.trim().slice(1) : 'Tool'}Parameters in src/auth/${mcpModuleName ?? 'mcp'}/${operation.toolName?.trim() ?? 'tool'}.ts (types from this tools module; run build:generated for .js); credential sent as ${auth.location} "${auth.name}"${prefixNote}.`
         );
     } else if (auth) {
         const prefixNote =

@@ -46,7 +46,7 @@
     "scripts/start-mcp-http.mjs",
     "scripts/start-mcp-oauth.mjs",
     "spaceflight-news.api2ai",
-    "src/auth/listBookings.ts",
+    "src/auth/bookings-api-tools/listBookings.ts",
     "todo.api2ai",
     "todo-api/data/categories.json",
     "todo-api/data/todos.json",

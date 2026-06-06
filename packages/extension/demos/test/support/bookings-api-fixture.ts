@@ -80,10 +80,10 @@ export async function prepareBookingsApiGeneratedFixture(fixtureRoot: string): P
     await fs.copyFile(sourceFixturePath, path.join(fixtureRoot, 'bookings-api.api2ai'));
     await fs.copyFile(openApiFixturePath, path.join(fixtureRoot, 'openapi/bookings-api.openapi.yaml'));
     runDemoGenerate(path.join(fixtureRoot, 'bookings-api.api2ai'), generatedTsPath);
-    await fs.mkdir(path.join(fixtureRoot, 'src', 'auth'), { recursive: true });
+    await fs.mkdir(path.join(fixtureRoot, 'src', 'auth', 'bookings-api-tools'), { recursive: true });
     await fs.copyFile(
-        path.join(demosRoot, 'src/auth/listBookings.ts'),
-        path.join(fixtureRoot, 'src/auth/listBookings.ts')
+        path.join(demosRoot, 'src/auth/bookings-api-tools/listBookings.ts'),
+        path.join(fixtureRoot, 'src/auth/bookings-api-tools/listBookings.ts')
     );
     compileGeneratedForSmoke(fixtureRoot);
 

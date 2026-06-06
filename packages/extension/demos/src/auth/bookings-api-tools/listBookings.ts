@@ -1,4 +1,4 @@
-import type { InvokeOptions, CheckedHostContext } from '../../generated/tools/bookings-api-tools.js';
+import type { InvokeOptions, CheckedHostContext } from '../../../generated/tools/bookings-api-tools.js';
 
 export function checkListBookingsParameters(options: InvokeOptions, host: CheckedHostContext): InvokeOptions {
     const jwt = host.jwt;

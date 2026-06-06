@@ -55,7 +55,7 @@ async function loadOpenApiForModel(model: Model, sourcePath: string): Promise<Lo
     return loadOpenApi(model.openapi, baseDir);
 }
 
-function resolveToolsFromLoaded(model: Model, loaded: LoadedOpenApi): ResolvedToolCodegen[] {
+function resolveToolsFromLoaded(model: Model, loaded: LoadedOpenApi, mcpModuleName: string): ResolvedToolCodegen[] {
     return model.operations.map((operation) => {
         const key = makeOperationLookupKey(operation.method, operation.path);
         const details = loaded.operations.get(key);
@@ -67,7 +67,7 @@ function resolveToolsFromLoaded(model: Model, loaded: LoadedOpenApi): ResolvedTo
         return {
             toolName: requireToolName(operation),
             title: buildMcpTitle(operation, details),
-            description: buildMcpDescription(operation, details, model.auth),
+            description: buildMcpDescription(operation, details, model.auth, mcpModuleName),
             method: operation.method,
             path: operation.path,
             example: operation.example,
@@ -250,7 +250,8 @@ ${toolRuntimeBlock}
 export async function renderToolsModule(input: RenderToolsModuleInput): Promise<string> {
     const { model, source, destinationTsPath, stubPaths, bootstrapConfig } = input;
     const loaded = await loadOpenApiForModel(model, source);
-    const toolsMeta = resolveToolsFromLoaded(model, loaded);
+    const mcpModuleName = path.parse(destinationTsPath).name;
+    const toolsMeta = resolveToolsFromLoaded(model, loaded, mcpModuleName);
     const schemas = buildSchemasFromLoaded(model, loaded);
     const querySerialization = buildQuerySerializationFromLoaded(model, loaded);
     const { toolsLiteral, orderedSchemas, querySerializationLiteral } = mergeParallelToolData(
