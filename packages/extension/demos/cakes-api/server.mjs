@@ -4,6 +4,7 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import { verifyJwt } from './jwt.mjs';
+import { loggingAdapter } from '../src/utils/logging-adapter.js';
 
 const PORT = Number(process.env.CAKES_API_PORT) || 3856;
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -44,11 +45,13 @@ function matchPath(pathname, pattern) {
 function requireAuth(req, res) {
     const token = parseBearer(req);
     if (!token) {
+        loggingAdapter.warn('auth rejected', { error: 'missing_bearer_token' });
         sendJson(res, 401, { error: 'missing_bearer_token' });
         return undefined;
     }
     const verified = verifyJwt(token);
     if (!verified.ok) {
+        loggingAdapter.warn('auth rejected', { error: 'invalid_token', reason: verified.error });
         sendJson(res, 401, { error: 'invalid_token', reason: verified.error });
         return undefined;
     }
@@ -70,8 +73,10 @@ function cakeMatchesQuery(cake, query) {
 const server = createServer((req, res) => {
     const url = new URL(req.url ?? '/', `http://127.0.0.1:${PORT}`);
     const method = req.method ?? 'GET';
+    loggingAdapter.debug(`${method} ${url.pathname}`);
 
     if (method !== 'GET') {
+        loggingAdapter.warn('method not allowed', { method, path: url.pathname });
         sendJson(res, 405, { error: 'method_not_allowed' });
         return;
     }
@@ -82,6 +87,7 @@ const server = createServer((req, res) => {
         }
         const query = normalizeQuery(url.searchParams.get('q'));
         const results = cakes.filter((cake) => cakeMatchesQuery(cake, query));
+        loggingAdapter.debug('search cakes', { query: url.searchParams.get('q') ?? '', count: results.length });
         sendJson(res, 200, { query: url.searchParams.get('q') ?? '', count: results.length, cakes: results });
         return;
     }
@@ -93,16 +99,19 @@ const server = createServer((req, res) => {
         }
         const cake = cakes.find((entry) => entry.id === cakeParams.cakeId);
         if (!cake) {
+            loggingAdapter.warn('not found', { error: 'cake_not_found', cakeId: cakeParams.cakeId });
             sendJson(res, 404, { error: 'cake_not_found', cakeId: cakeParams.cakeId });
             return;
         }
+        loggingAdapter.debug('get cake', { cakeId: cakeParams.cakeId });
         sendJson(res, 200, { cake });
         return;
     }
 
+    loggingAdapter.warn('not found', { method, path: url.pathname });
     sendJson(res, 404, { error: 'not_found' });
 });
 
 server.listen(PORT, '127.0.0.1', () => {
-    console.log(`[cakes-api] listening on http://127.0.0.1:${PORT}`);
+    loggingAdapter.info('listening', { url: `http://127.0.0.1:${PORT}`, auth: 'Bearer JWT' });
 });

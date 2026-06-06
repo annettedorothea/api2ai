@@ -3,6 +3,7 @@ import { createServer } from 'node:http';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
+import { loggingAdapter } from '../src/utils/logging-adapter.js';
 
 const PORT = Number(process.env.TODO_API_PORT) || 3852;
 const DEMO_API_KEY = process.env.TODO_API_KEY?.trim() || 'demo-todo-api-key';
@@ -45,19 +46,23 @@ function matchPath(pathname, pattern) {
 const server = createServer((req, res) => {
     const url = new URL(req.url ?? '/', `http://127.0.0.1:${PORT}`);
     const method = req.method ?? 'GET';
+    loggingAdapter.debug(`${method} ${url.pathname}`);
     const apiKey = readApiKey(req);
 
     if (apiKey !== DEMO_API_KEY) {
+        loggingAdapter.warn('auth rejected', { error: 'invalid_api_key' });
         sendJson(res, 401, { error: 'invalid_api_key' });
         return;
     }
 
     if (method !== 'GET') {
+        loggingAdapter.warn('method not allowed', { method, path: url.pathname });
         sendJson(res, 405, { error: 'method_not_allowed' });
         return;
     }
 
     if (url.pathname === '/categories') {
+        loggingAdapter.debug('list categories', { count: categories.length });
         sendJson(res, 200, { categories });
         return;
     }
@@ -67,6 +72,7 @@ const server = createServer((req, res) => {
         const categoryId = byCategory.categoryId;
         const category = categories.find((c) => c.id === categoryId);
         if (!category) {
+            loggingAdapter.warn('not found', { error: 'category_not_found', categoryId });
             sendJson(res, 404, { error: 'category_not_found', categoryId });
             return;
         }
@@ -75,6 +81,7 @@ const server = createServer((req, res) => {
         if (status) {
             list = list.filter((t) => t.status === status);
         }
+        loggingAdapter.debug('list todos by category', { categoryId, status: status || undefined, count: list.length });
         sendJson(res, 200, { categoryId, todos: list });
         return;
     }
@@ -89,6 +96,7 @@ const server = createServer((req, res) => {
         if (categoryId) {
             list = list.filter((t) => t.categoryId === categoryId);
         }
+        loggingAdapter.debug('list todos', { status: status || undefined, categoryId: categoryId || undefined, count: list.length });
         sendJson(res, 200, { todos: list });
         return;
     }
@@ -97,16 +105,19 @@ const server = createServer((req, res) => {
     if (one) {
         const todo = todos.find((t) => t.id === one.todoId);
         if (!todo) {
+            loggingAdapter.warn('not found', { error: 'todo_not_found', todoId: one.todoId });
             sendJson(res, 404, { error: 'todo_not_found', todoId: one.todoId });
             return;
         }
+        loggingAdapter.debug('get todo', { todoId: one.todoId });
         sendJson(res, 200, { todo });
         return;
     }
 
+    loggingAdapter.warn('not found', { method, path: url.pathname });
     sendJson(res, 404, { error: 'not_found' });
 });
 
 server.listen(PORT, '127.0.0.1', () => {
-    console.error(`[todo-api] listening on http://127.0.0.1:${PORT} (x-api-key)`);
+    loggingAdapter.info('listening', { url: `http://127.0.0.1:${PORT}`, auth: 'x-api-key' });
 });

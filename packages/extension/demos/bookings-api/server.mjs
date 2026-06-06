@@ -4,6 +4,7 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import { verifyJwt } from './jwt.mjs';
+import { loggingAdapter } from '../src/utils/logging-adapter.js';
 
 const PORT = Number(process.env.BOOKINGS_API_PORT) || 3847;
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -44,11 +45,13 @@ function matchPath(pathname, pattern) {
 function requireAuth(req, res) {
     const token = parseBearer(req);
     if (!token) {
+        loggingAdapter.warn('auth rejected', { error: 'missing_bearer_token' });
         sendJson(res, 401, { error: 'missing_bearer_token' });
         return undefined;
     }
     const verified = verifyJwt(token);
     if (!verified.ok) {
+        loggingAdapter.warn('auth rejected', { error: 'invalid_token', reason: verified.error });
         sendJson(res, 401, { error: 'invalid_token', reason: verified.error });
         return undefined;
     }
@@ -109,8 +112,10 @@ function listBookingsForCustomer(customerId) {
 const server = createServer((req, res) => {
     const url = new URL(req.url ?? '/', `http://127.0.0.1:${PORT}`);
     const method = req.method ?? 'GET';
+    loggingAdapter.debug(`${method} ${url.pathname}`);
 
     if (method !== 'GET') {
+        loggingAdapter.warn('method not allowed', { method, path: url.pathname });
         sendJson(res, 405, { error: 'method_not_allowed' });
         return;
     }
@@ -122,10 +127,13 @@ const server = createServer((req, res) => {
         }
         const role = String(payload.role ?? 'user');
         if (role !== 'admin' && role !== 'user') {
+            loggingAdapter.warn('forbidden', { error: 'unsupported_role', role });
             sendJson(res, 403, { error: 'unsupported_role', role });
             return;
         }
-        sendJson(res, 200, { role, units: listVacationRentalsForRole(role) });
+        const units = listVacationRentalsForRole(role);
+        loggingAdapter.debug('vacation-rentals', { role, unitCount: units.length });
+        sendJson(res, 200, { role, units });
         return;
     }
 
@@ -138,6 +146,12 @@ const server = createServer((req, res) => {
         const claimCustomerId = payload.customerId;
         const role = String(payload.role ?? '');
         if (role !== 'admin' && String(claimCustomerId) !== String(bookingPath.customerId)) {
+            loggingAdapter.warn('forbidden', {
+                error: 'customer_mismatch',
+                pathCustomerId: bookingPath.customerId,
+                tokenCustomerId: claimCustomerId,
+                tokenRole: role || 'user'
+            });
             sendJson(res, 403, {
                 error: 'customer_mismatch',
                 pathCustomerId: bookingPath.customerId,
@@ -146,16 +160,23 @@ const server = createServer((req, res) => {
             });
             return;
         }
+        const customerBookings = listBookingsForCustomer(bookingPath.customerId);
+        loggingAdapter.debug('list bookings', {
+            customerId: bookingPath.customerId,
+            count: customerBookings.length,
+            role: role || 'user'
+        });
         sendJson(res, 200, {
             customerId: bookingPath.customerId,
-            bookings: listBookingsForCustomer(bookingPath.customerId)
+            bookings: customerBookings
         });
         return;
     }
 
+    loggingAdapter.warn('not found', { method, path: url.pathname });
     sendJson(res, 404, { error: 'not_found' });
 });
 
 server.listen(PORT, '127.0.0.1', () => {
-    console.error(`[bookings-api] listening on http://127.0.0.1:${PORT}`);
+    loggingAdapter.info('listening', { url: `http://127.0.0.1:${PORT}`, auth: 'Bearer JWT' });
 });

@@ -2,6 +2,7 @@
  * Generated from: bookings-api.api2ai
  * Referenced OpenAPI: ./openapi/bookings-api.openapi.yaml
  */
+import { loggingAdapter } from '../../src/utils/logging-adapter.js';
 import { checkListBookingsParameters } from '../../src/auth/bookings-api-tools/listBookings.js';
 
 export type GeneratedTool = {
@@ -199,6 +200,7 @@ export async function invokeTool(
     if (!tool) {
         throw new Error('Unknown tool: ' + toolName);
     }
+    loggingAdapter.debug('invokeTool', { toolName, method: tool.method, path: tool.path });
 
     if (hostContext === undefined) {
         throw new Error('invokeTool requires hostContext from the MCP host (stdio-mcp-server or http-mcp-server).');
@@ -290,6 +292,7 @@ export async function invokeTool(
         if (bodySnippet) {
             msg += ' Response body: ' + bodySnippet;
         }
+        loggingAdapter.error(msg, { toolName: tool.toolName, status: response.status });
         throw new Error(msg);
     }
 

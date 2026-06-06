@@ -13,6 +13,11 @@ Workspace: `.api2ai` · MCP config: [`.cursor/mcp.json`](./.cursor/mcp.json)
 
 `npm run demo:kill-all` · `init` does not overwrite `.env.local`
 
+## Init
+
+- **`npm run init`** — setup + services in the **background**; terminal is free when done.
+- **`npm run init:foreground`** — same, but logs stay in this terminal (`LOG_LEVEL=debug`, prefix per service). **Ctrl+C** stops services started here.
+
 ## Demos
 
 One MCP server per row — names match `.cursor/mcp.json`.

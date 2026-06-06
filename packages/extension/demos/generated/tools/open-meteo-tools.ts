@@ -2,6 +2,7 @@
  * Generated from: open-meteo.api2ai
  * Referenced OpenAPI: ./openapi/open-meteo.openapi.yaml
  */
+import { loggingAdapter } from '../../src/utils/logging-adapter.js';
 
 export type GeneratedTool = {
     toolName: string;
@@ -272,6 +273,7 @@ export async function invokeTool(
     if (!tool) {
         throw new Error('Unknown tool: ' + toolName);
     }
+    loggingAdapter.debug('invokeTool', { toolName, method: tool.method, path: tool.path });
 
     if (hostContext === undefined) {
         throw new Error('invokeTool requires hostContext from the MCP host (stdio-mcp-server or http-mcp-server).');
@@ -331,6 +333,7 @@ export async function invokeTool(
         if (bodySnippet) {
             msg += ' Response body: ' + bodySnippet;
         }
+        loggingAdapter.error(msg, { toolName: tool.toolName, status: response.status });
         throw new Error(msg);
     }
 

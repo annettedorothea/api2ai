@@ -1,5 +1,6 @@
 import type { Model } from 'api-2-ai-dsl-language';
 import {
+    ensureLoggingAdapterStubFromSource,
     ensureParentDir,
     resolveBootstrapProjectRootFromSource,
     resolveGeneratedCliDir,
@@ -80,6 +81,7 @@ export async function generateOutput(model: Model, source: string, destination: 
     const oauthHttpMcpHostPath = renderOAuthHttpMcpHost(cliDir, bootstrapConfig);
     const projectRoot = resolveBootstrapProjectRootFromSource(source);
     renderBootstrap(projectRoot, bootstrapConfig);
+    ensureLoggingAdapterStubFromSource(source);
     writeGeneratedDemosTestSupport(projectRoot);
 
     return { tsPath, stdioMcpHostPath, statelessHttpMcpHostPath, oauthHttpMcpHostPath };

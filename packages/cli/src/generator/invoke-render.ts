@@ -131,6 +131,7 @@ function renderInvokeToolFunction(authKind: 'none' | 'credential', hasChecked: b
     if (!tool) {
         throw new Error('Unknown tool: ' + toolName);
     }
+    loggingAdapter.debug('invokeTool', { toolName, method: tool.method, path: tool.path });
 ${hostBinding}${credentialAndParams}${resolveCall}
 
     const requestInit: Record<string, unknown> = {
@@ -169,6 +170,7 @@ ${hostBinding}${credentialAndParams}${resolveCall}
         if (bodySnippet) {
             msg += ' Response body: ' + bodySnippet;
         }
+        loggingAdapter.error(msg, { toolName: tool.toolName, status: response.status });
         throw new Error(msg);
     }
 
