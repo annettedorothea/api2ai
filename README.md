@@ -1,5 +1,9 @@
 # api2ai
 
+## Turn any OpenAPI specification into AI-ready tools.
+
+_Generate MCP-compatible tools from existing OpenAPI specifications without writing custom MCP code._
+
 **api2ai** curates OpenAPI operations into MCP tools: an **.api2ai DSL** selects API operations and enriches them with AI-facing metadata (intent, examples, tool names, optional authentication settings). A **code generator** (CLI + extension on save) emits tool modules and a stdio MCP host. Built with **[Langium](https://langium.org/)** (grammar, validation, and completion).
 
 Sibling project: [db2ai](https://github.com/annettedorothea/db2ai) (relational DB to MCP). Shared library: [core2ai](https://github.com/annettedorothea/core2ai) (`@core2ai/core` via **npm link**).
