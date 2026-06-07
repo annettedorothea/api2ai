@@ -1,5 +1,7 @@
 # api2ai
 
+> **Pre-release** — early access; APIs, DSL, and generated output may change before v1.0.
+
 ## Turn any OpenAPI specification into AI-ready tools.
 
 Generate MCP-compatible tools from existing APIs without writing custom MCP servers.

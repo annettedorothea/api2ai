@@ -120,7 +120,7 @@ export const authConfig: AuthConfig | undefined = {
 };
 
 export const mcpServerName = 'todo-tools';
-export const mcpServerVersion = '0.1.0';
+export const mcpServerVersion = '0.2.0';
 
 import * as z from 'zod/v4';
 

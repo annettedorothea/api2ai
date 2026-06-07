@@ -1,5 +1,7 @@
 # api2ai MCP demos
 
+> **Pre-release** — demo workspace for trying api2ai; not a stability guarantee for production.
+
 [`.cursor/mcp.json`](./.cursor/mcp.json) · `.api2ai` workspace root
 
 ```bash
