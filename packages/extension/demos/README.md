@@ -1,22 +1,18 @@
 # api2ai MCP demos
 
-Workspace: `.api2ai` · MCP config: [`.cursor/mcp.json`](./.cursor/mcp.json)
+[`.cursor/mcp.json`](./.cursor/mcp.json) · `.api2ai` workspace root
 
-## Quick start
+```bash
+npm install && npm run start           # stdio + HTTP + OAuth (background)
+npm run start:foreground               # … Ctrl+C stops services started here
+```
 
-- [ ] `npm install`
-- [ ] `npm run init`
-- [ ] Optional: `GITHUB_TOKEN`, `TMDB_ACCESS_TOKEN` in `.env.local` (stdio opaque)
-- [ ] Open this folder as Cursor workspace root
-- [ ] Cursor Settings → Tools & MCPs: enable needed servers
-- [ ] Reload MCP after `.env.local`, `mcp.json`, or tool changes in `.api2ai` (add, edit, remove)
+- Optional: `GITHUB_TOKEN`, `TMDB_ACCESS_TOKEN` in `.env.local` (stdio opaque)
+- Open this folder as Cursor workspace root
+- Cursor Settings → Tools & MCPs: enable needed servers
+- Reload MCP after `.env.local`, `mcp.json`, or `.api2ai` changes
 
-`npm run demo:kill-all` · `init` does not overwrite `.env.local`
-
-## Init
-
-- **`npm run init`** — setup + services in the **background**; terminal is free when done.
-- **`npm run init:foreground`** — same, but logs stay in this terminal (`LOG_LEVEL=debug`, prefix per service). **Ctrl+C** stops services started here.
+`npm run demo:kill-all` · `start` does not overwrite `.env.local`
 
 ## Demos
 
@@ -28,11 +24,11 @@ One MCP server per row — names match `.cursor/mcp.json`.
 | `open-meteo-geocoding` | open-meteo-geocoding | stdio     | —                 | —    | —                                                          |
 | `github`               | github               | stdio     | opaque            | —    | `GITHUB_TOKEN` in `.env.local`                             |
 | `tmdb`                 | tmdb                 | stdio     | opaque            | —    | `TMDB_ACCESS_TOKEN` in `.env.local`                        |
-| `spaceflight-news`     | spaceflight-news     | HTTP      | —                 | 3849 | `init` starts host                                         |
-| `todo`                 | todo                 | HTTP      | static            | 3853 | `init` starts host; API key in `mcp.json` `x-api-token`    |
-| `bookings-oauth`       | bookings-api         | OAuth     | oidc              | 3872 | `init` starts IdP + host; Cursor Sign-in (RS256 :3861)     |
-| `cakes`                | cakes                | OAuth     | opaque            | 3874 | `init` starts IdP + API + host; Cursor Sign-in (:3860)     |
-| `banking-oauth`        | banking              | OAuth     | opaque + exchange | 3876 | `init` starts enterprise IdP (:3862) + API (:3858) + host; |
+| `spaceflight-news`     | spaceflight-news     | HTTP      | —                 | 3849 | `start` starts host                                        |
+| `todo`                 | todo                 | HTTP      | static            | 3853 | `start` starts host; API key in `mcp.json` `x-api-token`   |
+| `bookings-oauth`       | bookings-api         | OAuth     | oidc              | 3872 | `start` starts IdP + host; Cursor Sign-in (RS256 :3861)    |
+| `cakes`                | cakes                | OAuth     | opaque            | 3874 | `start` starts IdP + API + host; Cursor Sign-in (:3860)    |
+| `banking-oauth`        | banking              | OAuth     | opaque + exchange | 3876 | `start` starts enterprise IdP (:3862) + API (:3858) + host |
 
 ---
 

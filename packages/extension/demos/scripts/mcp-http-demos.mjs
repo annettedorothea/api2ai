@@ -23,8 +23,8 @@ export const HTTP_DEMOS = {
     }
 };
 
-/** Hosts started by `npm run init` (HTTP entries in .cursor/mcp.json). */
-export const HTTP_INIT_DEMO_NAMES = ['spaceflight-news', 'todo'];
+/** Hosts started by `npm run start` (HTTP entries in .cursor/mcp.json). */
+export const HTTP_START_DEMO_NAMES = ['spaceflight-news', 'todo'];
 
 export const HTTP_DEMO_NAMES = Object.keys(HTTP_DEMOS);
 

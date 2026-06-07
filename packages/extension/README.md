@@ -21,7 +21,7 @@ Base URLs and API tokens belong in the MCP host config (e.g. `.cursor/mcp.json` 
 
 1. Install this extension (VSIX).
 2. Command Palette → **api2ai: Create demo workspace (MCP examples)** → choose an empty folder.
-3. In that folder run **`npm run init`** (creates `.env.local` from `.env.example` if missing, install, generate, compile, starts demo APIs and MCP hosts).
+3. In that folder run **`npm run start`** (creates `.env.local` from `.env.example` if missing, install, generate, compile, starts demo APIs and MCP hosts).
 4. Edit **`.env.local`** for optional tokens (TMDB, GitHub). Open-Meteo needs no token.
 5. Open the demo folder as the workspace. In Cursor Settings → **Tools & MCP**, enable one server per demo (`stdio-api2ai-*` or `http-api2ai-*`, names in `.cursor/mcp.json`).
 

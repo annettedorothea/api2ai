@@ -3,8 +3,8 @@
     "private": true,
     "type": "module",
     "scripts": {
-        "init": "node ./scripts/init.mjs",
-        "init:foreground": "INIT_FOREGROUND=1 node ./scripts/init.mjs",
+        "start": "node ./scripts/start.mjs",
+        "start:foreground": "START_FOREGROUND=1 node ./scripts/start.mjs",
         "demo:kill-all": "LOG_SERVICE_PREFIX=kill-all node ./scripts/kill-all-demos.mjs",
         "demo:bookings-api": "LOG_SERVICE_PREFIX=bookings-api node ./bookings-api/server.mjs",
         "demo:bookings-api:kill": "node ./bookings-api/kill-server.mjs",

@@ -3,21 +3,21 @@
  * Demo workspace setup: kill stale processes, env from example (once), install, generate, compile,
  * start backends + MCP hosts.
  *
- * Default (npm run init): background — terminal free after setup.
- * Foreground (npm run init:foreground): logs in this terminal until Ctrl+C.
+ * Default (npm run start): background — terminal free after setup.
+ * Foreground (npm run start:foreground): logs in this terminal until Ctrl+C.
  */
 import { copyFileSync, existsSync } from 'node:fs';
 import path from 'node:path';
 import { spawn, spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { loadDemoEnvLocal } from './load-env-local.mjs';
-import { buildHostLaunch, HTTP_DEMOS, HTTP_INIT_DEMO_NAMES } from './mcp-http-demos.mjs';
-import { buildOAuthHostLaunch, OAUTH_HTTP_DEMOS, OAUTH_HTTP_INIT_DEMO_NAMES } from './mcp-oauth-demos.mjs';
+import { buildHostLaunch, HTTP_DEMOS, HTTP_START_DEMO_NAMES } from './mcp-http-demos.mjs';
+import { buildOAuthHostLaunch, OAUTH_HTTP_DEMOS, OAUTH_HTTP_START_DEMO_NAMES } from './mcp-oauth-demos.mjs';
 const demosRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const foreground =
-    process.env.INIT_FOREGROUND === '1' ||
-    process.env.INIT_FOREGROUND === 'true' ||
-    process.env.INIT_FOREGROUND === 'yes';
+    process.env.START_FOREGROUND === '1' ||
+    process.env.START_FOREGROUND === 'true' ||
+    process.env.START_FOREGROUND === 'yes';
 
 /** Foreground children — stopped on Ctrl+C. */
 /** @type {import('node:child_process').ChildProcess[]} */
@@ -34,15 +34,15 @@ function ensureEnvFromExample(exampleName, targetName) {
     const examplePath = path.join(demosRoot, exampleName);
     const targetPath = path.join(demosRoot, targetName);
     if (existsSync(targetPath)) {
-        console.log(`[init] ${targetName} already exists — not overwritten.`);
+        console.log(`[start] ${targetName} already exists — not overwritten.`);
         return false;
     }
     if (!existsSync(examplePath)) {
-        console.warn(`[init] ${exampleName} missing — skip env copy.`);
+        console.warn(`[start] ${exampleName} missing — skip env copy.`);
         return false;
     }
     copyFileSync(examplePath, targetPath);
-    console.log(`[init] Created ${targetName} from ${exampleName} — edit tokens as needed.`);
+    console.log(`[start] Created ${targetName} from ${exampleName} — edit tokens as needed.`);
     return true;
 }
 
@@ -74,7 +74,7 @@ function startService(label, argv, extraEnv = {}, logPort) {
                 env
             });
             serviceChildren.push(child);
-            console.log(`[init] ${label} started in foreground${portHint}`);
+            console.log(`[start] ${label} started in foreground${portHint}`);
             return;
         }
         const child = spawn(process.execPath, argv, {
@@ -84,17 +84,17 @@ function startService(label, argv, extraEnv = {}, logPort) {
             env
         });
         child.unref();
-        console.log(`[init] ${label} started in background${portHint}`);
+        console.log(`[start] ${label} started in background${portHint}`);
     } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
-        console.warn(`[init] Could not start ${label}: ${message}`);
+        console.warn(`[start] Could not start ${label}: ${message}`);
     }
 }
 
 function waitForShutdownSignal() {
     return new Promise((resolve) => {
         const shutdown = (signal) => {
-            console.log(`[init] ${signal} — stopping demo services…`);
+            console.log(`[start] ${signal} — stopping demo services…`);
             for (const child of serviceChildren) {
                 if (child.pid) {
                     try {
@@ -148,15 +148,15 @@ async function waitForTcpListen(port, { timeoutMs = 15_000, intervalMs = 200, la
 async function waitForMcpHost(label, port, mcpUrl, logHint) {
     try {
         await waitForTcpListen(port, { label: mcpUrl });
-        console.log(`[init] ${label} listening on port ${port}.`);
+        console.log(`[start] ${label} listening on port ${port}.`);
     } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
-        console.warn(`[init] ${message} (${logHint})`);
+        console.warn(`[start] ${message} (${logHint})`);
     }
 }
 
 async function main() {
-    console.log('[init] stopping previous demo processes…');
+    console.log('[start] stopping previous demo processes…');
     runNpm(['run', 'demo:kill-all']);
 
     loadDemoEnvLocal();
@@ -169,7 +169,7 @@ async function main() {
     runNpm(['run', 'generate:all']);
     runNpm(['run', 'build:generated']);
     if (foreground) {
-        console.log('[init] Foreground mode — LOG_LEVEL=debug for services, logs in this terminal.');
+        console.log('[start] Foreground mode — LOG_LEVEL=debug for services, logs in this terminal.');
     }
 
     const bookingsPort = Number(process.env.BOOKINGS_API_PORT) || 3847;
@@ -230,7 +230,7 @@ async function main() {
         enterpriseIdpPort
     );
 
-    console.log('[init] waiting for mock API backends…');
+    console.log('[start] waiting for mock API backends…');
     for (const [label, port] of [
         ['bookings-api', bookingsPort],
         ['todo-api', todoPort],
@@ -239,62 +239,62 @@ async function main() {
     ]) {
         try {
             await waitForTcpListen(port, { label });
-            console.log(`[init] ${label} listening on port ${port}.`);
+            console.log(`[start] ${label} listening on port ${port}.`);
         } catch (error) {
             const message = error instanceof Error ? error.message : String(error);
-            console.warn(`[init] ${message}`);
+            console.warn(`[start] ${message}`);
         }
     }
 
-    console.log(`[init] waiting for oauth-idp-oidc at ${idpOidcBaseUrl}…`);
+    console.log(`[start] waiting for oauth-idp-oidc at ${idpOidcBaseUrl}…`);
     try {
         await waitForHttpOk(`${idpOidcBaseUrl}/.well-known/openid-configuration`, {
             label: 'oauth-idp-oidc openid-configuration'
         });
     } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
-        console.warn(`[init] ${message} — bookings-oauth MCP may fail JWKS startup.`);
+        console.warn(`[start] ${message} — bookings-oauth MCP may fail JWKS startup.`);
     }
 
     try {
         await waitForTcpListen(idpPort, { label: `oauth-idp port ${idpPort}` });
     } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
-        console.warn(`[init] ${message} — cakes OAuth MCP may fail if IdP is not ready.`);
+        console.warn(`[start] ${message} — cakes OAuth MCP may fail if IdP is not ready.`);
     }
 
-    console.log(`[init] waiting for enterprise-idp at ${enterpriseIdpBaseUrl}…`);
+    console.log(`[start] waiting for enterprise-idp at ${enterpriseIdpBaseUrl}…`);
     try {
         await waitForHttpOk(`${enterpriseIdpBaseUrl}/.well-known/openid-configuration`, {
             label: 'enterprise-idp openid-configuration'
         });
     } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
-        console.warn(`[init] ${message} — banking-oauth MCP may fail if enterprise IdP is not ready.`);
+        console.warn(`[start] ${message} — banking-oauth MCP may fail if enterprise IdP is not ready.`);
     }
 
-    for (const name of HTTP_INIT_DEMO_NAMES) {
+    for (const name of HTTP_START_DEMO_NAMES) {
         const demo = HTTP_DEMOS[name];
         const { port, args, mcpUrl } = buildHostLaunch(name, demosRoot, process.env);
         const label = `mcp-http:${name} (${mcpUrl})`;
         if (demo.baseUrlEnv && demo.prerequisite && !process.env[demo.baseUrlEnv]?.trim()) {
-            console.warn(`[init] ${demo.baseUrlEnv} is missing — ${label} may exit before listening.`);
+            console.warn(`[start] ${demo.baseUrlEnv} is missing — ${label} may exit before listening.`);
         }
         if (demo.authExpectedEnv && !process.env[demo.authExpectedEnv]?.trim()) {
-            console.warn(`[init] ${demo.authExpectedEnv} is missing — ${label} may fail static auth validation.`);
+            console.warn(`[start] ${demo.authExpectedEnv} is missing — ${label} may fail static auth validation.`);
         }
         startService(label, args);
         const logHint = demo.prerequisite ?? `set ${demo.baseUrlEnv ?? 'base URL env'}`;
         await waitForMcpHost(label, port, mcpUrl, logHint);
     }
 
-    for (const name of OAUTH_HTTP_INIT_DEMO_NAMES) {
+    for (const name of OAUTH_HTTP_START_DEMO_NAMES) {
         const demo = OAUTH_HTTP_DEMOS[name];
         const { port, args, mcpUrl } = buildOAuthHostLaunch(name, demosRoot, process.env);
         const label = `mcp-oauth:${name} (${mcpUrl})`;
         if (demo.baseUrlEnv && !process.env[demo.baseUrlEnv]?.trim()) {
             console.warn(
-                `[init] ${demo.baseUrlEnv} is missing — ${label} will exit before listening. Copy .env.example → .env.local.`
+                `[start] ${demo.baseUrlEnv} is missing — ${label} will exit before listening. Copy .env.example → .env.local.`
             );
         }
         startService(label, args);
@@ -302,18 +302,18 @@ async function main() {
     }
 
     if (foreground) {
-        console.log('[init] Setup done — services running. Cursor Settings → Tools & MCPs: enable servers, then reload MCP.');
-        console.log('[init] Ctrl+C stops all demo processes started here.');
+        console.log('[start] Setup done — services running. Cursor Settings → Tools & MCPs: enable servers, then reload MCP.');
+        console.log('[start] Ctrl+C stops all demo processes started here.');
         await waitForShutdownSignal();
         return;
     }
-    console.log('[init] Done. Demo services run in background (npm run demo:kill-all to stop).');
-    console.log('[init] Cursor Settings → Tools & MCPs: enable servers, then reload MCP.');
-    console.log('[init] Live logs: npm run init:foreground');
+    console.log('[start] Done. Demo services run in background (npm run demo:kill-all to stop).');
+    console.log('[start] Cursor Settings → Tools & MCPs: enable servers, then reload MCP.');
+    console.log('[start] Live logs: npm run start:foreground');
 }
 
 main().catch((error) => {
     const message = error instanceof Error ? error.message : String(error);
-    console.error('[init] failed:', message);
+    console.error('[start] failed:', message);
     process.exit(1);
 });
