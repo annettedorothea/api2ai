@@ -42,7 +42,7 @@ No repository checkout required.
 
 ## Demo
 
-[▶ Watch 45s walkthrough](assets/api2ai-demo.mov)
+<video src="assets/demo.mp4" controls></video>
 
 The video shows:
 
