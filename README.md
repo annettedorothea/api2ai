@@ -42,26 +42,38 @@ No repository checkout required.
 
 ## Demo
 
-![api2ai demo](assets/api2ai.gif)
+![api2ai demo](assets/api2ai-demo.gif)
+
 The video shows:
 
 - editing a `.api2ai` file
-- generating MCP tools
-- using the generated tool in an AI agent
+- automatically generating the MCP tool and server on save
+- enabling the generated MCP server in Cursor
+- using the generated tool from an AI agent
 
 ---
 
 ## Example
 
 ```api2ai
-openapi "./petstore.openapi.yaml"
+openapi "./openapi/github-user-min.openapi.yaml"
 
-GET "/pet/{petId}" {
-    toolName: getPetById
-    intent: "Get a pet by id"
-    example: "Show me pet 42"
+auth {
+    in: header
+    name: "Authorization"
+    prefix: "Bearer "
+}
+
+GET "/user" {
+    toolName: getGitHubAuthenticatedUser
+    access: protected
+    intent: "return the GitHub user profile for the authenticated PAT; use to confirm which account the token represents before calling repo-scoped tools"
+    summary: "Get the authenticated user"
+    example: "No path or query parameters"
 }
 ```
+
+### Flow
 
 ```text
 OpenAPI
