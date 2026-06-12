@@ -17,9 +17,7 @@ demo workspace.
 
 ### 1. Install the VSIX
 
-Download the latest release:
-
-https://github.com/annettedorothea/api2ai/releases
+Download the [latest release](https://github.com/annettedorothea/api2ai/releases).
 
 ### 2. Create a Demo Workspace
 
@@ -103,25 +101,31 @@ MCP boilerplate.
 
 ## Documentation
 
-The architecture behind api2ai is documented in core2ai:
+The architecture behind api2ai is documented in
+[core2ai](https://github.com/annettedorothea/core2ai):
 
-- Tool Factory
-- Tool Authoring
-- AI Runtime
-- Personas
+- [Tool Factory](https://github.com/annettedorothea/core2ai/blob/main/docs/01-layer-1-tool-factory.md)
+- [Tool Authoring](https://github.com/annettedorothea/core2ai/blob/main/docs/02-layer-2-tool-authoring.md)
+- [AI Runtime](https://github.com/annettedorothea/core2ai/blob/main/docs/03-layer-3-ai-runtime.md)
+- [Personas](https://github.com/annettedorothea/core2ai/blob/main/docs/04-personas.md)
 
-https://github.com/annettedorothea/core2ai/tree/main/docs
+Overview: [core2ai docs](https://github.com/annettedorothea/core2ai/tree/main/docs)
 
 ---
 
 ## Related Projects
 
-- **core2ai** -- shared runtime and code generation infrastructure
-- **db2ai** -- generate MCP tools from SQL queries and relational
-  databases
+- [**core2ai**](https://github.com/annettedorothea/core2ai) — shared runtime
+  and code generation infrastructure
+- [**db2ai**](https://github.com/annettedorothea/db2ai) — generate MCP tools
+  from SQL queries and relational databases
 
 ---
 
 ## License
 
 BUSL-1.1
+
+---
+
+#Col3:23
