@@ -42,7 +42,7 @@ No repository checkout required.
 
 ## Demo
 
-[![Demo Video](https://img.youtube.com/vi/X3sBlMKkpnk/0.jpg)](https://youtu.be/X3sBlMKkpnk)
+<video src="assets/demo.mp4" controls></video>
 
 The video shows:
 
