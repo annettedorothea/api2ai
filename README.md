@@ -42,7 +42,7 @@ No repository checkout required.
 
 ## Demo
 
-![api2ai demo](assets/api2ai-demo.gif)
+![api2ai demo](assets/api2ai.gif)
 
 The video shows:
 
