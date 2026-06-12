@@ -42,8 +42,7 @@ No repository checkout required.
 
 ## Demo
 
-[![Demo Video](https://img.youtube.com/vi/X3sBlMKkpnk/0.jpg)](https://youtu.be/X3sBlMKkpnk)
-
+![api2ai demo](assets/api2ai.gif)
 The video shows:
 
 - editing a `.api2ai` file
