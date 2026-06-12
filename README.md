@@ -1,16 +1,19 @@
 # api2ai
 
-> **Pre-release** — early access; APIs, DSL, and generated output may change before v1.0.
+> **Pre-release** --- early access; APIs, DSL, and generated output may
+> change before v1.0.
 
-## Turn any OpenAPI specification into AI-ready tools.
+## Turn any OpenAPI specification into curated MCP tools.
 
-Generate MCP-compatible tools from existing APIs without writing custom MCP servers.
+Generate MCP tools from existing APIs --- without writing custom MCP
+servers.
 
 ---
 
 ## Get Started
 
-The fastest way to try api2ai is with the VSIX extension and the bundled demo workspace.
+The fastest way to try api2ai is with the VSIX extension and the bundled
+demo workspace.
 
 ### 1. Install the VSIX
 
@@ -30,9 +33,22 @@ api2ai: Create demo workspace (MCP examples)
 
 Open any `.api2ai` file, make a change, and save.
 
-api2ai automatically generates MCP-compatible tools from your OpenAPI definitions.
+api2ai automatically generates MCP-compatible tools from your OpenAPI
+definitions.
 
 No repository checkout required.
+
+---
+
+## Demo
+
+[▶ Watch 45s walkthrough](assets/api2ai-demo.mov)
+
+The video shows:
+
+- editing a `.api2ai` file
+- generating MCP tools
+- using the generated tool in an AI agent
 
 ---
 
@@ -69,7 +85,8 @@ Building MCP tools manually usually requires:
 - maintaining MCP server code
 - keeping everything in sync with your API
 
-api2ai lets you focus on describing business capabilities instead of writing boilerplate.
+api2ai lets you focus on describing API capabilities instead of writing
+MCP boilerplate.
 
 ---
 
@@ -88,15 +105,12 @@ https://github.com/annettedorothea/core2ai/tree/main/docs
 
 ## Related Projects
 
-- **core2ai** – shared runtime and platform architecture
-- **db2ai** – generate MCP tools from SQL queries and relational databases
+- **core2ai** -- shared runtime and code generation infrastructure
+- **db2ai** -- generate MCP tools from SQL queries and relational
+  databases
 
 ---
 
 ## License
 
 BUSL-1.1
-
----
-
-#Col3:23
