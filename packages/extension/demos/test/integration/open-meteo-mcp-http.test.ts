@@ -1,14 +1,14 @@
 import { afterAll, describe, expect, it } from 'vitest';
 import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
-import { compileGeneratedForSmoke, withMcpStatelessHttpSession } from '../generated/index.js';
+import { compileGeneratedForSmoke, withMcpRelayHttpSession } from '../generated/index.js';
 import { copyLoggingAdapterStub, findFreePort } from '../support/bookings-api-fixture.js';
 import { demosRoot, demosTmpRoot } from '../support/paths.js';
 import { runDemoGenerate } from '../support/run-demo-generate.js';
 
 const baseUrlEnv = 'OPEN_METEO_BASE_URL';
 
-describe('open-meteo generated stateless-http-mcp-server (MCP HTTP)', () => {
+describe('open-meteo generated public-http-mcp-server (MCP HTTP)', () => {
     let runRoot = '';
 
     afterAll(async () => {
@@ -17,7 +17,7 @@ describe('open-meteo generated stateless-http-mcp-server (MCP HTTP)', () => {
         }
     });
 
-    it('lists tools and calls openMeteoForecast via stateless HTTP', async () => {
+    it('lists tools and calls openMeteoForecast via public HTTP', async () => {
         const port = await findFreePort();
         runRoot = await fs.mkdtemp(path.join(demosTmpRoot, 'open-meteo-http-'));
         const generatedTsPath = path.join(runRoot, 'generated/tools/open-meteo-tools.ts');
@@ -27,9 +27,9 @@ describe('open-meteo generated stateless-http-mcp-server (MCP HTTP)', () => {
         compileGeneratedForSmoke(runRoot);
 
         const mcpUrl = `http://127.0.0.1:${port}/mcp`;
-        await withMcpStatelessHttpSession(
+        await withMcpRelayHttpSession(
             {
-                statelessHttpMcpServerPath: path.join(runRoot, 'generated/cli/stateless-http-mcp-server.js'),
+                relayHttpMcpServerPath: path.join(runRoot, 'generated/cli/public-http-mcp-server.js'),
                 generatedModulePath: path.join(runRoot, 'generated/tools/open-meteo-tools.js'),
                 hostArgs: ['--base-url-env', baseUrlEnv, '--port', String(port), '--path', '/mcp'],
                 mcpUrl,

@@ -1,15 +1,21 @@
 #!/usr/bin/env node
 /**
- * Generated MCP stdio host (static runtime — no @core2ai/core).
+ * Generated public HTTP MCP Streamable HTTP host (static runtime — no @core2ai/core).
  */
 import * as fs from 'node:fs';
+import * as http from 'node:http';
+import type { IncomingMessage, ServerResponse } from 'node:http';
 import * as path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
+import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
 import { ListToolsRequestSchema, type ListToolsResult } from '@modelcontextprotocol/sdk/types.js';
 import * as z from 'zod/v4';
 import { loggingAdapter } from '../../src/utils/logging-adapter.js';
+
+type RelayHttpHostProfile = 'public' | 'passthrough';
+
+const RELAY_HTTP_HOST_PROFILE: RelayHttpHostProfile = 'public';
 
 const LOCAL_ENV_FILES = ['.env', '.env.local'];
 
@@ -254,15 +260,56 @@ async function registerMcpTools(
     attachListToolsDebugLogging(server, generated);
 }
 
-type HostRuntimeConfig = {
+async function readMcpHttpJsonBody(req: IncomingMessage): Promise<unknown> {
+    const chunks: Buffer[] = [];
+    for await (const chunk of req) {
+        chunks.push(typeof chunk === 'string' ? Buffer.from(chunk) : chunk);
+    }
+    if (chunks.length === 0) {
+        return undefined;
+    }
+    const text = Buffer.concat(chunks).toString('utf-8');
+    if (text.trim().length === 0) {
+        return undefined;
+    }
+    return JSON.parse(text) as unknown;
+}
+
+function writeJsonRpcError(res: ServerResponse, status: number, code: number, message: string): void {
+    if (res.headersSent) {
+        return;
+    }
+    res.writeHead(status, { 'content-type': 'application/json' });
+    res.end(
+        JSON.stringify({
+            jsonrpc: '2.0',
+            error: { code, message },
+            id: null
+        })
+    );
+}
+
+function writeJsonRpcInternalError(res: ServerResponse): void {
+    writeJsonRpcError(res, 500, -32_603, 'Internal server error');
+}
+
+function writeJsonRpcMethodNotAllowed(res: ServerResponse): void {
+    writeJsonRpcError(res, 405, -32_000, 'Method not allowed.');
+}
+
+type RelayHttpHostRuntimeConfig = {
     baseUrlEnvKey?: string;
-    authEnvKey?: string;
     envDirs: string[];
+    listenHost: string;
+    port: number;
+    mcpPath: string;
 };
 
-function parseHostArgv(argv: string[], envDirs: string[]): HostRuntimeConfig {
+function parseRelayHttpHostArgv(argv: string[], envDirs: string[]): RelayHttpHostRuntimeConfig {
     let baseUrlEnv: string | undefined;
-    let authEnv: string | undefined;
+    let listenHost = '127.0.0.1';
+    let port: number | undefined;
+    let mcpPath = '/mcp';
     for (let i = 0; i < argv.length; i++) {
         const arg = argv[i];
         if (arg === '--base-url-env') {
@@ -272,10 +319,31 @@ function parseHostArgv(argv: string[], envDirs: string[]): HostRuntimeConfig {
             }
             continue;
         }
-        if (arg === '--auth-env') {
-            authEnv = argv[++i];
-            if (!authEnv) {
-                throw new Error('Missing value after --auth-env');
+        if (arg === '--host') {
+            listenHost = argv[++i];
+            if (!listenHost) {
+                throw new Error('Missing value after --host');
+            }
+            continue;
+        }
+        if (arg === '--port') {
+            const raw = argv[++i];
+            if (!raw) {
+                throw new Error('Missing value after --port');
+            }
+            port = Number.parseInt(raw, 10);
+            if (!Number.isFinite(port) || port <= 0) {
+                throw new Error('Invalid --port value: ' + raw);
+            }
+            continue;
+        }
+        if (arg === '--path') {
+            mcpPath = argv[++i];
+            if (!mcpPath) {
+                throw new Error('Missing value after --path');
+            }
+            if (!mcpPath.startsWith('/')) {
+                mcpPath = '/' + mcpPath;
             }
             continue;
         }
@@ -284,24 +352,30 @@ function parseHostArgv(argv: string[], envDirs: string[]): HostRuntimeConfig {
         }
         throw new Error('Unexpected positional argument: ' + arg);
     }
+    if (port === undefined) {
+        throw new Error('Required: --port <number>');
+    }
     return {
         baseUrlEnvKey: baseUrlEnv,
-        authEnvKey: authEnv,
-        envDirs
+        envDirs,
+        listenHost,
+        port,
+        mcpPath
     };
 }
 
-function readCredentialFromEnv(authEnvKey: string | undefined): string | undefined {
-    const key = authEnvKey?.trim();
-    if (!key) {
-        return undefined;
-    }
-    const value = process.env[key]?.trim();
-    return value && value.length > 0 ? value : undefined;
+const DEFAULT_MCP_AUTH_HEADER = 'x-api-token';
+
+function readAuthHeaderNameFromEnv(): string {
+    const configured = process.env.MCP_AUTH_HEADER?.trim();
+    return configured && configured.length > 0 ? configured : DEFAULT_MCP_AUTH_HEADER;
 }
 
-function validateHostAtStartup(hostConfig: HostRuntimeConfig, generated: GeneratedHostModule): void {
-    const baseUrlKey = hostConfig.baseUrlEnvKey?.trim();
+function validateRelayHttpHostAtStartup(
+    httpHostConfig: RelayHttpHostRuntimeConfig,
+    _generated: GeneratedHostModule
+): void {
+    const baseUrlKey = httpHostConfig.baseUrlEnvKey?.trim();
     if (!baseUrlKey) {
         throw new Error('Required: --base-url-env <ENV_VAR_NAME>');
     }
@@ -310,49 +384,65 @@ function validateHostAtStartup(hostConfig: HostRuntimeConfig, generated: Generat
         throw new Error('Environment variable "' + baseUrlKey + '" is missing or empty (required by --base-url-env).');
     }
 
-    if (generated.requiresAuth && !hostConfig.authEnvKey?.trim()) {
-        throw new Error('Generated tools require auth; pass --auth-env <ENV_VAR_NAME> on the MCP host.');
-    }
-    if (generated.requiresAuth && typeof generated.verifyCredential !== 'function') {
+    if (_generated.requiresAuth && typeof _generated.verifyCredential !== 'function') {
         throw new Error(
             'Generated tools require auth; implement verifyCredential in src/auth/<module>/verifyCredential.ts and re-export from generated tools.'
         );
     }
 }
 
-async function resolveHostContextForCall(
-    hostConfig: HostRuntimeConfig,
-    _generated: GeneratedHostModule
+async function resolveHostContextForHttpCall(
+    httpHostConfig: RelayHttpHostRuntimeConfig,
+    _generated: GeneratedHostModule,
+    _incomingHeaders: Record<string, string | string[] | undefined>
 ): Promise<ApiLikeHostContext> {
-    const credential = readCredentialFromEnv(hostConfig.authEnvKey);
+    const credential = undefined;
     const { credential: c } = resolveRelayHostCredential(credential);
 
-    const baseUrlKey = hostConfig.baseUrlEnvKey?.trim();
+    const baseUrlKey = httpHostConfig.baseUrlEnvKey?.trim();
     const baseUrl = baseUrlKey ? process.env[baseUrlKey]?.trim() : undefined;
     if (!baseUrl) {
-        throw new Error('Missing host base URL. Pass --base-url-env on stdio-mcp-server.js and set the variable.');
+        throw new Error('Missing host base URL. Pass --base-url-env on relay HTTP MCP host and set the variable.');
     }
     return { baseUrl, credential: c };
 }
 
-async function runStdioMcpServer(
-    generated: ReturnType<typeof readGeneratedModule>,
-    hostConfig: HostRuntimeConfig
+async function handleRelayHttpMcpPost(
+    req: IncomingMessage,
+    res: ServerResponse,
+    generated: GeneratedHostModule,
+    httpHostConfig: RelayHttpHostRuntimeConfig
 ): Promise<void> {
+    const incomingHeaders = req.headers as Record<string, string | string[] | undefined>;
     const { name, version } = requireMcpServerIdentity(generated);
     const server = new McpServer({ name, version });
     await registerMcpTools(server, generated, {
-        envDirs: hostConfig.envDirs,
-        resolveContext: () => resolveHostContextForCall(hostConfig, generated)
+        envDirs: httpHostConfig.envDirs,
+        resolveContext: () => resolveHostContextForHttpCall(httpHostConfig, generated, incomingHeaders)
     });
-    const transport = new StdioServerTransport();
-    await server.connect(transport);
+    const transport = new StreamableHTTPServerTransport({ sessionIdGenerator: undefined });
+    try {
+        await server.connect(transport);
+        const parsedBody = await readMcpHttpJsonBody(req);
+        res.on('close', () => {
+            void transport.close();
+            void server.close();
+        });
+        await transport.handleRequest(req, res, parsedBody);
+    } catch (err) {
+        console.error('[mcp] public HTTP request failed:', err);
+        if (!res.headersSent) {
+            writeJsonRpcInternalError(res);
+        }
+    }
 }
 
-async function runStdioMcpStandaloneFromArgv(argv: string[]): Promise<void> {
+async function runRelayHttpMcpStandaloneFromArgv(argv: string[]): Promise<void> {
     const modulePath = argv[0];
     if (!modulePath) {
-        throw new Error('Usage: node stdio-mcp-server.js <path-to-*-tools.js> [host options...]');
+        throw new Error(
+            'Usage: node public-http-mcp-server.js <path-to-*-tools.js> [--base-url-env ENV] --port N [--host HOST] [--path /mcp]'
+        );
     }
     const envDirs = [process.cwd(), path.dirname(path.resolve(modulePath))];
     loadLocalEnvFiles(envDirs);
@@ -361,13 +451,38 @@ async function runStdioMcpStandaloneFromArgv(argv: string[]): Promise<void> {
         throw new Error(`Generated module "${modulePath}" did not export an object.`);
     }
     const generated = readGeneratedModule(imported as Record<string, unknown>);
-    const hostConfig = parseHostArgv(argv.slice(1), envDirs);
-    if (!hostConfig.baseUrlEnvKey) {
+    const httpHostConfig = parseRelayHttpHostArgv(argv.slice(1), envDirs);
+    if (!httpHostConfig.baseUrlEnvKey) {
         throw new Error('Required: --base-url-env <ENV_VAR_NAME>');
     }
-    validateHostAtStartup(hostConfig, generated);
-    loggingAdapter.info('[mcp] host context refreshed each tool call');
-    await runStdioMcpServer(generated, hostConfig);
+    validateRelayHttpHostAtStartup(httpHostConfig, generated);
+    loggingAdapter.info('[mcp] public HTTP listening', {
+        url: 'http://' + httpHostConfig.listenHost + ':' + httpHostConfig.port + httpHostConfig.mcpPath,
+        profile: RELAY_HTTP_HOST_PROFILE,
+        credentialHeader: RELAY_HTTP_HOST_PROFILE === 'public' ? undefined : readAuthHeaderNameFromEnv()
+    });
+
+    const httpServer = http.createServer(async (req, res) => {
+        const url = new URL(req.url ?? '/', 'http://' + (req.headers.host ?? 'localhost'));
+        if (url.pathname !== httpHostConfig.mcpPath) {
+            res.writeHead(404).end('Not found');
+            return;
+        }
+        if (req.method === 'POST') {
+            await handleRelayHttpMcpPost(req, res, generated, httpHostConfig);
+            return;
+        }
+        if (req.method === 'GET' || req.method === 'DELETE') {
+            writeJsonRpcMethodNotAllowed(res);
+            return;
+        }
+        res.writeHead(405).end('Method not allowed');
+    });
+
+    await new Promise<void>((resolve, reject) => {
+        httpServer.once('error', reject);
+        httpServer.listen(httpHostConfig.port, httpHostConfig.listenHost, () => resolve());
+    });
 }
 
-await runStdioMcpStandaloneFromArgv(process.argv.slice(2));
+await runRelayHttpMcpStandaloneFromArgv(process.argv.slice(2));

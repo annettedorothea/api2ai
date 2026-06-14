@@ -12,7 +12,6 @@ export const OAUTH_HTTP_DEMOS = {
         defaultOAuthIdpUrl: 'http://127.0.0.1:3861',
         portEnv: 'BOOKINGS_OAUTH_HTTP_PORT',
         defaultPort: 3872,
-        tokenValidation: 'oidc',
         oauthScope: 'bookings-api',
         mcpServerName: 'bookings-oauth',
         prerequisite: 'bookings-api :3847 + oauth-idp-oidc :3861 (RS256)'
@@ -25,7 +24,6 @@ export const OAUTH_HTTP_DEMOS = {
         defaultOAuthIdpUrl: 'http://127.0.0.1:3860',
         portEnv: 'CAKES_OAUTH_HTTP_PORT',
         defaultPort: 3874,
-        tokenValidation: 'opaque',
         oauthScope: 'cakes-api',
         mcpServerName: 'cakes',
         prerequisite: 'cakes-api :3856 + oauth-idp :3860'
@@ -38,12 +36,9 @@ export const OAUTH_HTTP_DEMOS = {
         defaultOAuthIdpUrl: 'http://127.0.0.1:3862',
         portEnv: 'BANKING_OAUTH_HTTP_PORT',
         defaultPort: 3876,
-        tokenValidation: 'opaque',
         oauthScope: 'banking-api',
         mcpServerName: 'banking-oauth',
-        credentialTransformModule: 'src/auth/banking-tools/credentialTransform.js',
-        prerequisite:
-            'banking-api :3858 + enterprise-idp :3862; --credential-transform-module src/auth/banking-tools/credentialTransform.js'
+        prerequisite: 'banking-api :3858 + enterprise-idp :3862'
     }
 };
 
@@ -83,7 +78,6 @@ export function buildOAuthHostLaunch(name, demosRoot, env) {
     const port = resolvePort(demo, env);
     const hostJs = path.join(demosRoot, 'generated/cli/oauth-http-mcp-server.js');
     const toolsJs = path.join(demosRoot, 'generated/tools', demo.tools);
-    const tokenValidation = demo.tokenValidation;
     const oauthScope = demo.oauthScope ?? name;
     const args = [
         hostJs,
@@ -94,28 +88,13 @@ export function buildOAuthHostLaunch(name, demosRoot, env) {
         env[demo.oauthIdpUrlEnv],
         '--oauth-scope',
         oauthScope,
-        '--oauth-token-validation',
-        tokenValidation,
         '--port',
         String(port),
         '--path',
         '/mcp'
     ];
-    if (tokenValidation === 'oidc') {
-        const issuer = (env.OAUTH_ISSUER ?? env[demo.oauthIdpUrlEnv]).trim();
-        args.push('--oauth-issuer', issuer);
-        const audience = env.OAUTH_AUDIENCE?.trim();
-        if (audience) {
-            args.push('--oauth-audience', audience);
-        }
-    }
-    if (demo.credentialTransformModule) {
-        const fromEnv = env.CREDENTIAL_TRANSFORM_MODULE?.trim();
-        const rel = fromEnv || demo.credentialTransformModule;
-        args.push('--credential-transform-module', path.join(demosRoot, rel));
-    }
     const mcpUrl = `http://127.0.0.1:${port}/mcp`;
-    return { demo, port, args, mcpUrl, tokenValidation };
+    return { demo, port, args, mcpUrl };
 }
 
 export function listOAuthHttpPorts(env = process.env) {

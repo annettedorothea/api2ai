@@ -281,7 +281,7 @@ async function main() {
             console.warn(`[start] ${demo.baseUrlEnv} is missing — ${label} may exit before listening.`);
         }
         if (demo.authExpectedEnv && !process.env[demo.authExpectedEnv]?.trim()) {
-            console.warn(`[start] ${demo.authExpectedEnv} is missing — ${label} may fail static auth validation.`);
+            console.warn(`[start] ${demo.authExpectedEnv} is missing — ${label} may fail verifyCredential.`);
         }
         startService(label, args, hostEnv);
         const logHint = demo.prerequisite ?? `set ${demo.baseUrlEnv ?? 'base URL env'}`;

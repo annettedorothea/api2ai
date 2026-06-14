@@ -4,8 +4,10 @@ import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js';
-import { findFreePort } from '../support/bookings-api-fixture.js';
+import { compileGeneratedForSmoke } from '../generated/index.js';
+import { copyLoggingAdapterStub, findFreePort } from '../support/bookings-api-fixture.js';
 import { fetchOAuthTokenFromIdp, startOAuthIdpServer, waitForOAuthIdp } from '../support/oauth-idp-fixture.js';
+import { runDemoGenerate } from '../support/run-demo-generate.js';
 import { demosRoot, demosTmpRoot } from '../support/paths.js';
 
 async function waitForMcpHttp(mcpUrl: string, child: ChildProcess | undefined): Promise<void> {
@@ -47,7 +49,7 @@ async function startBankingApiServer(port: number): Promise<ChildProcess> {
     });
 }
 
-describe('banking-api oauth-http-mcp-server (opaque + credential-transform-module)', () => {
+describe('banking-api oauth-http-mcp-server (verifyCredential token exchange)', () => {
     let bankingApiProcess: ChildProcess | undefined;
     let idpProcess: ChildProcess | undefined;
     let oauthHostProcess: ChildProcess | undefined;
@@ -76,13 +78,28 @@ describe('banking-api oauth-http-mcp-server (opaque + credential-transform-modul
         accessToken = await fetchOAuthTokenFromIdp(idpBaseUrl, 'alice');
 
         runRoot = await fs.mkdtemp(path.join(demosTmpRoot, 'banking-api-oauth-mcp-'));
-        const oauthHostPath = path.join(runRoot, 'oauth-http-mcp-server.js');
-        await fs.mkdir(runRoot, { recursive: true });
-        await fs.copyFile(path.join(demosRoot, 'generated/cli/oauth-http-mcp-server.js'), oauthHostPath);
+        const generatedTsPath = path.join(runRoot, 'generated/tools/banking-tools.ts');
+        await fs.mkdir(path.dirname(generatedTsPath), { recursive: true });
+        await fs.mkdir(path.join(runRoot, 'openapi'), { recursive: true });
+        await fs.copyFile(path.join(demosRoot, 'banking.api2ai'), path.join(runRoot, 'banking.api2ai'));
         await fs.copyFile(
-            path.join(demosRoot, 'generated/tools/banking-tools.js'),
-            path.join(runRoot, 'banking-tools.js')
+            path.join(demosRoot, 'openapi/banking-api.openapi.yaml'),
+            path.join(runRoot, 'openapi/banking-api.openapi.yaml')
         );
+        runDemoGenerate(path.join(runRoot, 'banking.api2ai'), generatedTsPath);
+        await copyLoggingAdapterStub(runRoot);
+        await fs.mkdir(path.join(runRoot, 'src/auth/banking-tools'), { recursive: true });
+        await fs.copyFile(
+            path.join(demosRoot, 'src/auth/banking-tools/verifyCredential.ts'),
+            path.join(runRoot, 'src/auth/banking-tools/verifyCredential.ts')
+        );
+        await fs.copyFile(
+            path.join(demosRoot, 'src/auth/banking-tools/listAccounts.ts'),
+            path.join(runRoot, 'src/auth/banking-tools/listAccounts.ts')
+        );
+        compileGeneratedForSmoke(runRoot);
+        const oauthHostPath = path.join(runRoot, 'generated/cli/oauth-http-mcp-server.js');
+        await fs.copyFile(path.join(demosRoot, 'generated/cli/oauth-http-mcp-server.js'), oauthHostPath);
         await fs.writeFile(path.join(runRoot, '.env.local'), `BANKING_API_BASE_URL=${bankingApiBaseUrl}\n`, 'utf8');
 
         const { spawn } = await import('node:child_process');
@@ -90,17 +107,13 @@ describe('banking-api oauth-http-mcp-server (opaque + credential-transform-modul
             process.execPath,
             [
                 oauthHostPath,
-                path.join(runRoot, 'banking-tools.js'),
+                path.join(runRoot, 'generated/tools/banking-tools.js'),
                 '--base-url-env',
                 'BANKING_API_BASE_URL',
                 '--oauth-idp-url',
                 idpBaseUrl,
                 '--oauth-scope',
                 'banking-api',
-                '--oauth-token-validation',
-                'opaque',
-                '--credential-transform-module',
-                path.join(demosRoot, 'src/auth/banking-tools/credentialTransform.js'),
                 '--port',
                 String(mcpPort),
                 '--path',

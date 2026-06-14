@@ -13,14 +13,15 @@ import * as url from 'node:url';
 import { renderBootstrap } from './generator/render-bootstrap.js';
 import { renderCheckStubs } from './generator/render-check-stubs.js';
 import { renderOAuthHttpMcpHost } from './generator/render-oauth-http-mcp-host.js';
-import { renderStatelessHttpMcpHost } from './generator/render-stateless-http-mcp-host.js';
+import { renderRelayHttpMcpHosts } from './generator/render-relay-http-mcp-host.js';
 import { renderStdioMcpHost } from './generator/render-stdio-mcp-host.js';
 import { renderToolsModule } from './generator/render-tools-module.js';
 
 export type GeneratedOutputFiles = {
     tsPath: string;
     stdioMcpHostPath: string;
-    statelessHttpMcpHostPath: string;
+    publicHttpMcpHostPath: string;
+    passthroughHttpMcpHostPath: string;
     oauthHttpMcpHostPath: string;
 };
 
@@ -77,12 +78,18 @@ export async function generateOutput(model: Model, source: string, destination: 
 
     const cliDir = resolveGeneratedCliDir(tsPath);
     const stdioMcpHostPath = renderStdioMcpHost(cliDir, bootstrapConfig);
-    const statelessHttpMcpHostPath = renderStatelessHttpMcpHost(cliDir, bootstrapConfig);
+    const relayHttpMcpHostPaths = renderRelayHttpMcpHosts(cliDir, bootstrapConfig);
     const oauthHttpMcpHostPath = renderOAuthHttpMcpHost(cliDir, bootstrapConfig);
     const projectRoot = resolveBootstrapProjectRootFromSource(source);
     renderBootstrap(projectRoot, bootstrapConfig);
     ensureLoggingAdapterStubFromSource(source);
     writeGeneratedDemosTestSupport(projectRoot);
 
-    return { tsPath, stdioMcpHostPath, statelessHttpMcpHostPath, oauthHttpMcpHostPath };
+    return {
+        tsPath,
+        stdioMcpHostPath,
+        publicHttpMcpHostPath: relayHttpMcpHostPaths.publicHttpMcpHostPath,
+        passthroughHttpMcpHostPath: relayHttpMcpHostPaths.passthroughHttpMcpHostPath,
+        oauthHttpMcpHostPath
+    };
 }

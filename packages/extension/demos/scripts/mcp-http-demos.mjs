@@ -1,5 +1,5 @@
 /**
- * Stateless HTTP MCP demo hosts (api2ai) — keys match .cursor/mcp.json server names.
+ * Relay HTTP MCP demo hosts (api2ai) — keys match .cursor/mcp.json server names.
  */
 import path from 'node:path';
 
@@ -7,6 +7,7 @@ const DEFAULT_MCP_AUTH_HEADER = 'x-api-token';
 
 export const HTTP_DEMOS = {
     'spaceflight-news': {
+        host: 'public-http-mcp-server.js',
         tools: 'spaceflight-news-tools.js',
         baseUrlEnv: 'SPACEFLIGHT_NEWS_BASE_URL',
         defaultBaseUrl: 'https://api.spaceflightnewsapi.net',
@@ -14,16 +15,16 @@ export const HTTP_DEMOS = {
         defaultPort: 3849
     },
     todo: {
+        host: 'passthrough-http-mcp-server.js',
         tools: 'todo-tools.js',
         baseUrlEnv: 'TODO_API_BASE_URL',
         defaultBaseUrl: 'http://127.0.0.1:3852',
         portEnv: 'TODO_HTTP_PORT',
         defaultPort: 3853,
         prerequisite: 'todo-api backend :3852',
-        credentialValidation: 'static',
-        authExpectedEnv: 'TODO_API_KEY',
         mcpAuthHeaderEnv: 'TODO_MCP_AUTH_HEADER',
-        defaultMcpAuthHeader: DEFAULT_MCP_AUTH_HEADER
+        defaultMcpAuthHeader: DEFAULT_MCP_AUTH_HEADER,
+        authExpectedEnv: 'TODO_API_KEY'
     }
 };
 
@@ -84,7 +85,7 @@ export function buildHostLaunch(name, demosRoot, env) {
         env[demo.baseUrlEnv] = demo.defaultBaseUrl;
     }
     const port = resolvePort(demo, env);
-    const hostJs = path.join(demosRoot, 'generated/cli/stateless-http-mcp-server.js');
+    const hostJs = path.join(demosRoot, 'generated/cli', demo.host);
     const toolsJs = path.join(demosRoot, 'generated/tools', demo.tools);
     const args = [
         hostJs,
@@ -96,16 +97,10 @@ export function buildHostLaunch(name, demosRoot, env) {
         '--path',
         '/mcp'
     ];
-    if (demo.credentialValidation) {
-        args.push('--credential-validation', demo.credentialValidation);
-        if (demo.authExpectedEnv) {
-            args.push('--auth-expected-env', demo.authExpectedEnv);
-        }
-    }
     const mcpUrl = `http://127.0.0.1:${port}/mcp`;
     const mcpAuthHeader = resolveMcpAuthHeader(demo, env);
     const hostEnv = { MCP_AUTH_HEADER: mcpAuthHeader };
-    return { demo, port, args, mcpUrl, credentialValidation: demo.credentialValidation, mcpAuthHeader, hostEnv };
+    return { demo, port, args, mcpUrl, mcpAuthHeader, hostEnv };
 }
 
 export function listHttpPorts(env = process.env) {

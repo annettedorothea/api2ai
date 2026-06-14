@@ -4,9 +4,11 @@ import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js';
-import { findFreePort } from '../support/bookings-api-fixture.js';
+import { compileGeneratedForSmoke } from '../generated/index.js';
+import { copyLoggingAdapterStub, findFreePort } from '../support/bookings-api-fixture.js';
 import { fetchOAuthTokenFromIdp, startOAuthIdpServer, waitForOAuthIdp } from '../support/oauth-idp-fixture.js';
 import { demosRoot, demosTmpRoot } from '../support/paths.js';
+import { runDemoGenerate } from '../support/run-demo-generate.js';
 
 async function waitForMcpHttp(mcpUrl: string, child: ChildProcess | undefined): Promise<void> {
     const deadline = Date.now() + 15_000;
@@ -67,7 +69,7 @@ async function startCakesApiServer(port: number): Promise<ChildProcess> {
     });
 }
 
-describe('cakes-api oauth-http-mcp-server (opaque validation)', () => {
+describe('cakes-api oauth-http-mcp-server (verifyCredential opaque)', () => {
     let cakesApiProcess: ChildProcess | undefined;
     let idpProcess: ChildProcess | undefined;
     let oauthHostProcess: ChildProcess | undefined;
@@ -95,10 +97,24 @@ describe('cakes-api oauth-http-mcp-server (opaque validation)', () => {
         accessToken = await fetchOAuthTokenFromIdp(idpBaseUrl, 'alice');
 
         runRoot = await fs.mkdtemp(path.join(demosTmpRoot, 'cakes-api-oauth-mcp-'));
-        const oauthHostPath = path.join(runRoot, 'oauth-http-mcp-server.js');
-        await fs.mkdir(runRoot, { recursive: true });
+        const generatedTsPath = path.join(runRoot, 'generated/tools/cakes-tools.ts');
+        await fs.mkdir(path.dirname(generatedTsPath), { recursive: true });
+        await fs.mkdir(path.join(runRoot, 'openapi'), { recursive: true });
+        await fs.copyFile(path.join(demosRoot, 'cakes.api2ai'), path.join(runRoot, 'cakes.api2ai'));
+        await fs.copyFile(
+            path.join(demosRoot, 'openapi/cakes-api.openapi.yaml'),
+            path.join(runRoot, 'openapi/cakes-api.openapi.yaml')
+        );
+        runDemoGenerate(path.join(runRoot, 'cakes.api2ai'), generatedTsPath);
+        await copyLoggingAdapterStub(runRoot);
+        await fs.mkdir(path.join(runRoot, 'src/auth/cakes-tools'), { recursive: true });
+        await fs.copyFile(
+            path.join(demosRoot, 'src/auth/cakes-tools/verifyCredential.ts'),
+            path.join(runRoot, 'src/auth/cakes-tools/verifyCredential.ts')
+        );
+        compileGeneratedForSmoke(runRoot);
+        const oauthHostPath = path.join(runRoot, 'generated/cli/oauth-http-mcp-server.js');
         await fs.copyFile(path.join(demosRoot, 'generated/cli/oauth-http-mcp-server.js'), oauthHostPath);
-        await fs.copyFile(path.join(demosRoot, 'generated/tools/cakes-tools.js'), path.join(runRoot, 'cakes-tools.js'));
         await fs.writeFile(path.join(runRoot, '.env.local'), `CAKES_API_BASE_URL=${cakesApiBaseUrl}\n`, 'utf8');
 
         const { spawn } = await import('node:child_process');
@@ -106,15 +122,13 @@ describe('cakes-api oauth-http-mcp-server (opaque validation)', () => {
             process.execPath,
             [
                 oauthHostPath,
-                path.join(runRoot, 'cakes-tools.js'),
+                path.join(runRoot, 'generated/tools/cakes-tools.js'),
                 '--base-url-env',
                 'CAKES_API_BASE_URL',
                 '--oauth-idp-url',
                 idpBaseUrl,
                 '--oauth-scope',
                 'cakes-api',
-                '--oauth-token-validation',
-                'opaque',
                 '--port',
                 String(mcpPort),
                 '--path',

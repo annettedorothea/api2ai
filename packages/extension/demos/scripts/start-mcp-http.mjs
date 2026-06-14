@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Start one stateless HTTP MCP host (foreground).
+ * Start one relay HTTP MCP host (foreground).
  * Usage: node scripts/start-mcp-http.mjs <demo>
  */
 import { spawnSync } from 'node:child_process';
@@ -22,14 +22,14 @@ function main() {
 
     loadDemoEnvLocal();
     process.env.LOG_SERVICE_PREFIX = process.env.LOG_SERVICE_PREFIX ?? `mcp-http:${name}`;
-    const { demo, port, args, mcpUrl, credentialValidation, mcpAuthHeader, hostEnv } = buildHostLaunch(
+    const { demo, port, args, mcpUrl, mcpAuthHeader, hostEnv } = buildHostLaunch(
         name,
         demosRoot,
         process.env
     );
 
     console.log(
-        `[mcp-http:${name}] listening http://127.0.0.1:${port}/mcp (${mcpUrl}, ${mcpAuthHeader}, ${credentialValidation}${demo.prerequisite ? `, ${demo.prerequisite}` : ''})`
+        `[mcp-http:${name}] listening http://127.0.0.1:${port}/mcp (${mcpUrl}, host=${demo.host}, header=${mcpAuthHeader}${demo.prerequisite ? `, ${demo.prerequisite}` : ''})`
     );
     const result = spawnSync(process.execPath, args, {
         cwd: demosRoot,

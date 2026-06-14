@@ -1,7 +1,7 @@
 openapi: 3.0.3
 info:
     title: Todo API (demo)
-    description: Local demo API secured with x-api-key (stateless HTTP MCP pass-through).
+    description: Local demo API secured with x-api-key (passthrough HTTP MCP + verifyCredential).
     version: 0.1.0
 servers:
     - url: http://127.0.0.1:3852

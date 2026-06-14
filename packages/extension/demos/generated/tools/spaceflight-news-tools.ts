@@ -98,12 +98,12 @@ export type InvokeOptions = {
 export type ApiHostContext = {
     baseUrl: string;
     credential?: string;
-    jwt?: Record<string, unknown>;
+    sessionClaims?: Record<string, unknown>;
 };
 
 export type CheckedHostContext = {
     credential: string;
-    jwt?: Record<string, unknown>;
+    sessionClaims?: Record<string, unknown>;
 };
 
 export const requiresAuth = false;

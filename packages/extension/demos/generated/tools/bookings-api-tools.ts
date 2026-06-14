@@ -3,6 +3,7 @@
  * Referenced OpenAPI: ./openapi/bookings-api.openapi.yaml
  */
 import { loggingAdapter } from '../../src/utils/logging-adapter.js';
+import { verifyCredential } from '../../src/auth/bookings-api-tools/verifyCredential.js';
 import { checkListBookingsParameters } from '../../src/auth/bookings-api-tools/listBookings.js';
 
 export type GeneratedTool = {
@@ -49,12 +50,12 @@ export type InvokeOptions = {
 export type ApiHostContext = {
     baseUrl: string;
     credential?: string;
-    jwt?: Record<string, unknown>;
+    sessionClaims?: Record<string, unknown>;
 };
 
 export type CheckedHostContext = {
     credential: string;
-    jwt?: Record<string, unknown>;
+    sessionClaims?: Record<string, unknown>;
 };
 
 type AuthConfig = {
@@ -69,6 +70,12 @@ export const authConfig: AuthConfig | undefined = {
     name: 'Authorization',
     prefix: 'Bearer '
 };
+
+export { verifyCredential } from '../../src/auth/bookings-api-tools/verifyCredential.js';
+export type {
+    VerifyCredentialInput,
+    VerifyCredentialResult
+} from '../../src/auth/bookings-api-tools/verifyCredential.js';
 
 export const mcpServerName = 'bookings-api-tools';
 export const mcpServerVersion = '0.2.0';
@@ -206,12 +213,19 @@ export async function invokeTool(
         throw new Error('invokeTool requires hostContext from the MCP host (stdio-mcp-server or http-mcp-server).');
     }
     const host = hostContext as ApiHostContext;
-    const { baseUrl, credential } = host;
+    const { baseUrl } = host;
+    let credential = host.credential;
+    let sessionClaims = host.sessionClaims;
     if (tool.access !== 'public') {
         if (!credential || !String(credential).trim()) {
             throw new Error(
-                'Missing host credential. stdio: set env for --auth-env on stdio-mcp-server; stateless HTTP: MCP auth header (e.g. x-api-token); OAuth HTTP: complete MCP login (Authorization Bearer from Cursor).'
+                'Missing host credential. stdio: set env for --auth-env on stdio-mcp-server; relay HTTP: MCP auth header (e.g. x-api-token); OAuth HTTP: complete MCP login (Authorization Bearer from Cursor).'
             );
+        }
+        if (sessionClaims === undefined) {
+            const verified = await verifyCredential({ inboundCredential: String(credential).trim() });
+            credential = verified.upstreamCredential;
+            sessionClaims = verified.sessionClaims;
         }
     }
     let optionsResolved = options;
@@ -223,7 +237,7 @@ export async function invokeTool(
         optionsResolved = await Promise.resolve(
             check(options, {
                 credential: String(credential).trim(),
-                jwt: host.jwt
+                sessionClaims
             })
         );
     }

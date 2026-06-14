@@ -42,7 +42,7 @@ async function waitForMcpHttp(mcpUrl: string, child: ChildProcess | undefined): 
     );
 }
 
-describe('bookings-api oauth-http-mcp-server (oidc JWKS validation)', () => {
+describe('bookings-api oauth-http-mcp-server (verifyCredential OIDC)', () => {
     let bookingsApiProcess: ChildProcess | undefined;
     let idpProcess: ChildProcess | undefined;
     let oauthHostProcess: ChildProcess | undefined;
@@ -89,10 +89,6 @@ describe('bookings-api oauth-http-mcp-server (oidc JWKS validation)', () => {
                 idpBaseUrl,
                 '--oauth-scope',
                 'bookings-api',
-                '--oauth-token-validation',
-                'oidc',
-                '--oauth-issuer',
-                idpBaseUrl,
                 '--port',
                 String(mcpPort),
                 '--path',
@@ -103,7 +99,9 @@ describe('bookings-api oauth-http-mcp-server (oidc JWKS validation)', () => {
                 env: {
                     ...process.env,
                     BOOKINGS_API_BASE_URL: bookingsApiBaseUrl,
-                    BOOKINGS_API_JWT_SECRET: 'demo-bookings-api-secret'
+                    BOOKINGS_API_JWT_SECRET: 'demo-bookings-api-secret',
+                    OAUTH_ISSUER: idpBaseUrl,
+                    BOOKINGS_OAUTH_IDP_OIDC_URL: idpBaseUrl
                 },
                 stdio: ['ignore', 'pipe', 'pipe']
             }
@@ -124,7 +122,7 @@ describe('bookings-api oauth-http-mcp-server (oidc JWKS validation)', () => {
         }
     });
 
-    it('connects with RS256 Bearer when MCP host uses oidc JWKS validation', async () => {
+    it('connects with RS256 Bearer when verifyCredential validates OIDC JWKS', async () => {
         const transport = new StreamableHTTPClientTransport(new URL(mcpUrl), {
             requestInit: {
                 headers: {

@@ -35,13 +35,28 @@ export async function renderCheckStubs(
 }
 
 export function renderInvokeCredentialAndParameterCheck(hasAuth: boolean, hasChecked: boolean): string {
+    const credentialSetup = hasAuth
+        ? hasChecked
+            ? `
+    let credential = host.credential;
+    let sessionClaims = host.sessionClaims;`
+            : `
+    let credential = host.credential;`
+        : '';
+
+    const sessionClaimsUpdate = hasChecked ? '\n            sessionClaims = verified.sessionClaims;' : '';
+
     const credentialGuard = hasAuth
         ? `
     if (tool.access !== 'public') {
         if (!credential || !String(credential).trim()) {
             throw new Error(
-                'Missing host credential. stdio: set env for --auth-env on stdio-mcp-server; stateless HTTP: MCP auth header (e.g. x-api-token); OAuth HTTP: complete MCP login (Authorization Bearer from Cursor).'
+                'Missing host credential. stdio: set env for --auth-env on stdio-mcp-server; relay HTTP: MCP auth header (e.g. x-api-token); OAuth HTTP: complete MCP login (Authorization Bearer from Cursor).'
             );
+        }
+        if (${hasChecked ? 'sessionClaims === undefined' : 'host.sessionClaims === undefined'}) {
+            const verified = await verifyCredential({ inboundCredential: String(credential).trim() });
+            credential = verified.upstreamCredential;${sessionClaimsUpdate}
         }
     }`
         : '';
@@ -56,7 +71,7 @@ export function renderInvokeCredentialAndParameterCheck(hasAuth: boolean, hasChe
         optionsResolved = await Promise.resolve(
             check(options, {
                 credential: String(credential).trim(),
-                jwt: host.jwt
+                sessionClaims
             })
         );
     }`
@@ -64,7 +79,7 @@ export function renderInvokeCredentialAndParameterCheck(hasAuth: boolean, hasChe
 
     const optionsResolvedDecl = hasChecked ? 'let optionsResolved = options' : 'const optionsResolved = options';
 
-    return `${credentialGuard}
+    return `${credentialSetup}${credentialGuard}
     ${optionsResolvedDecl};${checkedAccessBlock}
     const normalizedBaseUrl = baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl;
     const pathParams = { ...(optionsResolved.pathParams ?? {}) };

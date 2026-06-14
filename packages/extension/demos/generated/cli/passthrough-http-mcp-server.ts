@@ -1,8 +1,7 @@
 #!/usr/bin/env node
 /**
- * Generated stateless MCP Streamable HTTP host (static runtime — no @core2ai/core).
+ * Generated passthrough HTTP MCP Streamable HTTP host (static runtime — no @core2ai/core).
  */
-import * as crypto from 'node:crypto';
 import * as fs from 'node:fs';
 import * as http from 'node:http';
 import type { IncomingMessage, ServerResponse } from 'node:http';
@@ -14,13 +13,28 @@ import { ListToolsRequestSchema, type ListToolsResult } from '@modelcontextproto
 import * as z from 'zod/v4';
 import { loggingAdapter } from '../../src/utils/logging-adapter.js';
 
+type RelayHttpHostProfile = 'public' | 'passthrough';
+
+const RELAY_HTTP_HOST_PROFILE: RelayHttpHostProfile = 'passthrough';
+
 const LOCAL_ENV_FILES = ['.env', '.env.local'];
 
 type ApiLikeHostContext = {
     baseUrl?: string;
     credential?: string;
-    jwt?: Record<string, unknown>;
+    sessionClaims?: Record<string, unknown>;
 };
+
+type VerifyCredentialInput = {
+    inboundCredential: string;
+};
+
+type VerifyCredentialResult = {
+    upstreamCredential: string;
+    sessionClaims?: Record<string, unknown>;
+};
+
+type VerifyCredentialFn = (input: VerifyCredentialInput) => Promise<VerifyCredentialResult>;
 
 type GeneratedHostModule = {
     generatedTools: Array<{ toolName: string; title?: string; description: string; access?: string }>;
@@ -29,6 +43,7 @@ type GeneratedHostModule = {
     mcpServerName?: string;
     mcpServerVersion?: string;
     requiresAuth: boolean;
+    verifyCredential?: VerifyCredentialFn;
 };
 
 function stripOptionalQuotes(value: string): string {
@@ -109,255 +124,11 @@ function loadLocalEnvFiles(startDirs: string[], options?: { refresh?: boolean })
     return loadedFiles;
 }
 
-function decodeJwtPayloadUnsafe(token: string): Record<string, unknown> {
-    const parts = String(token).trim().split('.');
-    if (parts.length !== 3) {
-        throw new Error('credential is not a JWT (expected three dot-separated segments).');
-    }
-    let b64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
-    while (b64.length % 4 !== 0) {
-        b64 += '=';
-    }
-    return JSON.parse(Buffer.from(b64, 'base64').toString('utf8')) as Record<string, unknown>;
-}
-
-function credentialWithOptionalJwt(credential: string | undefined): {
-    credential?: string;
-    jwt?: Record<string, unknown>;
-} {
-    if (!credential?.trim()) {
-        return {};
-    }
-    const trimmed = credential.trim();
-    const segments = trimmed.split('.');
-    if (segments.length !== 3) {
-        return { credential: trimmed };
-    }
-    try {
-        return { credential: trimmed, jwt: decodeJwtPayloadUnsafe(trimmed) };
-    } catch {
-        return { credential: trimmed };
-    }
-}
-
-type HostCredentialValidationMode = 'hs256' | 'static' | 'opaque' | 'oidc';
-
-type CredentialValidationFields = {
-    credentialValidation?: HostCredentialValidationMode;
-    jwtSecretEnvKey?: string;
-    authExpectedEnvKey?: string;
-};
-
-function parseHostCredentialValidationMode(raw: string | undefined): HostCredentialValidationMode {
-    if (raw === 'hs256' || raw === 'static' || raw === 'opaque' || raw === 'oidc') {
-        return raw;
-    }
-    throw new Error('Invalid credential validation mode (expected hs256|static|opaque|oidc): ' + String(raw));
-}
-
-function readJwtSecretFromEnv(jwtSecretEnvKey: string): string {
-    const value = process.env[jwtSecretEnvKey]?.trim();
-    if (!value) {
-        throw new Error('Environment variable "' + jwtSecretEnvKey + '" is missing or empty.');
-    }
-    return value;
-}
-
-function verifyAccessTokenJwt(
-    token: string,
-    secret: string
-): { ok: true; payload: Record<string, unknown> } | { ok: false } {
-    const parts = token.split('.');
-    if (parts.length !== 3) {
-        return { ok: false };
-    }
-    const [headerSeg, payloadSeg, sigSeg] = parts;
-    const signingInput = headerSeg + '.' + payloadSeg;
-    const expected = crypto.createHmac('sha256', secret).update(signingInput).digest();
-    let actual: Buffer;
-    try {
-        let b64 = sigSeg.replace(/-/g, '+').replace(/_/g, '/');
-        while (b64.length % 4 !== 0) {
-            b64 += '=';
-        }
-        actual = Buffer.from(b64, 'base64');
-    } catch {
-        return { ok: false };
-    }
-    if (actual.length !== expected.length || !crypto.timingSafeEqual(actual, expected)) {
-        return { ok: false };
-    }
-    try {
-        let b64 = payloadSeg.replace(/-/g, '+').replace(/_/g, '/');
-        while (b64.length % 4 !== 0) {
-            b64 += '=';
-        }
-        const payload = JSON.parse(Buffer.from(b64, 'base64').toString('utf8')) as Record<string, unknown>;
-        const now = Math.floor(Date.now() / 1000);
-        if (typeof payload.exp === 'number' && payload.exp < now) {
-            return { ok: false };
-        }
-        return { ok: true, payload };
-    } catch {
-        return { ok: false };
-    }
-}
-
-function timingSafeEqualStrings(a: string, b: string): boolean {
-    const aBuf = Buffer.from(a);
-    const bBuf = Buffer.from(b);
-    if (aBuf.length !== bBuf.length) {
-        return false;
-    }
-    return crypto.timingSafeEqual(aBuf, bBuf);
-}
-
-function generatedHasCheckedTool(generated: GeneratedHostModule): boolean {
-    return generated.generatedTools.some((t) => t.access === 'checked');
-}
-
-function warnCredentialValidationModeAtStartup(
-    generated: GeneratedHostModule,
-    mode: HostCredentialValidationMode
-): void {
-    if (mode === 'opaque' && generatedHasCheckedTool(generated)) {
-        loggingAdapter.warn(
-            '[mcp] opaque mode with checked tools — JWT claims in src/auth are not cryptographically verified.'
-        );
-    }
-}
-
-function validateStdioOrHttpCredentialValidationAtStartup(
-    generated: GeneratedHostModule,
-    fields: CredentialValidationFields
-): void {
-    if (!generated.requiresAuth) {
-        return;
-    }
-    if (!fields.credentialValidation) {
-        throw new Error(
-            'Generated tools require auth; pass --credential-validation <hs256|static|opaque> on the MCP host.'
-        );
-    }
-    const mode = fields.credentialValidation;
-    if (mode === 'oidc') {
-        throw new Error(
-            'credential validation mode "oidc" is not supported on stdio or stateless HTTP — use OAuth HTTP host.'
-        );
-    }
-    if (mode === 'static') {
-        const expectedKey = fields.authExpectedEnvKey?.trim();
-        if (!expectedKey) {
-            throw new Error('Required for static validation: --auth-expected-env <ENV_VAR_NAME>');
-        }
-        const expected = process.env[expectedKey]?.trim();
-        if (!expected) {
-            throw new Error(
-                'Environment variable "' + expectedKey + '" is missing or empty (required by --auth-expected-env).'
-            );
-        }
-    }
-    if (mode === 'hs256') {
-        const secretKey = fields.jwtSecretEnvKey?.trim();
-        if (!secretKey) {
-            throw new Error('Required for hs256 validation: --jwt-secret-env <ENV_VAR_NAME>');
-        }
-        readJwtSecretFromEnv(secretKey);
-    }
-    warnCredentialValidationModeAtStartup(generated, mode);
-}
-
-async function verifyHostCredential(
-    credential: string,
-    fields: CredentialValidationFields
-): Promise<{ ok: true; payload?: Record<string, unknown> } | { ok: false }> {
-    const trimmed = credential.trim();
-    if (!trimmed) {
-        return { ok: false };
-    }
-    const mode = fields.credentialValidation ?? 'opaque';
-    if (mode === 'opaque') {
-        return { ok: true };
-    }
-    if (mode === 'static') {
-        const expectedKey = fields.authExpectedEnvKey?.trim();
-        if (!expectedKey) {
-            return { ok: false };
-        }
-        const expected = process.env[expectedKey]?.trim();
-        if (!expected) {
-            return { ok: false };
-        }
-        return timingSafeEqualStrings(trimmed, expected) ? { ok: true } : { ok: false };
-    }
-    if (mode === 'hs256') {
-        const secretKey = fields.jwtSecretEnvKey?.trim();
-        if (!secretKey) {
-            return { ok: false };
-        }
-        const secret = readJwtSecretFromEnv(secretKey);
-        return verifyAccessTokenJwt(trimmed, secret);
-    }
-    return { ok: false };
-}
-
-async function resolveVerifiedHostCredential(
-    rawCredential: string | undefined,
-    generated: GeneratedHostModule,
-    fields: CredentialValidationFields
-): Promise<{ credential?: string; jwt?: Record<string, unknown> }> {
+function resolveRelayHostCredential(rawCredential: string | undefined): { credential?: string } {
     if (!rawCredential?.trim()) {
         return {};
     }
-    if (!generated.requiresAuth || !fields.credentialValidation) {
-        return credentialWithOptionalJwt(rawCredential);
-    }
-    const verified = await verifyHostCredential(rawCredential, fields);
-    if (!verified.ok) {
-        throw new Error('Invalid host credential (failed ' + fields.credentialValidation + ' validation).');
-    }
-    const trimmed = rawCredential.trim();
-    if (verified.payload) {
-        return { credential: trimmed, jwt: verified.payload };
-    }
-    return credentialWithOptionalJwt(trimmed);
-}
-
-function parseCredentialValidationArgvFlags(
-    argv: string[],
-    index: number
-): {
-    nextIndex: number;
-    credentialValidation?: HostCredentialValidationMode;
-    jwtSecretEnvKey?: string;
-    authExpectedEnvKey?: string;
-} {
-    const arg = argv[index];
-    if (arg === '--credential-validation') {
-        const raw = argv[index + 1];
-        if (!raw) {
-            throw new Error('Missing value after --credential-validation');
-        }
-        return {
-            nextIndex: index + 2,
-            credentialValidation: parseHostCredentialValidationMode(raw)
-        };
-    }
-    if (arg === '--jwt-secret-env') {
-        const raw = argv[index + 1];
-        if (!raw) {
-            throw new Error('Missing value after --jwt-secret-env');
-        }
-        return { nextIndex: index + 2, jwtSecretEnvKey: raw };
-    }
-    if (arg === '--auth-expected-env') {
-        const raw = argv[index + 1];
-        if (!raw) {
-            throw new Error('Missing value after --auth-expected-env');
-        }
-        return { nextIndex: index + 2, authExpectedEnvKey: raw };
-    }
-    return { nextIndex: index };
+    return { credential: rawCredential.trim() };
 }
 
 function formatToolError(err: unknown): string {
@@ -379,6 +150,9 @@ function readGeneratedModule(imported: Record<string, unknown>): GeneratedHostMo
     const inputZodByTool = imported.inputZodByTool;
     const mcpServerName = imported.mcpServerName;
     const mcpServerVersion = imported.mcpServerVersion;
+    const verifyCredential = imported.verifyCredential;
+    const verifyCredentialFn =
+        typeof verifyCredential === 'function' ? (verifyCredential as VerifyCredentialFn) : undefined;
     return {
         generatedTools: generatedTools as Array<{ toolName: string; title?: string; description: string }>,
         invokeTool: invokeTool as (
@@ -392,7 +166,8 @@ function readGeneratedModule(imported: Record<string, unknown>): GeneratedHostMo
                 : undefined,
         mcpServerName: typeof mcpServerName === 'string' ? mcpServerName : undefined,
         mcpServerVersion: typeof mcpServerVersion === 'string' ? mcpServerVersion : undefined,
-        requiresAuth: imported.requiresAuth === true
+        requiresAuth: imported.requiresAuth === true,
+        verifyCredential: verifyCredentialFn
     };
 }
 
@@ -522,7 +297,7 @@ function writeJsonRpcMethodNotAllowed(res: ServerResponse): void {
     writeJsonRpcError(res, 405, -32_000, 'Method not allowed.');
 }
 
-type StatelessHttpHostRuntimeConfig = CredentialValidationFields & {
+type RelayHttpHostRuntimeConfig = {
     baseUrlEnvKey?: string;
     envDirs: string[];
     listenHost: string;
@@ -530,16 +305,11 @@ type StatelessHttpHostRuntimeConfig = CredentialValidationFields & {
     mcpPath: string;
 };
 
-const DEFAULT_MCP_AUTH_HEADER = 'x-api-token';
-
-function parseStatelessHttpHostArgv(argv: string[], envDirs: string[]): StatelessHttpHostRuntimeConfig {
+function parseRelayHttpHostArgv(argv: string[], envDirs: string[]): RelayHttpHostRuntimeConfig {
     let baseUrlEnv: string | undefined;
     let listenHost = '127.0.0.1';
     let port: number | undefined;
     let mcpPath = '/mcp';
-    let credentialValidation: HostCredentialValidationMode | undefined;
-    let jwtSecretEnvKey: string | undefined;
-    let authExpectedEnvKey: string | undefined;
     for (let i = 0; i < argv.length; i++) {
         const arg = argv[i];
         if (arg === '--base-url-env') {
@@ -547,20 +317,6 @@ function parseStatelessHttpHostArgv(argv: string[], envDirs: string[]): Stateles
             if (!baseUrlEnv) {
                 throw new Error('Missing value after --base-url-env');
             }
-            continue;
-        }
-        if (arg === '--credential-validation' || arg === '--jwt-secret-env' || arg === '--auth-expected-env') {
-            const parsed = parseCredentialValidationArgvFlags(argv, i);
-            if (parsed.credentialValidation !== undefined) {
-                credentialValidation = parsed.credentialValidation;
-            }
-            if (parsed.jwtSecretEnvKey !== undefined) {
-                jwtSecretEnvKey = parsed.jwtSecretEnvKey;
-            }
-            if (parsed.authExpectedEnvKey !== undefined) {
-                authExpectedEnvKey = parsed.authExpectedEnvKey;
-            }
-            i = parsed.nextIndex - 1;
             continue;
         }
         if (arg === '--host') {
@@ -604,12 +360,11 @@ function parseStatelessHttpHostArgv(argv: string[], envDirs: string[]): Stateles
         envDirs,
         listenHost,
         port,
-        mcpPath,
-        credentialValidation,
-        jwtSecretEnvKey,
-        authExpectedEnvKey
+        mcpPath
     };
 }
+
+const DEFAULT_MCP_AUTH_HEADER = 'x-api-token';
 
 function readAuthHeaderNameFromEnv(): string {
     const configured = process.env.MCP_AUTH_HEADER?.trim();
@@ -627,8 +382,8 @@ function readCredentialFromHttpHeaders(
     return trimmed.length > 0 ? trimmed : undefined;
 }
 
-function validateStatelessHttpHostAtStartup(
-    httpHostConfig: StatelessHttpHostRuntimeConfig,
+function validateRelayHttpHostAtStartup(
+    httpHostConfig: RelayHttpHostRuntimeConfig,
     _generated: GeneratedHostModule
 ): void {
     const baseUrlKey = httpHostConfig.baseUrlEnvKey?.trim();
@@ -640,33 +395,35 @@ function validateStatelessHttpHostAtStartup(
         throw new Error('Environment variable "' + baseUrlKey + '" is missing or empty (required by --base-url-env).');
     }
 
-    validateStdioOrHttpCredentialValidationAtStartup(_generated, httpHostConfig);
+    if (_generated.requiresAuth && typeof _generated.verifyCredential !== 'function') {
+        throw new Error(
+            'Generated tools require auth; implement verifyCredential in src/auth/<module>/verifyCredential.ts and re-export from generated tools.'
+        );
+    }
 }
 
 async function resolveHostContextForHttpCall(
-    httpHostConfig: StatelessHttpHostRuntimeConfig,
+    httpHostConfig: RelayHttpHostRuntimeConfig,
     _generated: GeneratedHostModule,
     incomingHeaders: Record<string, string | string[] | undefined>
 ): Promise<ApiLikeHostContext> {
     const headerName = readAuthHeaderNameFromEnv();
     const credential = readCredentialFromHttpHeaders(incomingHeaders, headerName);
-    const { credential: c, jwt } = await resolveVerifiedHostCredential(credential, _generated, httpHostConfig);
+    const { credential: c } = resolveRelayHostCredential(credential);
 
     const baseUrlKey = httpHostConfig.baseUrlEnvKey?.trim();
     const baseUrl = baseUrlKey ? process.env[baseUrlKey]?.trim() : undefined;
     if (!baseUrl) {
-        throw new Error(
-            'Missing host base URL. Pass --base-url-env on stateless-http-mcp-server.js and set the variable.'
-        );
+        throw new Error('Missing host base URL. Pass --base-url-env on relay HTTP MCP host and set the variable.');
     }
-    return { baseUrl, credential: c, jwt };
+    return { baseUrl, credential: c };
 }
 
-async function handleStatelessMcpPost(
+async function handleRelayHttpMcpPost(
     req: IncomingMessage,
     res: ServerResponse,
     generated: GeneratedHostModule,
-    httpHostConfig: StatelessHttpHostRuntimeConfig
+    httpHostConfig: RelayHttpHostRuntimeConfig
 ): Promise<void> {
     const incomingHeaders = req.headers as Record<string, string | string[] | undefined>;
     const { name, version } = requireMcpServerIdentity(generated);
@@ -685,18 +442,18 @@ async function handleStatelessMcpPost(
         });
         await transport.handleRequest(req, res, parsedBody);
     } catch (err) {
-        console.error('[mcp] stateless HTTP request failed:', err);
+        console.error('[mcp] passthrough HTTP request failed:', err);
         if (!res.headersSent) {
             writeJsonRpcInternalError(res);
         }
     }
 }
 
-async function runStatelessHttpMcpStandaloneFromArgv(argv: string[]): Promise<void> {
+async function runRelayHttpMcpStandaloneFromArgv(argv: string[]): Promise<void> {
     const modulePath = argv[0];
     if (!modulePath) {
         throw new Error(
-            'Usage: node stateless-http-mcp-server.js <path-to-*-tools.js> [--base-url-env ENV] --port N [--host HOST] [--path /mcp]'
+            'Usage: node passthrough-http-mcp-server.js <path-to-*-tools.js> [--base-url-env ENV] --port N [--host HOST] [--path /mcp]'
         );
     }
     const envDirs = [process.cwd(), path.dirname(path.resolve(modulePath))];
@@ -706,15 +463,15 @@ async function runStatelessHttpMcpStandaloneFromArgv(argv: string[]): Promise<vo
         throw new Error(`Generated module "${modulePath}" did not export an object.`);
     }
     const generated = readGeneratedModule(imported as Record<string, unknown>);
-    const httpHostConfig = parseStatelessHttpHostArgv(argv.slice(1), envDirs);
+    const httpHostConfig = parseRelayHttpHostArgv(argv.slice(1), envDirs);
     if (!httpHostConfig.baseUrlEnvKey) {
         throw new Error('Required: --base-url-env <ENV_VAR_NAME>');
     }
-    validateStatelessHttpHostAtStartup(httpHostConfig, generated);
-    const authHeaderName = readAuthHeaderNameFromEnv();
-    loggingAdapter.info('[mcp] stateless HTTP listening', {
+    validateRelayHttpHostAtStartup(httpHostConfig, generated);
+    loggingAdapter.info('[mcp] passthrough HTTP listening', {
         url: 'http://' + httpHostConfig.listenHost + ':' + httpHostConfig.port + httpHostConfig.mcpPath,
-        credentialHeader: authHeaderName
+        profile: RELAY_HTTP_HOST_PROFILE,
+        credentialHeader: RELAY_HTTP_HOST_PROFILE === 'public' ? undefined : readAuthHeaderNameFromEnv()
     });
 
     const httpServer = http.createServer(async (req, res) => {
@@ -724,7 +481,7 @@ async function runStatelessHttpMcpStandaloneFromArgv(argv: string[]): Promise<vo
             return;
         }
         if (req.method === 'POST') {
-            await handleStatelessMcpPost(req, res, generated, httpHostConfig);
+            await handleRelayHttpMcpPost(req, res, generated, httpHostConfig);
             return;
         }
         if (req.method === 'GET' || req.method === 'DELETE') {
@@ -740,4 +497,4 @@ async function runStatelessHttpMcpStandaloneFromArgv(argv: string[]): Promise<vo
     });
 }
 
-await runStatelessHttpMcpStandaloneFromArgv(process.argv.slice(2));
+await runRelayHttpMcpStandaloneFromArgv(process.argv.slice(2));

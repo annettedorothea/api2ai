@@ -33,9 +33,7 @@
                 "--base-url-env",
                 "GITHUB_BASE_URL",
                 "--auth-env",
-                "GITHUB_TOKEN",
-                "--credential-validation",
-                "opaque"
+                "GITHUB_TOKEN"
             ],
             "env": {
                 "GITHUB_BASE_URL": "https://api.github.com"
@@ -50,9 +48,7 @@
                 "--base-url-env",
                 "TMDB_BASE_URL",
                 "--auth-env",
-                "TMDB_ACCESS_TOKEN",
-                "--credential-validation",
-                "opaque"
+                "TMDB_ACCESS_TOKEN"
             ],
             "env": {
                 "TMDB_BASE_URL": "https://api.themoviedb.org"

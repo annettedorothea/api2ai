@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Start stateless HTTP MCP hosts used by start / mcp.json (todo-api, spaceflight-news).
+ * Start relay HTTP MCP hosts used by start / mcp.json (public: spaceflight-news; passthrough: todo).
  */
 import { spawn } from 'node:child_process';
 import path from 'node:path';

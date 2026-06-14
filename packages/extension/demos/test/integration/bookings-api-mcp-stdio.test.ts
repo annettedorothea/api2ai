@@ -15,16 +15,7 @@ import {
 } from '../support/bookings-api-fixture.js';
 
 const baseUrlEnv = 'BOOKINGS_API_BASE_URL';
-const hostArgs = [
-    '--base-url-env',
-    baseUrlEnv,
-    '--auth-env',
-    'BOOKINGS_API_ACCESS_TOKEN',
-    '--credential-validation',
-    'hs256',
-    '--jwt-secret-env',
-    'BOOKINGS_API_JWT_SECRET'
-];
+const hostArgs = ['--base-url-env', baseUrlEnv, '--auth-env', 'BOOKINGS_API_ACCESS_TOKEN'];
 
 describe('bookings-api generated stdio-mcp-server (MCP stdio)', () => {
     let bookingsApiProcess: ChildProcess | undefined;

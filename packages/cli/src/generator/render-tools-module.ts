@@ -3,6 +3,9 @@ import type { LoadedOpenApi } from 'api-2-ai-dsl-language';
 import { getAccessKind, getOptionalParams, loadOpenApi, makeOperationLookupKey } from 'api-2-ai-dsl-language';
 import {
     buildInputZodBlock,
+    ensureVerifyCredentialStubFromSource,
+    renderVerifyCredentialImport,
+    renderVerifyCredentialReExport,
     resolveMcpServerIdentityFromDestination,
     type ProjectBootstrapConfig
 } from '@core2ai/core/codegen';
@@ -139,13 +142,23 @@ function authRuntimeKind(model: Model): 'none' | 'credential' {
     return model.auth ? 'credential' : 'none';
 }
 
-function renderGeneratedImports(parameterCheckerImports: string): string {
+function renderGeneratedImports(parameterCheckerImports: string, verifyCredentialImport: string): string {
     const loggingImport = "import { loggingAdapter } from '../../src/utils/logging-adapter.js';";
     const parts = [loggingImport];
+    if (verifyCredentialImport.length > 0) {
+        parts.push(verifyCredentialImport);
+    }
     if (parameterCheckerImports.length > 0) {
         parts.push(parameterCheckerImports);
     }
     return `${parts.join('\n')}\n\n`;
+}
+
+function modelRequiresAuth(model: Model): boolean {
+    if (!model.auth) {
+        return false;
+    }
+    return model.operations.some((op) => getAccessKind(op) !== 'public');
 }
 
 function renderMcpServerIdentityExports(name: string, version: string): string {
@@ -187,7 +200,9 @@ function assembleToolsModuleSource(
     toolRuntimeBlock: string,
     model: Model,
     source: string,
-    parameterCheckerImports: string
+    destinationTsPath: string,
+    parameterCheckerImports: string,
+    verifyStubPath: string | undefined
 ): string {
     const authConfigLiteral = renderAuthConfig(model);
     const sourceReference = renderSourceReference(source);
@@ -204,7 +219,13 @@ export const authConfig: AuthConfig | undefined = ${authConfigLiteral};`
         : `export const requiresAuth = false;
 export const authConfig: undefined = undefined;`;
 
-    const importPrefix = renderGeneratedImports(parameterCheckerImports);
+    const verifyExportBlock =
+        verifyStubPath !== undefined ? `\n${renderVerifyCredentialReExport(destinationTsPath, verifyStubPath)}\n` : '';
+
+    const importPrefix = renderGeneratedImports(
+        parameterCheckerImports,
+        verifyStubPath !== undefined ? renderVerifyCredentialImport(destinationTsPath, verifyStubPath) : ''
+    );
 
     const fileNode = expandToNode`
 /**
@@ -235,16 +256,16 @@ export type InvokeOptions = {
 export type ApiHostContext = {
     baseUrl: string;
     credential?: string;
-    jwt?: Record<string, unknown>;
+    sessionClaims?: Record<string, unknown>;
 };
 
 export type CheckedHostContext = {
     credential: string;
-    jwt?: Record<string, unknown>;
+    sessionClaims?: Record<string, unknown>;
 };
 
 ${authDecl}
-
+${verifyExportBlock}
 ${mcpServerIdentityBlock}
 ${toolRuntimeBlock}
     `.appendNewLineIfNotEmpty();
@@ -279,12 +300,18 @@ export async function renderToolsModule(input: RenderToolsModuleInput): Promise<
         hasChecked
     )}`;
 
+    const verifyStubPath = modelRequiresAuth(model)
+        ? await ensureVerifyCredentialStubFromSource(source, destinationTsPath)
+        : undefined;
+
     return assembleToolsModuleSource(
         toolsLiteral,
         mcpServerIdentityBlock,
         toolRuntimeBlock,
         model,
         source,
-        parameterCheckerImports
+        destinationTsPath,
+        parameterCheckerImports,
+        verifyStubPath
     );
 }

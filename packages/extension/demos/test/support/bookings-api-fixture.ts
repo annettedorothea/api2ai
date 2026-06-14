@@ -100,6 +100,10 @@ export async function prepareBookingsApiGeneratedFixture(
         path.join(demosRoot, 'src/auth/bookings-api-tools/listBookings.ts'),
         path.join(fixtureRoot, 'src/auth/bookings-api-tools/listBookings.ts')
     );
+    await fs.copyFile(
+        path.join(demosRoot, 'src/auth/bookings-api-tools/verifyCredential.ts'),
+        path.join(fixtureRoot, 'src/auth/bookings-api-tools/verifyCredential.ts')
+    );
     compileGeneratedForSmoke(fixtureRoot);
 
     return { fixtureRoot, generatedJsPath, stdioMcpServerPath };

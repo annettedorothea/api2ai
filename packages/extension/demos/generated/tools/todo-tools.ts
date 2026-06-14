@@ -3,6 +3,14 @@
  * Referenced OpenAPI: ./openapi/todo-api.openapi.yaml
  */
 import { loggingAdapter } from '../../src/utils/logging-adapter.js';
+import { verifyCredential } from '../../src/auth/todo-tools/verifyCredential.js';
+import { checkListCategoriesParameters } from '../../src/auth/todo-tools/listCategories.js';
+import { checkListTodosParameters } from '../../src/auth/todo-tools/listTodos.js';
+import { checkListTodosByCategoryParameters } from '../../src/auth/todo-tools/listTodosByCategory.js';
+import { checkGetTodoParameters } from '../../src/auth/todo-tools/getTodo.js';
+import { checkCreateTodoParameters } from '../../src/auth/todo-tools/createTodo.js';
+import { checkUpdateTodoParameters } from '../../src/auth/todo-tools/updateTodo.js';
+import { checkDeleteTodoParameters } from '../../src/auth/todo-tools/deleteTodo.js';
 
 export type GeneratedTool = {
     toolName: string;
@@ -19,71 +27,71 @@ export const generatedTools: GeneratedTool[] = [
         toolName: 'listCategories',
         title: 'List todo categories',
         description:
-            'Intent:\n- List all todo categories (id, name, color).\n        - Requires API key on the upstream API (passed from MCP as x-api-token → x-api-key).\n\nMeta:\noperationId: list-categories\n\nExample:\nList todo categories\n\nResponse:\nHTTP 200\nCategory list\nproperties (top-level): categories\nDocumented errors:\nHTTP 401 — Missing or invalid API key\n\nRuntime auth: MCP host injects the API credential via --auth-env; send as header "x-api-key".',
+            'Intent:\n- List all todo categories (id, name, color).\n        - Requires API key on the upstream API (passed from MCP as x-api-token → x-api-key).\n\nMeta:\noperationId: list-categories\n\nExample:\nList todo categories\n\nResponse:\nHTTP 200\nCategory list\nproperties (top-level): categories\nDocumented errors:\nHTTP 401 — Missing or invalid API key\n\nRuntime: checked — implement checkListCategoriesParameters in src/auth/todo-tools/listCategories.ts (types from this tools module; run build:generated for .js); credential sent as header "x-api-key".',
         method: 'GET',
         path: '/categories',
         example: 'List todo categories',
-        access: 'protected'
+        access: 'checked'
     },
     {
         toolName: 'listTodos',
         title: 'List todos',
         description:
-            'Intent:\n- List todos; optional query status (open|done) and categoryId.\n        - Returns todos array with id, title, status, categoryId, dueDate.\n\nMeta:\noperationId: list-todos\n\nExample:\nList open todos\n\nResponse:\nHTTP 200\nTodo list\nproperties (top-level): todos\nDocumented errors:\nHTTP 401 — Missing or invalid API key\n\nRuntime auth: MCP host injects the API credential via --auth-env; send as header "x-api-key".',
+            'Intent:\n- List todos; optional query status (open|done) and categoryId.\n        - Returns todos array with id, title, status, categoryId, dueDate.\n\nMeta:\noperationId: list-todos\n\nExample:\nList open todos\n\nResponse:\nHTTP 200\nTodo list\nproperties (top-level): todos\nDocumented errors:\nHTTP 401 — Missing or invalid API key\n\nRuntime: checked — implement checkListTodosParameters in src/auth/todo-tools/listTodos.ts (types from this tools module; run build:generated for .js); credential sent as header "x-api-key".',
         method: 'GET',
         path: '/todos',
         example: 'List open todos',
-        access: 'protected'
+        access: 'checked'
     },
     {
         toolName: 'listTodosByCategory',
         title: 'List todos by category',
         description:
-            'Intent:\n- List todos for one category (path categoryId, e.g. work, home, errands).\n        - Optional query status: open or done.\n        - Returns categoryId and todos array; HTTP 404 if categoryId is unknown.\n\nMeta:\noperationId: list-todos-by-category\n\nExample:\nList open todos in category work\n\nResponse:\nHTTP 200\nTodos for category\nproperties (top-level): categoryId, todos\nDocumented errors:\nHTTP 401 — Missing or invalid API key\nHTTP 404 — Unknown category\n\nRuntime auth: MCP host injects the API credential via --auth-env; send as header "x-api-key".',
+            'Intent:\n- List todos for one category (path categoryId, e.g. work, home, errands).\n        - Optional query status: open or done.\n        - Returns categoryId and todos array; HTTP 404 if categoryId is unknown.\n\nMeta:\noperationId: list-todos-by-category\n\nExample:\nList open todos in category work\n\nResponse:\nHTTP 200\nTodos for category\nproperties (top-level): categoryId, todos\nDocumented errors:\nHTTP 401 — Missing or invalid API key\nHTTP 404 — Unknown category\n\nRuntime: checked — implement checkListTodosByCategoryParameters in src/auth/todo-tools/listTodosByCategory.ts (types from this tools module; run build:generated for .js); credential sent as header "x-api-key".',
         method: 'GET',
         path: '/categories/{categoryId}/todos',
         example: 'List open todos in category work',
-        access: 'protected'
+        access: 'checked'
     },
     {
         toolName: 'getTodo',
         title: 'Get todo by id',
         description:
-            'Intent:\n- Fetch a single todo by id (path todoId).\n        - Returns todo object or HTTP 404 when unknown.\n\nMeta:\noperationId: get-todo\n\nExample:\nGet todo t-1\n\nResponse:\nHTTP 200\nSingle todo\nproperties (top-level): todo\nDocumented errors:\nHTTP 401 — Missing or invalid API key\nHTTP 404 — Todo not found\n\nRuntime auth: MCP host injects the API credential via --auth-env; send as header "x-api-key".',
+            'Intent:\n- Fetch a single todo by id (path todoId).\n        - Returns todo object or HTTP 404 when unknown.\n\nMeta:\noperationId: get-todo\n\nExample:\nGet todo t-1\n\nResponse:\nHTTP 200\nSingle todo\nproperties (top-level): todo\nDocumented errors:\nHTTP 401 — Missing or invalid API key\nHTTP 404 — Todo not found\n\nRuntime: checked — implement checkGetTodoParameters in src/auth/todo-tools/getTodo.ts (types from this tools module; run build:generated for .js); credential sent as header "x-api-key".',
         method: 'GET',
         path: '/todos/{todoId}',
         example: 'Get todo t-1',
-        access: 'protected'
+        access: 'checked'
     },
     {
         toolName: 'createTodo',
         title: 'Create todo',
         description:
-            'Intent:\n- Create a todo (body: title, categoryId required; optional status open|done, dueDate).\n        - Returns created todo with generated id; HTTP 404 if categoryId is unknown.\n\nMeta:\noperationId: create-todo\n\nExample:\nCreate todo Buy milk in errands\n\nResponse:\nHTTP 201\nTodo created\nproperties (top-level): todo\nDocumented errors:\nHTTP 400 — Invalid input\nHTTP 401 — Missing or invalid API key\nHTTP 404 — Unknown category\n\nRuntime auth: MCP host injects the API credential via --auth-env; send as header "x-api-key".',
+            'Intent:\n- Create a todo (body: title, categoryId required; optional status open|done, dueDate).\n        - Returns created todo with generated id; HTTP 404 if categoryId is unknown.\n\nMeta:\noperationId: create-todo\n\nExample:\nCreate todo Buy milk in errands\n\nResponse:\nHTTP 201\nTodo created\nproperties (top-level): todo\nDocumented errors:\nHTTP 400 — Invalid input\nHTTP 401 — Missing or invalid API key\nHTTP 404 — Unknown category\n\nRuntime: checked — implement checkCreateTodoParameters in src/auth/todo-tools/createTodo.ts (types from this tools module; run build:generated for .js); credential sent as header "x-api-key".',
         method: 'POST',
         path: '/todos',
         example: 'Create todo Buy milk in errands',
-        access: 'protected'
+        access: 'checked'
     },
     {
         toolName: 'updateTodo',
         title: 'Update todo',
         description:
-            'Intent:\n- Update a todo by id (path todoId; body fields title, status, categoryId, dueDate all optional).\n        - Returns updated todo; HTTP 404 when todo or categoryId is unknown.\n\nMeta:\noperationId: update-todo\n\nExample:\nMark todo t-1 as done\n\nResponse:\nHTTP 200\nUpdated todo\nproperties (top-level): todo\nDocumented errors:\nHTTP 400 — Invalid input\nHTTP 401 — Missing or invalid API key\nHTTP 404 — Todo or category not found\n\nRuntime auth: MCP host injects the API credential via --auth-env; send as header "x-api-key".',
+            'Intent:\n- Update a todo by id (path todoId; body fields title, status, categoryId, dueDate all optional).\n        - Returns updated todo; HTTP 404 when todo or categoryId is unknown.\n\nMeta:\noperationId: update-todo\n\nExample:\nMark todo t-1 as done\n\nResponse:\nHTTP 200\nUpdated todo\nproperties (top-level): todo\nDocumented errors:\nHTTP 400 — Invalid input\nHTTP 401 — Missing or invalid API key\nHTTP 404 — Todo or category not found\n\nRuntime: checked — implement checkUpdateTodoParameters in src/auth/todo-tools/updateTodo.ts (types from this tools module; run build:generated for .js); credential sent as header "x-api-key".',
         method: 'PATCH',
         path: '/todos/{todoId}',
         example: 'Mark todo t-1 as done',
-        access: 'protected'
+        access: 'checked'
     },
     {
         toolName: 'deleteTodo',
         title: 'Delete todo',
         description:
-            'Intent:\n- Delete a todo by id (path todoId).\n        - Returns todoId and deleted true; HTTP 404 when unknown.\n\nMeta:\noperationId: delete-todo\n\nExample:\nDelete todo t-2\n\nResponse:\nHTTP 200\nTodo deleted\nproperties (top-level): deleted, todoId\nDocumented errors:\nHTTP 401 — Missing or invalid API key\nHTTP 404 — Todo not found\n\nRuntime auth: MCP host injects the API credential via --auth-env; send as header "x-api-key".',
+            'Intent:\n- Delete a todo by id (path todoId).\n        - Returns todoId and deleted true; HTTP 404 when unknown.\n\nMeta:\noperationId: delete-todo\n\nExample:\nDelete todo t-2\n\nResponse:\nHTTP 200\nTodo deleted\nproperties (top-level): deleted, todoId\nDocumented errors:\nHTTP 401 — Missing or invalid API key\nHTTP 404 — Todo not found\n\nRuntime: checked — implement checkDeleteTodoParameters in src/auth/todo-tools/deleteTodo.ts (types from this tools module; run build:generated for .js); credential sent as header "x-api-key".',
         method: 'DELETE',
         path: '/todos/{todoId}',
         example: 'Delete todo t-2',
-        access: 'protected'
+        access: 'checked'
     }
 ];
 
@@ -98,12 +106,12 @@ export type InvokeOptions = {
 export type ApiHostContext = {
     baseUrl: string;
     credential?: string;
-    jwt?: Record<string, unknown>;
+    sessionClaims?: Record<string, unknown>;
 };
 
 export type CheckedHostContext = {
     credential: string;
-    jwt?: Record<string, unknown>;
+    sessionClaims?: Record<string, unknown>;
 };
 
 type AuthConfig = {
@@ -119,8 +127,24 @@ export const authConfig: AuthConfig | undefined = {
     prefix: ''
 };
 
+export { verifyCredential } from '../../src/auth/todo-tools/verifyCredential.js';
+export type { VerifyCredentialInput, VerifyCredentialResult } from '../../src/auth/todo-tools/verifyCredential.js';
+
 export const mcpServerName = 'todo-tools';
 export const mcpServerVersion = '0.2.0';
+
+const parameterCheckers: Record<
+    string,
+    (options: InvokeOptions, host: CheckedHostContext) => InvokeOptions | Promise<InvokeOptions>
+> = {
+    listCategories: checkListCategoriesParameters,
+    listTodos: checkListTodosParameters,
+    listTodosByCategory: checkListTodosByCategoryParameters,
+    getTodo: checkGetTodoParameters,
+    createTodo: checkCreateTodoParameters,
+    updateTodo: checkUpdateTodoParameters,
+    deleteTodo: checkDeleteTodoParameters
+};
 
 import * as z from 'zod/v4';
 
@@ -357,15 +381,34 @@ export async function invokeTool(
         throw new Error('invokeTool requires hostContext from the MCP host (stdio-mcp-server or http-mcp-server).');
     }
     const host = hostContext as ApiHostContext;
-    const { baseUrl, credential } = host;
+    const { baseUrl } = host;
+    let credential = host.credential;
+    let sessionClaims = host.sessionClaims;
     if (tool.access !== 'public') {
         if (!credential || !String(credential).trim()) {
             throw new Error(
-                'Missing host credential. stdio: set env for --auth-env on stdio-mcp-server; stateless HTTP: MCP auth header (e.g. x-api-token); OAuth HTTP: complete MCP login (Authorization Bearer from Cursor).'
+                'Missing host credential. stdio: set env for --auth-env on stdio-mcp-server; relay HTTP: MCP auth header (e.g. x-api-token); OAuth HTTP: complete MCP login (Authorization Bearer from Cursor).'
             );
         }
+        if (sessionClaims === undefined) {
+            const verified = await verifyCredential({ inboundCredential: String(credential).trim() });
+            credential = verified.upstreamCredential;
+            sessionClaims = verified.sessionClaims;
+        }
     }
-    const optionsResolved = options;
+    let optionsResolved = options;
+    if (tool.access === 'checked') {
+        const check = parameterCheckers[toolName];
+        if (typeof check !== 'function') {
+            throw new Error('No parameter checker for checked tool: ' + toolName);
+        }
+        optionsResolved = await Promise.resolve(
+            check(options, {
+                credential: String(credential).trim(),
+                sessionClaims
+            })
+        );
+    }
     const normalizedBaseUrl = baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl;
     const pathParams = { ...(optionsResolved.pathParams ?? {}) };
     let resolvedPath = tool.path;

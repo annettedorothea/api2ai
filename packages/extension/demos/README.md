@@ -16,21 +16,23 @@ npm run start:foreground               # … Ctrl+C stops services started here
 
 `npm run demo:kill-all` · `start` does not overwrite `.env.local`
 
+Protected/checked tools: implement `src/auth/<module>/verifyCredential.ts` (write-once stub from generate).
+
 ## Demos
 
 One MCP server per row — names match `.cursor/mcp.json`.
 
-| MCP server             | DSL                  | Transport | Auth              | Port | Credential / Prerequisites                                 |
-| ---------------------- | -------------------- | --------- | ----------------- | ---- | ---------------------------------------------------------- |
-| `open-meteo`           | open-meteo           | stdio     | —                 | —    | —                                                          |
-| `open-meteo-geocoding` | open-meteo-geocoding | stdio     | —                 | —    | —                                                          |
-| `github`               | github               | stdio     | opaque            | —    | `GITHUB_TOKEN` in `.env.local`                             |
-| `tmdb`                 | tmdb                 | stdio     | opaque            | —    | `TMDB_ACCESS_TOKEN` in `.env.local`                        |
-| `spaceflight-news`     | spaceflight-news     | HTTP      | —                 | 3849 | `start` starts host                                        |
-| `todo`                 | todo                 | HTTP      | static            | 3853 | `start` starts host; API key in `mcp.json` `x-api-token`   |
-| `bookings-oauth`       | bookings-api         | OAuth     | oidc              | 3872 | `start` starts IdP + host; Cursor Sign-in (RS256 :3861)    |
-| `cakes`                | cakes                | OAuth     | opaque            | 3874 | `start` starts IdP + API + host; Cursor Sign-in (:3860)    |
-| `banking-oauth`        | banking              | OAuth     | opaque + exchange | 3876 | `start` starts enterprise IdP (:3862) + API (:3858) + host |
+| MCP server             | DSL                  | Transport          | Port | Credential / prerequisites                                                                       |
+| ---------------------- | -------------------- | ------------------ | ---- | ------------------------------------------------------------------------------------------------ |
+| `open-meteo`           | open-meteo           | stdio              | —    | —                                                                                                |
+| `open-meteo-geocoding` | open-meteo-geocoding | stdio              | —    | —                                                                                                |
+| `github`               | github               | stdio              | —    | `GITHUB_TOKEN` in `.env.local`; PAT relay in `verifyCredential`                                  |
+| `tmdb`                 | tmdb                 | stdio              | —    | `TMDB_ACCESS_TOKEN` in `.env.local`                                                              |
+| `spaceflight-news`     | spaceflight-news     | HTTP (public)      | 3849 | `start` starts host                                                                              |
+| `todo`                 | todo                 | HTTP (passthrough) | 3853 | `start` starts host; `x-api-token` in `mcp.json`; `TODO_API_KEY` checked in `verifyCredential`   |
+| `bookings-oauth`       | bookings-api         | HTTP (oauth)       | 3872 | `start` starts IdP (:3861) + host; Cursor Sign-in; OIDC in `verifyCredential`                    |
+| `cakes`                | cakes                | HTTP (oauth)       | 3874 | `start` starts IdP (:3860) + API + host; Cursor Sign-in; JWT in `verifyCredential`               |
+| `banking-oauth`        | banking              | HTTP (oauth)       | 3876 | `start` starts enterprise IdP (:3862) + API (:3858) + host; token exchange in `verifyCredential` |
 
 ---
 

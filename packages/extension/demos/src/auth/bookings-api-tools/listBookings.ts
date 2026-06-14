@@ -1,17 +1,17 @@
 import type { InvokeOptions, CheckedHostContext } from '../../../generated/tools/bookings-api-tools.js';
 
 export function checkListBookingsParameters(options: InvokeOptions, host: CheckedHostContext): InvokeOptions {
-    const jwt = host.jwt;
-    if (!jwt || typeof jwt !== 'object') {
-        throw new Error('listBookings requires a JWT in host context (--auth-env).');
+    const claims = host.sessionClaims;
+    if (!claims || typeof claims !== 'object') {
+        throw new Error('listBookings requires sessionClaims from verifyCredential.');
     }
-    const jwtCustomer = String(jwt.customerId ?? '').trim();
+    const jwtCustomer = String(claims.customerId ?? '').trim();
     if (jwtCustomer.length === 0) {
-        throw new Error('JWT payload missing customerId claim.');
+        throw new Error('sessionClaims missing customerId claim.');
     }
-    const role = String(jwt.role ?? '').trim();
+    const role = String(claims.role ?? '').trim();
     if (role.length === 0) {
-        throw new Error('JWT payload missing role claim.');
+        throw new Error('sessionClaims missing role claim.');
     }
 
     let customerId = options.pathParams?.customerId;
@@ -20,7 +20,7 @@ export function checkListBookingsParameters(options: InvokeOptions, host: Checke
     }
     const normalized = String(customerId).trim();
     if (role === 'user' && normalized !== jwtCustomer) {
-        throw new Error(`customerId "${normalized}" does not match JWT claim "${jwtCustomer}".`);
+        throw new Error(`customerId "${normalized}" does not match session claim "${jwtCustomer}".`);
     }
     if (role !== 'user' && role !== 'admin') {
         throw new Error(`Unsupported role "${role}".`);

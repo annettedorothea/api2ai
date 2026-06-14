@@ -97,7 +97,7 @@ function appendSerializedQueryParams(
 }`;
 }
 
-function renderHostBinding(authKind: 'none' | 'credential'): string {
+function renderHostBinding(): string {
     return `
     if (hostContext === undefined) {
         throw new Error(
@@ -105,7 +105,7 @@ function renderHostBinding(authKind: 'none' | 'credential'): string {
         );
     }
     const host = hostContext as ApiHostContext;
-    const { baseUrl${authKind === 'credential' ? ', credential' : ''} } = host;`;
+    const { baseUrl } = host;`;
 }
 
 function renderInvokeToolFunction(authKind: 'none' | 'credential', hasChecked: boolean): string {
@@ -120,7 +120,7 @@ function renderInvokeToolFunction(authKind: 'none' | 'credential', hasChecked: b
                 msg += ' The API may require authentication.';
             }`;
     const credentialAndParams = renderInvokeCredentialAndParameterCheck(authKind === 'credential', hasChecked);
-    const hostBinding = renderHostBinding(authKind);
+    const hostBinding = renderHostBinding();
 
     return `export async function invokeTool(
     toolName: string,

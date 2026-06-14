@@ -1,15 +1,15 @@
 import type { InvokeOptions, CheckedHostContext } from '../../../generated/tools/banking-tools.js';
 
 export function checkListAccountsParameters(options: InvokeOptions, host: CheckedHostContext): InvokeOptions {
-    const jwt = host.jwt;
-    if (!jwt || typeof jwt !== 'object') {
-        throw new Error('listAccounts requires JWT claims in host context (from credential transform).');
+    const claims = host.sessionClaims;
+    if (!claims || typeof claims !== 'object') {
+        throw new Error('listAccounts requires sessionClaims from verifyCredential.');
     }
-    const jwtCustomer = String(jwt.customerId ?? '').trim();
+    const jwtCustomer = String(claims.customerId ?? '').trim();
     if (jwtCustomer.length === 0) {
         throw new Error('Credential transform claims missing customerId.');
     }
-    const role = String(jwt.role ?? '').trim();
+    const role = String(claims.role ?? '').trim();
     if (role.length === 0) {
         throw new Error('Credential transform claims missing role.');
     }

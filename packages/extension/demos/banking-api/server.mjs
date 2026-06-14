@@ -9,7 +9,7 @@ const PORT = Number(process.env.BANKING_API_PORT) || 3858;
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const { accounts, transactions } = JSON.parse(readFileSync(path.join(__dirname, 'data', 'accounts.json'), 'utf8'));
 
-/** Demo opaque tokens minted by src/auth/banking-tools/credentialTransform.ts (demo-api-{customerId}). */
+/** Demo opaque tokens minted by banking-tools verifyCredential (demo-api-{customerId}). */
 const DEMO_API_TOKENS = new Map([
     ['demo-api-alice', { customerId: 'alice', role: 'user', active: true }],
     ['demo-api-bob', { customerId: 'bob', role: 'user', active: true }],

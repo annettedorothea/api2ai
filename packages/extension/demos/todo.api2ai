@@ -8,7 +8,7 @@ auth {
 
 GET "/categories" {
     toolName: listCategories
-    access: protected
+    access: checked
     intent: '''
         - List all todo categories (id, name, color).
         - Requires API key on the upstream API (passed from MCP as x-api-token → x-api-key).
@@ -19,7 +19,7 @@ GET "/categories" {
 
 GET "/todos" {
     toolName: listTodos
-    access: protected
+    access: checked
     intent: '''
         - List todos; optional query status (open|done) and categoryId.
         - Returns todos array with id, title, status, categoryId, dueDate.
@@ -30,7 +30,7 @@ GET "/todos" {
 
 GET "/categories/{categoryId}/todos" {
     toolName: listTodosByCategory
-    access: protected
+    access: checked
     intent: '''
         - List todos for one category (path categoryId, e.g. work, home, errands).
         - Optional query status: open or done.
@@ -42,7 +42,7 @@ GET "/categories/{categoryId}/todos" {
 
 GET "/todos/{todoId}" {
     toolName: getTodo
-    access: protected
+    access: checked
     intent: '''
         - Fetch a single todo by id (path todoId).
         - Returns todo object or HTTP 404 when unknown.
@@ -53,7 +53,7 @@ GET "/todos/{todoId}" {
 
 POST "/todos" {
     toolName: createTodo
-    access: protected
+    access: checked
     intent: '''
         - Create a todo (body: title, categoryId required; optional status open|done, dueDate).
         - Returns created todo with generated id; HTTP 404 if categoryId is unknown.
@@ -64,7 +64,7 @@ POST "/todos" {
 
 PATCH "/todos/{todoId}" {
     toolName: updateTodo
-    access: protected
+    access: checked
     intent: '''
         - Update a todo by id (path todoId; body fields title, status, categoryId, dueDate all optional).
         - Returns updated todo; HTTP 404 when todo or categoryId is unknown.
@@ -75,7 +75,7 @@ PATCH "/todos/{todoId}" {
 
 DELETE "/todos/{todoId}" {
     toolName: deleteTodo
-    access: protected
+    access: checked
     intent: '''
         - Delete a todo by id (path todoId).
         - Returns todoId and deleted true; HTTP 404 when unknown.
