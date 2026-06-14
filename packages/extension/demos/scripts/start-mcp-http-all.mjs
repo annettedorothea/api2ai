@@ -10,23 +10,25 @@ import { buildHostLaunch, HTTP_START_DEMO_NAMES } from './mcp-http-demos.mjs';
 
 const demosRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 
-function startDetached(name, args, port, mcpUrl) {
+function startDetached(name, args, port, mcpUrl, mcpAuthHeader, hostEnv) {
     const child = spawn(process.execPath, args, {
         cwd: demosRoot,
         detached: true,
         stdio: 'ignore',
-        env: process.env
+        env: { ...process.env, ...hostEnv }
     });
     child.unref();
-    console.log(`[mcp-http:all] ${name} started http://127.0.0.1:${port}/mcp (${mcpUrl}, pid ${child.pid ?? '?'})`);
+    console.log(
+        `[mcp-http:all] ${name} started http://127.0.0.1:${port}/mcp (${mcpUrl}, ${mcpAuthHeader}, pid ${child.pid ?? '?'})`
+    );
 }
 
 function main() {
     loadDemoEnvLocal();
 
     for (const name of HTTP_START_DEMO_NAMES) {
-        const { port, args, mcpUrl } = buildHostLaunch(name, demosRoot, process.env);
-        startDetached(name, args, port, mcpUrl);
+        const { port, args, mcpUrl, mcpAuthHeader, hostEnv } = buildHostLaunch(name, demosRoot, process.env);
+        startDetached(name, args, port, mcpUrl, mcpAuthHeader, hostEnv);
     }
 
     console.log(`[mcp-http:all] started ${HTTP_START_DEMO_NAMES.length} hosts — stop: npm run demo:mcp-http:kill`);

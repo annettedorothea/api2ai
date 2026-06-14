@@ -3,6 +3,8 @@
  */
 import path from 'node:path';
 
+const DEFAULT_MCP_AUTH_HEADER = 'x-api-token';
+
 export const HTTP_DEMOS = {
     'spaceflight-news': {
         tools: 'spaceflight-news-tools.js',
@@ -19,7 +21,9 @@ export const HTTP_DEMOS = {
         defaultPort: 3853,
         prerequisite: 'todo-api backend :3852',
         credentialValidation: 'static',
-        authExpectedEnv: 'TODO_API_KEY'
+        authExpectedEnv: 'TODO_API_KEY',
+        mcpAuthHeaderEnv: 'TODO_MCP_AUTH_HEADER',
+        defaultMcpAuthHeader: DEFAULT_MCP_AUTH_HEADER
     }
 };
 
@@ -27,6 +31,32 @@ export const HTTP_DEMOS = {
 export const HTTP_START_DEMO_NAMES = ['spaceflight-news', 'todo'];
 
 export const HTTP_DEMO_NAMES = Object.keys(HTTP_DEMOS);
+
+/**
+ * MCP client auth header name for this host (Cursor mcp.json `headers.*` must match).
+ * Per-demo env → global MCP_AUTH_HEADER → demo default → x-api-token.
+ *
+ * @param {typeof HTTP_DEMOS[string]} demo
+ * @param {NodeJS.ProcessEnv} env
+ */
+export function resolveMcpAuthHeader(demo, env = process.env) {
+    const perDemoKey = demo.mcpAuthHeaderEnv?.trim();
+    if (perDemoKey) {
+        const perDemo = env[perDemoKey]?.trim();
+        if (perDemo) {
+            return perDemo;
+        }
+    }
+    const global = env.MCP_AUTH_HEADER?.trim();
+    if (global) {
+        return global;
+    }
+    const fallback = demo.defaultMcpAuthHeader?.trim();
+    if (fallback) {
+        return fallback;
+    }
+    return DEFAULT_MCP_AUTH_HEADER;
+}
 
 export function resolvePort(demo, env = process.env) {
     const raw = env[demo.portEnv];
@@ -73,7 +103,9 @@ export function buildHostLaunch(name, demosRoot, env) {
         }
     }
     const mcpUrl = `http://127.0.0.1:${port}/mcp`;
-    return { demo, port, args, mcpUrl, credentialValidation: demo.credentialValidation };
+    const mcpAuthHeader = resolveMcpAuthHeader(demo, env);
+    const hostEnv = { MCP_AUTH_HEADER: mcpAuthHeader };
+    return { demo, port, args, mcpUrl, credentialValidation: demo.credentialValidation, mcpAuthHeader, hostEnv };
 }
 
 export function listHttpPorts(env = process.env) {

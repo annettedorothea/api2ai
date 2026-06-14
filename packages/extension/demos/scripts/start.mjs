@@ -275,7 +275,7 @@ async function main() {
 
     for (const name of HTTP_START_DEMO_NAMES) {
         const demo = HTTP_DEMOS[name];
-        const { port, args, mcpUrl } = buildHostLaunch(name, demosRoot, process.env);
+        const { port, args, mcpUrl, hostEnv } = buildHostLaunch(name, demosRoot, process.env);
         const label = `mcp-http:${name} (${mcpUrl})`;
         if (demo.baseUrlEnv && demo.prerequisite && !process.env[demo.baseUrlEnv]?.trim()) {
             console.warn(`[start] ${demo.baseUrlEnv} is missing — ${label} may exit before listening.`);
@@ -283,7 +283,7 @@ async function main() {
         if (demo.authExpectedEnv && !process.env[demo.authExpectedEnv]?.trim()) {
             console.warn(`[start] ${demo.authExpectedEnv} is missing — ${label} may fail static auth validation.`);
         }
-        startService(label, args);
+        startService(label, args, hostEnv);
         const logHint = demo.prerequisite ?? `set ${demo.baseUrlEnv ?? 'base URL env'}`;
         await waitForMcpHost(label, port, mcpUrl, logHint);
     }

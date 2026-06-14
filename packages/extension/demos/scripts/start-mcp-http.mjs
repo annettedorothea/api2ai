@@ -22,16 +22,19 @@ function main() {
 
     loadDemoEnvLocal();
     process.env.LOG_SERVICE_PREFIX = process.env.LOG_SERVICE_PREFIX ?? `mcp-http:${name}`;
-    const { demo, port, args, mcpUrl, credentialValidation } = buildHostLaunch(name, demosRoot, process.env);
-    const authHeader = process.env.MCP_AUTH_HEADER?.trim() || 'x-api-token';
+    const { demo, port, args, mcpUrl, credentialValidation, mcpAuthHeader, hostEnv } = buildHostLaunch(
+        name,
+        demosRoot,
+        process.env
+    );
 
     console.log(
-        `[mcp-http:${name}] listening http://127.0.0.1:${port}/mcp (${mcpUrl}, ${authHeader}, ${credentialValidation}${demo.prerequisite ? `, ${demo.prerequisite}` : ''})`
+        `[mcp-http:${name}] listening http://127.0.0.1:${port}/mcp (${mcpUrl}, ${mcpAuthHeader}, ${credentialValidation}${demo.prerequisite ? `, ${demo.prerequisite}` : ''})`
     );
     const result = spawnSync(process.execPath, args, {
         cwd: demosRoot,
         stdio: 'inherit',
-        env: process.env
+        env: { ...process.env, ...hostEnv }
     });
     process.exit(result.status ?? 1);
 }

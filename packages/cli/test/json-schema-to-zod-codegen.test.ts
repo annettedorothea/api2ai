@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { emitInputZodByToolExport, emitZodExpression } from '@core2ai/core/codegen';
+import { buildInputZodBlock, emitInputZodByToolExport, emitZodExpression } from '@core2ai/core/codegen';
 import type { JsonSchemaDict } from '../src/openapi-tool-codegen.js';
 // Vitest: run via `npm run test --workspace packages/cli`
 
@@ -30,5 +30,11 @@ describe('json-schema-to-zod-codegen', () => {
         });
         expect(out).toContain('export const inputZodByTool');
         expect(out).toContain('"demo"');
+    });
+
+    it('omits zod import when there are no tool schemas', () => {
+        const out = buildInputZodBlock({});
+        expect(out).toContain('export const inputZodByTool');
+        expect(out).not.toContain("import * as z from 'zod/v4'");
     });
 });
