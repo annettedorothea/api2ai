@@ -9,7 +9,7 @@ npm install && npm run start           # stdio + HTTP + OAuth (background)
 npm run start:foreground               # … Ctrl+C stops services started here
 ```
 
-- Optional: `GITHUB_TOKEN`, `TMDB_ACCESS_TOKEN` in `.env.local` (stdio opaque)
+- Optional: `GITHUB_TOKEN`, `TMDB_ACCESS_TOKEN` in `.env.local`
 - Open this folder as Cursor workspace root
 - Cursor Settings → Tools & MCPs: enable needed servers
 - Reload MCP after `.env.local`, `mcp.json`, or `.api2ai` changes

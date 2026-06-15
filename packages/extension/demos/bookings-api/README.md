@@ -3,7 +3,7 @@
 Local JWT API for **Ferienwohnungen** (port **3847**). Accepts **HS256** (`get-token.mjs`) and **RS256** (OAuth IdP :3861 for `bookings-oauth`). OAuth login via shared [`oauth-idp/`](../oauth-idp/) (also used by `cakes`).
 
 ```bash
-npm run demo:bookings-api
+npm run start
 node bookings-api/get-token.mjs alice   # dev JWT only
 ```
 

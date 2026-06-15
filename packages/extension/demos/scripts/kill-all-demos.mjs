@@ -5,36 +5,33 @@
 import { spawnSync } from 'node:child_process';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { loadDemoEnvLocal } from './load-env-local.mjs';
+import { loadProjectEnvLocal } from './generated/load-env-local.mjs';
 
 const demosRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 
-function runNpmScript(name) {
-    const result = spawnSync('npm', ['run', name], {
+function runNode(relativePath) {
+    const result = spawnSync(process.execPath, [path.join(demosRoot, relativePath)], {
         cwd: demosRoot,
-        stdio: 'inherit',
-        shell: process.platform === 'win32'
+        stdio: 'inherit'
     });
     if (result.status !== 0) {
         process.exit(result.status ?? 1);
     }
 }
 
-loadDemoEnvLocal();
-console.log('[kill-all] stopping MCP OAuth hosts…');
-runNpmScript('demo:mcp-oauth:kill');
-console.log('[kill-all] stopping MCP HTTP hosts…');
-runNpmScript('demo:mcp-http:kill');
+loadProjectEnvLocal();
+console.log('[kill-all] stopping MCP hosts…');
+runNode('./scripts/kill-mcp-hosts.mjs');
 console.log('[kill-all] stopping OAuth IDP…');
-runNpmScript('demo:oauth-idp:kill');
-runNpmScript('demo:oauth-idp-oidc:kill');
-runNpmScript('demo:enterprise-idp:kill');
+runNode('./oauth-idp/kill-server.mjs');
+runNode('./oauth-idp/kill-server-oidc.mjs');
+runNode('./oauth-idp/kill-server-enterprise.mjs');
 console.log('[kill-all] stopping banking-api…');
-runNpmScript('demo:banking-api:kill');
+runNode('./banking-api/kill-server.mjs');
 console.log('[kill-all] stopping cakes-api…');
-runNpmScript('demo:cakes-api:kill');
+runNode('./cakes-api/kill-server.mjs');
 console.log('[kill-all] stopping bookings-api…');
-runNpmScript('demo:bookings-api:kill');
+runNode('./bookings-api/kill-server.mjs');
 console.log('[kill-all] stopping todo-api…');
-runNpmScript('demo:todo-api:kill');
+runNode('./todo-api/kill-server.mjs');
 console.log('[kill-all] done.');

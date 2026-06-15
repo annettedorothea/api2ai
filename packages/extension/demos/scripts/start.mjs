@@ -10,9 +10,11 @@ import { copyFileSync, existsSync } from 'node:fs';
 import path from 'node:path';
 import { spawn, spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
-import { loadDemoEnvLocal } from './load-env-local.mjs';
-import { buildHostLaunch, HTTP_DEMOS, HTTP_START_DEMO_NAMES } from './mcp-http-demos.mjs';
-import { buildOAuthHostLaunch, OAUTH_HTTP_DEMOS, OAUTH_HTTP_START_DEMO_NAMES } from './mcp-oauth-demos.mjs';
+import { loadProjectEnvLocal } from './generated/load-env-local.mjs';
+import { requireEnvInt } from './generated/require-env.mjs';
+import { buildHostLaunch, HTTP_START_DEMO_NAMES } from './mcp-http-demos.mjs';
+import { buildOAuthHostLaunch, OAUTH_HTTP_START_DEMO_NAMES } from './mcp-oauth-demos.mjs';
+import { waitForForegroundServiceShutdown } from './foreground-lifecycle.mjs';
 const demosRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const foreground =
     process.env.START_FOREGROUND === '1' ||
@@ -38,8 +40,8 @@ function ensureEnvFromExample(exampleName, targetName) {
         return false;
     }
     if (!existsSync(examplePath)) {
-        console.warn(`[start] ${exampleName} missing — skip env copy.`);
-        return false;
+        console.error(`[start] ${exampleName} missing — copy env vars from docs or create ${targetName}.`);
+        process.exit(1);
     }
     copyFileSync(examplePath, targetPath);
     console.log(`[start] Created ${targetName} from ${exampleName} — edit tokens as needed.`);
@@ -64,51 +66,35 @@ function buildServiceEnv(label, extraEnv = {}) {
 }
 
 function startService(label, argv, extraEnv = {}, logPort) {
-    try {
-        const env = buildServiceEnv(label, extraEnv);
-        const portHint = logPort ? ` port ${logPort}` : '';
-        if (foreground) {
-            const child = spawn(process.execPath, argv, {
-                cwd: demosRoot,
-                stdio: 'inherit',
-                env
-            });
-            serviceChildren.push(child);
-            console.log(`[start] ${label} started in foreground${portHint}`);
-            return;
-        }
+    const env = buildServiceEnv(label, extraEnv);
+    const portHint = logPort ? ` port ${logPort}` : '';
+    if (foreground) {
         const child = spawn(process.execPath, argv, {
             cwd: demosRoot,
-            detached: true,
-            stdio: 'ignore',
+            stdio: 'inherit',
             env
         });
-        child.unref();
-        console.log(`[start] ${label} started in background${portHint}`);
-    } catch (error) {
-        const message = error instanceof Error ? error.message : String(error);
-        console.warn(`[start] Could not start ${label}: ${message}`);
+        serviceChildren.push(child);
+        console.log(`[start] ${label} started in foreground${portHint}`);
+        return;
     }
+    const child = spawn(process.execPath, argv, {
+        cwd: demosRoot,
+        detached: true,
+        stdio: 'ignore',
+        env
+    });
+    child.unref();
+    console.log(`[start] ${label} started in background${portHint}`);
 }
 
 function waitForShutdownSignal() {
-    return new Promise((resolve) => {
-        const shutdown = (signal) => {
-            console.log(`[start] ${signal} — stopping demo services…`);
-            for (const child of serviceChildren) {
-                if (child.pid) {
-                    try {
-                        process.kill(child.pid, 'SIGTERM');
-                    } catch {
-                        /* already exited */
-                    }
-                }
-            }
-            resolve();
-        };
-        process.once('SIGINT', () => shutdown('SIGINT'));
-        process.once('SIGTERM', () => shutdown('SIGTERM'));
-    });
+    return waitForForegroundServiceShutdown({ label: 'start', serviceChildren, demosRoot });
+}
+
+async function waitForMcpHost(label, port, mcpUrl) {
+    await waitForTcpListen(port, { label: mcpUrl });
+    console.log(`[start] ${label} listening on port ${port}.`);
 }
 
 async function waitForHttpOk(url, { timeoutMs = 20_000, intervalMs = 200, label = url } = {}) {
@@ -145,24 +131,19 @@ async function waitForTcpListen(port, { timeoutMs = 15_000, intervalMs = 200, la
     throw new Error(`Timed out waiting for TCP listener on ${label}`);
 }
 
-async function waitForMcpHost(label, port, mcpUrl, logHint) {
-    try {
-        await waitForTcpListen(port, { label: mcpUrl });
-        console.log(`[start] ${label} listening on port ${port}.`);
-    } catch (error) {
-        const message = error instanceof Error ? error.message : String(error);
-        console.warn(`[start] ${message} (${logHint})`);
-    }
+async function waitForBackend(label, port) {
+    await waitForTcpListen(port, { label });
+    console.log(`[start] ${label} listening on port ${port}.`);
 }
 
 async function main() {
     console.log('[start] stopping previous demo processes…');
     runNpm(['run', 'demo:kill-all']);
 
-    loadDemoEnvLocal();
+    loadProjectEnvLocal();
     const createdEnv = ensureEnvFromExample('.env.example', '.env.local');
     if (createdEnv) {
-        loadDemoEnvLocal();
+        loadProjectEnvLocal();
     }
 
     runNpm(['install']);
@@ -172,7 +153,7 @@ async function main() {
         console.log('[start] Foreground mode — LOG_LEVEL=debug for services, logs in this terminal.');
     }
 
-    const bookingsPort = Number(process.env.BOOKINGS_API_PORT) || 3847;
+    const bookingsPort = requireEnvInt('BOOKINGS_API_PORT');
     startService(
         'bookings-api',
         [path.join(demosRoot, 'bookings-api', 'server.mjs')],
@@ -180,7 +161,7 @@ async function main() {
         bookingsPort
     );
 
-    const todoPort = Number(process.env.TODO_API_PORT) || 3852;
+    const todoPort = requireEnvInt('TODO_API_PORT');
     startService(
         'todo-api',
         [path.join(demosRoot, 'todo-api', 'server.mjs')],
@@ -188,7 +169,7 @@ async function main() {
         todoPort
     );
 
-    const cakesPort = Number(process.env.CAKES_API_PORT) || 3856;
+    const cakesPort = requireEnvInt('CAKES_API_PORT');
     startService(
         'cakes-api',
         [path.join(demosRoot, 'cakes-api', 'server.mjs')],
@@ -196,7 +177,7 @@ async function main() {
         cakesPort
     );
 
-    const bankingPort = Number(process.env.BANKING_API_PORT) || 3858;
+    const bankingPort = requireEnvInt('BANKING_API_PORT');
     startService(
         'banking-api',
         [path.join(demosRoot, 'banking-api', 'server.mjs')],
@@ -204,7 +185,7 @@ async function main() {
         bankingPort
     );
 
-    const idpPort = Number(process.env.BOOKINGS_OAUTH_IDP_PORT) || 3860;
+    const idpPort = requireEnvInt('BOOKINGS_OAUTH_IDP_PORT');
     startService(
         'oauth-idp',
         [path.join(demosRoot, 'oauth-idp', 'server.mjs')],
@@ -212,7 +193,7 @@ async function main() {
         idpPort
     );
 
-    const idpOidcPort = Number(process.env.BOOKINGS_OAUTH_IDP_OIDC_PORT) || 3861;
+    const idpOidcPort = requireEnvInt('BOOKINGS_OAUTH_IDP_OIDC_PORT');
     const idpOidcBaseUrl = `http://127.0.0.1:${idpOidcPort}`;
     startService(
         'oauth-idp-oidc',
@@ -221,7 +202,7 @@ async function main() {
         idpOidcPort
     );
 
-    const enterpriseIdpPort = Number(process.env.ENTERPRISE_IDP_PORT) || 3862;
+    const enterpriseIdpPort = requireEnvInt('ENTERPRISE_IDP_PORT');
     const enterpriseIdpBaseUrl = `http://127.0.0.1:${enterpriseIdpPort}`;
     startService(
         'enterprise-idp',
@@ -237,68 +218,33 @@ async function main() {
         ['cakes-api', cakesPort],
         ['banking-api', bankingPort]
     ]) {
-        try {
-            await waitForTcpListen(port, { label });
-            console.log(`[start] ${label} listening on port ${port}.`);
-        } catch (error) {
-            const message = error instanceof Error ? error.message : String(error);
-            console.warn(`[start] ${message}`);
-        }
+        await waitForBackend(label, port);
     }
 
     console.log(`[start] waiting for oauth-idp-oidc at ${idpOidcBaseUrl}…`);
-    try {
-        await waitForHttpOk(`${idpOidcBaseUrl}/.well-known/openid-configuration`, {
-            label: 'oauth-idp-oidc openid-configuration'
-        });
-    } catch (error) {
-        const message = error instanceof Error ? error.message : String(error);
-        console.warn(`[start] ${message} — bookings-oauth MCP may fail JWKS startup.`);
-    }
+    await waitForHttpOk(`${idpOidcBaseUrl}/.well-known/openid-configuration`, {
+        label: 'oauth-idp-oidc openid-configuration'
+    });
 
-    try {
-        await waitForTcpListen(idpPort, { label: `oauth-idp port ${idpPort}` });
-    } catch (error) {
-        const message = error instanceof Error ? error.message : String(error);
-        console.warn(`[start] ${message} — cakes OAuth MCP may fail if IdP is not ready.`);
-    }
+    await waitForTcpListen(idpPort, { label: `oauth-idp port ${idpPort}` });
 
     console.log(`[start] waiting for enterprise-idp at ${enterpriseIdpBaseUrl}…`);
-    try {
-        await waitForHttpOk(`${enterpriseIdpBaseUrl}/.well-known/openid-configuration`, {
-            label: 'enterprise-idp openid-configuration'
-        });
-    } catch (error) {
-        const message = error instanceof Error ? error.message : String(error);
-        console.warn(`[start] ${message} — banking-oauth MCP may fail if enterprise IdP is not ready.`);
-    }
+    await waitForHttpOk(`${enterpriseIdpBaseUrl}/.well-known/openid-configuration`, {
+        label: 'enterprise-idp openid-configuration'
+    });
 
     for (const name of HTTP_START_DEMO_NAMES) {
-        const demo = HTTP_DEMOS[name];
         const { port, args, mcpUrl, hostEnv } = buildHostLaunch(name, demosRoot, process.env);
         const label = `mcp-http:${name} (${mcpUrl})`;
-        if (demo.baseUrlEnv && demo.prerequisite && !process.env[demo.baseUrlEnv]?.trim()) {
-            console.warn(`[start] ${demo.baseUrlEnv} is missing — ${label} may exit before listening.`);
-        }
-        if (demo.authExpectedEnv && !process.env[demo.authExpectedEnv]?.trim()) {
-            console.warn(`[start] ${demo.authExpectedEnv} is missing — ${label} may fail verifyCredential.`);
-        }
         startService(label, args, hostEnv);
-        const logHint = demo.prerequisite ?? `set ${demo.baseUrlEnv ?? 'base URL env'}`;
-        await waitForMcpHost(label, port, mcpUrl, logHint);
+        await waitForMcpHost(label, port, mcpUrl);
     }
 
     for (const name of OAUTH_HTTP_START_DEMO_NAMES) {
-        const demo = OAUTH_HTTP_DEMOS[name];
         const { port, args, mcpUrl } = buildOAuthHostLaunch(name, demosRoot, process.env);
         const label = `mcp-oauth:${name} (${mcpUrl})`;
-        if (demo.baseUrlEnv && !process.env[demo.baseUrlEnv]?.trim()) {
-            console.warn(
-                `[start] ${demo.baseUrlEnv} is missing — ${label} will exit before listening. Copy .env.example → .env.local.`
-            );
-        }
         startService(label, args);
-        await waitForMcpHost(label, port, mcpUrl, demo.prerequisite ?? `missing ${demo.baseUrlEnv}, IdP, or backend`);
+        await waitForMcpHost(label, port, mcpUrl);
     }
 
     if (foreground) {

@@ -98,7 +98,7 @@ function sendAuthorizeHelpPage(res) {
     sendHtml(
         res,
         renderAuthorizeHelpPage(
-            'Use <strong>Cursor MCP OAuth</strong> on <code>bookings-oauth</code> or <code>cakes</code> (<code>npm run demo:oauth-idp</code> / <code>demo:oauth-idp-oidc</code>).'
+            'Use <strong>Cursor MCP OAuth</strong> on <code>bookings-oauth</code> or <code>cakes</code> (<code>npm run start</code>).'
         )
     );
 }

@@ -5,7 +5,7 @@
 import { spawn } from 'node:child_process';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { loadDemoEnvLocal } from './load-env-local.mjs';
+import { loadProjectEnvLocal } from './generated/load-env-local.mjs';
 import { buildHostLaunch, HTTP_START_DEMO_NAMES } from './mcp-http-demos.mjs';
 
 const demosRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -24,15 +24,14 @@ function startDetached(name, args, port, mcpUrl, mcpAuthHeader, hostEnv) {
 }
 
 function main() {
-    loadDemoEnvLocal();
+    loadProjectEnvLocal();
 
     for (const name of HTTP_START_DEMO_NAMES) {
         const { port, args, mcpUrl, mcpAuthHeader, hostEnv } = buildHostLaunch(name, demosRoot, process.env);
         startDetached(name, args, port, mcpUrl, mcpAuthHeader, hostEnv);
     }
 
-    console.log(`[mcp-http:all] started ${HTTP_START_DEMO_NAMES.length} hosts — stop: npm run demo:mcp-http:kill`);
-    console.warn('[mcp-http:all] todo-api MCP host needs todo-api backend (start or npm run demo:todo-api).');
+    console.log(`[mcp-http:all] started ${HTTP_START_DEMO_NAMES.length} hosts — stop: node ./scripts/kill-mcp-hosts.mjs`);
 }
 
 main();

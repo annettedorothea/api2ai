@@ -2,43 +2,32 @@
  * OAuth HTTP MCP demo hosts (api2ai) — keys match .cursor/mcp.json server names.
  */
 import path from 'node:path';
+import { requireEnv, requireEnvInt } from './generated/require-env.mjs';
 
 export const OAUTH_HTTP_DEMOS = {
     'bookings-oauth': {
         tools: 'bookings-api-tools.js',
         baseUrlEnv: 'BOOKINGS_API_BASE_URL',
-        defaultBaseUrl: 'http://127.0.0.1:3847',
         oauthIdpUrlEnv: 'BOOKINGS_OAUTH_IDP_OIDC_URL',
-        defaultOAuthIdpUrl: 'http://127.0.0.1:3861',
         portEnv: 'BOOKINGS_OAUTH_HTTP_PORT',
-        defaultPort: 3872,
         oauthScope: 'bookings-api',
-        mcpServerName: 'bookings-oauth',
-        prerequisite: 'bookings-api :3847 + oauth-idp-oidc :3861 (RS256)'
+        mcpServerName: 'bookings-oauth'
     },
     cakes: {
         tools: 'cakes-tools.js',
         baseUrlEnv: 'CAKES_API_BASE_URL',
-        defaultBaseUrl: 'http://127.0.0.1:3856',
         oauthIdpUrlEnv: 'BOOKINGS_OAUTH_IDP_URL',
-        defaultOAuthIdpUrl: 'http://127.0.0.1:3860',
         portEnv: 'CAKES_OAUTH_HTTP_PORT',
-        defaultPort: 3874,
         oauthScope: 'cakes-api',
-        mcpServerName: 'cakes',
-        prerequisite: 'cakes-api :3856 + oauth-idp :3860'
+        mcpServerName: 'cakes'
     },
     'banking-oauth': {
         tools: 'banking-tools.js',
         baseUrlEnv: 'BANKING_API_BASE_URL',
-        defaultBaseUrl: 'http://127.0.0.1:3858',
         oauthIdpUrlEnv: 'ENTERPRISE_IDP_URL',
-        defaultOAuthIdpUrl: 'http://127.0.0.1:3862',
         portEnv: 'BANKING_OAUTH_HTTP_PORT',
-        defaultPort: 3876,
         oauthScope: 'banking-api',
-        mcpServerName: 'banking-oauth',
-        prerequisite: 'banking-api :3858 + enterprise-idp :3862'
+        mcpServerName: 'banking-oauth'
     }
 };
 
@@ -46,18 +35,6 @@ export const OAUTH_HTTP_DEMOS = {
 export const OAUTH_HTTP_START_DEMO_NAMES = ['bookings-oauth', 'cakes', 'banking-oauth'];
 
 export const OAUTH_HTTP_DEMO_NAMES = Object.keys(OAUTH_HTTP_DEMOS);
-
-export function resolvePort(demo, env = process.env) {
-    const raw = env[demo.portEnv];
-    if (raw === undefined || raw.trim() === '') {
-        return demo.defaultPort;
-    }
-    const port = Number.parseInt(raw, 10);
-    if (!Number.isFinite(port) || port <= 0) {
-        throw new Error(`Invalid ${demo.portEnv}: ${raw}`);
-    }
-    return port;
-}
 
 /**
  * @param {string} name
@@ -69,13 +46,9 @@ export function buildOAuthHostLaunch(name, demosRoot, env) {
     if (!demo) {
         throw new Error(`Unknown oauth http demo: ${name}`);
     }
-    if (demo.baseUrlEnv && !env[demo.baseUrlEnv]?.trim()) {
-        env[demo.baseUrlEnv] = demo.defaultBaseUrl;
-    }
-    if (!env[demo.oauthIdpUrlEnv]?.trim()) {
-        env[demo.oauthIdpUrlEnv] = demo.defaultOAuthIdpUrl;
-    }
-    const port = resolvePort(demo, env);
+    requireEnv(demo.baseUrlEnv, env);
+    const oauthIdpUrl = requireEnv(demo.oauthIdpUrlEnv, env);
+    const port = requireEnvInt(demo.portEnv, env);
     const hostJs = path.join(demosRoot, 'generated/cli/oauth-http-mcp-server.js');
     const toolsJs = path.join(demosRoot, 'generated/tools', demo.tools);
     const oauthScope = demo.oauthScope ?? name;
@@ -85,7 +58,7 @@ export function buildOAuthHostLaunch(name, demosRoot, env) {
         '--base-url-env',
         demo.baseUrlEnv,
         '--oauth-idp-url',
-        env[demo.oauthIdpUrlEnv],
+        oauthIdpUrl,
         '--oauth-scope',
         oauthScope,
         '--port',
@@ -98,5 +71,5 @@ export function buildOAuthHostLaunch(name, demosRoot, env) {
 }
 
 export function listOAuthHttpPorts(env = process.env) {
-    return OAUTH_HTTP_DEMO_NAMES.map((name) => resolvePort(OAUTH_HTTP_DEMOS[name], env));
+    return OAUTH_HTTP_DEMO_NAMES.map((name) => requireEnvInt(OAUTH_HTTP_DEMOS[name].portEnv, env));
 }

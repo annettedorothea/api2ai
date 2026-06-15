@@ -1,4 +1,4 @@
-// @generated from @core2ai/core — do not edit; regenerate via npm run generate:all in a demo workspace with demos-generate.config.json.
+// @generated from @core2ai/core — do not edit; regenerate via npm run generate:all in a workspace with project-generate.config.json.
 
 import { execFileSync } from 'node:child_process';
 import { createRequire } from 'node:module';
@@ -19,7 +19,7 @@ function findCompileWorkspaceRoot(startDir: string): CompileWorkspaceRoot {
     while (true) {
         if (
             fs.existsSync(path.join(dir, 'tsconfig.base.json')) &&
-            fs.existsSync(path.join(dir, 'demos-generate.config.json'))
+            fs.existsSync(path.join(dir, 'project-generate.config.json'))
         ) {
             demosCandidate = { root: dir, extendsConfig: 'tsconfig.generated.json' };
         }
@@ -105,26 +105,12 @@ function compileGeneratedInDir(projectRoot: string, workspace: CompileWorkspaceR
 /** Emit `.js` next to generated `.ts` (and optional `src/auth` / `src/utils` stubs) for Vitest fixtures. */
 export function compileGeneratedForSmoke(runRoot: string): void {
     const workspace = findCompileWorkspaceRoot(runRoot);
-    compileGeneratedInDir(runRoot, workspace, ['generated/**/*.ts']);
-
-    const localAuth = path.join(runRoot, 'src', 'auth');
-    if (fs.existsSync(localAuth)) {
-        compileGeneratedInDir(runRoot, workspace, ['src/auth/**/*.ts']);
+    const include = ['generated/**/*.ts'];
+    if (fs.existsSync(path.join(runRoot, 'src', 'auth'))) {
+        include.push('src/auth/**/*.ts');
     }
-
-    const localUtils = path.join(runRoot, 'src', 'utils');
-    if (fs.existsSync(localUtils)) {
-        compileGeneratedInDir(runRoot, workspace, ['src/utils/**/*.ts']);
+    if (fs.existsSync(path.join(runRoot, 'src', 'utils'))) {
+        include.push('src/utils/**/*.ts');
     }
-
-    const parentRoot = path.dirname(runRoot);
-    const parentAuth = path.join(parentRoot, 'src', 'auth');
-    if (parentRoot !== runRoot && fs.existsSync(parentAuth)) {
-        compileGeneratedInDir(parentRoot, workspace, ['src/auth/**/*.ts']);
-    }
-
-    const parentUtils = path.join(parentRoot, 'src', 'utils');
-    if (parentRoot !== runRoot && fs.existsSync(parentUtils)) {
-        compileGeneratedInDir(parentRoot, workspace, ['src/utils/**/*.ts']);
-    }
+    compileGeneratedInDir(runRoot, workspace, include);
 }

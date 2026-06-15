@@ -6,7 +6,7 @@
 import { spawnSync } from 'node:child_process';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { loadDemoEnvLocal } from './load-env-local.mjs';
+import { loadProjectEnvLocal } from './generated/load-env-local.mjs';
 import { buildHostLaunch, HTTP_DEMOS, HTTP_DEMO_NAMES } from './mcp-http-demos.mjs';
 
 const demosRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -15,12 +15,12 @@ function main() {
     const name = process.argv[2];
     if (!name || !HTTP_DEMOS[name]) {
         console.error(`Usage: node scripts/start-mcp-http.mjs <${HTTP_DEMO_NAMES.join('|')}>`);
-        console.error('All hosts (background): npm run demo:mcp-http:all');
+        console.error('All hosts (background): node ./scripts/start-mcp-http-all.mjs');
         console.error('stdio-only (secrets): tmdb, github in mcp.json.');
         process.exit(1);
     }
 
-    loadDemoEnvLocal();
+    loadProjectEnvLocal();
     process.env.LOG_SERVICE_PREFIX = process.env.LOG_SERVICE_PREFIX ?? `mcp-http:${name}`;
     const { demo, port, args, mcpUrl, mcpAuthHeader, hostEnv } = buildHostLaunch(
         name,
