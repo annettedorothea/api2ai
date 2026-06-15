@@ -26,7 +26,7 @@ jobs:
                   cache-dependency-path: package-lock.json
 
             - name: Build core2ai
-              run: npm ci && npm run build
+              run: npm ci && npm run build && npm run test
               working-directory: ../core2ai
               env:
                   HUSKY: '0'

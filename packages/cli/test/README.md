@@ -3,12 +3,9 @@
 | Path                                 | What it checks                   |
 | ------------------------------------ | -------------------------------- |
 | `document-actions.test.ts`           | parse/validate gate              |
-| `generate-validation.test.ts`        | generate blocked on DSL errors   |
 | `json-schema-to-zod-codegen.test.ts` | Zod emission from JSON Schema IR |
 
-Run from repo root: `npm test` (language + CLI unit + demo integration in `packages/extension/demos/test/`).
-
-From `packages/cli` only: `npm test`.
+Run from repo root: `npm test` (requires `npm run build` or `tsc -b` for CLI `out/`).
 
 ---
 
