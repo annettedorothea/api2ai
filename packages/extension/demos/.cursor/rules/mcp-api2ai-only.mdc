@@ -31,6 +31,7 @@ alwaysApply: true
 - **Dann sofort stoppen** (max. **ein** gezielter MCP-Aufruf pro betroffenem Server, kein zweiter Versuch mit anderem Identifier, kein `tmdb` vs. `project-0-examples-api2ai-tmdb` durchprobieren):
   - **Keine** Websuche, kein WebFetch, keine direkte API, kein `invokeTool`/CLI aus `generated/**`, kein Lesen von `.env*` oder Tokens.
   - **Keine** langen Diagnose-Abschnitte oder Workarounds in derselben Antwort.
+- **Ausnahme — Bulk-Smoke-Test:** Bei `api2ai /test:all` (Skill `api2ai-test-all-mcp`) ein Aufruf **pro Tool** aller Server in `mcp.json`; Fehler pro Tool dokumentieren und mit den uebrigen Tools fortfahren (Server komplett down: Rest des Servers ueberspringen).
 - **Nutzer-Nachricht (kurz, auf Deutsch):** klar sagen, dass die Antwort **ohne laufende MCP-Tools** nicht geliefert werden kann; welcher **`serverName`** aus `mcp.json` fehlt oder fehlschlug (z. B. `todo`); **konkrete Schritte** (z. B. `npm run start`, MCP aktivieren, `bookings-oauth` Sign-in). Danach **aufhoeren** — keine inhaltliche Antwort aus Gedaechtnis.
 - **Audit:** den fehlgeschlagenen (oder entfallenen) Versuch trotzdem dokumentieren; keine weiteren MCP-Eintraege erfinden.
 

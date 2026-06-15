@@ -63,14 +63,3 @@ export function loadProjectEnvLocal(root = defaultRoot) {
     loadEnvFile(path.join(root, '.env'));
     loadEnvFile(path.join(root, '.env.local'), { overrideExisting: true });
 }
-
-/**
- * Like loadProjectEnvLocal; when `.env` is absent, fills unset keys from `.env.example` (tests / fresh clone).
- * @param {string} [root]
- */
-export function loadProjectEnvForWorkspace(root = defaultRoot) {
-    loadProjectEnvLocal(root);
-    if (!existsSync(path.join(root, '.env'))) {
-        loadEnvFile(path.join(root, '.env.example'));
-    }
-}
