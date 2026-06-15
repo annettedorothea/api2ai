@@ -131,7 +131,7 @@ export { verifyCredential } from '../../src/auth/todo-tools/verifyCredential.js'
 export type { VerifyCredentialInput, VerifyCredentialResult } from '../../src/auth/todo-tools/verifyCredential.js';
 
 export const mcpServerName = 'todo-tools';
-export const mcpServerVersion = '0.2.0';
+export const mcpServerVersion = '0.3.0';
 
 const parameterCheckers: Record<
     string,

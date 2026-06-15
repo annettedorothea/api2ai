@@ -84,7 +84,7 @@ export { verifyCredential } from '../../src/auth/github-tools/verifyCredential.j
 export type { VerifyCredentialInput, VerifyCredentialResult } from '../../src/auth/github-tools/verifyCredential.js';
 
 export const mcpServerName = 'github-tools';
-export const mcpServerVersion = '0.2.0';
+export const mcpServerVersion = '0.3.0';
 
 import * as z from 'zod/v4';
 

@@ -1,7 +1,7 @@
 {
     "name": "api-2-ai-dsl-cli",
     "description": "The cli specific package",
-    "version": "0.2.0",
+    "version": "0.3.0",
     "type": "module",
     "engines": {
         "node": ">=20.10.0",
@@ -23,7 +23,7 @@
         "test": "vitest run"
     },
     "dependencies": {
-        "@core2ai/core": "0.2.0",
+        "@core2ai/core": "0.3.0",
         "@modelcontextprotocol/sdk": "^1.29.0",
         "api-2-ai-dsl-language": "*",
         "chalk": "~5.6.2",

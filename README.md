@@ -27,12 +27,9 @@ Open Cursor or VS Code and run:
 api2ai: Create demo workspace (MCP examples)
 ```
 
-### 3. Explore
+### 3. Test your first MCP server
 
-Open any `.api2ai` file, make a change, and save.
-
-api2ai automatically generates MCP-compatible tools from your OpenAPI
-definitions.
+Open **`README.md`** in the demo folder and follow **Quick start** (`npm run start`, then `open-meteo-geocoding` + `open-meteo`).
 
 No repository checkout required.
 

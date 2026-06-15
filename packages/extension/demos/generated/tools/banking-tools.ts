@@ -75,7 +75,7 @@ export { verifyCredential } from '../../src/auth/banking-tools/verifyCredential.
 export type { VerifyCredentialInput, VerifyCredentialResult } from '../../src/auth/banking-tools/verifyCredential.js';
 
 export const mcpServerName = 'banking-tools';
-export const mcpServerVersion = '0.2.0';
+export const mcpServerVersion = '0.3.0';
 
 const parameterCheckers: Record<
     string,

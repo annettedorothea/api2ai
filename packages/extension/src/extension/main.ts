@@ -135,7 +135,7 @@ function registerGenerateOnSave(context: vscode.ExtensionContext): void {
     context.subscriptions.push(disposable);
 }
 
-const DEMO_COPY_SKIP_DIRS = new Set(['node_modules', 'generated', 'tmp']);
+const DEMO_COPY_SKIP_DIRS = new Set(['node_modules', 'tmp']);
 const DEMO_COPY_SKIP_FILES = new Set(['package-lock.json', '.env', '.env.local']);
 const DEMO_BUNDLE_REQUIRED: readonly string[] = demoBundleRequired;
 
@@ -182,7 +182,7 @@ function registerCreateDemoWorkspaceCommand(context: vscode.ExtensionContext): v
         }
         const openFolder = 'Open folder';
         const choice = await vscode.window.showInformationMessage(
-            `api2ai: Demo workspace created in ${targetDir}. Run npm run start, then enable MCP servers in Cursor.`,
+            `api2ai: Demo workspace ready in ${targetDir}. Open README.md to test your first MCP server.`,
             openFolder
         );
         if (choice === openFolder) {
@@ -220,6 +220,10 @@ function shouldCopyDemoPath(sourceDir: string, src: string): boolean {
         return true;
     }
     const parts = relative.split(path.sep);
+    // Skip compiled MCP tools at demos/generated/, not utility scripts under scripts/generated/.
+    if (parts[0] === 'generated') {
+        return false;
+    }
     if (parts.some((part) => DEMO_COPY_SKIP_DIRS.has(part))) {
         return false;
     }

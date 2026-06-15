@@ -78,7 +78,7 @@ export type {
 } from '../../src/auth/bookings-api-tools/verifyCredential.js';
 
 export const mcpServerName = 'bookings-api-tools';
-export const mcpServerVersion = '0.2.0';
+export const mcpServerVersion = '0.3.0';
 
 const parameterCheckers: Record<
     string,

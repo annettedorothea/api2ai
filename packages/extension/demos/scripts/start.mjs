@@ -137,14 +137,14 @@ async function waitForBackend(label, port) {
 }
 
 async function main() {
-    console.log('[start] stopping previous demo processes…');
-    runNpm(['run', 'demo:kill-all']);
-
     loadProjectEnvLocal();
     const createdEnv = ensureEnvFromExample('.env.example', '.env.local');
     if (createdEnv) {
         loadProjectEnvLocal();
     }
+
+    console.log('[start] stopping previous demo processes…');
+    runNpm(['run', 'demo:kill-all']);
 
     runNpm(['install']);
     runNpm(['run', 'generate:all']);

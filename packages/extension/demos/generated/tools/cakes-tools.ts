@@ -74,7 +74,7 @@ export { verifyCredential } from '../../src/auth/cakes-tools/verifyCredential.js
 export type { VerifyCredentialInput, VerifyCredentialResult } from '../../src/auth/cakes-tools/verifyCredential.js';
 
 export const mcpServerName = 'cakes-tools';
-export const mcpServerVersion = '0.2.0';
+export const mcpServerVersion = '0.3.0';
 
 import * as z from 'zod/v4';
 
