@@ -29,7 +29,10 @@ api2ai: Create demo workspace (MCP examples)
 
 ### 3. Test your first MCP server
 
-Open **`README.md`** in the demo folder and follow **Quick start** (`npm run start`, then `open-meteo-geocoding` + `open-meteo`).
+Open **`README.md`** in the demo folder and follow **Quick start**:
+
+- **No API token:** `npm run start`, enable **`open-meteo-geocoding`** + **`open-meteo`**, then ask for tomorrow's weather in a city (see demos README).
+- **With a personal PAT:** set **`GITHUB_TOKEN`** in **`.env.local`** (from `.env.example`), enable **`github`**, then ask for your GitHub profile or repos.
 
 No repository checkout required.
 
@@ -41,10 +44,10 @@ No repository checkout required.
 
 The video shows:
 
-- editing a `.api2ai` file
-- automatically generating the MCP tool and server on save
-- enabling the generated MCP server in Cursor
-- using the generated tool from an AI agent
+- editing **`github.api2ai`** and generating MCP tools on save
+- enabling the **`github`** MCP server in Cursor
+- calling a tool with a PAT from **`.env.local`**
+- for a no-token first run: **`open-meteo`** / **`open-meteo-geocoding`** (Quick start in the demo README)
 
 ---
 
