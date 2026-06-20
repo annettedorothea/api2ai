@@ -25,7 +25,7 @@ Command Palette: **Generate tool code (.ts + MCP host)** for manual generation o
 
 ## License
 
-BUSL-1.1 — Copyright (c) 2026 Annette Pohl. Full license text is in the VSIX (`LICENSE`).
+MIT — Copyright (c) 2026 Annette Pohl. Full license text is in the VSIX (`LICENSE`).
 
 ---
 
