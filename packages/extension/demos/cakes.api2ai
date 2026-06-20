@@ -10,21 +10,30 @@ GET "/cakes" {
     toolName: searchCakes
     access: protected
     intent: '''
-        Search cake and torte recipes by keyword (query q).
-        Matches title and keywords such as Erdbeer, Hefeteig, Rührteig, Schwarzwälder Kirschtorte.
-        Empty q returns all cakes. Requires Bearer JWT validated by the upstream API.
+        Search cake recipes by optional query q (title and keywords). Empty q returns all cakes.
     '''
     summary: "Search cake recipes by keyword"
     example: "Search cakes with Erdbeer"
+    response: '''
+        HTTP 200 — top-level query, count, cakes array. Each cake: id, title, keywords, prepMinutes, servings.
+        Use cakes[].id for getCake (e.g. schwarzwaelder-kirschtorte).
+        Documented errors:
+        HTTP 401 — Missing or invalid token
+    '''
 }
 
 GET "/cakes/{cakeId}" {
     toolName: getCake
     access: protected
     intent: '''
-        Fetch one cake recipe by id (path cakeId), including ingredients and prep time.
-        Requires Bearer JWT validated by the upstream API.
+        Fetch one cake recipe by path cakeId (from searchCakes).
     '''
     summary: "Get cake recipe by id"
     example: "Get Schwarzwälder Kirschtorte recipe"
+    response: '''
+        HTTP 200 — top-level property cake (id, title, keywords, prepMinutes, servings, ingredients).
+        Documented errors:
+        HTTP 401 — Missing or invalid token
+        HTTP 404 — Unknown cake id
+    '''
 }

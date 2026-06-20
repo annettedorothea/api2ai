@@ -12,23 +12,31 @@ GET "/accounts/{customerId}" {
         optionalParams: [customerId]
     }
     intent: '''
-        List bank accounts for the authenticated customer (opaque API Bearer token).
-        Path customerId is optional: when empty or omitted, filled from exchanged token claim customerId.
-        Role user: path customerId must match token claim; role admin may list any customerId.
-        Returns accountId, type, iban, balance, and currency per account.
+        List bank accounts for the authenticated customer. Omitted customerId is filled from the token claim.
     '''
     summary: "List customer bank accounts"
     example: "List my bank accounts"
+    response: '''
+        HTTP 200 — top-level customerId, role, accounts array. Each account: accountId, type, iban, balance, currency.
+        Use accounts[].accountId for listTransactions (e.g. acc-alice-checking).
+        Documented errors:
+        HTTP 401 — Missing or invalid token
+        Parameter check: role=user rejects customerId that does not match the token claim (before upstream call).
+    '''
 }
 
 GET "/accounts/{accountId}/transactions" {
     toolName: listTransactions
     access: protected
     intent: '''
-        List transactions for one bank account by accountId (path accountId).
-        Requires opaque API Bearer token from credential transform — IdP JWT is rejected by upstream.
-        Returns transactionId, date, description, amount, and currency per entry.
+        List transactions for one account. Requires opaque API Bearer token (IdP JWT is rejected upstream).
     '''
     summary: "List account transactions"
     example: "Show transactions for acc-alice-checking"
+    response: '''
+        HTTP 200 — top-level accountId, customerId, transactions array. Each: transactionId, date, description, amount, currency.
+        Documented errors:
+        HTTP 401 — Missing or invalid token
+        HTTP 404 — Account not found
+    '''
 }

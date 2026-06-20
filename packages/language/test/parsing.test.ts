@@ -82,6 +82,27 @@ describe('Parsing tests', () => {
         expect(op.description).toBe('');
     });
 
+    test('parses response and body on operation', async () => {
+        document = await parse(`
+            openapi "./langium-test-mini.openapi.yaml"
+            POST "/pet" {
+                toolName: addPet
+                access: public
+                intent: "add pet"
+                body: '''
+                    Required: name, photoUrls.
+                    Optional: status.
+                '''
+                response: "Returns created pet with id"
+            }
+        `);
+
+        expect(document.parseResult.parserErrors).toHaveLength(0);
+        const op = document.parseResult.value.operations[0];
+        expect(op.response).toContain('created pet');
+        expect(op.body).toContain('photoUrls');
+    });
+
     test('rejects legacy `title:` field that has been removed from the DSL', async () => {
         document = await parse(`
             openapi "./langium-test-mini.openapi.yaml"

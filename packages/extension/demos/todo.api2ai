@@ -10,76 +10,120 @@ GET "/categories" {
     toolName: listCategories
     access: checked
     intent: '''
-        - List all todo categories (id, name, color).
-        - Requires API key on the upstream API (passed from MCP as x-api-token → x-api-key).
+        List todo categories. Requires API key (MCP x-api-token → x-api-key).
     '''
     summary: "List todo categories"
     example: "List todo categories"
+    response: '''
+        HTTP 200 — top-level categories array. Each category: id, name, color (ids: work, home, errands).
+        Documented errors:
+        HTTP 401 — Missing or invalid API key
+    '''
 }
 
 GET "/todos" {
     toolName: listTodos
     access: checked
     intent: '''
-        - List todos; optional query status (open|done) and categoryId.
-        - Returns todos array with id, title, status, categoryId, dueDate.
+        List todos; optional filter by status (open|done) or categoryId.
     '''
     summary: "List todos"
     example: "List open todos"
+    response: '''
+        HTTP 200 — top-level todos array. Each todo: id, title, status (open|done), categoryId, dueDate.
+        Documented errors:
+        HTTP 401 — Missing or invalid API key
+    '''
 }
 
 GET "/categories/{categoryId}/todos" {
     toolName: listTodosByCategory
     access: checked
     intent: '''
-        - List todos for one category (path categoryId, e.g. work, home, errands).
-        - Optional query status: open or done.
-        - Returns categoryId and todos array; HTTP 404 if categoryId is unknown.
+        List todos in one category. Optional query status: open or done.
     '''
     summary: "List todos by category"
     example: "List open todos in category work"
+    response: '''
+        HTTP 200 — top-level categoryId and todos array (same todo shape as listTodos).
+        Documented errors:
+        HTTP 401 — Missing or invalid API key
+        HTTP 404 — Unknown category (invalid categoryId)
+    '''
 }
 
 GET "/todos/{todoId}" {
     toolName: getTodo
     access: checked
     intent: '''
-        - Fetch a single todo by id (path todoId).
-        - Returns todo object or HTTP 404 when unknown.
+        Fetch one todo by path todoId (e.g. t-1).
     '''
     summary: "Get todo by id"
     example: "Get todo t-1"
+    response: '''
+        HTTP 200 — top-level property todo (id, title, status, categoryId, dueDate).
+        Documented errors:
+        HTTP 401 — Missing or invalid API key
+        HTTP 404 — Todo not found
+    '''
 }
 
 POST "/todos" {
     toolName: createTodo
     access: checked
     intent: '''
-        - Create a todo (body: title, categoryId required; optional status open|done, dueDate).
-        - Returns created todo with generated id; HTTP 404 if categoryId is unknown.
+        Create a todo. Use response todo.id for updateTodo or deleteTodo.
     '''
     summary: "Create todo"
     example: "Create todo Buy milk in errands"
+    body: '''
+        JSON object. Required: title (string), categoryId (work, home, or errands).
+        Optional: status (open|done), dueDate (ISO date YYYY-MM-DD).
+        Do not send id — server assigns it (e.g. t-5).
+    '''
+    response: '''
+        HTTP 201 — top-level property todo with generated id (use todo.id next).
+        Documented errors:
+        HTTP 400 — Invalid input
+        HTTP 401 — Missing or invalid API key
+        HTTP 404 — Unknown categoryId
+    '''
 }
 
 PATCH "/todos/{todoId}" {
     toolName: updateTodo
     access: checked
     intent: '''
-        - Update a todo by id (path todoId; body fields title, status, categoryId, dueDate all optional).
-        - Returns updated todo; HTTP 404 when todo or categoryId is unknown.
+        Update a todo by path todoId (from createTodo or listTodos).
     '''
     summary: "Update todo"
     example: "Mark todo t-1 as done"
+    body: '''
+        JSON object; send only fields to change (all optional): title, status (open|done),
+        categoryId (work, home, errands), dueDate (ISO date YYYY-MM-DD).
+        At least one field required. Do not send id in body.
+    '''
+    response: '''
+        HTTP 200 — top-level property todo with updated fields.
+        Documented errors:
+        HTTP 400 — Invalid input
+        HTTP 401 — Missing or invalid API key
+        HTTP 404 — Todo or category not found
+    '''
 }
 
 DELETE "/todos/{todoId}" {
     toolName: deleteTodo
     access: checked
     intent: '''
-        - Delete a todo by id (path todoId).
-        - Returns todoId and deleted true; HTTP 404 when unknown.
+        Delete a todo by path todoId.
     '''
     summary: "Delete todo"
     example: "Delete todo t-2"
+    response: '''
+        HTTP 200 — top-level todoId and deleted: true.
+        Documented errors:
+        HTTP 401 — Missing or invalid API key
+        HTTP 404 — Todo not found
+    '''
 }

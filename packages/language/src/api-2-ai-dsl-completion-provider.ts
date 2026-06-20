@@ -20,6 +20,9 @@ const CANONICAL_KEYWORD_SORT: Record<string, string> = {
     summary: '0203',
     description: '0204',
     example: '0205',
+    params: '0206',
+    body: '0207',
+    response: '0208',
     optionalParams: '0300',
     public: '0210',
     protected: '0211',
@@ -44,7 +47,10 @@ const OPERATION_KEYWORD_INSERT: Record<string, string> = {
     intent: 'intent: "$1"$0',
     summary: 'summary: "$1"$0',
     description: 'description: "$1"$0',
-    example: 'example: "$1"$0'
+    example: 'example: "$1"$0',
+    params: 'params: {\n    page: {\n        description: "$1"\n        optional: false\n    }\n}$0',
+    body: 'body: "$1"$0',
+    response: 'response: "$1"$0'
 };
 
 function debugCompletion(message: string, data?: unknown): void {

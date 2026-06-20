@@ -20,6 +20,8 @@ Operation:
         ('summary' ':' summary=DslText)?
         ('description' ':' description=DslText)?
         ('example' ':' example=DslText)?
+        ('body' ':' body=DslText)?
+        ('response' ':' response=DslText)?
     '}';
 
 Access:

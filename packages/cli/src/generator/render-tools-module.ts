@@ -94,7 +94,7 @@ function buildSchemasFromLoaded(model: Model, loaded: LoadedOpenApi): Record<str
         if (!details) {
             continue;
         }
-        out[requireToolName(operation)] = buildToolInputSchema(details, getOptionalParams(operation));
+        out[requireToolName(operation)] = buildToolInputSchema(details, getOptionalParams(operation), operation);
     }
     return out;
 }

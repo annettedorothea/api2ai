@@ -406,6 +406,22 @@ export function getUnknownOptionalParamWarnings(
     return warnings;
 }
 
+/** DSL `body` text when OpenAPI operation has no requestBody. */
+export function getDslBodyWithoutOpenApiRequestBodyWarning(
+    dslBody: string | undefined,
+    openApiOperation: OpenApiOperationDetails,
+    method: string,
+    routePath: string
+): string | undefined {
+    if (dslBody === undefined || dslBody.trim().length === 0) {
+        return undefined;
+    }
+    if (openApiOperation.requestBody) {
+        return undefined;
+    }
+    return `Operation ${method} ${routePath}: DSL \`body\` is set but OpenAPI has no requestBody for this operation (description appears in MCP tool text only).`;
+}
+
 /** Cookie parameters are not emitted into generated invoke/schema; fail validation so users do not rely on silent omission. */
 export function getCookieParameterMessages(operation: OpenApiOperationDetails): string[] {
     const cookies = operation.parameters.filter((p) => p.in === 'cookie');

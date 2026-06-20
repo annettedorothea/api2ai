@@ -6,6 +6,7 @@ import type { Api2AiDslServices } from './api-2-ai-dsl-module.js';
 import { accessRequiresAuth, getOptionalParams } from './operation-access.js';
 import {
     getCookieParameterMessages,
+    getDslBodyWithoutOpenApiRequestBodyWarning,
     getUnknownOptionalParamWarnings,
     getUnsupportedSerializationMessages,
     loadOpenApi,
@@ -190,6 +191,19 @@ export class Api2AiDslValidator {
                     node: body ?? operation.access,
                     property: 'optionalParams',
                     index: warning.index
+                });
+            }
+
+            const bodyWarning = getDslBodyWithoutOpenApiRequestBodyWarning(
+                operation.body,
+                openApiOperation,
+                operation.method,
+                operation.path
+            );
+            if (bodyWarning) {
+                accept('warning', bodyWarning, {
+                    node: operation,
+                    property: 'body'
                 });
             }
         });

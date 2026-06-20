@@ -318,6 +318,23 @@ describe('Validating', () => {
         expect(diagnostics[0]?.message).not.toContain('"petId"');
     });
 
+    test('warns when DSL body is set but OpenAPI has no requestBody', async () => {
+        document = await parseValidated(`
+            openapi "./langium-test-mini.openapi.yaml"
+            GET "/pet/{petId}" {
+                toolName: getPetById
+                access: public
+                intent: "get one pet"
+                body: "This operation has no body in OpenAPI."
+            }
+        `);
+
+        const diagnostics = document.diagnostics ?? [];
+        expect(diagnostics).toHaveLength(1);
+        expect(diagnostics[0]?.severity).toBe(2);
+        expect(diagnostics[0]?.message).toContain('DSL `body` is set but OpenAPI has no requestBody');
+    });
+
     test('validates extension bookings-api demo without diagnostics', async () => {
         const demoPath = path.resolve(process.cwd(), '../extension/demos/bookings-api.api2ai');
         const content = await import('node:fs').then((fs) => fs.readFileSync(demoPath, 'utf8'));

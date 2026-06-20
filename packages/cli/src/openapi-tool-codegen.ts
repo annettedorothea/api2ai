@@ -56,6 +56,19 @@ function effectiveLongDescription(operation: Operation, details: OpenApiOperatio
     return pickEffectiveText(operation.description, details.description);
 }
 
+function effectiveRequestBodyDescription(operation: Operation, details: OpenApiOperationDetails): string | undefined {
+    return pickEffectiveText(operation.body, details.requestBody?.description);
+}
+
+/** DSL `response` replaces OpenAPI block when set; empty string suppresses the section. */
+export function effectiveResponse(operation: Operation, details: OpenApiOperationDetails): string | undefined {
+    if (operation.response !== undefined) {
+        const trimmed = operation.response.trim();
+        return trimmed.length > 0 ? trimmed : undefined;
+    }
+    return buildResponseSection(details);
+}
+
 function parseStatusCodeNumeric(statusCode: string): number | undefined {
     if (statusCode === 'default') {
         return undefined;
@@ -219,16 +232,19 @@ export function buildMcpDescription(
         sections.push(`Meta:\n${metaParts.join(' | ')}`);
     }
 
-    const rb = details.requestBody;
-    if (rb && isTruthyString(rb.description)) {
-        sections.push(`Request body:\n${rb.description!.trim()}`);
+    const requestBodyText = effectiveRequestBodyDescription(operation, details);
+    if (requestBodyText) {
+        sections.push(`Request body:\n${requestBodyText}`);
     }
 
     if (operation.example !== undefined && operation.example.trim().length > 0) {
         sections.push(`Example:\n${operation.example.trim()}`);
     }
 
-    sections.push(`Response:\n${buildResponseSection(details)}`);
+    const responseText = effectiveResponse(operation, details);
+    if (responseText) {
+        sections.push(`Response:\n${responseText}`);
+    }
 
     if (getAccessKind(operation) === 'public') {
         sections.push('Runtime: public endpoint — no Authorization header or MCP credential required.');
@@ -542,7 +558,8 @@ function parametersByLocation(parameters: OpenApiParameterDetails[]): {
 /** Outer MCP tool input: pathParams | query | headers | body buckets. */
 export function buildToolInputSchema(
     details: OpenApiOperationDetails,
-    optionalParams?: readonly string[]
+    optionalParams?: readonly string[],
+    operation?: Operation
 ): JsonSchemaDict {
     const { path, query, headers } = parametersByLocation(details.parameters);
     const optional = new Set((optionalParams ?? []).map((p) => p.trim()).filter((p) => p.length > 0));
@@ -591,16 +608,22 @@ export function buildToolInputSchema(
         };
     }
 
+    const bodyDescription = operation
+        ? effectiveRequestBodyDescription(operation, details)
+        : pickEffectiveText(undefined, details.requestBody?.description);
     const bodyDetails = details.requestBody;
     if (bodyDetails?.schema) {
         rootProps.body = openApiSchemaToJsonSchema(bodyDetails.schema);
+        if (bodyDescription) {
+            rootProps.body = { ...rootProps.body, description: bodyDescription };
+        }
         if (bodyDetails.required) {
             rootRequired.push('body');
         }
     } else {
         rootProps.body = {
             type: 'object',
-            description: 'Request body JSON if applicable.',
+            description: bodyDescription ?? 'Request body JSON if applicable.',
             additionalProperties: true
         };
     }
