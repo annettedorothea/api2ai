@@ -2,9 +2,9 @@
  * Generated from: bookings-api.api2ai
  * Referenced OpenAPI: ./openapi/bookings-api.openapi.yaml
  */
-import { loggingAdapter } from '../../src/utils/logging-adapter.js';
-import { verifyCredential } from '../../src/auth/bookings-api-tools/verifyCredential.js';
-import { checkListBookingsParameters } from '../../src/auth/bookings-api-tools/listBookings.js';
+import { loggingAdapter } from '../../../src/utils/logging-adapter.js';
+import { verifyCredential } from '../../../src/auth/api2ai/bookings-api-tools/verifyCredential.js';
+import { checkListBookingsParameters } from '../../../src/auth/api2ai/bookings-api-tools/listBookings.js';
 
 export type GeneratedTool = {
     toolName: string;
@@ -31,7 +31,7 @@ export const generatedTools: GeneratedTool[] = [
         toolName: 'listBookings',
         title: 'List customer vacation rental bookings',
         description:
-            'Intent:\nList bookings for the authenticated customer (Bearer JWT).\n        Path customerId is optional: when empty or omitted, filled from JWT claim customerId.\n        Role user: path customerId must match JWT; role admin may list any customerId.\n        Returns bookingId, unitId, checkIn, checkOut for each stay.\n\nAPI:\nRequires Bearer JWT; role=user path customerId must match JWT claim; admin may read any customer.\n\nMeta:\noperationId: list-customer-bookings\n\nExample:\nList my bookings\n\nResponse:\nHTTP 200\nBooking list\nproperties (top-level): bookings, customerId\nDocumented errors:\nHTTP 401 — Missing or invalid token\nHTTP 403 — Token customerId does not match path\n\nRuntime: checked — implement checkListBookingsParameters in src/auth/bookings-api-tools/listBookings.ts (types from this tools module; run build:generated for .js); credential sent as header "Authorization" (prefix applied to the secret).',
+            'Intent:\nList bookings for the authenticated customer (Bearer JWT).\n        Path customerId is optional: when empty or omitted, filled from JWT claim customerId.\n        Role user: path customerId must match JWT; role admin may list any customerId.\n        Returns bookingId, unitId, checkIn, checkOut for each stay.\n\nAPI:\nRequires Bearer JWT; role=user path customerId must match JWT claim; admin may read any customer.\n\nMeta:\noperationId: list-customer-bookings\n\nExample:\nList my bookings\n\nResponse:\nHTTP 200\nBooking list\nproperties (top-level): bookings, customerId\nDocumented errors:\nHTTP 401 — Missing or invalid token\nHTTP 403 — Token customerId does not match path\n\nRuntime: checked — implement checkListBookingsParameters in src/auth/api2ai/bookings-api-tools/listBookings.ts (types from this tools module; run build:generated for .js); credential sent as header "Authorization" (prefix applied to the secret).',
         method: 'GET',
         path: '/bookings/{customerId}',
         example: 'List my bookings',
@@ -71,11 +71,11 @@ export const authConfig: AuthConfig | undefined = {
     prefix: 'Bearer '
 };
 
-export { verifyCredential } from '../../src/auth/bookings-api-tools/verifyCredential.js';
+export { verifyCredential } from '../../../src/auth/api2ai/bookings-api-tools/verifyCredential.js';
 export type {
     VerifyCredentialInput,
     VerifyCredentialResult
-} from '../../src/auth/bookings-api-tools/verifyCredential.js';
+} from '../../../src/auth/api2ai/bookings-api-tools/verifyCredential.js';
 
 export const mcpServerName = 'bookings-api-tools';
 export const mcpServerVersion = '0.3.0';

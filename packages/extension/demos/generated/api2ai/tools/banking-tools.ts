@@ -2,9 +2,9 @@
  * Generated from: banking.api2ai
  * Referenced OpenAPI: ./openapi/banking-api.openapi.yaml
  */
-import { loggingAdapter } from '../../src/utils/logging-adapter.js';
-import { verifyCredential } from '../../src/auth/banking-tools/verifyCredential.js';
-import { checkListAccountsParameters } from '../../src/auth/banking-tools/listAccounts.js';
+import { loggingAdapter } from '../../../src/utils/logging-adapter.js';
+import { verifyCredential } from '../../../src/auth/api2ai/banking-tools/verifyCredential.js';
+import { checkListAccountsParameters } from '../../../src/auth/api2ai/banking-tools/listAccounts.js';
 
 export type GeneratedTool = {
     toolName: string;
@@ -21,7 +21,7 @@ export const generatedTools: GeneratedTool[] = [
         toolName: 'listAccounts',
         title: 'List customer bank accounts',
         description:
-            'Intent:\nList bank accounts for the authenticated customer (opaque API Bearer token).\n        Path customerId is optional: when empty or omitted, filled from exchanged token claim customerId.\n        Role user: path customerId must match token claim; role admin may list any customerId.\n        Returns accountId, type, iban, balance, and currency per account.\n\nAPI:\nRequires opaque API Bearer token. Role=user path customerId must match token claim; admin may read any customer.\n\nMeta:\noperationId: list-customer-accounts\n\nExample:\nList my bank accounts\n\nResponse:\nHTTP 200\nAccount list\nproperties (top-level): accounts, customerId, role\nDocumented errors:\nHTTP 401 — Missing or invalid token\n\nRuntime: checked — implement checkListAccountsParameters in src/auth/banking-tools/listAccounts.ts (types from this tools module; run build:generated for .js); credential sent as header "Authorization" (prefix applied to the secret).',
+            'Intent:\nList bank accounts for the authenticated customer (opaque API Bearer token).\n        Path customerId is optional: when empty or omitted, filled from exchanged token claim customerId.\n        Role user: path customerId must match token claim; role admin may list any customerId.\n        Returns accountId, type, iban, balance, and currency per account.\n\nAPI:\nRequires opaque API Bearer token. Role=user path customerId must match token claim; admin may read any customer.\n\nMeta:\noperationId: list-customer-accounts\n\nExample:\nList my bank accounts\n\nResponse:\nHTTP 200\nAccount list\nproperties (top-level): accounts, customerId, role\nDocumented errors:\nHTTP 401 — Missing or invalid token\n\nRuntime: checked — implement checkListAccountsParameters in src/auth/api2ai/banking-tools/listAccounts.ts (types from this tools module; run build:generated for .js); credential sent as header "Authorization" (prefix applied to the secret).',
         method: 'GET',
         path: '/accounts/{customerId}',
         example: 'List my bank accounts',
@@ -71,8 +71,11 @@ export const authConfig: AuthConfig | undefined = {
     prefix: 'Bearer '
 };
 
-export { verifyCredential } from '../../src/auth/banking-tools/verifyCredential.js';
-export type { VerifyCredentialInput, VerifyCredentialResult } from '../../src/auth/banking-tools/verifyCredential.js';
+export { verifyCredential } from '../../../src/auth/api2ai/banking-tools/verifyCredential.js';
+export type {
+    VerifyCredentialInput,
+    VerifyCredentialResult
+} from '../../../src/auth/api2ai/banking-tools/verifyCredential.js';
 
 export const mcpServerName = 'banking-tools';
 export const mcpServerVersion = '0.3.0';

@@ -55,7 +55,7 @@ One MCP server per row — names match `.cursor/mcp.json`.
 | `cakes`                | cakes                | HTTP (oauth)       | 3874 | `npm run start`; Cursor Sign-in       |
 | `banking-oauth`        | banking              | HTTP (oauth)       | 3876 | `npm run start`; enterprise IdP flow  |
 
-Protected/checked tools: implement `src/auth/<module>/verifyCredential.ts` (write-once stub from generate).
+Protected/checked tools: implement `src/auth/api2ai/<module>/verifyCredential.ts` (write-once stub from generate).
 
 ## Scripts
 

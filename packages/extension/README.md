@@ -19,7 +19,7 @@ Language support and code generation for the **`.api2ai` DSL** (OpenAPI → MCP 
 
 ## Your own `.api2ai` projects
 
-Open any folder with `.api2ai` files. On **save**, the extension generates `generated/tools/*.ts` and compiles MCP hosts (run **`npm install`** once for TypeScript). Base URLs and API tokens belong in `.cursor/mcp.json` / env, not in the DSL.
+Open any folder with `.api2ai` files. On **save**, the extension generates `generated/api2ai/tools/*.ts` and compiles MCP hosts (run **`npm install`** once for TypeScript). Base URLs and API tokens belong in `.cursor/mcp.json` / env, not in the DSL.
 
 Command Palette: **Generate tool code (.ts + MCP host)** for manual generation of the focused file.
 

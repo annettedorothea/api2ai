@@ -2,8 +2,8 @@
  * Generated from: cakes.api2ai
  * Referenced OpenAPI: ./openapi/cakes-api.openapi.yaml
  */
-import { loggingAdapter } from '../../src/utils/logging-adapter.js';
-import { verifyCredential } from '../../src/auth/cakes-tools/verifyCredential.js';
+import { loggingAdapter } from '../../../src/utils/logging-adapter.js';
+import { verifyCredential } from '../../../src/auth/api2ai/cakes-tools/verifyCredential.js';
 
 export type GeneratedTool = {
     toolName: string;
@@ -70,8 +70,11 @@ export const authConfig: AuthConfig | undefined = {
     prefix: 'Bearer '
 };
 
-export { verifyCredential } from '../../src/auth/cakes-tools/verifyCredential.js';
-export type { VerifyCredentialInput, VerifyCredentialResult } from '../../src/auth/cakes-tools/verifyCredential.js';
+export { verifyCredential } from '../../../src/auth/api2ai/cakes-tools/verifyCredential.js';
+export type {
+    VerifyCredentialInput,
+    VerifyCredentialResult
+} from '../../../src/auth/api2ai/cakes-tools/verifyCredential.js';
 
 export const mcpServerName = 'cakes-tools';
 export const mcpServerVersion = '0.3.0';

@@ -2,7 +2,7 @@
  * Generated from: spaceflight-news.api2ai
  * Referenced OpenAPI: ./openapi/spaceflight-news.openapi.yaml
  */
-import { loggingAdapter } from '../../src/utils/logging-adapter.js';
+import { loggingAdapter } from '../../../src/utils/logging-adapter.js';
 
 export type GeneratedTool = {
     toolName: string;

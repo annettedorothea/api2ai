@@ -2,7 +2,7 @@
  * Generated from: open-meteo-geocoding.api2ai
  * Referenced OpenAPI: ./openapi/open-meteo-geocoding.openapi.yaml
  */
-import { loggingAdapter } from '../../src/utils/logging-adapter.js';
+import { loggingAdapter } from '../../../src/utils/logging-adapter.js';
 
 export type GeneratedTool = {
     toolName: string;

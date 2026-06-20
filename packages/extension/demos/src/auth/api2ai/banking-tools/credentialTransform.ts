@@ -2,7 +2,7 @@
  * Wired via --credential-transform-module pointing at this file's compiled .js sibling.
  */
 import { decodeJwt } from 'jose';
-import { loggingAdapter } from '../../utils/logging-adapter.js';
+import { loggingAdapter } from '../../../utils/logging-adapter.js';
 
 export type CredentialTransformInput = {
     inboundCredential: string;

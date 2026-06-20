@@ -4,8 +4,10 @@ import { getAccessKind, getOptionalParams, loadOpenApi, makeOperationLookupKey }
 import {
     buildInputZodBlock,
     ensureVerifyCredentialStubFromSource,
+    relativeImportToLoggingAdapter,
     renderVerifyCredentialImport,
     renderVerifyCredentialReExport,
+    resolveBootstrapProjectRootFromSource,
     resolveMcpServerIdentityFromDestination,
     type ProjectBootstrapConfig
 } from '@core2ai/core/codegen';
@@ -58,7 +60,12 @@ async function loadOpenApiForModel(model: Model, sourcePath: string): Promise<Lo
     return loadOpenApi(model.openapi, baseDir);
 }
 
-function resolveToolsFromLoaded(model: Model, loaded: LoadedOpenApi, mcpModuleName: string): ResolvedToolCodegen[] {
+function resolveToolsFromLoaded(
+    model: Model,
+    loaded: LoadedOpenApi,
+    mcpModuleName: string,
+    hostProduct: NonNullable<ProjectBootstrapConfig['hostProduct']>
+): ResolvedToolCodegen[] {
     return model.operations.map((operation) => {
         const key = makeOperationLookupKey(operation.method, operation.path);
         const details = loaded.operations.get(key);
@@ -70,7 +77,7 @@ function resolveToolsFromLoaded(model: Model, loaded: LoadedOpenApi, mcpModuleNa
         return {
             toolName: requireToolName(operation),
             title: buildMcpTitle(operation, details),
-            description: buildMcpDescription(operation, details, model.auth, mcpModuleName),
+            description: buildMcpDescription(operation, details, model.auth, mcpModuleName, hostProduct),
             method: operation.method,
             path: operation.path,
             example: operation.example,
@@ -142,8 +149,14 @@ function authRuntimeKind(model: Model): 'none' | 'credential' {
     return model.auth ? 'credential' : 'none';
 }
 
-function renderGeneratedImports(parameterCheckerImports: string, verifyCredentialImport: string): string {
-    const loggingImport = "import { loggingAdapter } from '../../src/utils/logging-adapter.js';";
+function renderGeneratedImports(
+    destinationTsPath: string,
+    projectRoot: string,
+    parameterCheckerImports: string,
+    verifyCredentialImport: string
+): string {
+    const loggingSpec = relativeImportToLoggingAdapter(destinationTsPath, projectRoot);
+    const loggingImport = `import { loggingAdapter } from '${loggingSpec}';`;
     const parts = [loggingImport];
     if (verifyCredentialImport.length > 0) {
         parts.push(verifyCredentialImport);
@@ -201,6 +214,7 @@ function assembleToolsModuleSource(
     model: Model,
     source: string,
     destinationTsPath: string,
+    projectRoot: string,
     parameterCheckerImports: string,
     verifyStubPath: string | undefined
 ): string {
@@ -223,6 +237,8 @@ export const authConfig: undefined = undefined;`;
         verifyStubPath !== undefined ? `\n${renderVerifyCredentialReExport(destinationTsPath, verifyStubPath)}\n` : '';
 
     const importPrefix = renderGeneratedImports(
+        destinationTsPath,
+        projectRoot,
         parameterCheckerImports,
         verifyStubPath !== undefined ? renderVerifyCredentialImport(destinationTsPath, verifyStubPath) : ''
     );
@@ -272,12 +288,16 @@ ${toolRuntimeBlock}
     return toString(fileNode);
 }
 
-/** Renders `generated/tools/*-tools.ts` source text. */
+/** Renders `generated/{product}/tools/*-tools.ts` source text. */
 export async function renderToolsModule(input: RenderToolsModuleInput): Promise<string> {
     const { model, source, destinationTsPath, stubPaths, bootstrapConfig } = input;
     const loaded = await loadOpenApiForModel(model, source);
     const mcpModuleName = path.parse(destinationTsPath).name;
-    const toolsMeta = resolveToolsFromLoaded(model, loaded, mcpModuleName);
+    if (!bootstrapConfig.hostProduct) {
+        throw new Error('Codegen: bootstrapConfig.hostProduct is required (api2ai or db2ai).');
+    }
+    const hostProduct = bootstrapConfig.hostProduct;
+    const toolsMeta = resolveToolsFromLoaded(model, loaded, mcpModuleName, hostProduct);
     const schemas = buildSchemasFromLoaded(model, loaded);
     const querySerialization = buildQuerySerializationFromLoaded(model, loaded);
     const { toolsLiteral, orderedSchemas, querySerializationLiteral } = mergeParallelToolData(
@@ -303,6 +323,7 @@ export async function renderToolsModule(input: RenderToolsModuleInput): Promise<
     const verifyStubPath = modelRequiresAuth(model)
         ? await ensureVerifyCredentialStubFromSource(source, destinationTsPath)
         : undefined;
+    const projectRoot = resolveBootstrapProjectRootFromSource(source);
 
     return assembleToolsModuleSource(
         toolsLiteral,
@@ -311,6 +332,7 @@ export async function renderToolsModule(input: RenderToolsModuleInput): Promise<
         model,
         source,
         destinationTsPath,
+        projectRoot,
         parameterCheckerImports,
         verifyStubPath
     );

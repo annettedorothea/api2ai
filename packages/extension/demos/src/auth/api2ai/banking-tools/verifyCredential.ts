@@ -1,5 +1,5 @@
 import { decodeJwt } from 'jose';
-import { loggingAdapter } from '../../utils/logging-adapter.js';
+import { loggingAdapter } from '../../../utils/logging-adapter.js';
 
 export type VerifyCredentialInput = {
     inboundCredential: string;

@@ -195,8 +195,9 @@ function buildResponseSection(details: OpenApiOperationDetails): string {
 export function buildMcpDescription(
     operation: Operation,
     details: OpenApiOperationDetails,
-    auth?: Auth,
-    mcpModuleName?: string
+    auth: Auth | undefined,
+    mcpModuleName: string | undefined,
+    hostProduct: 'api2ai' | 'db2ai'
 ): string {
     const sections: string[] = [];
 
@@ -235,7 +236,7 @@ export function buildMcpDescription(
         const prefixNote =
             auth.prefix !== undefined && String(auth.prefix).trim().length > 0 ? ' (prefix applied to the secret)' : '';
         sections.push(
-            `Runtime: checked — implement check${operation.toolName?.trim() ? operation.toolName.trim().charAt(0).toUpperCase() + operation.toolName.trim().slice(1) : 'Tool'}Parameters in src/auth/${mcpModuleName ?? 'mcp'}/${operation.toolName?.trim() ?? 'tool'}.ts (types from this tools module; run build:generated for .js); credential sent as ${auth.location} "${auth.name}"${prefixNote}.`
+            `Runtime: checked — implement check${operation.toolName?.trim() ? operation.toolName.trim().charAt(0).toUpperCase() + operation.toolName.trim().slice(1) : 'Tool'}Parameters in src/auth/${hostProduct}/${mcpModuleName ?? 'mcp'}/${operation.toolName?.trim() ?? 'tool'}.ts (types from this tools module; run build:generated for .js); credential sent as ${auth.location} "${auth.name}"${prefixNote}.`
         );
     } else if (auth) {
         const prefixNote =

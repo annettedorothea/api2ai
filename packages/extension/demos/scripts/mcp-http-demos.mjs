@@ -2,7 +2,13 @@
  * Relay HTTP MCP demo hosts (api2ai) — keys match .cursor/mcp.json server names.
  */
 import path from 'node:path';
+import { readFileSync } from 'node:fs';
 import { requireEnv, requireEnvInt } from './generated/require-env.mjs';
+
+function loadProductName(demosRoot) {
+    const config = JSON.parse(readFileSync(path.join(demosRoot, 'project-generate.config.json'), 'utf-8'));
+    return config.productName;
+}
 
 export const HTTP_DEMOS = {
     'spaceflight-news': {
@@ -50,8 +56,9 @@ export function buildHostLaunch(name, demosRoot, env) {
     }
     requireEnv(demo.baseUrlEnv, env);
     const port = requireEnvInt(demo.portEnv, env);
-    const hostJs = path.join(demosRoot, 'generated/cli', demo.host);
-    const toolsJs = path.join(demosRoot, 'generated/tools', demo.tools);
+    const product = loadProductName(demosRoot);
+    const hostJs = path.join(demosRoot, 'generated', product, 'cli', demo.host);
+    const toolsJs = path.join(demosRoot, 'generated', product, 'tools', demo.tools);
     const args = [
         hostJs,
         toolsJs,

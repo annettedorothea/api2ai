@@ -1,5 +1,6 @@
 import type { Model } from 'api-2-ai-dsl-language';
 import {
+    assertGeneratedToolsDestinationMatchesHostProduct,
     ensureLoggingAdapterStubFromSource,
     ensureParentDir,
     resolveBootstrapProjectRootFromSource,
@@ -56,7 +57,7 @@ function createBootstrapConfig(): ProjectBootstrapConfig {
             return path.resolve(dir, '..', '..');
         },
         missingDepsMessage(pjsonPath, missing) {
-            return `[generate] "${pjsonPath}": install MCP runtime dependencies: ${missing.join(', ')} (npm install), then generated/cli/stdio-mcp-server.js can run.`;
+            return `[generate] "${pjsonPath}": install MCP runtime dependencies: ${missing.join(', ')} (npm install), then generated/api2ai/cli/stdio-mcp-server.js can run.`;
         }
     };
 }
@@ -66,6 +67,11 @@ export async function generateOutput(model: Model, source: string, destination: 
     const bootstrapConfig = createBootstrapConfig();
     const parsed = path.parse(destination);
     const tsPath = parsed.ext === '.ts' ? destination : path.join(parsed.dir, `${parsed.name}.ts`);
+    const hostProduct = bootstrapConfig.hostProduct;
+    if (!hostProduct) {
+        throw new Error('Codegen: bootstrapConfig.hostProduct is required (api2ai or db2ai).');
+    }
+    assertGeneratedToolsDestinationMatchesHostProduct(tsPath, hostProduct);
 
     const stubPaths = await renderCheckStubs(source, model, tsPath);
     const toolsModuleSource = await renderToolsModule({
@@ -77,11 +83,11 @@ export async function generateOutput(model: Model, source: string, destination: 
     });
     fs.writeFileSync(tsPath, toolsModuleSource);
 
-    const cliDir = resolveGeneratedCliDir(tsPath);
-    const stdioMcpHostPath = renderStdioMcpHost(cliDir, bootstrapConfig);
-    const relayHttpMcpHostPaths = renderRelayHttpMcpHosts(cliDir, bootstrapConfig);
-    const oauthHttpMcpHostPath = renderOAuthHttpMcpHost(cliDir, bootstrapConfig);
     const projectRoot = resolveBootstrapProjectRootFromSource(source);
+    const cliDir = resolveGeneratedCliDir(tsPath);
+    const stdioMcpHostPath = renderStdioMcpHost(cliDir, bootstrapConfig, projectRoot);
+    const relayHttpMcpHostPaths = renderRelayHttpMcpHosts(cliDir, bootstrapConfig, projectRoot);
+    const oauthHttpMcpHostPath = renderOAuthHttpMcpHost(cliDir, bootstrapConfig, projectRoot);
     renderBootstrap(projectRoot, bootstrapConfig);
     ensureLoggingAdapterStubFromSource(source);
     writeGeneratedDemosTestSupport(projectRoot);

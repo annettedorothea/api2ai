@@ -2,8 +2,8 @@
  * Generated from: github.api2ai
  * Referenced OpenAPI: ./openapi/github-user-min.openapi.yaml
  */
-import { loggingAdapter } from '../../src/utils/logging-adapter.js';
-import { verifyCredential } from '../../src/auth/github-tools/verifyCredential.js';
+import { loggingAdapter } from '../../../src/utils/logging-adapter.js';
+import { verifyCredential } from '../../../src/auth/api2ai/github-tools/verifyCredential.js';
 
 export type GeneratedTool = {
     toolName: string;
@@ -80,8 +80,11 @@ export const authConfig: AuthConfig | undefined = {
     prefix: 'Bearer '
 };
 
-export { verifyCredential } from '../../src/auth/github-tools/verifyCredential.js';
-export type { VerifyCredentialInput, VerifyCredentialResult } from '../../src/auth/github-tools/verifyCredential.js';
+export { verifyCredential } from '../../../src/auth/api2ai/github-tools/verifyCredential.js';
+export type {
+    VerifyCredentialInput,
+    VerifyCredentialResult
+} from '../../../src/auth/api2ai/github-tools/verifyCredential.js';
 
 export const mcpServerName = 'github-tools';
 export const mcpServerVersion = '0.3.0';

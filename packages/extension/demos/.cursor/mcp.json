@@ -3,8 +3,8 @@
         "open-meteo": {
             "command": "node",
             "args": [
-                "./generated/cli/stdio-mcp-server.js",
-                "./generated/tools/open-meteo-tools.js",
+                "./generated/api2ai/cli/stdio-mcp-server.js",
+                "./generated/api2ai/tools/open-meteo-tools.js",
                 "--base-url-env",
                 "OPEN_METEO_BASE_URL"
             ],
@@ -15,8 +15,8 @@
         "open-meteo-geocoding": {
             "command": "node",
             "args": [
-                "./generated/cli/stdio-mcp-server.js",
-                "./generated/tools/open-meteo-geocoding-tools.js",
+                "./generated/api2ai/cli/stdio-mcp-server.js",
+                "./generated/api2ai/tools/open-meteo-geocoding-tools.js",
                 "--base-url-env",
                 "OPEN_METEO_GEOCODING_BASE_URL"
             ],
@@ -28,8 +28,8 @@
             "command": "node",
             "envFile": ".env.local",
             "args": [
-                "./generated/cli/stdio-mcp-server.js",
-                "./generated/tools/github-tools.js",
+                "./generated/api2ai/cli/stdio-mcp-server.js",
+                "./generated/api2ai/tools/github-tools.js",
                 "--base-url-env",
                 "GITHUB_BASE_URL",
                 "--auth-env",
@@ -43,8 +43,8 @@
             "command": "node",
             "envFile": ".env.local",
             "args": [
-                "./generated/cli/stdio-mcp-server.js",
-                "./generated/tools/tmdb-tools.js",
+                "./generated/api2ai/cli/stdio-mcp-server.js",
+                "./generated/api2ai/tools/tmdb-tools.js",
                 "--base-url-env",
                 "TMDB_BASE_URL",
                 "--auth-env",
