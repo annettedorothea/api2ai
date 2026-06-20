@@ -7,11 +7,14 @@ import { accessRequiresAuth, getOptionalParams } from './operation-access.js';
 import {
     getCookieParameterMessages,
     getDslBodyWithoutOpenApiRequestBodyWarning,
+    getUnknownApiParamPatchWarnings,
     getUnknownOptionalParamWarnings,
     getUnsupportedSerializationMessages,
+    findOpenApiInvokeParameter,
     loadOpenApi,
     makeOperationLookupKey
 } from './openapi.js';
+import { parseExampleAgainstSchemaType, parseApiParamSpec } from './api-param-spec.js';
 
 /**
  * Register custom validation checks.
@@ -205,6 +208,38 @@ export class Api2AiDslValidator {
                     node: operation,
                     property: 'body'
                 });
+            }
+
+            for (const warning of getUnknownApiParamPatchWarnings(
+                operation.params,
+                openApiOperation,
+                operation.method,
+                operation.path
+            )) {
+                accept('warning', warning.message, {
+                    node: operation,
+                    property: 'params',
+                    index: warning.index
+                });
+            }
+
+            for (const entry of operation.params?.entries ?? []) {
+                const parsed = parseApiParamSpec(entry.spec);
+                if (parsed.example === undefined) {
+                    continue;
+                }
+                const openApiParam = findOpenApiInvokeParameter(entry.key, openApiOperation);
+                if (!openApiParam) {
+                    continue;
+                }
+                const schemaType = openApiParam.schema?.type;
+                const exampleWarning = parseExampleAgainstSchemaType(parsed.example, schemaType);
+                if (exampleWarning) {
+                    accept('warning', exampleWarning, {
+                        node: entry.spec,
+                        property: 'fields'
+                    });
+                }
             }
         });
     }

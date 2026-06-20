@@ -29,6 +29,20 @@ GET "/todos" {
     '''
     summary: "List todos"
     example: "List open todos"
+    params: {
+        status: {
+            description: '''
+                Optional query filter: open or done only (OpenAPI enum).
+            '''
+            example: "open"
+        }
+        categoryId: {
+            description: '''
+                Optional query filter by category id — from listCategories categories[].id (work, home, errands).
+            '''
+            example: "work"
+        }
+    }
     response: '''
         HTTP 200 — top-level todos array. Each todo: id, title, status (open|done), categoryId, dueDate.
         Documented errors:
@@ -44,6 +58,20 @@ GET "/categories/{categoryId}/todos" {
     '''
     summary: "List todos by category"
     example: "List open todos in category work"
+    params: {
+        categoryId: {
+            description: '''
+                Category id (path). Values: work, home, errands — from listCategories categories[].id.
+            '''
+            example: "work"
+        }
+        status: {
+            description: '''
+                Optional query filter: open or done only.
+            '''
+            example: "open"
+        }
+    }
     response: '''
         HTTP 200 — top-level categoryId and todos array (same todo shape as listTodos).
         Documented errors:
@@ -60,6 +88,14 @@ GET "/todos/{todoId}" {
     '''
     summary: "Get todo by id"
     example: "Get todo t-1"
+    params: {
+        todoId: {
+            description: '''
+                Todo id (path) from listTodos todos[].id or createTodo response todo.id.
+            '''
+            example: "t-1"
+        }
+    }
     response: '''
         HTTP 200 — top-level property todo (id, title, status, categoryId, dueDate).
         Documented errors:
@@ -98,6 +134,14 @@ PATCH "/todos/{todoId}" {
     '''
     summary: "Update todo"
     example: "Mark todo t-1 as done"
+    params: {
+        todoId: {
+            description: '''
+                Todo id to update (path) — from createTodo todo.id or listTodos todos[].id.
+            '''
+            example: "t-1"
+        }
+    }
     body: '''
         JSON object; send only fields to change (all optional): title, status (open|done),
         categoryId (work, home, errands), dueDate (ISO date YYYY-MM-DD).
@@ -120,6 +164,14 @@ DELETE "/todos/{todoId}" {
     '''
     summary: "Delete todo"
     example: "Delete todo t-2"
+    params: {
+        todoId: {
+            description: '''
+                Todo id to delete (path) — from createTodo todo.id or listTodos todos[].id.
+            '''
+            example: "t-2"
+        }
+    }
     response: '''
         HTTP 200 — top-level todoId and deleted: true.
         Documented errors:

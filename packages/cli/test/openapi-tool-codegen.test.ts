@@ -90,6 +90,61 @@ describe('buildMcpDescription', () => {
         expect(description).toContain('Request body:\nRequired: title. Optional: status.');
         expect(description).not.toContain('OpenAPI body hint');
     });
+
+    test('includes Parameters section with path and query params and DSL patches', () => {
+        const details: OpenApiOperationDetails = {
+            ...sampleDetails,
+            parameters: [
+                {
+                    name: 'todoId',
+                    in: 'path',
+                    required: true,
+                    description: 'OpenAPI path id'
+                },
+                {
+                    name: 'status',
+                    in: 'query',
+                    required: false,
+                    schema: { type: 'string', enum: ['open', 'done'] }
+                }
+            ]
+        };
+        const description = buildMcpDescription(
+            minimalOperation({
+                method: 'GET',
+                path: '/todos/{todoId}',
+                toolName: 'getTodo',
+                params: {
+                    $type: 'ApiParamMap',
+                    entries: [
+                        {
+                            $type: 'ApiParamEntry',
+                            key: 'todoId',
+                            spec: {
+                                $type: 'ApiParamSpec',
+                                fields: [
+                                    {
+                                        $type: 'ApiParamSpecField',
+                                        description: 'Todo id from listTodos.'
+                                    },
+                                    {
+                                        $type: 'ApiParamSpecField',
+                                        example: 't-1'
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            } as Partial<Operation>),
+            details,
+            undefined,
+            'demo-tools',
+            'api2ai'
+        );
+        expect(description).toContain('Parameters:\n- todoId (path): Todo id from listTodos. (example: t-1)');
+        expect(description).toContain('- status (query)');
+    });
 });
 
 describe('buildToolInputSchema', () => {
@@ -102,5 +157,67 @@ describe('buildToolInputSchema', () => {
         const body = (schema.properties as Record<string, Record<string, unknown>>).body;
         expect(body.description).toBe('Send title in JSON body.');
         expect(body.properties).toBeDefined();
+    });
+
+    test('applies DSL params description patch to query property schema', () => {
+        const schema = buildToolInputSchema(
+            sampleDetails,
+            [],
+            minimalOperation({
+                params: {
+                    $type: 'ApiParamMap',
+                    entries: [
+                        {
+                            $type: 'ApiParamEntry',
+                            key: 'page',
+                            spec: {
+                                $type: 'ApiParamSpec',
+                                fields: [
+                                    {
+                                        $type: 'ApiParamSpecField',
+                                        description: '1-based page index for the agent.'
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            } as Partial<Operation>)
+        );
+        const query = (schema.properties as Record<string, Record<string, unknown>>).query as {
+            properties: Record<string, Record<string, unknown>>;
+        };
+        expect(query.properties.page.description).toBe('1-based page index for the agent.');
+    });
+
+    test('applies DSL params example patch using OpenAPI parameter type', () => {
+        const schema = buildToolInputSchema(
+            sampleDetails,
+            [],
+            minimalOperation({
+                params: {
+                    $type: 'ApiParamMap',
+                    entries: [
+                        {
+                            $type: 'ApiParamEntry',
+                            key: 'page',
+                            spec: {
+                                $type: 'ApiParamSpec',
+                                fields: [
+                                    {
+                                        $type: 'ApiParamSpecField',
+                                        example: '2'
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            } as Partial<Operation>)
+        );
+        const query = (schema.properties as Record<string, Record<string, unknown>>).query as {
+            properties: Record<string, Record<string, unknown>>;
+        };
+        expect(query.properties.page.examples).toEqual([2]);
     });
 });

@@ -406,6 +406,49 @@ export function getUnknownOptionalParamWarnings(
     return warnings;
 }
 
+export type UnknownApiParamPatchWarning = {
+    index: number;
+    name: string;
+    message: string;
+};
+
+/** DSL params patch keys that do not match any invoke parameter on the OpenAPI operation. */
+export function getUnknownApiParamPatchWarnings(
+    params: { entries?: Array<{ key: string }> } | undefined,
+    openApiOperation: OpenApiOperationDetails,
+    method: string,
+    routePath: string
+): UnknownApiParamPatchWarning[] {
+    const entries = params?.entries ?? [];
+    if (entries.length === 0) {
+        return [];
+    }
+    const known = openApiInvokeParameterNames(openApiOperation);
+    const warnings: UnknownApiParamPatchWarning[] = [];
+    entries.forEach((entry, index) => {
+        const name = entry.key.trim();
+        if (name.length === 0 || known.has(name)) {
+            return;
+        }
+        warnings.push({
+            index,
+            name,
+            message: `params entry "${name}" is not a path, query, or header parameter on ${method} ${routePath} in the OpenAPI spec (no effect on the generated tool schema).`
+        });
+    });
+    return warnings;
+}
+
+export function findOpenApiInvokeParameter(
+    name: string,
+    openApiOperation: OpenApiOperationDetails
+): OpenApiParameterDetails | undefined {
+    const trimmed = name.trim();
+    return openApiOperation.parameters.find(
+        (p) => p.name === trimmed && (p.in === 'path' || p.in === 'query' || p.in === 'header')
+    );
+}
+
 /** DSL `body` text when OpenAPI operation has no requestBody. */
 export function getDslBodyWithoutOpenApiRequestBodyWarning(
     dslBody: string | undefined,

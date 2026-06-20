@@ -335,6 +335,25 @@ describe('Validating', () => {
         expect(diagnostics[0]?.message).toContain('DSL `body` is set but OpenAPI has no requestBody');
     });
 
+    test('warns when params entry is not in OpenAPI', async () => {
+        document = await parseValidated(`
+            openapi "./langium-test-mini.openapi.yaml"
+            GET "/pet/{petId}" {
+                toolName: getPetById
+                access: public
+                intent: "get one pet"
+                params: {
+                    customerId: {
+                        description: "unknown param"
+                    }
+                }
+            }
+        `);
+
+        const diagnostics = document.diagnostics ?? [];
+        expect(diagnostics.some((d) => d.message.includes('params entry "customerId"'))).toBe(true);
+    });
+
     test('validates extension bookings-api demo without diagnostics', async () => {
         const demoPath = path.resolve(process.cwd(), '../extension/demos/bookings-api.api2ai');
         const content = await import('node:fs').then((fs) => fs.readFileSync(demoPath, 'utf8'));

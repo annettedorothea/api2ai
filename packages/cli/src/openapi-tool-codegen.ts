@@ -5,7 +5,7 @@ import type {
     OpenApiSchema,
     Operation
 } from 'api-2-ai-dsl-language';
-import { getAccessKind } from 'api-2-ai-dsl-language';
+import { coerceExampleFromSchemaType, getAccessKind, parseApiParamSpec } from 'api-2-ai-dsl-language';
 
 /** JSON-schema-like dict emitted into generated modules / MCP. */
 export type JsonSchemaDict = Record<string, unknown>;
@@ -204,6 +204,59 @@ function buildResponseSection(details: OpenApiOperationDetails): string {
     return [success, 'Documented errors:', ...errLines].join('\n');
 }
 
+const INVOKE_PARAMETER_LOCATION_ORDER: Record<string, number> = {
+    path: 0,
+    query: 1,
+    header: 2
+};
+
+function compareInvokeParameters(a: OpenApiParameterDetails, b: OpenApiParameterDetails): number {
+    const oa = INVOKE_PARAMETER_LOCATION_ORDER[a.in] ?? 9;
+    const ob = INVOKE_PARAMETER_LOCATION_ORDER[b.in] ?? 9;
+    if (oa !== ob) {
+        return oa - ob;
+    }
+    return a.name.localeCompare(b.name);
+}
+
+function dslParamPatchesByName(operation: Operation): Map<string, ReturnType<typeof parseApiParamSpec>> {
+    const map = new Map<string, ReturnType<typeof parseApiParamSpec>>();
+    for (const entry of operation.params?.entries ?? []) {
+        map.set(entry.key, parseApiParamSpec(entry.spec));
+    }
+    return map;
+}
+
+/** Flat parameter list for MCP tool description (path / query / header); complements nested inputSchema buckets. */
+export function buildInvokeParameterDescriptionSection(
+    operation: Operation,
+    details: OpenApiOperationDetails
+): string | undefined {
+    const patches = dslParamPatchesByName(operation);
+    const params = details.parameters
+        .filter((p) => p.in === 'path' || p.in === 'query' || p.in === 'header')
+        .sort(compareInvokeParameters);
+    if (params.length === 0) {
+        return undefined;
+    }
+
+    const lines: string[] = [];
+    for (const p of params) {
+        const patch = patches.get(p.name);
+        const description = pickEffectiveText(patch?.description, p.description);
+        let line = `- ${p.name} (${p.in})`;
+        if (description) {
+            line += `: ${description}`;
+        }
+        const exampleText = patch?.example?.trim();
+        if (exampleText && exampleText.length > 0) {
+            line += ` (example: ${exampleText})`;
+        }
+        lines.push(line);
+    }
+    return lines.join('\n');
+}
+
 /** Pre-condition: `operation` has passed validation, so `intent` is present. */
 export function buildMcpDescription(
     operation: Operation,
@@ -230,6 +283,11 @@ export function buildMcpDescription(
     }
     if (metaParts.length > 0) {
         sections.push(`Meta:\n${metaParts.join(' | ')}`);
+    }
+
+    const parametersText = buildInvokeParameterDescriptionSection(operation, details);
+    if (parametersText) {
+        sections.push(`Parameters:\n${parametersText}`);
     }
 
     const requestBodyText = effectiveRequestBodyDescription(operation, details);
@@ -555,6 +613,74 @@ function parametersByLocation(parameters: OpenApiParameterDetails[]): {
     return { path, query, headers };
 }
 
+type InvokeParamBucket = 'pathParams' | 'query' | 'headers';
+
+function invokeParamBucket(parameter: OpenApiParameterDetails): InvokeParamBucket | undefined {
+    if (parameter.in === 'path') {
+        return 'pathParams';
+    }
+    if (parameter.in === 'query') {
+        return 'query';
+    }
+    if (parameter.in === 'header') {
+        return 'headers';
+    }
+    return undefined;
+}
+
+/** Merge DSL param description/example patches onto OpenAPI-derived MCP input schema (structure unchanged). */
+export function applyApiParamPatches(
+    schema: JsonSchemaDict,
+    operation: Operation,
+    details: OpenApiOperationDetails
+): JsonSchemaDict {
+    const entries = operation.params?.entries ?? [];
+    if (entries.length === 0) {
+        return schema;
+    }
+
+    const locationByName = new Map<string, InvokeParamBucket>();
+    for (const parameter of details.parameters) {
+        const bucket = invokeParamBucket(parameter);
+        if (bucket) {
+            locationByName.set(parameter.name, bucket);
+        }
+    }
+
+    const rootProps = { ...(schema.properties as Record<string, JsonSchemaDict>) };
+    for (const entry of entries) {
+        const bucket = locationByName.get(entry.key);
+        if (!bucket) {
+            continue;
+        }
+        const bucketSchema = rootProps[bucket];
+        if (!bucketSchema || typeof bucketSchema !== 'object' || !bucketSchema.properties) {
+            continue;
+        }
+        const props = { ...(bucketSchema.properties as Record<string, JsonSchemaDict>) };
+        const existing = props[entry.key];
+        if (!existing) {
+            continue;
+        }
+
+        const parsed = parseApiParamSpec(entry.spec);
+        let next = { ...existing };
+        if (parsed.description !== undefined && parsed.description.trim().length > 0) {
+            next = { ...next, description: parsed.description.trim() };
+        }
+        if (parsed.example !== undefined && parsed.example.trim().length > 0) {
+            const coerced = coerceExampleFromSchemaType(parsed.example, next.type as string | string[] | undefined);
+            if (coerced !== undefined) {
+                next = { ...next, examples: [coerced] };
+            }
+        }
+        props[entry.key] = next;
+        rootProps[bucket] = { ...bucketSchema, properties: props };
+    }
+
+    return { ...schema, properties: rootProps };
+}
+
 /** Outer MCP tool input: pathParams | query | headers | body buckets. */
 export function buildToolInputSchema(
     details: OpenApiOperationDetails,
@@ -628,11 +754,12 @@ export function buildToolInputSchema(
         };
     }
 
-    return {
+    const built = {
         type: 'object',
         properties: rootProps,
         required: rootRequired,
         additionalProperties: false,
         description: 'Arguments for invoking the generated HTTP wrapper.'
-    };
+    } satisfies JsonSchemaDict;
+    return operation ? applyApiParamPatches(built, operation, details) : built;
 }

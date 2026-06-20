@@ -142,11 +142,19 @@ describe('Completion for block keywords', () => {
 
         expect(
             sortedKeywordLabels(list?.items ?? []).filter((label) =>
-                ['toolName', 'access', 'intent', 'summary', 'description', 'example', 'body', 'response'].includes(
-                    label
-                )
+                [
+                    'toolName',
+                    'access',
+                    'intent',
+                    'summary',
+                    'description',
+                    'example',
+                    'params',
+                    'body',
+                    'response'
+                ].includes(label)
             )
-        ).toEqual(['toolName', 'access', 'intent', 'summary', 'description', 'example', 'body', 'response']);
+        ).toEqual(['toolName', 'access', 'intent', 'summary', 'description', 'example', 'params', 'body', 'response']);
     });
 
     test('sorts operation keywords before the block is complete', async () => {
@@ -156,11 +164,19 @@ describe('Completion for block keywords', () => {
 
         expect(
             sortedKeywordLabels(list?.items ?? []).filter((label) =>
-                ['toolName', 'access', 'intent', 'summary', 'description', 'example', 'body', 'response'].includes(
-                    label
-                )
+                [
+                    'toolName',
+                    'access',
+                    'intent',
+                    'summary',
+                    'description',
+                    'example',
+                    'params',
+                    'body',
+                    'response'
+                ].includes(label)
             )
-        ).toEqual(['toolName', 'access', 'intent', 'summary', 'description', 'example', 'body', 'response']);
+        ).toEqual(['toolName', 'access', 'intent', 'summary', 'description', 'example', 'params', 'body', 'response']);
     });
 
     test('suggests access kinds after access colon', async () => {

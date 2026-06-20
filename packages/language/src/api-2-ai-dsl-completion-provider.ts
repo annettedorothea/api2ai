@@ -6,7 +6,17 @@ import { DefaultCompletionProvider } from 'langium/lsp';
 import type { AstNode, CstNode, LangiumDocument, LeafCstNode } from 'langium';
 import { AstUtils, Cancellation, CstUtils, isLeafCstNode } from 'langium';
 import { loadOpenApi, pathsForHttpMethod } from './openapi.js';
-import { isModel, isOperation, type HttpMethod, type Operation } from './generated/ast.js';
+import {
+    isApiParamEntry,
+    isApiParamSpec,
+    isModel,
+    isOperation,
+    type ApiParamEntry,
+    type ApiParamSpec,
+    type HttpMethod,
+    type Operation
+} from './generated/ast.js';
+import { usedApiParamSpecFieldKinds } from './api-param-spec.js';
 
 const HTTP_METHOD_LEAVES = new Set<HttpMethod>(['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'HEAD', 'OPTIONS', 'TRACE']);
 const HTTP_METHODS = [...HTTP_METHOD_LEAVES];
@@ -48,9 +58,20 @@ const OPERATION_KEYWORD_INSERT: Record<string, string> = {
     summary: 'summary: "$1"$0',
     description: 'description: "$1"$0',
     example: 'example: "$1"$0',
-    params: 'params: {\n    page: {\n        description: "$1"\n        optional: false\n    }\n}$0',
+    params: 'params: {\n    status: {\n        description: "$1"\n        example: "$2"\n    }\n}$0',
     body: 'body: "$1"$0',
     response: 'response: "$1"$0'
+};
+
+const API_PARAM_SPEC_KEYS = ['description', 'example'] as const;
+type ApiParamSpecKey = (typeof API_PARAM_SPEC_KEYS)[number];
+const API_PARAM_SPEC_SORT: Record<ApiParamSpecKey, string> = {
+    description: '0201',
+    example: '0202'
+};
+const API_PARAM_SPEC_INSERT: Record<ApiParamSpecKey, string> = {
+    description: 'description: "$1"$0',
+    example: 'example: "$1"$0'
 };
 
 function debugCompletion(message: string, data?: unknown): void {
@@ -111,6 +132,135 @@ function resolveOperationPathStringLeaf(root: CstNode, operation: Operation, off
         return undefined;
     }
     return pathStringLeafBeforeBrace(operation, brace);
+}
+
+function closingBraceLeaf(cst: CstNode | undefined): LeafCstNode | undefined {
+    if (!cst) {
+        return undefined;
+    }
+    let last: LeafCstNode | undefined;
+    for (const n of CstUtils.flattenCst(cst)) {
+        if (isLeafCstNode(n) && n.text === '}') {
+            last = n;
+        }
+    }
+    return last;
+}
+
+function offsetInsideCstBlock(cst: CstNode | undefined, offset: number): boolean {
+    const open = openingBraceLeaf(cst);
+    if (!open || offset <= open.offset) {
+        return false;
+    }
+    const close = closingBraceLeaf(cst);
+    if (close && offset >= close.offset) {
+        return false;
+    }
+    return true;
+}
+
+function matchesBlockKeywordPrefix(text: string, keys: readonly string[]): boolean {
+    return keys.some((key) => key.startsWith(text) || text.startsWith(key));
+}
+
+function nextApiParamSpecKey(used: Set<string>): ApiParamSpecKey | undefined {
+    for (const key of API_PARAM_SPEC_KEYS) {
+        if (!used.has(key)) {
+            return key;
+        }
+    }
+    return undefined;
+}
+
+function findApiParamEntryAtOffset(operation: Operation, root: CstNode, offset: number): ApiParamEntry | undefined {
+    for (const entry of operation.params?.entries ?? []) {
+        if (offsetInsideCstBlock(entry.spec?.$cstNode, offset)) {
+            return entry;
+        }
+    }
+    const leaf = CstUtils.findLeafNodeAtOffset(root, offset) ?? CstUtils.findLeafNodeBeforeOffset(root, offset);
+    if (leaf) {
+        const spec = AstUtils.getContainerOfType(leaf.astNode as AstNode, isApiParamSpec);
+        if (spec && isApiParamSpec(spec)) {
+            const parent = spec.$container;
+            if (isApiParamEntry(parent)) {
+                return parent;
+            }
+        }
+    }
+    return undefined;
+}
+
+function buildApiParamSpecCompletionItems(
+    spec: ApiParamSpec,
+    root: CstNode,
+    offset: number,
+    textDoc: LangiumDocument['textDocument']
+): CompletionItem[] {
+    const used = usedApiParamSpecFieldKinds(spec);
+    const nextKey = nextApiParamSpecKey(used);
+    if (!nextKey) {
+        return [];
+    }
+    const specCst = spec.$cstNode;
+    const leaf = CstUtils.findLeafNodeAtOffset(root, offset) ?? CstUtils.findLeafNodeBeforeOffset(root, offset);
+    if (leaf && isLeafCstNode(leaf) && (leaf.text.startsWith('"') || leaf.text.startsWith("'"))) {
+        const specOpen = openingBraceLeaf(specCst);
+        if (specOpen && leaf.offset > specOpen.offset) {
+            return [];
+        }
+    }
+    const keywordLeaf =
+        specCst &&
+        ((): LeafCstNode | undefined => {
+            const at =
+                CstUtils.findLeafNodeAtOffset(specCst, offset) ?? CstUtils.findLeafNodeBeforeOffset(specCst, offset);
+            if (!at || !isLeafCstNode(at)) {
+                return undefined;
+            }
+            if (API_PARAM_SPEC_KEYS.includes(at.text as ApiParamSpecKey)) {
+                return at;
+            }
+            if (matchesBlockKeywordPrefix(at.text, API_PARAM_SPEC_KEYS)) {
+                return at;
+            }
+            return undefined;
+        })();
+    if (keywordLeaf) {
+        const prefixEnd = Math.min(offset, keywordLeaf.offset + keywordLeaf.text.length);
+        const typedPrefix = textDoc.getText({
+            start: textDoc.positionAt(keywordLeaf.offset),
+            end: textDoc.positionAt(prefixEnd)
+        });
+        const candidates = API_PARAM_SPEC_KEYS.filter((key) => key.startsWith(typedPrefix) && !used.has(key));
+        if (candidates.length === 0) {
+            return [];
+        }
+        const keysToOffer = candidates.includes(nextKey) ? [nextKey] : [candidates[0]!];
+        return keysToOffer.map((key) => ({
+            label: key,
+            kind: CompletionItemKind.Keyword,
+            detail: 'OpenAPI param property',
+            insertTextFormat: InsertTextFormat.Snippet,
+            sortText: API_PARAM_SPEC_SORT[key],
+            insertText: API_PARAM_SPEC_INSERT[key],
+            textEdit: TextEdit.replace(keywordLeaf.range, API_PARAM_SPEC_INSERT[key])
+        }));
+    }
+    if (!offsetInsideCstBlock(specCst, offset)) {
+        return [];
+    }
+    return [
+        {
+            label: nextKey,
+            kind: CompletionItemKind.Keyword,
+            detail: 'OpenAPI param property',
+            insertTextFormat: InsertTextFormat.Snippet,
+            sortText: API_PARAM_SPEC_SORT[nextKey],
+            insertText: API_PARAM_SPEC_INSERT[nextKey],
+            textEdit: TextEdit.insert(textDoc.positionAt(offset), API_PARAM_SPEC_INSERT[nextKey])
+        }
+    ];
 }
 
 /** Keyword leaf for `operation.method` before the block `{` (path slot). */
@@ -276,6 +426,11 @@ export class Api2AiDslCompletionProvider extends DefaultCompletionProvider {
         debugCompletion('getCompletion optionalParamItems count', optionalParamItems.length);
         if (optionalParamItems.length > 0) {
             return CompletionList.create(this.deduplicateItems(optionalParamItems), false);
+        }
+        const apiParamPatchItems = await this.buildApiParamPatchCompletionItems(document, params.position);
+        debugCompletion('getCompletion apiParamPatchItems count', apiParamPatchItems.length);
+        if (apiParamPatchItems.length > 0) {
+            return CompletionList.create(this.deduplicateItems(apiParamPatchItems), false);
         }
         const keywordItems = this.buildIncompleteBlockKeywordCompletionItems(document, params.position);
         debugCompletion('getCompletion keywordItems count', keywordItems.length);
@@ -650,6 +805,72 @@ export class Api2AiDslCompletionProvider extends DefaultCompletionProvider {
             detail: 'Required OpenAPI parameter',
             insertTextFormat: InsertTextFormat.PlainText,
             textEdit: TextEdit.replace(range, name)
+        }));
+    }
+
+    private async buildApiParamPatchCompletionItems(
+        document: LangiumDocument,
+        position: Position
+    ): Promise<CompletionItem[]> {
+        const root = document.parseResult.value?.$cstNode;
+        if (!root) {
+            return [];
+        }
+        const textDoc = document.textDocument;
+        const offset = textDoc.offsetAt(position);
+        const leafAt = CstUtils.findLeafNodeAtOffset(root, offset) ?? CstUtils.findLeafNodeBeforeOffset(root, offset);
+        if (!leafAt || !isLeafCstNode(leafAt)) {
+            return [];
+        }
+        const operation = AstUtils.getContainerOfType(leafAt.astNode as AstNode, isOperation);
+        if (!operation?.params) {
+            return [];
+        }
+        const paramEntry = findApiParamEntryAtOffset(operation, root, offset);
+        if (paramEntry?.spec && offsetInsideCstBlock(paramEntry.spec.$cstNode, offset)) {
+            return buildApiParamSpecCompletionItems(paramEntry.spec, root, offset, textDoc);
+        }
+        if (!offsetInsideCstBlock(operation.params.$cstNode, offset)) {
+            return [];
+        }
+        const model = operation.$container;
+        if (!isModel(model) || !document.uri.fsPath) {
+            return [];
+        }
+        let invokeParams: Array<{ name: string; in: string }> = [];
+        try {
+            const loaded = await loadOpenApi(model.openapi, path.dirname(document.uri.fsPath));
+            const details = loaded.operations.get(`${operation.method} ${operation.path}`);
+            if (details) {
+                invokeParams = details.parameters
+                    .filter((p) => p.in === 'path' || p.in === 'query' || p.in === 'header')
+                    .map((p) => ({ name: p.name, in: p.in }));
+            }
+        } catch {
+            return [];
+        }
+        const used = new Set((operation.params.entries ?? []).map((e) => e.key));
+        const { line } = currentLineUntilOffset(textDoc.getText(), offset);
+        const idPrefixMatch = /^\s*([a-zA-Z_][a-zA-Z0-9_]*)$/.exec(line.trimEnd());
+        const typedPrefix = idPrefixMatch?.[1] ?? '';
+        const candidates = invokeParams
+            .filter((p) => !used.has(p.name) && p.name.startsWith(typedPrefix))
+            .sort((a, b) => a.name.localeCompare(b.name));
+        if (candidates.length === 0) {
+            return [];
+        }
+        const replaceStart = idPrefixMatch ? offset - typedPrefix.length : offset;
+        const range = {
+            start: textDoc.positionAt(replaceStart),
+            end: position
+        };
+        return candidates.map((p) => ({
+            label: p.name,
+            kind: CompletionItemKind.Property,
+            detail: `${p.in} parameter`,
+            insertTextFormat: InsertTextFormat.Snippet,
+            insertText: `${p.name}: {\n    description: "$1"\n}$0`,
+            textEdit: TextEdit.replace(range, `${p.name}: {\n    description: "$1"\n}$0`)
         }));
     }
 }

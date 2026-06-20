@@ -20,7 +20,7 @@ export const generatedTools: GeneratedTool[] = [
         toolName: 'searchCakes',
         title: 'Search cake recipes by keyword',
         description:
-            'Intent:\nSearch cake recipes by optional query q (title and keywords). Empty q returns all cakes.\n\nAPI:\nRequires Bearer JWT. Optional query q matches title and keywords (case-insensitive).\n\nMeta:\noperationId: search-cakes\n\nExample:\nSearch cakes with Erdbeer\n\nResponse:\nHTTP 200 — top-level query, count, cakes array. Each cake: id, title, keywords, prepMinutes, servings.\n        Use cakes[].id for getCake (e.g. schwarzwaelder-kirschtorte).\n        Documented errors:\n        HTTP 401 — Missing or invalid token\n\nRuntime auth: MCP host injects the API credential via --auth-env; send as header "Authorization" (prefix applied to the secret).',
+            'Intent:\nSearch cake recipes by optional query q (title and keywords). Empty q returns all cakes.\n\nAPI:\nRequires Bearer JWT. Optional query q matches title and keywords (case-insensitive).\n\nMeta:\noperationId: search-cakes\n\nParameters:\n- q (query)\n\nExample:\nSearch cakes with Erdbeer\n\nResponse:\nHTTP 200 — top-level query, count, cakes array. Each cake: id, title, keywords, prepMinutes, servings.\n        Use cakes[].id for getCake (e.g. schwarzwaelder-kirschtorte).\n        Documented errors:\n        HTTP 401 — Missing or invalid token\n\nRuntime auth: MCP host injects the API credential via --auth-env; send as header "Authorization" (prefix applied to the secret).',
         method: 'GET',
         path: '/cakes',
         example: 'Search cakes with Erdbeer',
@@ -30,7 +30,7 @@ export const generatedTools: GeneratedTool[] = [
         toolName: 'getCake',
         title: 'Get cake recipe by id',
         description:
-            'Intent:\nFetch one cake recipe by path cakeId (from searchCakes).\n\nMeta:\noperationId: get-cake\n\nExample:\nGet Schwarzwälder Kirschtorte recipe\n\nResponse:\nHTTP 200 — top-level property cake (id, title, keywords, prepMinutes, servings, ingredients).\n        Documented errors:\n        HTTP 401 — Missing or invalid token\n        HTTP 404 — Unknown cake id\n\nRuntime auth: MCP host injects the API credential via --auth-env; send as header "Authorization" (prefix applied to the secret).',
+            'Intent:\nFetch one cake recipe by path cakeId (from searchCakes).\n\nMeta:\noperationId: get-cake\n\nParameters:\n- cakeId (path)\n\nExample:\nGet Schwarzwälder Kirschtorte recipe\n\nResponse:\nHTTP 200 — top-level property cake (id, title, keywords, prepMinutes, servings, ingredients).\n        Documented errors:\n        HTTP 401 — Missing or invalid token\n        HTTP 404 — Unknown cake id\n\nRuntime auth: MCP host injects the API credential via --auth-env; send as header "Authorization" (prefix applied to the secret).',
         method: 'GET',
         path: '/cakes/{cakeId}',
         example: 'Get Schwarzwälder Kirschtorte recipe',

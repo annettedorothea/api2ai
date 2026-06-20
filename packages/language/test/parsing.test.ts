@@ -197,4 +197,26 @@ describe('Parsing tests', () => {
         expect(isCheckedAccess(op.access)).toBe(true);
         expect(getOptionalParams(op)).toEqual(['id']);
     });
+
+    test('parses params with description and example on operation', async () => {
+        document = await parse(`
+            openapi "./langium-test-mini.openapi.yaml"
+            GET "/pet/{petId}" {
+                toolName: getPetById
+                access: public
+                intent: "get one pet"
+                params: {
+                    petId: {
+                        description: "Pet id from listPets."
+                        example: "42"
+                    }
+                }
+            }
+        `);
+
+        expect(document.parseResult.parserErrors).toHaveLength(0);
+        const op = document.parseResult.value.operations[0];
+        expect(op.params?.entries).toHaveLength(1);
+        expect(op.params?.entries[0]?.key).toBe('petId');
+    });
 });

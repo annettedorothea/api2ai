@@ -20,9 +20,23 @@ Operation:
         ('summary' ':' summary=DslText)?
         ('description' ':' description=DslText)?
         ('example' ':' example=DslText)?
+        ('params' ':' params=ApiParamMap)?
         ('body' ':' body=DslText)?
         ('response' ':' response=DslText)?
     '}';
+
+ApiParamMap:
+    '{' (entries += ApiParamEntry)* '}';
+
+ApiParamEntry:
+    key=ID ':' spec=ApiParamSpec;
+
+ApiParamSpec:
+    '{' (fields += ApiParamSpecField)* '}';
+
+ApiParamSpecField:
+    'description' ':' description=DslText |
+    'example' ':' example=DslText;
 
 Access:
     PublicAccess | ProtectedAccess | CheckedAccess;
