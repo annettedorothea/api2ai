@@ -3,6 +3,7 @@
  * Referenced OpenAPI: ./openapi/open-meteo.openapi.yaml
  */
 import { loggingAdapter } from '../../../src/utils/logging-adapter.js';
+import * as z from 'zod/v4';
 
 export type GeneratedTool = {
     toolName: string;
@@ -10,8 +11,9 @@ export type GeneratedTool = {
     description: string;
     method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' | 'HEAD' | 'OPTIONS' | 'TRACE';
     path: string;
-    example?: string;
-    access: 'public' | 'protected' | 'checked';
+    access: 'public' | 'protected';
+    hasAuthorize: boolean;
+    hasValidate: boolean;
 };
 
 export const generatedTools: GeneratedTool[] = [
@@ -19,11 +21,12 @@ export const generatedTools: GeneratedTool[] = [
         toolName: 'openMeteoForecast',
         title: '7 day weather forecast for coordinates',
         description:
-            'Intent:\nretrieve hourly weather forecast for coordinates\n\nAPI:\n- Fetch up to 7 days of weather forecast for fixed WGS84 coordinates (query: latitude, longitude).\n        - Supports hourly and daily aggregates; request only the variables needed (e.g. temperature_2m, precipitation_sum, weather_code).\n        - Prefer small hourly/daily arrays to keep MCP responses compact and agent-focused.\n        - Optional: timezone (e.g. Europe/Berlin), temperature_unit, wind_speed_unit, current_weather for nowcast.\n        - Resolve place names to coordinates first via openMeteoGeocodeSearch (api2ai-open-meteo-geocoding), then call this tool.\n        - Public endpoint; no API key. OpenAPI operation text is overridden here for clearer agent guidance.\n\nMeta:\ntags: Weather Forecast APIs\n\nParameters:\n- current_weather (query)\n- daily (query)\n- hourly (query)\n- latitude (query): WGS84 coordinate\n- longitude (query): WGS84 coordinate\n- past_days (query): If `past_days` is set, yesterdays or the day before yesterdays data are also returned.\n- temperature_unit (query)\n- timeformat (query): If format `unixtime` is selected, all time values are returned in UNIX epoch time in seconds. Please not that all time is then in GMT+0! For daily values with unix timestamp, please apply `utc_offset_seconds` again to get the correct date.\n- timezone (query): If `timezone` is set, all timestamps are returned as local-time and data is returned starting at 0:00 local-time. Any time zone name from the [time zone database](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones) is supported.\n- wind_speed_unit (query)\n\nExample:\nGet hourly temperature forecast for Offenburg, Germany\n\nResponse:\nHTTP 200\nOK\nproperties (top-level): current_weather, daily, daily_units, elevation, generationtime_ms, hourly, hourly_units, latitude, longitude, utc_offset_seconds\nDocumented errors:\nHTTP 400 — Bad Request\n\nRuntime: public endpoint — no Authorization header or MCP credential required.',
+            'Intent:\nretrieve hourly weather forecast for coordinates\n\nAPI:\n- Fetch up to 7 days of weather forecast for fixed WGS84 coordinates (query: latitude, longitude).\n        - Supports hourly and daily aggregates; request only the variables needed (e.g. temperature_2m, precipitation_sum, weather_code).\n        - Prefer small hourly/daily arrays to keep MCP responses compact and agent-focused.\n        - Optional: timezone (e.g. Europe/Berlin), temperature_unit, wind_speed_unit, current_weather for nowcast.\n        - Resolve place names to coordinates first via openMeteoGeocodeSearch (api2ai-open-meteo-geocoding), then call this tool.\n        - Public endpoint; no API key. OpenAPI operation text is overridden here for clearer agent guidance.\n\nMeta:\ntags: Weather Forecast APIs\n\nParameters:\n- current_weather (query)\n- daily (query)\n- hourly (query)\n- latitude (query): WGS84 coordinate\n- longitude (query): WGS84 coordinate\n- past_days (query): If `past_days` is set, yesterdays or the day before yesterdays data are also returned.\n- temperature_unit (query)\n- timeformat (query): If format `unixtime` is selected, all time values are returned in UNIX epoch time in seconds. Please not that all time is then in GMT+0! For daily values with unix timestamp, please apply `utc_offset_seconds` again to get the correct date.\n- timezone (query): If `timezone` is set, all timestamps are returned as local-time and data is returned starting at 0:00 local-time. Any time zone name from the [time zone database](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones) is supported.\n- wind_speed_unit (query)\n\nExample:\nGet hourly temperature forecast for Offenburg, Germany\n\nResponse:\nHTTP 200\nOK\nproperties (top-level): current_weather, daily, daily_units, elevation, generationtime_ms, hourly, hourly_units, latitude, longitude, utc_offset_seconds\nDocumented errors:\nHTTP 400 — Bad Request\n\nRuntime: public endpoint — no credential required.',
         method: 'GET',
         path: '/v1/forecast',
-        example: 'Get hourly temperature forecast for Offenburg, Germany',
-        access: 'public'
+        access: 'public',
+        hasAuthorize: false,
+        hasValidate: false
     }
 ];
 
@@ -38,21 +41,14 @@ export type InvokeOptions = {
 export type ApiHostContext = {
     baseUrl: string;
     credential?: string;
-    sessionClaims?: Record<string, unknown>;
-};
-
-export type CheckedHostContext = {
-    credential: string;
-    sessionClaims?: Record<string, unknown>;
+    upstreamCredential?: string;
+    credentials?: unknown;
 };
 
 export const requiresAuth = false;
-export const authConfig: undefined = undefined;
 
 export const mcpServerName = 'open-meteo-tools';
 export const mcpServerVersion = '0.3.0';
-
-import * as z from 'zod/v4';
 
 export const inputZodByTool = {
     openMeteoForecast: z
@@ -167,7 +163,7 @@ export const inputZodByTool = {
         .describe('Arguments for invoking the generated HTTP wrapper.')
 };
 
-export const queryParamSerializationByTool = {
+const queryParamSerializationByTool = {
     openMeteoForecast: {
         hourly: {
             style: 'form',
@@ -317,7 +313,7 @@ export async function invokeTool(
         let msg = 'HTTP ' + response.status + ' while invoking ' + tool.toolName + '.';
         if (response.status === 401) {
             msg += ' Unauthorized.';
-            if (tool.access !== 'public') {
+            if (tool.access === 'protected') {
                 msg += ' The API may require authentication.';
             }
         } else if (response.status === 403) {

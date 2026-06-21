@@ -1,17 +1,14 @@
-import type { InvokeOptions, CheckedHostContext } from '../../../../generated/api2ai/tools/bookings-api-tools.js';
+import type { ModuleCredentials } from './verifyBookingsCredentials.js';
+import type { InvokeOptions } from '../../../../generated/api2ai/tools/bookings-tools.js';
 
-export function checkListBookingsParameters(options: InvokeOptions, host: CheckedHostContext): InvokeOptions {
-    const claims = host.sessionClaims;
-    if (!claims || typeof claims !== 'object') {
-        throw new Error('listBookings requires sessionClaims from verifyCredential.');
-    }
-    const jwtCustomer = String(claims.customerId ?? '').trim();
+export function validateListBookingsInput(options: InvokeOptions, credentials: ModuleCredentials): InvokeOptions {
+    const jwtCustomer = String(credentials.customerId ?? '').trim();
     if (jwtCustomer.length === 0) {
-        throw new Error('sessionClaims missing customerId claim.');
+        throw new Error('credentials missing customerId claim.');
     }
-    const role = String(claims.role ?? '').trim();
+    const role = String(credentials.role ?? '').trim();
     if (role.length === 0) {
-        throw new Error('sessionClaims missing role claim.');
+        throw new Error('credentials missing role claim.');
     }
 
     let customerId = options.pathParams?.customerId;

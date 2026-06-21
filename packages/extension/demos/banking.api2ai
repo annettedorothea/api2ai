@@ -6,9 +6,28 @@ auth {
     prefix: "Bearer "
 }
 
+GET "/customers" {
+    toolName: listCustomers
+    access: protected
+    authorize: true
+    intent: '''
+        List all bank customers (admin only). Requires opaque API Bearer token with role=admin.
+        MCP authorize gate runs before the upstream call; users with role=user are rejected.
+    '''
+    summary: "List all bank customers (admin only)"
+    example: "List all customers in the banking directory"
+    response: '''
+        HTTP 200 — top-level role, customers array. Each customer: customerId, displayName.
+        Documented errors:
+        HTTP 401 — Missing or invalid token
+        HTTP 403 — Admin role required
+    '''
+}
+
 GET "/accounts/{customerId}" {
     toolName: listAccounts
-    access: checked {
+    access: protected
+    validate: {
         optionalParams: [customerId]
     }
     intent: '''
@@ -25,11 +44,15 @@ GET "/accounts/{customerId}" {
     '''
 }
 
-GET "/accounts/{accountId}/transactions" {
+GET "/accounts/{customerId}/{accountId}/transactions" {
     toolName: listTransactions
     access: protected
+    validate: {
+        optionalParams: [customerId]
+    }
     intent: '''
-        List transactions for one account. Requires opaque API Bearer token (IdP JWT is rejected upstream).
+        List transactions for one account. Omitted customerId is filled from the token claim.
+        Requires opaque API Bearer token (IdP JWT is rejected upstream).
     '''
     summary: "List account transactions"
     example: "Show transactions for acc-alice-checking"
@@ -38,5 +61,6 @@ GET "/accounts/{accountId}/transactions" {
         Documented errors:
         HTTP 401 — Missing or invalid token
         HTTP 404 — Account not found
+        Parameter check: role=user rejects customerId that does not match the token claim (before upstream call).
     '''
 }

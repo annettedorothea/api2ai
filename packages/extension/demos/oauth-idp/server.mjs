@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Mini OAuth 2.1 authorization server for MCP demos (bookings-oauth, cakes).
+ * Mini OAuth 2.1 authorization server for MCP demos (bookings, cakes).
  * Sync logic with db2ai orders-demo/oauth-idp/server.mjs — ports/secrets differ.
  */
 import { createHash, randomBytes, timingSafeEqual } from 'node:crypto';
@@ -98,7 +98,7 @@ function sendAuthorizeHelpPage(res) {
     sendHtml(
         res,
         renderAuthorizeHelpPage(
-            'Use <strong>Cursor MCP OAuth</strong> on <code>bookings-oauth</code> or <code>cakes</code> (<code>npm run start</code>).'
+            'Use <strong>Cursor MCP OAuth</strong> on <code>bookings</code> or <code>cakes</code> (<code>npm run start</code>).'
         )
     );
 }

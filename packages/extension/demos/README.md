@@ -20,7 +20,7 @@ Runs `npm install`, `generate:all`, `build:generated`, and starts all mock APIs 
 
 2. Cursor → **Settings → Tools & MCP** → enable the servers you want → **Reload MCP**
 
-    All entries can stay on — HTTP hosts are already running. **`open-meteo-geocoding`** and **`open-meteo`** need no tokens for the prompt below. For **`github`** / **`tmdb`**, set tokens in **`.env.local`** (created from `.env.example` on first `start`). For **`bookings-oauth`**, **`cakes`**, **`banking-oauth`**: use Cursor Sign-in when you try those tools.
+    All entries can stay on — HTTP hosts are already running. **`open-meteo-geocoding`** and **`open-meteo`** need no tokens for the prompt below. For **`github`** / **`tmdb`**, set tokens in **`.env.local`** (created from `.env.example` on first `start`). For **`bookings`**, **`cakes`**, **`banking`**: use Cursor Sign-in when you try those tools.
 
 3. Chat (copy-paste — prefix **`api2ai`** activates the demo MCP rule):
 
@@ -32,12 +32,12 @@ The agent should call **geocoding** first (Berlin → coordinates), then **open-
 
 ## What's next
 
-| Step | Enable MCP server                          | Setup                                           | Example prompt                             |
-| ---- | ------------------------------------------ | ----------------------------------------------- | ------------------------------------------ |
-| 1    | —                                          | Edit **`open-meteo.api2ai`**, save              | Watch generate-on-save update `generated/` |
-| 2    | `spaceflight-news`, `todo`                 | already up after `npm run start`                | Latest space news headlines                |
-| 3    | `github`, `tmdb`                           | Tokens in **`.env.local`** (see `.env.example`) | GitHub user profile / movie search         |
-| 4    | `bookings-oauth`, `cakes`, `banking-oauth` | Cursor Sign-in (hosts already running)          | See **All demos** for auth notes           |
+| Step | Enable MCP server              | Setup                                           | Example prompt                             |
+| ---- | ------------------------------ | ----------------------------------------------- | ------------------------------------------ |
+| 1    | —                              | Edit **`open-meteo.api2ai`**, save              | Watch generate-on-save update `generated/` |
+| 2    | `spaceflight-news`, `todo`     | already up after `npm run start`                | Latest space news headlines                |
+| 3    | `github`, `tmdb`               | Tokens in **`.env.local`** (see `.env.example`) | GitHub user profile / movie search         |
+| 4    | `bookings`, `cakes`, `banking` | Cursor Sign-in (hosts already running)          | See **All demos** for auth notes           |
 
 ## All demos
 
@@ -51,11 +51,11 @@ One MCP server per row — names match `.cursor/mcp.json`.
 | `tmdb`                 | tmdb                 | stdio              | —    | `TMDB_ACCESS_TOKEN` in `.env.local`   |
 | `spaceflight-news`     | spaceflight-news     | HTTP (public)      | 3849 | `npm run start`                       |
 | `todo`                 | todo                 | HTTP (passthrough) | 3853 | `npm run start`; header in `mcp.json` |
-| `bookings-oauth`       | bookings-api         | HTTP (oauth)       | 3872 | `npm run start`; Cursor Sign-in       |
+| `bookings`             | bookings             | HTTP (oauth)       | 3872 | `npm run start`; Cursor Sign-in       |
 | `cakes`                | cakes                | HTTP (oauth)       | 3874 | `npm run start`; Cursor Sign-in       |
-| `banking-oauth`        | banking              | HTTP (oauth)       | 3876 | `npm run start`; enterprise IdP flow  |
+| `banking`              | banking              | HTTP (oauth)       | 3876 | `npm run start`; enterprise IdP flow  |
 
-Protected/checked tools: implement `src/auth/api2ai/<module>/verifyCredential.ts` (write-once stub from generate).
+Protected/checked tools: implement `src/auth/api2ai/<tools-module>/verify*Credentials.ts` (write-once stub from generate).
 
 ## Scripts
 

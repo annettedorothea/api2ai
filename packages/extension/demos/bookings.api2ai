@@ -1,0 +1,56 @@
+openapi "./openapi/bookings.openapi.yaml"
+
+auth {
+    in: header
+    name: "Authorization"
+    prefix: "Bearer "
+}
+
+GET "/vacation-rentals" {
+    toolName: listVacationRentals
+    access: public
+    validate: true
+    intent: '''
+        List Ferienwohnungen (vacation rental units) — public, no login.
+        Returns availability periods per unit (no guest names).
+        Query limit caps how many units are returned (default 10, max 10).
+    '''
+    summary: "List vacation rentals with public availability (limit validated)"
+    example: "Show up to 10 vacation rentals and their free/occupied periods"
+    params: {
+        limit: {
+            description: "Query limit caps how many units are returned (default 10, max 10)."
+            example: "10"
+        }
+    }
+}
+
+GET "/bookings" {
+    toolName: listAllBookings
+    access: protected
+    authorize: true
+    validate: true
+    intent: '''
+        Admin only: list bookings across all customers (Bearer JWT role=admin).
+        Query limit caps how many bookings are returned (default 10, max 10).
+        authorize + validate demo — role gate before upstream call, limit in validate stub.
+    '''
+    summary: "List all customer bookings (admin only, limit validated)"
+    example: "List up to 10 bookings from all customers"
+}
+
+GET "/bookings/{customerId}" {
+    toolName: listBookings
+    access: protected
+    validate: {
+        optionalParams: [customerId]
+    }
+    intent: '''
+        List bookings for the authenticated customer (Bearer JWT).
+        Path customerId is optional: when empty or omitted, filled from JWT claim customerId.
+        Role user: path customerId must match JWT; role admin may list any customerId.
+        Returns bookingId, unitId, checkIn, checkOut for each stay.
+    '''
+    summary: "List customer vacation rental bookings"
+    example: "List my bookings"
+}

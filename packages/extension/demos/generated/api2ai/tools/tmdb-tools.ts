@@ -3,7 +3,8 @@
  * Referenced OpenAPI: ./openapi/tmdb.openapi.json
  */
 import { loggingAdapter } from '../../../src/utils/logging-adapter.js';
-import { verifyCredential } from '../../../src/auth/api2ai/tmdb-tools/verifyCredential.js';
+import * as z from 'zod/v4';
+import { verifyCredential } from '../../../src/auth/api2ai/tmdb-tools/verifyTmdbCredentials.js';
 
 export type GeneratedTool = {
     toolName: string;
@@ -11,8 +12,9 @@ export type GeneratedTool = {
     description: string;
     method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' | 'HEAD' | 'OPTIONS' | 'TRACE';
     path: string;
-    example?: string;
-    access: 'public' | 'protected' | 'checked';
+    access: 'public' | 'protected';
+    hasAuthorize: boolean;
+    hasValidate: boolean;
 };
 
 export const generatedTools: GeneratedTool[] = [
@@ -20,131 +22,144 @@ export const generatedTools: GeneratedTool[] = [
         toolName: 'searchTmdbMovies',
         title: 'Search movies by title',
         description:
-            'Intent:\nsearch TMDB movies by title\n\nAPI:\nSearch for movies by their original, translated and alternative titles.\n\nMeta:\noperationId: search-movie\n\nParameters:\n- include_adult (query)\n- language (query)\n- page (query)\n- primary_release_year (query)\n- query (query)\n- region (query)\n- year (query)\n\nExample:\nFind movies named Dune\n\nResponse:\nHTTP 200\n200\nproperties (top-level): page, results, total_pages, total_results\n\nRuntime auth: MCP host injects the API credential via --auth-env; send as header "Authorization" (prefix applied to the secret).',
+            'Intent:\nsearch TMDB movies by title\n\nAPI:\nSearch for movies by their original, translated and alternative titles.\n\nMeta:\noperationId: search-movie\n\nParameters:\n- include_adult (query)\n- language (query)\n- page (query)\n- primary_release_year (query)\n- query (query)\n- region (query)\n- year (query)\n\nExample:\nFind movies named Dune\n\nResponse:\nHTTP 200\n200\nproperties (top-level): page, results, total_pages, total_results\n\nRuntime: protected — implement src/auth/api2ai/tmdb-tools/verifyTmdbCredentials.ts; credential sent as header "Authorization" (prefix applied to the secret).',
         method: 'GET',
         path: '/3/search/movie',
-        example: 'Find movies named Dune',
-        access: 'protected'
+        access: 'protected',
+        hasAuthorize: false,
+        hasValidate: false
     },
     {
         toolName: 'getPopularTmdbMovies',
         title: 'Popular movies',
         description:
-            'Intent:\nretrieve currently popular TMDB movies\n\nAPI:\nGet a list of movies ordered by popularity.\n\nMeta:\noperationId: movie-popular-list\n\nParameters:\n- language (query)\n- page (query)\n- region (query): ISO-3166-1 code\n\nExample:\nShow popular movies\n\nResponse:\nHTTP 200\n200\nproperties (top-level): page, results, total_pages, total_results\n\nRuntime auth: MCP host injects the API credential via --auth-env; send as header "Authorization" (prefix applied to the secret).',
+            'Intent:\nretrieve currently popular TMDB movies\n\nAPI:\nGet a list of movies ordered by popularity.\n\nMeta:\noperationId: movie-popular-list\n\nParameters:\n- language (query)\n- page (query)\n- region (query): ISO-3166-1 code\n\nExample:\nShow popular movies\n\nResponse:\nHTTP 200\n200\nproperties (top-level): page, results, total_pages, total_results\n\nRuntime: protected — implement src/auth/api2ai/tmdb-tools/verifyTmdbCredentials.ts; credential sent as header "Authorization" (prefix applied to the secret).',
         method: 'GET',
         path: '/3/movie/popular',
-        example: 'Show popular movies',
-        access: 'protected'
+        access: 'protected',
+        hasAuthorize: false,
+        hasValidate: false
     },
     {
         toolName: 'getTmdbMovieDetails',
         title: 'Movie details by ID',
         description:
-            'Intent:\nretrieve details for a TMDB movie by id\n\nAPI:\nGet the top level details of a movie by ID.\n\nMeta:\noperationId: movie-details\n\nParameters:\n- movie_id (path)\n- append_to_response (query): comma separated list of endpoints within this namespace, 20 items max\n- language (query)\n\nExample:\nGet details for movie id 693134\n\nResponse:\nHTTP 200\n200\nproperties (top-level): adult, backdrop_path, belongs_to_collection, budget, genres, homepage, id, imdb_id, origin_country, original_language, original_title, overview, popularity, poster_path, production_companies, production_countries, release_date, revenue, runtime, spoken_languages, status, tagline, title, video, vote_average, vote_count\n\nRuntime auth: MCP host injects the API credential via --auth-env; send as header "Authorization" (prefix applied to the secret).',
+            'Intent:\nretrieve details for a TMDB movie by id\n\nAPI:\nGet the top level details of a movie by ID.\n\nMeta:\noperationId: movie-details\n\nParameters:\n- movie_id (path)\n- append_to_response (query): comma separated list of endpoints within this namespace, 20 items max\n- language (query)\n\nExample:\nGet details for movie id 693134\n\nResponse:\nHTTP 200\n200\nproperties (top-level): adult, backdrop_path, belongs_to_collection, budget, genres, homepage, id, imdb_id, origin_country, original_language, original_title, overview, popularity, poster_path, production_companies, production_countries, release_date, revenue, runtime, spoken_languages, status, tagline, title, video, vote_average, vote_count\n\nRuntime: protected — implement src/auth/api2ai/tmdb-tools/verifyTmdbCredentials.ts; credential sent as header "Authorization" (prefix applied to the secret).',
         method: 'GET',
         path: '/3/movie/{movie_id}',
-        example: 'Get details for movie id 693134',
-        access: 'protected'
+        access: 'protected',
+        hasAuthorize: false,
+        hasValidate: false
     },
     {
         toolName: 'getTmdbMovieCredits',
         title: 'Movie cast and crew',
         description:
-            'Intent:\nretrieve cast and crew credits for a TMDB movie\n\nMeta:\noperationId: movie-credits\n\nParameters:\n- movie_id (path)\n- language (query)\n\nExample:\nWho played in movie id 693134?\n\nResponse:\nHTTP 200\n200\nproperties (top-level): cast, crew, id\n\nRuntime auth: MCP host injects the API credential via --auth-env; send as header "Authorization" (prefix applied to the secret).',
+            'Intent:\nretrieve cast and crew credits for a TMDB movie\n\nMeta:\noperationId: movie-credits\n\nParameters:\n- movie_id (path)\n- language (query)\n\nExample:\nWho played in movie id 693134?\n\nResponse:\nHTTP 200\n200\nproperties (top-level): cast, crew, id\n\nRuntime: protected — implement src/auth/api2ai/tmdb-tools/verifyTmdbCredentials.ts; credential sent as header "Authorization" (prefix applied to the secret).',
         method: 'GET',
         path: '/3/movie/{movie_id}/credits',
-        example: 'Who played in movie id 693134?',
-        access: 'protected'
+        access: 'protected',
+        hasAuthorize: false,
+        hasValidate: false
     },
     {
         toolName: 'discoverTmdbMovies',
         title: 'Discover movies with filters',
         description:
-            'Intent:\n- Discover movies with OpenAPI query filters (genre, year, vote_average, sort_by, etc.).\n        - Use getTmdbMovieGenres first when the user names a genre in natural language.\n        - Prefer searchTmdbMovies for a known title; use this tool for "best sci-fi 2024" style queries.\n        - with_genres: genre id as string (e.g. "878" for sci-fi from getTmdbMovieGenres); comma/pipe for AND/OR.\n        - primary_release_year: number (e.g. 2024), not a string.\n        - Example query: with_genres "878", primary_release_year 2024, sort_by vote_average.desc.\n        - Requires TMDB_ACCESS_TOKEN via MCP host --auth-env.\n\nAPI:\nFind movies using over 30 filters and sort options.\n\nMeta:\noperationId: discover-movie\n\nParameters:\n- certification (query): use in conjunction with `region`\n- certification_country (query): use in conjunction with the `certification`, `certification.gte` and `certification.lte` filters\n- certification.gte (query): use in conjunction with `region`\n- certification.lte (query): use in conjunction with `region`\n- include_adult (query)\n- include_video (query)\n- language (query)\n- page (query)\n- primary_release_date.gte (query)\n- primary_release_date.lte (query)\n- primary_release_year (query)\n- region (query)\n- release_date.gte (query)\n- release_date.lte (query)\n- sort_by (query)\n- vote_average.gte (query)\n- vote_average.lte (query)\n- vote_count.gte (query)\n- vote_count.lte (query)\n- watch_region (query): use in conjunction with `with_watch_monetization_types ` or `with_watch_providers `\n- with_cast (query): can be a comma (`AND`) or pipe (`OR`) separated query\n- with_companies (query): can be a comma (`AND`) or pipe (`OR`) separated query\n- with_crew (query): can be a comma (`AND`) or pipe (`OR`) separated query\n- with_genres (query): can be a comma (`AND`) or pipe (`OR`) separated query\n- with_keywords (query): can be a comma (`AND`) or pipe (`OR`) separated query\n- with_origin_country (query)\n- with_original_language (query)\n- with_people (query): can be a comma (`AND`) or pipe (`OR`) separated query\n- with_release_type (query): possible values are: [1, 2, 3, 4, 5, 6] can be a comma (`AND`) or pipe (`OR`) separated query, can be used in conjunction with `region`\n- with_runtime.gte (query)\n- with_runtime.lte (query)\n- with_watch_monetization_types (query): possible values are: [flatrate, free, ads, rent, buy] use in conjunction with `watch_region`, can be a comma (`AND`) or pipe (`OR`) separated query\n- with_watch_providers (query): use in conjunction with `watch_region`, can be a comma (`AND`) or pipe (`OR`) separated query\n- without_companies (query)\n- without_genres (query)\n- without_keywords (query)\n- without_watch_providers (query)\n- year (query)\n\nExample:\nFind highly rated science fiction movies from 2024\n\nResponse:\nHTTP 200\n200\nproperties (top-level): page, results, total_pages, total_results\n\nRuntime auth: MCP host injects the API credential via --auth-env; send as header "Authorization" (prefix applied to the secret).',
+            'Intent:\n- Discover movies with OpenAPI query filters (genre, year, vote_average, sort_by, etc.).\n        - Use getTmdbMovieGenres first when the user names a genre in natural language.\n        - Prefer searchTmdbMovies for a known title; use this tool for "best sci-fi 2024" style queries.\n        - with_genres: genre id as string (e.g. "878" for sci-fi from getTmdbMovieGenres); comma/pipe for AND/OR.\n        - primary_release_year: number (e.g. 2024), not a string.\n        - Example query: with_genres "878", primary_release_year 2024, sort_by vote_average.desc.\n        - Requires TMDB_ACCESS_TOKEN via MCP host --auth-env.\n\nAPI:\nFind movies using over 30 filters and sort options.\n\nMeta:\noperationId: discover-movie\n\nParameters:\n- certification (query): use in conjunction with `region`\n- certification_country (query): use in conjunction with the `certification`, `certification.gte` and `certification.lte` filters\n- certification.gte (query): use in conjunction with `region`\n- certification.lte (query): use in conjunction with `region`\n- include_adult (query)\n- include_video (query)\n- language (query)\n- page (query)\n- primary_release_date.gte (query)\n- primary_release_date.lte (query)\n- primary_release_year (query)\n- region (query)\n- release_date.gte (query)\n- release_date.lte (query)\n- sort_by (query)\n- vote_average.gte (query)\n- vote_average.lte (query)\n- vote_count.gte (query)\n- vote_count.lte (query)\n- watch_region (query): use in conjunction with `with_watch_monetization_types ` or `with_watch_providers `\n- with_cast (query): can be a comma (`AND`) or pipe (`OR`) separated query\n- with_companies (query): can be a comma (`AND`) or pipe (`OR`) separated query\n- with_crew (query): can be a comma (`AND`) or pipe (`OR`) separated query\n- with_genres (query): can be a comma (`AND`) or pipe (`OR`) separated query\n- with_keywords (query): can be a comma (`AND`) or pipe (`OR`) separated query\n- with_origin_country (query)\n- with_original_language (query)\n- with_people (query): can be a comma (`AND`) or pipe (`OR`) separated query\n- with_release_type (query): possible values are: [1, 2, 3, 4, 5, 6] can be a comma (`AND`) or pipe (`OR`) separated query, can be used in conjunction with `region`\n- with_runtime.gte (query)\n- with_runtime.lte (query)\n- with_watch_monetization_types (query): possible values are: [flatrate, free, ads, rent, buy] use in conjunction with `watch_region`, can be a comma (`AND`) or pipe (`OR`) separated query\n- with_watch_providers (query): use in conjunction with `watch_region`, can be a comma (`AND`) or pipe (`OR`) separated query\n- without_companies (query)\n- without_genres (query)\n- without_keywords (query)\n- without_watch_providers (query)\n- year (query)\n\nExample:\nFind highly rated science fiction movies from 2024\n\nResponse:\nHTTP 200\n200\nproperties (top-level): page, results, total_pages, total_results\n\nRuntime: protected — implement src/auth/api2ai/tmdb-tools/verifyTmdbCredentials.ts; credential sent as header "Authorization" (prefix applied to the secret).',
         method: 'GET',
         path: '/3/discover/movie',
-        example: 'Find highly rated science fiction movies from 2024',
-        access: 'protected'
+        access: 'protected',
+        hasAuthorize: false,
+        hasValidate: false
     },
     {
         toolName: 'getTmdbMovieGenres',
         title: 'Movie genre list',
         description:
-            'Intent:\nretrieve TMDB movie genres for filtering and lookup\n\nAPI:\nGet the list of official genres for movies.\n\nMeta:\noperationId: genre-movie-list\n\nParameters:\n- language (query)\n\nExample:\nList available movie genres\n\nResponse:\nHTTP 200\n200\nproperties (top-level): genres\n\nRuntime auth: MCP host injects the API credential via --auth-env; send as header "Authorization" (prefix applied to the secret).',
+            'Intent:\nretrieve TMDB movie genres for filtering and lookup\n\nAPI:\nGet the list of official genres for movies.\n\nMeta:\noperationId: genre-movie-list\n\nParameters:\n- language (query)\n\nExample:\nList available movie genres\n\nResponse:\nHTTP 200\n200\nproperties (top-level): genres\n\nRuntime: protected — implement src/auth/api2ai/tmdb-tools/verifyTmdbCredentials.ts; credential sent as header "Authorization" (prefix applied to the secret).',
         method: 'GET',
         path: '/3/genre/movie/list',
-        example: 'List available movie genres',
-        access: 'protected'
+        access: 'protected',
+        hasAuthorize: false,
+        hasValidate: false
     },
     {
         toolName: 'getTmdbTrendingMovies',
         title: 'Trending movies',
         description:
-            'Intent:\n- Trending TMDB movies for a time window; pathParams.time_window required: "day" or "week".\n        - Not the same as getPopularTmdbMovies — do not pass query.page here (trending has no page filter in this tool).\n        - Optional query.language only (ISO code).\n\nAPI:\nGet the trending movies on TMDB.\n\nMeta:\noperationId: trending-movies\n\nParameters:\n- time_window (path)\n- language (query): `ISO-639-1`-`ISO-3166-1` code\n\nExample:\nTrending movies this week → pathParams.time_window week\n\nResponse:\nHTTP 200\n200\nproperties (top-level): page, results, total_pages, total_results\n\nRuntime auth: MCP host injects the API credential via --auth-env; send as header "Authorization" (prefix applied to the secret).',
+            'Intent:\n- Trending TMDB movies for a time window; pathParams.time_window required: "day" or "week".\n        - Not the same as getPopularTmdbMovies — do not pass query.page here (trending has no page filter in this tool).\n        - Optional query.language only (ISO code).\n\nAPI:\nGet the trending movies on TMDB.\n\nMeta:\noperationId: trending-movies\n\nParameters:\n- time_window (path)\n- language (query): `ISO-639-1`-`ISO-3166-1` code\n\nExample:\nTrending movies this week → pathParams.time_window week\n\nResponse:\nHTTP 200\n200\nproperties (top-level): page, results, total_pages, total_results\n\nRuntime: protected — implement src/auth/api2ai/tmdb-tools/verifyTmdbCredentials.ts; credential sent as header "Authorization" (prefix applied to the secret).',
         method: 'GET',
         path: '/3/trending/movie/{time_window}',
-        example: 'Trending movies this week → pathParams.time_window week',
-        access: 'protected'
+        access: 'protected',
+        hasAuthorize: false,
+        hasValidate: false
     },
     {
         toolName: 'getTmdbMovieVideos',
         title: 'Movie videos and trailers',
         description:
-            'Intent:\nretrieve videos such as trailers for a TMDB movie\n\nMeta:\noperationId: movie-videos\n\nParameters:\n- movie_id (path)\n- language (query)\n\nExample:\nShow trailers for movie id 693134\n\nResponse:\nHTTP 200\n200\nproperties (top-level): id, results\n\nRuntime auth: MCP host injects the API credential via --auth-env; send as header "Authorization" (prefix applied to the secret).',
+            'Intent:\nretrieve videos such as trailers for a TMDB movie\n\nMeta:\noperationId: movie-videos\n\nParameters:\n- movie_id (path)\n- language (query)\n\nExample:\nShow trailers for movie id 693134\n\nResponse:\nHTTP 200\n200\nproperties (top-level): id, results\n\nRuntime: protected — implement src/auth/api2ai/tmdb-tools/verifyTmdbCredentials.ts; credential sent as header "Authorization" (prefix applied to the secret).',
         method: 'GET',
         path: '/3/movie/{movie_id}/videos',
-        example: 'Show trailers for movie id 693134',
-        access: 'protected'
+        access: 'protected',
+        hasAuthorize: false,
+        hasValidate: false
     },
     {
         toolName: 'searchTmdbMulti',
         title: 'Multi search (movies, TV, people)',
         description:
-            'Intent:\nsearch TMDB across movies, tv shows, and people\n\nAPI:\nUse multi search when you want to search for movies, TV shows and people in a single request.\n\nMeta:\noperationId: search-multi\n\nParameters:\n- include_adult (query)\n- language (query)\n- page (query)\n- query (query)\n\nExample:\nSearch TMDB for Dune across all media types\n\nResponse:\nHTTP 200\n200\nproperties (top-level): page, results, total_pages, total_results\n\nRuntime auth: MCP host injects the API credential via --auth-env; send as header "Authorization" (prefix applied to the secret).',
+            'Intent:\nsearch TMDB across movies, tv shows, and people\n\nAPI:\nUse multi search when you want to search for movies, TV shows and people in a single request.\n\nMeta:\noperationId: search-multi\n\nParameters:\n- include_adult (query)\n- language (query)\n- page (query)\n- query (query)\n\nExample:\nSearch TMDB for Dune across all media types\n\nResponse:\nHTTP 200\n200\nproperties (top-level): page, results, total_pages, total_results\n\nRuntime: protected — implement src/auth/api2ai/tmdb-tools/verifyTmdbCredentials.ts; credential sent as header "Authorization" (prefix applied to the secret).',
         method: 'GET',
         path: '/3/search/multi',
-        example: 'Search TMDB for Dune across all media types',
-        access: 'protected'
+        access: 'protected',
+        hasAuthorize: false,
+        hasValidate: false
     },
     {
         toolName: 'getTmdbMovieReleaseDates',
         title: 'Movie release dates',
         description:
-            'Intent:\nretrieve release dates for a TMDB movie\n\nAPI:\nGet the release dates and certifications for a movie.\n\nMeta:\noperationId: movie-release-dates\n\nParameters:\n- movie_id (path)\n\nExample:\nWhen was movie id 693134 released?\n\nResponse:\nHTTP 200\n200\nproperties (top-level): id, results\n\nRuntime auth: MCP host injects the API credential via --auth-env; send as header "Authorization" (prefix applied to the secret).',
+            'Intent:\nretrieve release dates for a TMDB movie\n\nAPI:\nGet the release dates and certifications for a movie.\n\nMeta:\noperationId: movie-release-dates\n\nParameters:\n- movie_id (path)\n\nExample:\nWhen was movie id 693134 released?\n\nResponse:\nHTTP 200\n200\nproperties (top-level): id, results\n\nRuntime: protected — implement src/auth/api2ai/tmdb-tools/verifyTmdbCredentials.ts; credential sent as header "Authorization" (prefix applied to the secret).',
         method: 'GET',
         path: '/3/movie/{movie_id}/release_dates',
-        example: 'When was movie id 693134 released?',
-        access: 'protected'
+        access: 'protected',
+        hasAuthorize: false,
+        hasValidate: false
     },
     {
         toolName: 'getTmdbMovieRecommendations',
         title: 'Movie recommendations',
         description:
-            'Intent:\nretrieve recommendations for a TMDB movie\n\nMeta:\noperationId: movie-recommendations\n\nParameters:\n- movie_id (path)\n- language (query)\n- page (query)\n\nExample:\nRecommendations for movie id 693134\n\nResponse:\nHTTP 200\n200\ntype: object (no inlined properties)\n\nRuntime auth: MCP host injects the API credential via --auth-env; send as header "Authorization" (prefix applied to the secret).',
+            'Intent:\nretrieve recommendations for a TMDB movie\n\nMeta:\noperationId: movie-recommendations\n\nParameters:\n- movie_id (path)\n- language (query)\n- page (query)\n\nExample:\nRecommendations for movie id 693134\n\nResponse:\nHTTP 200\n200\ntype: object (no inlined properties)\n\nRuntime: protected — implement src/auth/api2ai/tmdb-tools/verifyTmdbCredentials.ts; credential sent as header "Authorization" (prefix applied to the secret).',
         method: 'GET',
         path: '/3/movie/{movie_id}/recommendations',
-        example: 'Recommendations for movie id 693134',
-        access: 'protected'
+        access: 'protected',
+        hasAuthorize: false,
+        hasValidate: false
     },
     {
         toolName: 'getTmdbMovieSimilar',
         title: 'Retrieve similar movies',
         description:
-            'Intent:\nretrieve similar movies for a TMDB movie\n\nAPI:\nGet the similar movies based on genres and keywords.\n\nMeta:\noperationId: movie-similar\n\nParameters:\n- movie_id (path)\n- language (query)\n- page (query)\n\nExample:\nFind similar movies to 693134\n\nResponse:\nHTTP 200\n200\nproperties (top-level): page, results, total_pages, total_results\n\nRuntime auth: MCP host injects the API credential via --auth-env; send as header "Authorization" (prefix applied to the secret).',
+            'Intent:\nretrieve similar movies for a TMDB movie\n\nAPI:\nGet the similar movies based on genres and keywords.\n\nMeta:\noperationId: movie-similar\n\nParameters:\n- movie_id (path)\n- language (query)\n- page (query)\n\nExample:\nFind similar movies to 693134\n\nResponse:\nHTTP 200\n200\nproperties (top-level): page, results, total_pages, total_results\n\nRuntime: protected — implement src/auth/api2ai/tmdb-tools/verifyTmdbCredentials.ts; credential sent as header "Authorization" (prefix applied to the secret).',
         method: 'GET',
         path: '/3/movie/{movie_id}/similar',
-        example: 'Find similar movies to 693134',
-        access: 'protected'
+        access: 'protected',
+        hasAuthorize: false,
+        hasValidate: false
     },
     {
         toolName: 'getTmdbMovieReviews',
         title: 'Retrieve movie reviews',
         description:
-            'Intent:\nretrieve reviews for a TMDB movie\n\nAPI:\nGet the user reviews for a movie.\n\nMeta:\noperationId: movie-reviews\n\nParameters:\n- movie_id (path)\n- language (query)\n- page (query)\n\nExample:\nReviews for movie id 693134\n\nResponse:\nHTTP 200\n200\nproperties (top-level): id, page, results, total_pages, total_results\n\nRuntime auth: MCP host injects the API credential via --auth-env; send as header "Authorization" (prefix applied to the secret).',
+            'Intent:\nretrieve reviews for a TMDB movie\n\nAPI:\nGet the user reviews for a movie.\n\nMeta:\noperationId: movie-reviews\n\nParameters:\n- movie_id (path)\n- language (query)\n- page (query)\n\nExample:\nReviews for movie id 693134\n\nResponse:\nHTTP 200\n200\nproperties (top-level): id, page, results, total_pages, total_results\n\nRuntime: protected — implement src/auth/api2ai/tmdb-tools/verifyTmdbCredentials.ts; credential sent as header "Authorization" (prefix applied to the secret).',
         method: 'GET',
         path: '/3/movie/{movie_id}/reviews',
-        example: 'Reviews for movie id 693134',
-        access: 'protected'
+        access: 'protected',
+        hasAuthorize: false,
+        hasValidate: false
     }
 ];
 
@@ -159,12 +174,8 @@ export type InvokeOptions = {
 export type ApiHostContext = {
     baseUrl: string;
     credential?: string;
-    sessionClaims?: Record<string, unknown>;
-};
-
-export type CheckedHostContext = {
-    credential: string;
-    sessionClaims?: Record<string, unknown>;
+    upstreamCredential?: string;
+    credentials?: unknown;
 };
 
 type AuthConfig = {
@@ -180,16 +191,16 @@ export const authConfig: AuthConfig | undefined = {
     prefix: 'Bearer '
 };
 
-export { verifyCredential } from '../../../src/auth/api2ai/tmdb-tools/verifyCredential.js';
+export { verifyCredential, toModuleCredentials } from '../../../src/auth/api2ai/tmdb-tools/verifyTmdbCredentials.js';
 export type {
     VerifyCredentialInput,
-    VerifyCredentialResult
-} from '../../../src/auth/api2ai/tmdb-tools/verifyCredential.js';
+    VerifyCredentialResult,
+    ModuleCredentials,
+    TmdbCredentials
+} from '../../../src/auth/api2ai/tmdb-tools/verifyTmdbCredentials.js';
 
 export const mcpServerName = 'tmdb-tools';
 export const mcpServerVersion = '0.3.0';
-
-import * as z from 'zod/v4';
 
 export const inputZodByTool = {
     searchTmdbMovies: z
@@ -533,7 +544,7 @@ export const inputZodByTool = {
         .describe('Arguments for invoking the generated HTTP wrapper.')
 };
 
-export const queryParamSerializationByTool = {
+const queryParamSerializationByTool = {
     searchTmdbMovies: {
         query: {
             style: 'form',
@@ -897,19 +908,23 @@ export async function invokeTool(
     }
     const host = hostContext as ApiHostContext;
     const { baseUrl } = host;
-    let credential = host.credential;
-    if (tool.access !== 'public') {
-        if (!credential || !String(credential).trim()) {
+    let upstreamCredential = host.upstreamCredential;
+    const optionsResolved = options;
+    let authCredential = host.credential;
+
+    if (tool.access === 'protected') {
+        const inbound = host.credential;
+        if (!inbound || !String(inbound).trim()) {
             throw new Error(
                 'Missing host credential. stdio: set env for --auth-env on stdio-mcp-server; passthrough HTTP: MCP auth header (e.g. x-api-token); OAuth HTTP: complete MCP login (Authorization Bearer from Cursor).'
             );
         }
-        if (host.sessionClaims === undefined) {
-            const verified = await verifyCredential({ inboundCredential: String(credential).trim() });
-            credential = verified.upstreamCredential;
+        if (upstreamCredential === undefined) {
+            const verified = await verifyCredential({ inboundCredential: String(inbound).trim() });
+            upstreamCredential = verified.upstreamCredential;
         }
+        authCredential = upstreamCredential ?? String(inbound).trim();
     }
-    const optionsResolved = options;
     const normalizedBaseUrl = baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl;
     const pathParams = { ...(optionsResolved.pathParams ?? {}) };
     let resolvedPath = tool.path;
@@ -923,8 +938,8 @@ export async function invokeTool(
         'content-type': 'application/json',
         ...(optionsResolved.headers ?? {})
     };
-    if (authConfig && tool.access !== 'public') {
-        const authValue = resolveAuthSecret(authConfig!, credential);
+    if (authConfig && tool.access === 'protected') {
+        const authValue = resolveAuthSecret(authConfig!, authCredential);
         if (authConfig.location === 'header') {
             requestHeaders[authConfig.name] = authValue;
         } else {
@@ -954,7 +969,7 @@ export async function invokeTool(
         let msg = 'HTTP ' + response.status + ' while invoking ' + tool.toolName + '.';
         if (response.status === 401) {
             msg += ' Unauthorized.';
-            if (authConfig && tool.access !== 'public') {
+            if (authConfig && tool.access === 'protected') {
                 msg +=
                     ' Check MCP host --auth-env on stdio-mcp-server (' +
                     authConfig.location +

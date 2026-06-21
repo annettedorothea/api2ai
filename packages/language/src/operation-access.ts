@@ -1,9 +1,7 @@
 import type { Operation } from './generated/ast.js';
-import { isCheckedAccess, isProtectedAccess, isPublicAccess } from './generated/ast.js';
+import { isAuthorizeTrue, isProtectedAccess, isPublicAccess, isValidateBody, isValidateTrue } from './generated/ast.js';
 
-export type AccessKind = 'public' | 'protected' | 'checked';
-
-export function getAccessKind(operation: Operation): AccessKind {
+export function getAccessKind(operation: Operation): 'public' | 'protected' {
     const access = operation.access;
     if (!access) {
         throw new Error('Operation is missing access.');
@@ -14,16 +12,29 @@ export function getAccessKind(operation: Operation): AccessKind {
     if (isProtectedAccess(access)) {
         return 'protected';
     }
-    if (isCheckedAccess(access)) {
-        return 'checked';
-    }
     throw new Error('Operation is missing access.');
 }
 
+export function isToolAuthorizeEnabled(operation: Operation): boolean {
+    const authorize = operation.authorize;
+    if (!authorize) {
+        return false;
+    }
+    return isAuthorizeTrue(authorize);
+}
+
+export function isToolValidateEnabled(operation: Operation): boolean {
+    const validate = operation.validate;
+    if (!validate) {
+        return false;
+    }
+    return isValidateTrue(validate) || isValidateBody(validate);
+}
+
 export function getOptionalParams(operation: Operation): readonly string[] {
-    const access = operation.access;
-    if (isCheckedAccess(access) && access.checkedBody?.optionalParams) {
-        return access.checkedBody.optionalParams;
+    const validate = operation.validate;
+    if (isValidateBody(validate) && validate.optionalParams) {
+        return validate.optionalParams;
     }
     return [];
 }
@@ -32,6 +43,5 @@ export function accessRequiresAuth(operation: Operation): boolean {
     if (!operation.access) {
         return false;
     }
-    const kind = getAccessKind(operation);
-    return kind === 'protected' || kind === 'checked';
+    return getAccessKind(operation) === 'protected';
 }

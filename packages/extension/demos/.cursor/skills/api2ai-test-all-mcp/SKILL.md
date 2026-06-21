@@ -29,7 +29,7 @@ Hook `.cursor/hooks/before-submit-test-all.sh` prueft bei Kurzformen, ob `.curso
 ## Geltende Regeln
 
 - **Schema-only:** Parameter nur aus MCP-Tool-Descriptors (JSON Schema + Beispiele in `description`). Kein Repo-/OpenAPI-Wissen.
-- **Nur konfigurierte Server:** Eintraege in `.cursor/mcp.json` (`open-meteo`, `open-meteo-geocoding`, `github`, `tmdb`, `spaceflight-news`, `todo`, `bookings-oauth`, `cakes`, `banking-oauth`).
+- **Nur konfigurierte Server:** Eintraege in `.cursor/mcp.json` (`open-meteo`, `open-meteo-geocoding`, `github`, `tmdb`, `spaceflight-news`, `todo`, `bookings`, `cakes`, `banking`).
 - **Kein Workaround bei Fehlern:** Kein CLI, kein direkter HTTP, kein Retry mit anderen Credentials.
 - **Ausnahme zu „ein Aufruf“:** Bei diesem Skill genau **ein Aufruf pro Tool** — insgesamt alle Tools aller Server. Fehler pro Tool dokumentieren, mit naechstem Tool fortfahren (Server komplett down: Rest des Servers ueberspringen, Fehler melden).
 
@@ -46,7 +46,7 @@ Hook `.cursor/hooks/before-submit-test-all.sh` prueft bei Kurzformen, ob `.curso
 - **Read-Tools zuerst** (parallel pro Server moeglich).
 - **Write-Tools:** create → update (ID aus Response) → delete (gleiche ID). Praefix `MCPTEST` in Namen/Text.
 - **todo:** geschuetzte Tools mit Header aus `mcp.json` (`x-api-token`); keine anderen Keys probieren.
-- **bookings-oauth / cakes / banking-oauth:** Cursor OAuth Sign-in; bei `401`/`403` dokumentieren, nicht umgehen.
+- **bookings / cakes / banking:** Cursor OAuth Sign-in; bei `401`/`403` dokumentieren, nicht umgehen.
 - **github / tmdb:** ohne gueltiges Token in `.env.local` erwartbar `401` — als Auth-Fehler melden, nicht workarounden.
 
 ### 3. Aufrufe

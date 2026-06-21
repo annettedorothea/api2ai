@@ -1,6 +1,6 @@
-import { verifyJwt as verifyBookingsJwt, jwtSecret as bookingsJwtSecret } from '../bookings-api/jwt.mjs';
+import { verifyJwt as verifyBookingsJwt, jwtSecret as bookingsJwtSecret } from '../bookings/jwt.mjs';
 
-const DEFAULT_SECRET = 'demo-bookings-api-secret';
+const DEFAULT_SECRET = 'demo-bookings-secret';
 
 export function jwtSecret() {
     return (

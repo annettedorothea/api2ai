@@ -1,8 +1,16 @@
 import type { Model, Operation } from 'api-2-ai-dsl-language';
 import type { LoadedOpenApi } from 'api-2-ai-dsl-language';
-import { getAccessKind, getOptionalParams, loadOpenApi, makeOperationLookupKey } from 'api-2-ai-dsl-language';
+import {
+    getAccessKind,
+    getOptionalParams,
+    isToolAuthorizeEnabled,
+    isToolValidateEnabled,
+    loadOpenApi,
+    makeOperationLookupKey
+} from 'api-2-ai-dsl-language';
 import {
     buildInputZodBlock,
+    emitGeneratedZodPreamble,
     ensureVerifyCredentialStubFromSource,
     relativeImportToLoggingAdapter,
     renderVerifyCredentialImport,
@@ -21,7 +29,19 @@ import {
     type JsonSchemaDict
 } from '../openapi-tool-codegen.js';
 import { createSharedInvokeBlock } from './invoke-render.js';
-import { renderParameterCheckerImports, renderParameterCheckersMap, type ToolAccess } from './render-check-stubs.js';
+import {
+    listAuthorizeToolNames,
+    listProtectedToolNames,
+    listValidateToolNames,
+    modelHasAuthPipeline,
+    renderAuthorizerImports,
+    renderAuthorizersMap,
+    renderValidatorImports,
+    renderValidatorsMap,
+    resolveAuthPipelineTier,
+    type AuthPipelineTier,
+    type ToolAccess
+} from './render-check-stubs.js';
 
 export type ResolvedToolCodegen = {
     toolName: string;
@@ -29,8 +49,9 @@ export type ResolvedToolCodegen = {
     description: string;
     method: Model['operations'][number]['method'];
     path: string;
-    example?: string;
     access: ToolAccess;
+    hasAuthorize: boolean;
+    hasValidate: boolean;
 };
 
 export type RenderToolsModuleInput = {
@@ -80,8 +101,9 @@ function resolveToolsFromLoaded(
             description: buildMcpDescription(operation, details, model.auth, mcpModuleName, hostProduct),
             method: operation.method,
             path: operation.path,
-            example: operation.example,
-            access: getAccessKind(operation)
+            access: getAccessKind(operation),
+            hasAuthorize: isToolAuthorizeEnabled(operation),
+            hasValidate: isToolValidateEnabled(operation)
         };
     });
 }
@@ -152,26 +174,27 @@ function authRuntimeKind(model: Model): 'none' | 'credential' {
 function renderGeneratedImports(
     destinationTsPath: string,
     projectRoot: string,
-    parameterCheckerImports: string,
-    verifyCredentialImport: string
+    authStubImports: string,
+    verifyCredentialImport: string,
+    hasZodSchemas: boolean
 ): string {
     const loggingSpec = relativeImportToLoggingAdapter(destinationTsPath, projectRoot);
     const loggingImport = `import { loggingAdapter } from '${loggingSpec}';`;
     const parts = [loggingImport];
+    if (hasZodSchemas) {
+        parts.push(emitGeneratedZodPreamble().trimEnd());
+    }
     if (verifyCredentialImport.length > 0) {
         parts.push(verifyCredentialImport);
     }
-    if (parameterCheckerImports.length > 0) {
-        parts.push(parameterCheckerImports);
+    if (authStubImports.length > 0) {
+        parts.push(authStubImports);
     }
     return `${parts.join('\n')}\n\n`;
 }
 
 function modelRequiresAuth(model: Model): boolean {
-    if (!model.auth) {
-        return false;
-    }
-    return model.operations.some((op) => getAccessKind(op) !== 'public');
+    return model.operations.some((op) => getAccessKind(op) === 'protected');
 }
 
 function renderMcpServerIdentityExports(name: string, version: string): string {
@@ -200,11 +223,7 @@ function renderSourceReference(source: string): string {
 }
 
 function requiresAuthLiteral(model: Model): string {
-    if (!model.auth) {
-        return 'false';
-    }
-    const needsCredential = model.operations.some((op) => getAccessKind(op) !== 'public');
-    return needsCredential ? 'true' : 'false';
+    return modelRequiresAuth(model) && model.auth ? 'true' : 'false';
 }
 
 function assembleToolsModuleSource(
@@ -215,8 +234,10 @@ function assembleToolsModuleSource(
     source: string,
     destinationTsPath: string,
     projectRoot: string,
-    parameterCheckerImports: string,
-    verifyStubPath: string | undefined
+    authStubImports: string,
+    verifyStubPath: string | undefined,
+    authPipelineTier: AuthPipelineTier,
+    hasZodSchemas: boolean
 ): string {
     const authConfigLiteral = renderAuthConfig(model);
     const sourceReference = renderSourceReference(source);
@@ -230,8 +251,7 @@ function assembleToolsModuleSource(
 
 export const requiresAuth = ${requiresAuthLiteral(model)};
 export const authConfig: AuthConfig | undefined = ${authConfigLiteral};`
-        : `export const requiresAuth = false;
-export const authConfig: undefined = undefined;`;
+        : `export const requiresAuth = false;`;
 
     const verifyExportBlock =
         verifyStubPath !== undefined ? `\n${renderVerifyCredentialReExport(destinationTsPath, verifyStubPath)}\n` : '';
@@ -239,8 +259,13 @@ export const authConfig: undefined = undefined;`;
     const importPrefix = renderGeneratedImports(
         destinationTsPath,
         projectRoot,
-        parameterCheckerImports,
-        verifyStubPath !== undefined ? renderVerifyCredentialImport(destinationTsPath, verifyStubPath) : ''
+        authStubImports,
+        verifyStubPath !== undefined
+            ? renderVerifyCredentialImport(destinationTsPath, verifyStubPath, {
+                  includeModuleCredentials: authPipelineTier === 'full'
+              })
+            : '',
+        hasZodSchemas
     );
 
     const fileNode = expandToNode`
@@ -255,8 +280,9 @@ export type GeneratedTool = {
     description: string;
     method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' | 'HEAD' | 'OPTIONS' | 'TRACE';
     path: string;
-    example?: string;
-    access: 'public' | 'protected' | 'checked';
+    access: 'public' | 'protected';
+    hasAuthorize: boolean;
+    hasValidate: boolean;
 };
 
 export const generatedTools: GeneratedTool[] = ${enrichedToolsLiteral};
@@ -272,12 +298,8 @@ export type InvokeOptions = {
 export type ApiHostContext = {
     baseUrl: string;
     credential?: string;
-    sessionClaims?: Record<string, unknown>;
-};
-
-export type CheckedHostContext = {
-    credential: string;
-    sessionClaims?: Record<string, unknown>;
+    upstreamCredential?: string;
+    credentials?: unknown;
 };
 
 ${authDecl}
@@ -309,21 +331,43 @@ export async function renderToolsModule(input: RenderToolsModuleInput): Promise<
     const mcpServerIdentity = resolveMcpServerIdentityFromDestination(destinationTsPath, bootstrapConfig);
     const mcpServerIdentityBlock = renderMcpServerIdentityExports(mcpServerIdentity.name, mcpServerIdentity.version);
 
-    const hasChecked = stubPaths.size > 0;
-    const parameterCheckerImports = hasChecked ? renderParameterCheckerImports(destinationTsPath, stubPaths) : '';
-    const parameterCheckersMap = hasChecked ? renderParameterCheckersMap(stubPaths) : '';
-    const authRuntimePrefix = parameterCheckersMap.length > 0 ? `${parameterCheckersMap}\n\n` : '';
+    const hasAuthPipeline = modelHasAuthPipeline(model);
+    const authorizeToolNames = listAuthorizeToolNames(model);
+    const validateToolNames = listValidateToolNames(model);
+    const authPipelineTier = resolveAuthPipelineTier(hasAuthPipeline, authorizeToolNames, validateToolNames);
+    const hasProtectedTools = listProtectedToolNames(model).length > 0;
+    const authorizerImports =
+        authorizeToolNames.length > 0 ? renderAuthorizerImports(destinationTsPath, stubPaths, authorizeToolNames) : '';
+    const validatorImports = validateToolNames.length > 0 ? renderValidatorImports(destinationTsPath, stubPaths) : '';
+    const authStubImports = [authorizerImports, validatorImports].filter((s) => s.length > 0).join('\n');
+    const authMapBlocks: string[] = [];
+    if (authPipelineTier === 'full') {
+        if (authorizeToolNames.length > 0) {
+            authMapBlocks.push(renderAuthorizersMap(authorizeToolNames));
+        }
+        if (validateToolNames.length > 0) {
+            authMapBlocks.push(renderValidatorsMap(validateToolNames));
+        }
+    }
+    const authRuntimePrefixBlock = authMapBlocks.length > 0 ? `${authMapBlocks.join('\n\n')}\n\n` : '';
 
-    const toolRuntimeBlock = `${authRuntimePrefix}${buildInputZodBlock(orderedSchemas)}\n${createSharedInvokeBlock(
+    const stubMaps = {
+        authorizers: authorizeToolNames.length > 0,
+        validators: validateToolNames.length > 0
+    };
+    const toolRuntimeBlock = `${authRuntimePrefixBlock}${buildInputZodBlock(orderedSchemas)}\n${createSharedInvokeBlock(
         querySerializationLiteral,
         authKind,
-        hasChecked
+        authPipelineTier,
+        stubMaps
     )}`;
 
-    const verifyStubPath = modelRequiresAuth(model)
-        ? await ensureVerifyCredentialStubFromSource(source, destinationTsPath)
-        : undefined;
+    const verifyStubPath =
+        model.auth && hasProtectedTools
+            ? await ensureVerifyCredentialStubFromSource(source, destinationTsPath)
+            : undefined;
     const projectRoot = resolveBootstrapProjectRootFromSource(source);
+    const hasZodSchemas = Object.keys(orderedSchemas).length > 0;
 
     return assembleToolsModuleSource(
         toolsLiteral,
@@ -333,7 +377,9 @@ export async function renderToolsModule(input: RenderToolsModuleInput): Promise<
         source,
         destinationTsPath,
         projectRoot,
-        parameterCheckerImports,
-        verifyStubPath
+        authStubImports,
+        verifyStubPath,
+        authPipelineTier,
+        hasZodSchemas
     );
 }

@@ -13,10 +13,12 @@ import { loggingAdapter } from '../../../src/utils/logging-adapter.js';
 
 const LOCAL_ENV_FILES = ['.env', '.env.local'];
 
+/** Host context inside MCP server templates. Tool modules use ApiHostContext; this wider shape is shared across stdio/HTTP hosts. */
 type ApiLikeHostContext = {
     baseUrl?: string;
     credential?: string;
-    sessionClaims?: Record<string, unknown>;
+    upstreamCredential?: string;
+    credentials?: unknown;
 };
 
 type VerifyCredentialInput = {
@@ -25,7 +27,7 @@ type VerifyCredentialInput = {
 
 type VerifyCredentialResult = {
     upstreamCredential: string;
-    sessionClaims?: Record<string, unknown>;
+    credentials: unknown;
 };
 
 type VerifyCredentialFn = (input: VerifyCredentialInput) => Promise<VerifyCredentialResult>;
@@ -315,7 +317,7 @@ function validateHostAtStartup(hostConfig: HostRuntimeConfig, generated: Generat
     }
     if (generated.requiresAuth && typeof generated.verifyCredential !== 'function') {
         throw new Error(
-            'Generated tools require auth; implement verifyCredential in src/auth/api2ai/<module>/verifyCredential.ts and re-export from generated tools.'
+            'Generated tools require auth; implement verify*Credentials in src/auth/api2ai/<module>/ and re-export from generated tools.'
         );
     }
 }

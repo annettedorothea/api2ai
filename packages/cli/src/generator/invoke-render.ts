@@ -21,8 +21,8 @@ function renderAuthApplicationBlock(authKind: 'none' | 'credential'): string {
         return '';
     }
     return `
-    if (authConfig && tool.access !== 'public') {
-        const authValue = resolveAuthSecret(authConfig!, credential);
+    if (authConfig && tool.access === 'protected') {
+        const authValue = resolveAuthSecret(authConfig!, authCredential);
         if (authConfig.location === 'header') {
             requestHeaders[authConfig.name] = authValue;
         } else {
@@ -42,10 +42,10 @@ function renderAuth401Hint(authKind: 'none' | 'credential'): string {
         : '';
 }
 
-import { renderInvokeCredentialAndParameterCheck } from './render-check-stubs.js';
+import { renderInvokeAuthPipeline, type AuthPipelineTier, type AuthStubMaps } from './render-check-stubs.js';
 
 function renderQuerySerializationHelpers(querySerializationLiteralBody: string): string {
-    return `export const queryParamSerializationByTool = ${querySerializationLiteralBody};
+    return `const queryParamSerializationByTool = ${querySerializationLiteralBody};
 
 function appendSerializedQueryParams(
     searchParams: URLSearchParams,
@@ -108,18 +108,39 @@ function renderHostBinding(): string {
     const { baseUrl } = host;`;
 }
 
-function renderInvokeToolFunction(authKind: 'none' | 'credential', hasChecked: boolean): string {
+function renderInvokeToolFunction(
+    authKind: 'none' | 'credential',
+    authPipelineTier: AuthPipelineTier,
+    stubMaps: AuthStubMaps
+): string {
     const resolveCall = renderAuthApplicationBlock(authKind);
     const auth401Block = renderAuth401Hint(authKind);
     const auth401Section =
         authKind === 'credential'
-            ? `if (authConfig && tool.access !== 'public') {
+            ? `if (authConfig && tool.access === 'protected') {
                 ${auth401Block}
             }`
-            : `if (tool.access !== 'public') {
+            : `if (tool.access === 'protected') {
                 msg += ' The API may require authentication.';
             }`;
-    const credentialAndParams = renderInvokeCredentialAndParameterCheck(authKind === 'credential', hasChecked);
+    const authPipeline =
+        authPipelineTier === 'none'
+            ? `
+    const optionsResolved = options;
+    const normalizedBaseUrl = baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl;
+    const pathParams = { ...(optionsResolved.pathParams ?? {}) };
+    let resolvedPath = tool.path;
+    for (const [key, value] of Object.entries(pathParams)) {
+        resolvedPath = resolvedPath.split('{' + key + '}').join(encodeURIComponent(String(value)));
+    }
+
+    const url = new URL(normalizedBaseUrl + resolvedPath);
+    appendSerializedQueryParams(url.searchParams, tool.toolName, optionsResolved.query);
+    const requestHeaders: Record<string, string> = {
+        'content-type': 'application/json',
+        ...(optionsResolved.headers ?? {})
+    };`
+            : renderInvokeAuthPipeline(authPipelineTier, authKind === 'credential', stubMaps);
     const hostBinding = renderHostBinding();
 
     return `export async function invokeTool(
@@ -132,7 +153,7 @@ function renderInvokeToolFunction(authKind: 'none' | 'credential', hasChecked: b
         throw new Error('Unknown tool: ' + toolName);
     }
     loggingAdapter.debug('invokeTool', { toolName, method: tool.method, path: tool.path });
-${hostBinding}${credentialAndParams}${resolveCall}
+${hostBinding}${authPipeline}${resolveCall}
 
     const requestInit: Record<string, unknown> = {
         method: tool.method,
@@ -185,11 +206,12 @@ ${hostBinding}${credentialAndParams}${resolveCall}
 export function createSharedInvokeBlock(
     querySerializationLiteralBody: string,
     authKind: 'none' | 'credential',
-    hasChecked: boolean
+    authPipelineTier: AuthPipelineTier,
+    stubMaps: AuthStubMaps
 ): string {
     return `${renderQuerySerializationHelpers(querySerializationLiteralBody)}
 ${renderAuthHelpers(authKind)}
 
-${renderInvokeToolFunction(authKind, hasChecked)}
+${renderInvokeToolFunction(authKind, authPipelineTier, stubMaps)}
 `.trim();
 }

@@ -1,4 +1,14 @@
 {
+    "customers": [
+        {
+            "customerId": "alice",
+            "displayName": "Alice Example"
+        },
+        {
+            "customerId": "bob",
+            "displayName": "Bob Example"
+        }
+    ],
     "accounts": [
         {
             "accountId": "acc-alice-checking",

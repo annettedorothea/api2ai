@@ -1,9 +1,9 @@
 import path from 'node:path';
 import type { ValidationAcceptor, ValidationChecks } from 'langium';
 import type { Api2AiDslAstType, Model, Operation } from './generated/ast.js';
-import { isCheckedAccess } from './generated/ast.js';
+import { isValidateBody } from './generated/ast.js';
 import type { Api2AiDslServices } from './api-2-ai-dsl-module.js';
-import { accessRequiresAuth, getOptionalParams } from './operation-access.js';
+import { accessRequiresAuth, getOptionalParams, isToolAuthorizeEnabled } from './operation-access.js';
 import {
     getCookieParameterMessages,
     getDslBodyWithoutOpenApiRequestBodyWarning,
@@ -66,13 +66,25 @@ export class Api2AiDslValidator {
     }
 
     private checkOperationAccess(model: Model, accept: ValidationAcceptor): void {
+        for (const operation of model.operations) {
+            if (!operation.access) {
+                continue;
+            }
+            if (isToolAuthorizeEnabled(operation) && !accessRequiresAuth(operation)) {
+                accept('error', 'authorize: true requires access `protected`.', {
+                    node: operation,
+                    property: 'authorize'
+                });
+            }
+        }
+
         if (!model.auth) {
             for (const operation of model.operations) {
                 if (!operation.access) {
                     continue;
                 }
                 if (accessRequiresAuth(operation)) {
-                    accept('error', 'access `protected` and `checked` require an auth block on the model.', {
+                    accept('error', 'access `protected` requires an auth block on the model.', {
                         node: operation,
                         property: 'access'
                     });
@@ -189,9 +201,9 @@ export class Api2AiDslValidator {
                 operation.method,
                 operation.path
             )) {
-                const body = isCheckedAccess(operation.access) ? operation.access.checkedBody : undefined;
+                const body = isValidateBody(operation.validate) ? operation.validate : undefined;
                 accept('warning', warning.message, {
-                    node: body ?? operation.access,
+                    node: body ?? operation,
                     property: 'optionalParams',
                     index: warning.index
                 });

@@ -5,7 +5,7 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const DEFAULT_SECRET = 'demo-bookings-api-secret';
+const DEFAULT_SECRET = 'demo-bookings-secret';
 
 let rs256PublicKey;
 

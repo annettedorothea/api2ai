@@ -155,8 +155,8 @@ async function main() {
 
     const bookingsPort = requireEnvInt('BOOKINGS_API_PORT');
     startService(
-        'bookings-api',
-        [path.join(demosRoot, 'bookings-api', 'server.mjs')],
+        'bookings',
+        [path.join(demosRoot, 'bookings', 'server.mjs')],
         { BOOKINGS_API_PORT: String(bookingsPort) },
         bookingsPort
     );
@@ -213,7 +213,7 @@ async function main() {
 
     console.log('[start] waiting for mock API backends…');
     for (const [label, port] of [
-        ['bookings-api', bookingsPort],
+        ['bookings', bookingsPort],
         ['todo-api', todoPort],
         ['cakes-api', cakesPort],
         ['banking-api', bankingPort]

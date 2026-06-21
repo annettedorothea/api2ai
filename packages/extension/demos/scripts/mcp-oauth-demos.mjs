@@ -11,34 +11,31 @@ function loadProductName(demosRoot) {
 }
 
 export const OAUTH_HTTP_DEMOS = {
-    'bookings-oauth': {
-        tools: 'bookings-api-tools.js',
+    'bookings': {
+        tools: 'bookings-tools.js',
         baseUrlEnv: 'BOOKINGS_API_BASE_URL',
         oauthIdpUrlEnv: 'BOOKINGS_OAUTH_IDP_OIDC_URL',
         portEnv: 'BOOKINGS_OAUTH_HTTP_PORT',
-        oauthScope: 'bookings-api',
-        mcpServerName: 'bookings-oauth'
+        oauthScope: 'bookings'
     },
     cakes: {
         tools: 'cakes-tools.js',
         baseUrlEnv: 'CAKES_API_BASE_URL',
         oauthIdpUrlEnv: 'BOOKINGS_OAUTH_IDP_URL',
         portEnv: 'CAKES_OAUTH_HTTP_PORT',
-        oauthScope: 'cakes-api',
-        mcpServerName: 'cakes'
+        oauthScope: 'cakes-api'
     },
-    'banking-oauth': {
+    'banking': {
         tools: 'banking-tools.js',
         baseUrlEnv: 'BANKING_API_BASE_URL',
         oauthIdpUrlEnv: 'ENTERPRISE_IDP_URL',
         portEnv: 'BANKING_OAUTH_HTTP_PORT',
-        oauthScope: 'banking-api',
-        mcpServerName: 'banking-oauth'
+        oauthScope: 'banking-api'
     }
 };
 
 /** OAuth MCP hosts started by `npm run start`. */
-export const OAUTH_HTTP_START_DEMO_NAMES = ['bookings-oauth', 'cakes', 'banking-oauth'];
+export const OAUTH_HTTP_START_DEMO_NAMES = ['bookings', 'cakes', 'banking'];
 
 export const OAUTH_HTTP_DEMO_NAMES = Object.keys(OAUTH_HTTP_DEMOS);
 

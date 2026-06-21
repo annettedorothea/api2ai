@@ -8,7 +8,7 @@ auth {
 
 GET "/categories" {
     toolName: listCategories
-    access: checked
+    access: protected
     intent: '''
         List todo categories. Requires API key (MCP x-api-token → x-api-key).
     '''
@@ -23,7 +23,7 @@ GET "/categories" {
 
 GET "/todos" {
     toolName: listTodos
-    access: checked
+    access: protected
     intent: '''
         List todos; optional filter by status (open|done) or categoryId.
     '''
@@ -52,7 +52,7 @@ GET "/todos" {
 
 GET "/categories/{categoryId}/todos" {
     toolName: listTodosByCategory
-    access: checked
+    access: protected
     intent: '''
         List todos in one category. Optional query status: open or done.
     '''
@@ -82,7 +82,7 @@ GET "/categories/{categoryId}/todos" {
 
 GET "/todos/{todoId}" {
     toolName: getTodo
-    access: checked
+    access: protected
     intent: '''
         Fetch one todo by path todoId (e.g. t-1).
     '''
@@ -106,7 +106,7 @@ GET "/todos/{todoId}" {
 
 POST "/todos" {
     toolName: createTodo
-    access: checked
+    access: protected
     intent: '''
         Create a todo. Use response todo.id for updateTodo or deleteTodo.
     '''
@@ -128,7 +128,7 @@ POST "/todos" {
 
 PATCH "/todos/{todoId}" {
     toolName: updateTodo
-    access: checked
+    access: protected
     intent: '''
         Update a todo by path todoId (from createTodo or listTodos).
     '''
@@ -158,7 +158,7 @@ PATCH "/todos/{todoId}" {
 
 DELETE "/todos/{todoId}" {
     toolName: deleteTodo
-    access: checked
+    access: protected
     intent: '''
         Delete a todo by path todoId.
     '''

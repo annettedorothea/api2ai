@@ -236,33 +236,46 @@ describe('Validating', () => {
         `);
 
         const diagnostics = document.diagnostics ?? [];
-        expect(diagnostics.some((d) => d.message.includes('require an auth block'))).toBe(true);
+        expect(diagnostics.some((d) => d.message.includes('requires an auth block'))).toBe(true);
     });
 
-    test('reports checked without auth block', async () => {
+    test('reports authorize on public access', async () => {
         document = await parseValidated(`
             openapi "./langium-test-mini.openapi.yaml"
             GET "/pet/{petId}" {
                 toolName: getPetById
-                access: checked
+                access: public
+                authorize: true
                 intent: "get one pet"
             }
         `);
 
         const diagnostics = document.diagnostics ?? [];
-        expect(diagnostics.some((d) => d.message.includes('require an auth block'))).toBe(true);
+        expect(diagnostics.some((d) => d.message.includes('authorize: true requires access `protected`'))).toBe(true);
+    });
+
+    test('accepts public with validate without auth block', async () => {
+        document = await parseValidated(`
+            openapi "./langium-test-mini.openapi.yaml"
+            GET "/pet/{petId}" {
+                toolName: getPetById
+                access: public
+                validate: true
+                intent: "get one pet"
+            }
+        `);
+
+        const diagnostics = document.diagnostics ?? [];
+        expect(diagnostics).toHaveLength(0);
     });
 
     test('accepts optionalParams when parameter exists and is required in OpenAPI', async () => {
         document = await parseValidated(`
             openapi "./langium-test-mini.openapi.yaml"
-            auth {
-                in: header
-                name: "Authorization"
-            }
             GET "/pet/{petId}" {
                 toolName: getPetById
-                access: checked {
+                access: public
+                validate: {
                     optionalParams: [petId]
                 }
                 intent: "get one pet"
@@ -276,13 +289,10 @@ describe('Validating', () => {
     test('warns when optionalParams entry is not in OpenAPI', async () => {
         document = await parseValidated(`
             openapi "./langium-test-mini.openapi.yaml"
-            auth {
-                in: header
-                name: "Authorization"
-            }
             GET "/pet/{petId}" {
                 toolName: getPetById
-                access: checked {
+                access: public
+                validate: {
                     optionalParams: [customerId]
                 }
                 intent: "get one pet"
@@ -299,13 +309,10 @@ describe('Validating', () => {
     test('warns only for unknown optionalParams entries when list is mixed', async () => {
         document = await parseValidated(`
             openapi "./langium-test-mini.openapi.yaml"
-            auth {
-                in: header
-                name: "Authorization"
-            }
             GET "/pet/{petId}" {
                 toolName: getPetById
-                access: checked {
+                access: public
+                validate: {
                     optionalParams: [petId, customerId]
                 }
                 intent: "get one pet"
@@ -354,8 +361,8 @@ describe('Validating', () => {
         expect(diagnostics.some((d) => d.message.includes('params entry "customerId"'))).toBe(true);
     });
 
-    test('validates extension bookings-api demo without diagnostics', async () => {
-        const demoPath = path.resolve(process.cwd(), '../extension/demos/bookings-api.api2ai');
+    test('validates extension bookings demo without diagnostics', async () => {
+        const demoPath = path.resolve(process.cwd(), '../extension/demos/bookings.api2ai');
         const content = await import('node:fs').then((fs) => fs.readFileSync(demoPath, 'utf8'));
         caseIndex += 1;
         document = await parse(content, { validation: true, documentUri: demoPath });

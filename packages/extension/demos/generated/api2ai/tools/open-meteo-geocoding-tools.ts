@@ -3,6 +3,7 @@
  * Referenced OpenAPI: ./openapi/open-meteo-geocoding.openapi.yaml
  */
 import { loggingAdapter } from '../../../src/utils/logging-adapter.js';
+import * as z from 'zod/v4';
 
 export type GeneratedTool = {
     toolName: string;
@@ -10,8 +11,9 @@ export type GeneratedTool = {
     description: string;
     method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' | 'HEAD' | 'OPTIONS' | 'TRACE';
     path: string;
-    example?: string;
-    access: 'public' | 'protected' | 'checked';
+    access: 'public' | 'protected';
+    hasAuthorize: boolean;
+    hasValidate: boolean;
 };
 
 export const generatedTools: GeneratedTool[] = [
@@ -19,11 +21,12 @@ export const generatedTools: GeneratedTool[] = [
         toolName: 'openMeteoGeocodeSearch',
         title: 'Resolve location names to coordinates',
         description:
-            'Intent:\n- Resolve a place name to WGS84 latitude and longitude (query: name, required).\n        - Optional: countryCode (e.g. DE), language (e.g. de), count to limit matches.\n        - Use before openMeteoForecast when the user gives a city or region, not coordinates.\n        - Pick the result that matches the intended admin region (e.g. Baden-Württemberg vs. Hessen for "Ortenberg").\n\nMeta:\noperationId: searchLocationByName\n\nParameters:\n- count (query): Number of matches to return.\n- countryCode (query): ISO country code filter, e.g. AT.\n- language (query): Language code for result names, e.g. de or en.\n- name (query): City/place search text, e.g. Bernstein.\n\nExample:\nFind coordinates for Bernstein, Burgenland, Austria\n\nResponse:\nHTTP 200\nOK\n\nRuntime: public endpoint — no Authorization header or MCP credential required.',
+            'Intent:\n- Resolve a place name to WGS84 latitude and longitude (query: name, required).\n        - Optional: countryCode (e.g. DE), language (e.g. de), count to limit matches.\n        - Use before openMeteoForecast when the user gives a city or region, not coordinates.\n        - Pick the result that matches the intended admin region (e.g. Baden-Württemberg vs. Hessen for "Ortenberg").\n\nMeta:\noperationId: searchLocationByName\n\nParameters:\n- count (query): Number of matches to return.\n- countryCode (query): ISO country code filter, e.g. AT.\n- language (query): Language code for result names, e.g. de or en.\n- name (query): City/place search text, e.g. Bernstein.\n\nExample:\nFind coordinates for Bernstein, Burgenland, Austria\n\nResponse:\nHTTP 200\nOK\n\nRuntime: public endpoint — no credential required.',
         method: 'GET',
         path: '/v1/search',
-        example: 'Find coordinates for Bernstein, Burgenland, Austria',
-        access: 'public'
+        access: 'public',
+        hasAuthorize: false,
+        hasValidate: false
     }
 ];
 
@@ -38,21 +41,14 @@ export type InvokeOptions = {
 export type ApiHostContext = {
     baseUrl: string;
     credential?: string;
-    sessionClaims?: Record<string, unknown>;
-};
-
-export type CheckedHostContext = {
-    credential: string;
-    sessionClaims?: Record<string, unknown>;
+    upstreamCredential?: string;
+    credentials?: unknown;
 };
 
 export const requiresAuth = false;
-export const authConfig: undefined = undefined;
 
 export const mcpServerName = 'open-meteo-geocoding-tools';
 export const mcpServerVersion = '0.3.0';
-
-import * as z from 'zod/v4';
 
 export const inputZodByTool = {
     openMeteoGeocodeSearch: z
@@ -81,7 +77,7 @@ export const inputZodByTool = {
         .describe('Arguments for invoking the generated HTTP wrapper.')
 };
 
-export const queryParamSerializationByTool = {
+const queryParamSerializationByTool = {
     openMeteoGeocodeSearch: {
         name: {
             style: 'form',
@@ -207,7 +203,7 @@ export async function invokeTool(
         let msg = 'HTTP ' + response.status + ' while invoking ' + tool.toolName + '.';
         if (response.status === 401) {
             msg += ' Unauthorized.';
-            if (tool.access !== 'public') {
+            if (tool.access === 'protected') {
                 msg += ' The API may require authentication.';
             }
         } else if (response.status === 403) {

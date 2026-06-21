@@ -16,10 +16,12 @@ import { loggingAdapter } from '../../../src/utils/logging-adapter.js';
 
 const LOCAL_ENV_FILES = ['.env', '.env.local'];
 
+/** Host context inside MCP server templates. Tool modules use ApiHostContext; this wider shape is shared across stdio/HTTP hosts. */
 type ApiLikeHostContext = {
     baseUrl?: string;
     credential?: string;
-    sessionClaims?: Record<string, unknown>;
+    upstreamCredential?: string;
+    credentials?: unknown;
 };
 
 type VerifyCredentialInput = {
@@ -28,7 +30,7 @@ type VerifyCredentialInput = {
 
 type VerifyCredentialResult = {
     upstreamCredential: string;
-    sessionClaims?: Record<string, unknown>;
+    credentials: unknown;
 };
 
 type VerifyCredentialFn = (input: VerifyCredentialInput) => Promise<VerifyCredentialResult>;
@@ -296,7 +298,7 @@ type OAuthHttpHostRuntimeConfig = {
 type McpOAuthSession = {
     sessionId: string;
     upstreamCredential?: string;
-    sessionClaims?: Record<string, unknown>;
+    credentials?: unknown;
     verifiedAt?: number;
     createdAt: number;
 };
@@ -395,8 +397,8 @@ function generatedHasPublicTool(generated: GeneratedHostModule): boolean {
     return generated.generatedTools.some((t) => t.access === 'public');
 }
 
-function generatedHasProtectedOrCheckedTool(generated: GeneratedHostModule): boolean {
-    return generated.generatedTools.some((t) => t.access === 'protected' || t.access === 'checked');
+function generatedHasProtectedTool(generated: GeneratedHostModule): boolean {
+    return generated.generatedTools.some((t) => t.access === 'protected');
 }
 
 async function validateOAuthHttpHostAtStartup(
@@ -405,7 +407,7 @@ async function validateOAuthHttpHostAtStartup(
 ): Promise<void> {
     if (_generated.requiresAuth && typeof _generated.verifyCredential !== 'function') {
         throw new Error(
-            'Generated tools require auth; implement verifyCredential in src/auth/api2ai/<module>/verifyCredential.ts and re-export from generated tools.'
+            'Generated tools require auth; implement verify*Credentials in src/auth/api2ai/<module>/ and re-export from generated tools.'
         );
     }
 
@@ -474,12 +476,12 @@ async function resolveHostContextForOAuthSession(
     }
 
     if (session?.verifiedAt && session.upstreamCredential) {
-        const sessionClaims =
-            session.sessionClaims && Object.keys(session.sessionClaims).length > 0 ? session.sessionClaims : undefined;
+        const credentials = session.credentials;
         return withDbConnectionHostContext(_generated, {
             ...apiFields,
             credential: session.upstreamCredential,
-            sessionClaims
+            upstreamCredential: session.upstreamCredential,
+            credentials
         });
     }
 
@@ -490,7 +492,8 @@ async function resolveHostContextForOAuthSession(
             return withDbConnectionHostContext(_generated, {
                 ...apiFields,
                 credential: session.upstreamCredential,
-                sessionClaims: session.sessionClaims
+                upstreamCredential: session.upstreamCredential,
+                credentials: session.credentials
             });
         }
         return withDbConnectionHostContext(_generated, { ...apiFields });
@@ -505,20 +508,18 @@ async function resolveHostContextForOAuthSession(
     if (upstreamCredential.length === 0) {
         throw new Error('verifyCredential returned an empty upstream credential.');
     }
-    const sessionClaims =
-        verified.sessionClaims && typeof verified.sessionClaims === 'object'
-            ? (verified.sessionClaims as Record<string, unknown>)
-            : undefined;
+    const credentials = JSON.parse(JSON.stringify(verified.credentials));
     if (session) {
         session.upstreamCredential = upstreamCredential;
-        session.sessionClaims = sessionClaims;
+        session.credentials = credentials;
         session.verifiedAt = Date.now();
     }
 
     return withDbConnectionHostContext(_generated, {
         ...apiFields,
         credential: upstreamCredential,
-        sessionClaims
+        upstreamCredential,
+        credentials
     });
 }
 
@@ -578,7 +579,7 @@ function isInitializeRequestBody(body: unknown): boolean {
 }
 
 function mcpRequiresBearerOnInitialize(generated: GeneratedHostModule): boolean {
-    return generated.requiresAuth && generatedHasProtectedOrCheckedTool(generated);
+    return generated.requiresAuth && generatedHasProtectedTool(generated);
 }
 
 function readSessionId(req: IncomingMessage): string | undefined {
@@ -710,7 +711,7 @@ async function runOAuthHttpMcpStandaloneFromArgv(argv: string[]): Promise<void> 
         resourceUrl,
         authorizationServer: httpHostConfig.oauthIdpUrl,
         oauthOnInitialize: mcpRequiresBearerOnInitialize(generated)
-            ? 'Bearer required (protected/checked tools — Cursor login when enabling MCP' +
+            ? 'Bearer required (protected tools — Cursor login when enabling MCP' +
               (generatedHasPublicTool(generated) ? '; public tools after login' : '') +
               ')'
             : 'no Bearer required (only public tools)'

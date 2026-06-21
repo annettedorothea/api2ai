@@ -9,15 +9,52 @@ paths:
     /vacation-rentals:
         get:
             operationId: list-vacation-rentals
-            summary: List vacation rental units
+            summary: List vacation rental units (public availability)
             description: |
-                Requires Bearer JWT. Admin sees guest names and booking details per unit.
-                User sees only occupied and free date ranges (no guest identity).
-            security:
-                - bearerAuth: []
+                Public endpoint — no auth. Returns availability periods per unit (no guest identity).
+                Use query limit to cap how many units are returned (max 10).
+            parameters:
+                - name: limit
+                  in: query
+                  required: false
+                  schema:
+                      type: integer
+                      minimum: 1
+                      maximum: 10
+                      default: 10
             responses:
                 '200':
-                    description: Vacation rental units
+                    description: Vacation rental units (public view)
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    limit:
+                                        type: integer
+                                    units:
+                                        type: array
+                                        items:
+                                            type: object
+    /bookings:
+        get:
+            operationId: list-all-bookings
+            summary: List all bookings across customers (admin only)
+            description: Requires Bearer JWT with role=admin. Returns bookings from all customers, capped by limit (max 10).
+            security:
+                - bearerAuth: []
+            parameters:
+                - name: limit
+                  in: query
+                  required: false
+                  schema:
+                      type: integer
+                      minimum: 1
+                      maximum: 10
+                      default: 10
+            responses:
+                '200':
+                    description: Cross-customer booking list
                     content:
                         application/json:
                             schema:
@@ -25,12 +62,29 @@ paths:
                                 properties:
                                     role:
                                         type: string
-                                    units:
+                                    limit:
+                                        type: integer
+                                    bookings:
                                         type: array
                                         items:
                                             type: object
+                                            properties:
+                                                bookingId:
+                                                    type: string
+                                                customerId:
+                                                    type: string
+                                                unitId:
+                                                    type: string
+                                                checkIn:
+                                                    type: string
+                                                    format: date
+                                                checkOut:
+                                                    type: string
+                                                    format: date
                 '401':
                     description: Missing or invalid token
+                '403':
+                    description: Admin role required
     /bookings/{customerId}:
         get:
             operationId: list-customer-bookings

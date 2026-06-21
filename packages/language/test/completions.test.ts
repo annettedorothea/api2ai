@@ -145,6 +145,8 @@ describe('Completion for block keywords', () => {
                 [
                     'toolName',
                     'access',
+                    'authorize',
+                    'validate',
                     'intent',
                     'summary',
                     'description',
@@ -154,7 +156,19 @@ describe('Completion for block keywords', () => {
                     'response'
                 ].includes(label)
             )
-        ).toEqual(['toolName', 'access', 'intent', 'summary', 'description', 'example', 'params', 'body', 'response']);
+        ).toEqual([
+            'toolName',
+            'access',
+            'authorize',
+            'validate',
+            'intent',
+            'summary',
+            'description',
+            'example',
+            'params',
+            'body',
+            'response'
+        ]);
     });
 
     test('sorts operation keywords before the block is complete', async () => {
@@ -167,6 +181,8 @@ describe('Completion for block keywords', () => {
                 [
                     'toolName',
                     'access',
+                    'authorize',
+                    'validate',
                     'intent',
                     'summary',
                     'description',
@@ -176,7 +192,19 @@ describe('Completion for block keywords', () => {
                     'response'
                 ].includes(label)
             )
-        ).toEqual(['toolName', 'access', 'intent', 'summary', 'description', 'example', 'params', 'body', 'response']);
+        ).toEqual([
+            'toolName',
+            'access',
+            'authorize',
+            'validate',
+            'intent',
+            'summary',
+            'description',
+            'example',
+            'params',
+            'body',
+            'response'
+        ]);
     });
 
     test('suggests access kinds after access colon', async () => {
@@ -184,12 +212,12 @@ describe('Completion for block keywords', () => {
         const content = `\nopenapi "./langium-test-mini.openapi.yaml"\nGET "/pet/{petId}" {\n    toolName: getPetById\n    access: ${marker}\n    intent: "get one pet"\n}`;
         const list = await completionAt(content.replace(marker, ''), content.indexOf(marker));
         const labels = (list?.items ?? []).map((item) => String(item.label));
-        expect(labels).toEqual(expect.arrayContaining(['public', 'protected', 'checked']));
+        expect(labels).toEqual(expect.arrayContaining(['public', 'protected']));
     });
 
-    test('suggests optionalParams inside checked access block', async () => {
+    test('suggests optionalParams inside validate block', async () => {
         const marker = '/*caret*/';
-        const content = `\nopenapi "./langium-test-mini.openapi.yaml"\nGET "/pet/{petId}" {\n    toolName: getPetById\n    access: checked {\n        ${marker}\n    }\n    intent: "get one pet"\n}`;
+        const content = `\nopenapi "./langium-test-mini.openapi.yaml"\nGET "/pet/{petId}" {\n    toolName: getPetById\n    access: public\n    validate: {\n        ${marker}\n    }\n    intent: "get one pet"\n}`;
         const list = await completionAt(content.replace(marker, ''), content.indexOf(marker));
         const labels = (list?.items ?? []).map((item) => String(item.label));
         expect(labels).toContain('optionalParams');
@@ -197,7 +225,7 @@ describe('Completion for block keywords', () => {
 
     test('suggests required OpenAPI params inside optionalParams list', async () => {
         const marker = '/*caret*/';
-        const content = `\nopenapi "./langium-test-mini.openapi.yaml"\nGET "/pet/{petId}" {\n    toolName: getPetById\n    access: checked {\n        optionalParams: [${marker}]\n    }\n    intent: "get one pet"\n}`;
+        const content = `\nopenapi "./langium-test-mini.openapi.yaml"\nGET "/pet/{petId}" {\n    toolName: getPetById\n    access: public\n    validate: {\n        optionalParams: [${marker}]\n    }\n    intent: "get one pet"\n}`;
         const list = await completionAt(content.replace(marker, ''), content.indexOf(marker));
         const labels = (list?.items ?? []).map((item) => String(item.label));
         expect(labels).toContain('petId');
@@ -205,7 +233,7 @@ describe('Completion for block keywords', () => {
 
     test('suggests required OpenAPI params for empty optionalParams list slot', async () => {
         const marker = '/*caret*/';
-        const content = `\nopenapi "./langium-test-mini.openapi.yaml"\nGET "/pet/{petId}" {\n    toolName: getPetById\n    access: checked {\n        optionalParams: [${marker}]\n    }\n    intent: "get one pet"\n}`;
+        const content = `\nopenapi "./langium-test-mini.openapi.yaml"\nGET "/pet/{petId}" {\n    toolName: getPetById\n    access: public\n    validate: {\n        optionalParams: [${marker}]\n    }\n    intent: "get one pet"\n}`;
         const list = await completionAt(content.replace(marker, ''), content.indexOf(marker));
         const labels = (list?.items ?? []).map((item) => String(item.label));
         expect(labels).toContain('petId');
@@ -213,7 +241,7 @@ describe('Completion for block keywords', () => {
 
     test('suggests required OpenAPI params when editing existing optionalParams value', async () => {
         const marker = '/*caret*/';
-        const content = `\nopenapi "./langium-test-mini.openapi.yaml"\nGET "/pet/{petId}" {\n    toolName: getPetById\n    access: checked {\n        optionalParams: [pet${marker}]\n    }\n    intent: "get one pet"\n}`;
+        const content = `\nopenapi "./langium-test-mini.openapi.yaml"\nGET "/pet/{petId}" {\n    toolName: getPetById\n    access: public\n    validate: {\n        optionalParams: [pet${marker}]\n    }\n    intent: "get one pet"\n}`;
         const list = await completionAt(content.replace(marker, ''), content.indexOf(marker));
         const labels = (list?.items ?? []).map((item) => String(item.label));
         expect(labels).toContain('petId');

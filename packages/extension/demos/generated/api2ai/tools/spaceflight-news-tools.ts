@@ -3,6 +3,7 @@
  * Referenced OpenAPI: ./openapi/spaceflight-news.openapi.yaml
  */
 import { loggingAdapter } from '../../../src/utils/logging-adapter.js';
+import * as z from 'zod/v4';
 
 export type GeneratedTool = {
     toolName: string;
@@ -10,8 +11,9 @@ export type GeneratedTool = {
     description: string;
     method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' | 'HEAD' | 'OPTIONS' | 'TRACE';
     path: string;
-    example?: string;
-    access: 'public' | 'protected' | 'checked';
+    access: 'public' | 'protected';
+    hasAuthorize: boolean;
+    hasValidate: boolean;
 };
 
 export const generatedTools: GeneratedTool[] = [
@@ -19,71 +21,78 @@ export const generatedTools: GeneratedTool[] = [
         toolName: 'listSpaceflightArticles',
         title: 'List spaceflight articles (teaser only; full text at response url)',
         description:
-            'Intent:\n- List recent spaceflight news articles (pagination: limit, offset, ordering).\n        - Response contains title, summary teaser, and url per item — not the full article body.\n        - Use search, has_launch, or news_site filters for SpaceX, launches, or specific outlets.\n        - Follow result url only when full text is needed (same pattern for blogs and reports tools).\n\nMeta:\ntags: articles | operationId: articles_list\n\nParameters:\n- event (query): Search for all documents related to a specific event using its Launch Library 2 ID.\n- has_event (query): Get all documents that have a related event.\n- has_launch (query): Get all documents that have a related launch.\n- is_featured (query): Get all documents that are featured.\n- launch (query): Search for all documents related to a specific launch using its Launch Library 2 ID.\n- limit (query): Number of results to return per page.\n- news_site (query): Search for documents with a news_site__name present in a list of comma-separated values. Case insensitive.\n- news_site_exclude (query): Search for documents with a news_site__name not present in a list of comma-separated values. Case insensitive.\n- offset (query): The initial index from which to return the results.\n- ordering (query): Order the result on `published_at, -published_at, updated_at, -updated_at`.\n\n* `published_at` - Published at\n* `-published_at` - Published at (descending)\n* `updated_at` - Updated at\n* `-updated_at` - Updated at (descending)\n- published_at_gt (query): Get all documents published after a given ISO8601 timestamp (excluded).\n- published_at_gte (query): Get all documents published after a given ISO8601 timestamp (included).\n- published_at_lt (query): Get all documents published before a given ISO8601 timestamp (excluded).\n- published_at_lte (query): Get all documents published before a given ISO8601 timestamp (included).\n- search (query): Search for documents with a specific phrase in the title or summary.\n- summary_contains (query): Search for all documents with a specific phrase in the summary.\n- summary_contains_all (query): Search for documents with a summary containing all keywords from comma-separated values.\n- summary_contains_one (query): Search for documents with a summary containing at least one keyword from comma-separated values.\n- title_contains (query): Search for all documents with a specific phrase in the title.\n- title_contains_all (query): Search for documents with a title containing all keywords from comma-separated values.\n- title_contains_one (query): Search for documents with a title containing at least one keyword from comma-separated values.\n- updated_at_gt (query): Get all documents updated after a given ISO8601 timestamp (excluded).\n- updated_at_gte (query): Get all documents updated after a given ISO8601 timestamp (included).\n- updated_at_lt (query): Get all documents updated before a given ISO8601 timestamp (excluded).\n- updated_at_lte (query): Get all documents updated before a given ISO8601 timestamp (included).\n\nExample:\nGet the latest 5 articles\n\nResponse:\nHTTP 200\nproperties (top-level): count, next, previous, results\n\nRuntime: public endpoint — no Authorization header or MCP credential required.',
+            'Intent:\n- List recent spaceflight news articles (pagination: limit, offset, ordering).\n        - Response contains title, summary teaser, and url per item — not the full article body.\n        - Use search, has_launch, or news_site filters for SpaceX, launches, or specific outlets.\n        - Follow result url only when full text is needed (same pattern for blogs and reports tools).\n\nMeta:\ntags: articles | operationId: articles_list\n\nParameters:\n- event (query): Search for all documents related to a specific event using its Launch Library 2 ID.\n- has_event (query): Get all documents that have a related event.\n- has_launch (query): Get all documents that have a related launch.\n- is_featured (query): Get all documents that are featured.\n- launch (query): Search for all documents related to a specific launch using its Launch Library 2 ID.\n- limit (query): Number of results to return per page.\n- news_site (query): Search for documents with a news_site__name present in a list of comma-separated values. Case insensitive.\n- news_site_exclude (query): Search for documents with a news_site__name not present in a list of comma-separated values. Case insensitive.\n- offset (query): The initial index from which to return the results.\n- ordering (query): Order the result on `published_at, -published_at, updated_at, -updated_at`.\n\n* `published_at` - Published at\n* `-published_at` - Published at (descending)\n* `updated_at` - Updated at\n* `-updated_at` - Updated at (descending)\n- published_at_gt (query): Get all documents published after a given ISO8601 timestamp (excluded).\n- published_at_gte (query): Get all documents published after a given ISO8601 timestamp (included).\n- published_at_lt (query): Get all documents published before a given ISO8601 timestamp (excluded).\n- published_at_lte (query): Get all documents published before a given ISO8601 timestamp (included).\n- search (query): Search for documents with a specific phrase in the title or summary.\n- summary_contains (query): Search for all documents with a specific phrase in the summary.\n- summary_contains_all (query): Search for documents with a summary containing all keywords from comma-separated values.\n- summary_contains_one (query): Search for documents with a summary containing at least one keyword from comma-separated values.\n- title_contains (query): Search for all documents with a specific phrase in the title.\n- title_contains_all (query): Search for documents with a title containing all keywords from comma-separated values.\n- title_contains_one (query): Search for documents with a title containing at least one keyword from comma-separated values.\n- updated_at_gt (query): Get all documents updated after a given ISO8601 timestamp (excluded).\n- updated_at_gte (query): Get all documents updated after a given ISO8601 timestamp (included).\n- updated_at_lt (query): Get all documents updated before a given ISO8601 timestamp (excluded).\n- updated_at_lte (query): Get all documents updated before a given ISO8601 timestamp (included).\n\nExample:\nGet the latest 5 articles\n\nResponse:\nHTTP 200\nproperties (top-level): count, next, previous, results\n\nRuntime: public endpoint — no credential required.',
         method: 'GET',
         path: '/v4/articles/',
-        example: 'Get the latest 5 articles',
-        access: 'public'
+        access: 'public',
+        hasAuthorize: false,
+        hasValidate: false
     },
     {
         toolName: 'getSpaceflightArticleById',
         title: 'Get article by ID (teaser only; full text at response url)',
         description:
-            'Intent:\nget one spaceflight article by id; API returns summary teaser only, full article text at url\n\nMeta:\ntags: articles | operationId: articles_retrieve\n\nParameters:\n- id (path): A unique integer value identifying this article.\n\nExample:\nGet article with id 1\n\nResponse:\nHTTP 200\nproperties (top-level): authors, events, featured, id, image_url, launches, news_site, published_at, summary, title, updated_at, url\n\nRuntime: public endpoint — no Authorization header or MCP credential required.',
+            'Intent:\nget one spaceflight article by id; API returns summary teaser only, full article text at url\n\nMeta:\ntags: articles | operationId: articles_retrieve\n\nParameters:\n- id (path): A unique integer value identifying this article.\n\nExample:\nGet article with id 1\n\nResponse:\nHTTP 200\nproperties (top-level): authors, events, featured, id, image_url, launches, news_site, published_at, summary, title, updated_at, url\n\nRuntime: public endpoint — no credential required.',
         method: 'GET',
         path: '/v4/articles/{id}/',
-        example: 'Get article with id 1',
-        access: 'public'
+        access: 'public',
+        hasAuthorize: false,
+        hasValidate: false
     },
     {
         toolName: 'listSpaceflightBlogs',
         title: 'List spaceflight blog posts (teaser only; full text at response url)',
         description:
-            'Intent:\nlist recent spaceflight blog posts; API returns summary teaser only, full post text at each result url\n\nMeta:\ntags: blogs | operationId: blogs_list\n\nParameters:\n- event (query): Search for all documents related to a specific event using its Launch Library 2 ID.\n- has_event (query): Get all documents that have a related event.\n- has_launch (query): Get all documents that have a related launch.\n- is_featured (query): Get all documents that are featured.\n- launch (query): Search for all documents related to a specific launch using its Launch Library 2 ID.\n- limit (query): Number of results to return per page.\n- news_site (query): Search for documents with a news_site__name present in a list of comma-separated values. Case insensitive.\n- news_site_exclude (query): Search for documents with a news_site__name not present in a list of comma-separated values. Case insensitive.\n- offset (query): The initial index from which to return the results.\n- ordering (query): Order the result on `published_at, -published_at, updated_at, -updated_at`.\n\n* `published_at` - Published at\n* `-published_at` - Published at (descending)\n* `updated_at` - Updated at\n* `-updated_at` - Updated at (descending)\n- published_at_gt (query): Get all documents published after a given ISO8601 timestamp (excluded).\n- published_at_gte (query): Get all documents published after a given ISO8601 timestamp (included).\n- published_at_lt (query): Get all documents published before a given ISO8601 timestamp (excluded).\n- published_at_lte (query): Get all documents published before a given ISO8601 timestamp (included).\n- search (query): Search for documents with a specific phrase in the title or summary.\n- summary_contains (query): Search for all documents with a specific phrase in the summary.\n- summary_contains_all (query): Search for documents with a summary containing all keywords from comma-separated values.\n- summary_contains_one (query): Search for documents with a summary containing at least one keyword from comma-separated values.\n- title_contains (query): Search for all documents with a specific phrase in the title.\n- title_contains_all (query): Search for documents with a title containing all keywords from comma-separated values.\n- title_contains_one (query): Search for documents with a title containing at least one keyword from comma-separated values.\n- updated_at_gt (query): Get all documents updated after a given ISO8601 timestamp (excluded).\n- updated_at_gte (query): Get all documents updated after a given ISO8601 timestamp (included).\n- updated_at_lt (query): Get all documents updated before a given ISO8601 timestamp (excluded).\n- updated_at_lte (query): Get all documents updated before a given ISO8601 timestamp (included).\n\nExample:\nGet the latest 5 blog posts\n\nResponse:\nHTTP 200\nproperties (top-level): count, next, previous, results\n\nRuntime: public endpoint — no Authorization header or MCP credential required.',
+            'Intent:\nlist recent spaceflight blog posts; API returns summary teaser only, full post text at each result url\n\nMeta:\ntags: blogs | operationId: blogs_list\n\nParameters:\n- event (query): Search for all documents related to a specific event using its Launch Library 2 ID.\n- has_event (query): Get all documents that have a related event.\n- has_launch (query): Get all documents that have a related launch.\n- is_featured (query): Get all documents that are featured.\n- launch (query): Search for all documents related to a specific launch using its Launch Library 2 ID.\n- limit (query): Number of results to return per page.\n- news_site (query): Search for documents with a news_site__name present in a list of comma-separated values. Case insensitive.\n- news_site_exclude (query): Search for documents with a news_site__name not present in a list of comma-separated values. Case insensitive.\n- offset (query): The initial index from which to return the results.\n- ordering (query): Order the result on `published_at, -published_at, updated_at, -updated_at`.\n\n* `published_at` - Published at\n* `-published_at` - Published at (descending)\n* `updated_at` - Updated at\n* `-updated_at` - Updated at (descending)\n- published_at_gt (query): Get all documents published after a given ISO8601 timestamp (excluded).\n- published_at_gte (query): Get all documents published after a given ISO8601 timestamp (included).\n- published_at_lt (query): Get all documents published before a given ISO8601 timestamp (excluded).\n- published_at_lte (query): Get all documents published before a given ISO8601 timestamp (included).\n- search (query): Search for documents with a specific phrase in the title or summary.\n- summary_contains (query): Search for all documents with a specific phrase in the summary.\n- summary_contains_all (query): Search for documents with a summary containing all keywords from comma-separated values.\n- summary_contains_one (query): Search for documents with a summary containing at least one keyword from comma-separated values.\n- title_contains (query): Search for all documents with a specific phrase in the title.\n- title_contains_all (query): Search for documents with a title containing all keywords from comma-separated values.\n- title_contains_one (query): Search for documents with a title containing at least one keyword from comma-separated values.\n- updated_at_gt (query): Get all documents updated after a given ISO8601 timestamp (excluded).\n- updated_at_gte (query): Get all documents updated after a given ISO8601 timestamp (included).\n- updated_at_lt (query): Get all documents updated before a given ISO8601 timestamp (excluded).\n- updated_at_lte (query): Get all documents updated before a given ISO8601 timestamp (included).\n\nExample:\nGet the latest 5 blog posts\n\nResponse:\nHTTP 200\nproperties (top-level): count, next, previous, results\n\nRuntime: public endpoint — no credential required.',
         method: 'GET',
         path: '/v4/blogs/',
-        example: 'Get the latest 5 blog posts',
-        access: 'public'
+        access: 'public',
+        hasAuthorize: false,
+        hasValidate: false
     },
     {
         toolName: 'getSpaceflightBlogById',
         title: 'Get blog post by ID (teaser only; full text at response url)',
         description:
-            'Intent:\nget one spaceflight blog post by id; API returns summary teaser only, full post text at url\n\nMeta:\ntags: blogs | operationId: blogs_retrieve\n\nParameters:\n- id (path): A unique integer value identifying this blog.\n\nExample:\nGet blog post with id 1\n\nResponse:\nHTTP 200\nproperties (top-level): authors, events, featured, id, image_url, launches, news_site, published_at, summary, title, updated_at, url\n\nRuntime: public endpoint — no Authorization header or MCP credential required.',
+            'Intent:\nget one spaceflight blog post by id; API returns summary teaser only, full post text at url\n\nMeta:\ntags: blogs | operationId: blogs_retrieve\n\nParameters:\n- id (path): A unique integer value identifying this blog.\n\nExample:\nGet blog post with id 1\n\nResponse:\nHTTP 200\nproperties (top-level): authors, events, featured, id, image_url, launches, news_site, published_at, summary, title, updated_at, url\n\nRuntime: public endpoint — no credential required.',
         method: 'GET',
         path: '/v4/blogs/{id}/',
-        example: 'Get blog post with id 1',
-        access: 'public'
+        access: 'public',
+        hasAuthorize: false,
+        hasValidate: false
     },
     {
         toolName: 'listSpaceflightReports',
         title: 'List spaceflight reports (teaser only; full text at response url)',
         description:
-            'Intent:\nlist recent spaceflight reports; API returns summary teaser only, full report text at each result url\n\nMeta:\ntags: reports | operationId: reports_list\n\nParameters:\n- limit (query): Number of results to return per page.\n- news_site (query): Search for documents with a news_site__name present in a list of comma-separated values. Case insensitive.\n- news_site_exclude (query): Search for documents with a news_site__name not present in a list of comma-separated values. Case insensitive.\n- offset (query): The initial index from which to return the results.\n- ordering (query): Order the result on `published_at, -published_at, updated_at, -updated_at`.\n\n* `published_at` - Published at\n* `-published_at` - Published at (descending)\n* `updated_at` - Updated at\n* `-updated_at` - Updated at (descending)\n- published_at_gt (query): Get all documents published after a given ISO8601 timestamp (excluded).\n- published_at_gte (query): Get all documents published after a given ISO8601 timestamp (included).\n- published_at_lt (query): Get all documents published before a given ISO8601 timestamp (excluded).\n- published_at_lte (query): Get all documents published before a given ISO8601 timestamp (included).\n- search (query): Search for documents with a specific phrase in the title or summary.\n- summary_contains (query): Search for all documents with a specific phrase in the summary.\n- summary_contains_all (query): Search for documents with a summary containing all keywords from comma-separated values.\n- summary_contains_one (query): Search for documents with a summary containing at least one keyword from comma-separated values.\n- title_contains (query): Search for all documents with a specific phrase in the title.\n- title_contains_all (query): Search for documents with a title containing all keywords from comma-separated values.\n- title_contains_one (query): Search for documents with a title containing at least one keyword from comma-separated values.\n- updated_at_gt (query): Get all documents updated after a given ISO8601 timestamp (excluded).\n- updated_at_gte (query): Get all documents updated after a given ISO8601 timestamp (included).\n- updated_at_lt (query): Get all documents updated before a given ISO8601 timestamp (excluded).\n- updated_at_lte (query): Get all documents updated before a given ISO8601 timestamp (included).\n\nExample:\nGet the latest 5 reports\n\nResponse:\nHTTP 200\nproperties (top-level): count, next, previous, results\n\nRuntime: public endpoint — no Authorization header or MCP credential required.',
+            'Intent:\nlist recent spaceflight reports; API returns summary teaser only, full report text at each result url\n\nMeta:\ntags: reports | operationId: reports_list\n\nParameters:\n- limit (query): Number of results to return per page.\n- news_site (query): Search for documents with a news_site__name present in a list of comma-separated values. Case insensitive.\n- news_site_exclude (query): Search for documents with a news_site__name not present in a list of comma-separated values. Case insensitive.\n- offset (query): The initial index from which to return the results.\n- ordering (query): Order the result on `published_at, -published_at, updated_at, -updated_at`.\n\n* `published_at` - Published at\n* `-published_at` - Published at (descending)\n* `updated_at` - Updated at\n* `-updated_at` - Updated at (descending)\n- published_at_gt (query): Get all documents published after a given ISO8601 timestamp (excluded).\n- published_at_gte (query): Get all documents published after a given ISO8601 timestamp (included).\n- published_at_lt (query): Get all documents published before a given ISO8601 timestamp (excluded).\n- published_at_lte (query): Get all documents published before a given ISO8601 timestamp (included).\n- search (query): Search for documents with a specific phrase in the title or summary.\n- summary_contains (query): Search for all documents with a specific phrase in the summary.\n- summary_contains_all (query): Search for documents with a summary containing all keywords from comma-separated values.\n- summary_contains_one (query): Search for documents with a summary containing at least one keyword from comma-separated values.\n- title_contains (query): Search for all documents with a specific phrase in the title.\n- title_contains_all (query): Search for documents with a title containing all keywords from comma-separated values.\n- title_contains_one (query): Search for documents with a title containing at least one keyword from comma-separated values.\n- updated_at_gt (query): Get all documents updated after a given ISO8601 timestamp (excluded).\n- updated_at_gte (query): Get all documents updated after a given ISO8601 timestamp (included).\n- updated_at_lt (query): Get all documents updated before a given ISO8601 timestamp (excluded).\n- updated_at_lte (query): Get all documents updated before a given ISO8601 timestamp (included).\n\nExample:\nGet the latest 5 reports\n\nResponse:\nHTTP 200\nproperties (top-level): count, next, previous, results\n\nRuntime: public endpoint — no credential required.',
         method: 'GET',
         path: '/v4/reports/',
-        example: 'Get the latest 5 reports',
-        access: 'public'
+        access: 'public',
+        hasAuthorize: false,
+        hasValidate: false
     },
     {
         toolName: 'getSpaceflightReportById',
         title: 'Get report by ID (teaser only; full text at response url)',
         description:
-            'Intent:\nget one spaceflight report by id; API returns summary teaser only, full report text at url\n\nMeta:\ntags: reports | operationId: reports_retrieve\n\nParameters:\n- id (path): A unique integer value identifying this report.\n\nExample:\nGet report with id 1\n\nResponse:\nHTTP 200\nproperties (top-level): authors, id, image_url, news_site, published_at, summary, title, updated_at, url\n\nRuntime: public endpoint — no Authorization header or MCP credential required.',
+            'Intent:\nget one spaceflight report by id; API returns summary teaser only, full report text at url\n\nMeta:\ntags: reports | operationId: reports_retrieve\n\nParameters:\n- id (path): A unique integer value identifying this report.\n\nExample:\nGet report with id 1\n\nResponse:\nHTTP 200\nproperties (top-level): authors, id, image_url, news_site, published_at, summary, title, updated_at, url\n\nRuntime: public endpoint — no credential required.',
         method: 'GET',
         path: '/v4/reports/{id}/',
-        example: 'Get report with id 1',
-        access: 'public'
+        access: 'public',
+        hasAuthorize: false,
+        hasValidate: false
     },
     {
         toolName: 'getSpaceflightInfo',
         title: 'Spaceflight News API metadata',
         description:
-            'Intent:\nretrieve spaceflight API metadata and news sites\n\nMeta:\ntags: info | operationId: info_retrieve\n\nExample:\nShow API info and available news sites\n\nResponse:\nHTTP 200\nproperties (top-level): news_sites, version\n\nRuntime: public endpoint — no Authorization header or MCP credential required.',
+            'Intent:\nretrieve spaceflight API metadata and news sites\n\nMeta:\ntags: info | operationId: info_retrieve\n\nExample:\nShow API info and available news sites\n\nResponse:\nHTTP 200\nproperties (top-level): news_sites, version\n\nRuntime: public endpoint — no credential required.',
         method: 'GET',
         path: '/v4/info/',
-        example: 'Show API info and available news sites',
-        access: 'public'
+        access: 'public',
+        hasAuthorize: false,
+        hasValidate: false
     }
 ];
 
@@ -98,21 +107,14 @@ export type InvokeOptions = {
 export type ApiHostContext = {
     baseUrl: string;
     credential?: string;
-    sessionClaims?: Record<string, unknown>;
-};
-
-export type CheckedHostContext = {
-    credential: string;
-    sessionClaims?: Record<string, unknown>;
+    upstreamCredential?: string;
+    credentials?: unknown;
 };
 
 export const requiresAuth = false;
-export const authConfig: undefined = undefined;
 
 export const mcpServerName = 'spaceflight-news-tools';
 export const mcpServerVersion = '0.3.0';
-
-import * as z from 'zod/v4';
 
 export const inputZodByTool = {
     listSpaceflightArticles: z
@@ -560,7 +562,7 @@ export const inputZodByTool = {
         .describe('Arguments for invoking the generated HTTP wrapper.')
 };
 
-export const queryParamSerializationByTool = {
+const queryParamSerializationByTool = {
     listSpaceflightArticles: {
         event: {
             style: 'form',
@@ -958,7 +960,7 @@ export async function invokeTool(
         let msg = 'HTTP ' + response.status + ' while invoking ' + tool.toolName + '.';
         if (response.status === 401) {
             msg += ' Unauthorized.';
-            if (tool.access !== 'public') {
+            if (tool.access === 'protected') {
                 msg += ' The API may require authentication.';
             }
         } else if (response.status === 403) {

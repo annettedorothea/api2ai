@@ -6,6 +6,36 @@ info:
 servers:
     - url: http://127.0.0.1:3858
 paths:
+    /customers:
+        get:
+            operationId: list-customers
+            summary: List all bank customers (admin only)
+            description: Requires opaque API Bearer token with admin role.
+            security:
+                - bearerAuth: []
+            responses:
+                '200':
+                    description: Customer directory
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    role:
+                                        type: string
+                                    customers:
+                                        type: array
+                                        items:
+                                            type: object
+                                            properties:
+                                                customerId:
+                                                    type: string
+                                                displayName:
+                                                    type: string
+                '401':
+                    description: Missing or invalid token
+                '403':
+                    description: Admin role required
     /accounts/{customerId}:
         get:
             operationId: list-customer-accounts
@@ -37,14 +67,19 @@ paths:
                                             type: object
                 '401':
                     description: Missing or invalid token
-    /accounts/{accountId}/transactions:
+    /accounts/{customerId}/{accountId}/transactions:
         get:
             operationId: list-account-transactions
             summary: List transactions for a bank account
-            description: Requires opaque API Bearer token.
+            description: Requires opaque API Bearer token. Role=user path customerId must match token claim; admin may read any customer.
             security:
                 - bearerAuth: []
             parameters:
+                - name: customerId
+                  in: path
+                  required: true
+                  schema:
+                      type: string
                 - name: accountId
                   in: path
                   required: true

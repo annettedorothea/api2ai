@@ -80,27 +80,38 @@ function buildAvailabilityPeriods(unitBookings, rangeFrom, rangeTo) {
     return periods;
 }
 
-function listVacationRentalsForRole(role) {
+function parseLimit(url) {
+    const raw = url.searchParams.get('limit');
+    if (raw == null || raw.trim() === '') {
+        return 10;
+    }
+    const limit = Number.parseInt(raw, 10);
+    if (!Number.isFinite(limit) || limit < 1) {
+        return undefined;
+    }
+    return Math.min(limit, 10);
+}
+
+function listVacationRentalsPublic(limit) {
     const rangeFrom = season.from;
     const rangeTo = season.to;
-    return units.map((unit) => {
+    return units.slice(0, limit).map((unit) => {
         const unitBookings = bookings.filter((b) => b.unitId === unit.unitId);
-        if (role === 'admin') {
-            return {
-                ...unit,
-                bookings: unitBookings.map(({ bookingId, customerId, checkIn, checkOut }) => ({
-                    bookingId,
-                    customerId,
-                    checkIn,
-                    checkOut
-                }))
-            };
-        }
         return {
             ...unit,
             periods: buildAvailabilityPeriods(unitBookings, rangeFrom, rangeTo)
         };
     });
+}
+
+function listAllBookings(limit) {
+    return bookings.slice(0, limit).map(({ bookingId, customerId, unitId, checkIn, checkOut }) => ({
+        bookingId,
+        customerId,
+        unitId,
+        checkIn,
+        checkOut
+    }));
 }
 
 function listBookingsForCustomer(customerId) {
@@ -121,19 +132,36 @@ const server = createServer((req, res) => {
     }
 
     if (url.pathname === '/vacation-rentals') {
+        const limit = parseLimit(url);
+        if (limit === undefined) {
+            sendJson(res, 400, { error: 'invalid_limit' });
+            return;
+        }
+        const unitList = listVacationRentalsPublic(limit);
+        loggingAdapter.debug('vacation-rentals', { public: true, limit, unitCount: unitList.length });
+        sendJson(res, 200, { limit, units: unitList });
+        return;
+    }
+
+    if (url.pathname === '/bookings') {
         const payload = requireAuth(req, res);
         if (!payload) {
             return;
         }
-        const role = String(payload.role ?? 'user');
-        if (role !== 'admin' && role !== 'user') {
-            loggingAdapter.warn('forbidden', { error: 'unsupported_role', role });
-            sendJson(res, 403, { error: 'unsupported_role', role });
+        const role = String(payload.role ?? '');
+        if (role !== 'admin') {
+            loggingAdapter.warn('forbidden', { error: 'admin_required', role: role || 'user' });
+            sendJson(res, 403, { error: 'admin_required', role: role || 'user' });
             return;
         }
-        const units = listVacationRentalsForRole(role);
-        loggingAdapter.debug('vacation-rentals', { role, unitCount: units.length });
-        sendJson(res, 200, { role, units });
+        const limit = parseLimit(url);
+        if (limit === undefined) {
+            sendJson(res, 400, { error: 'invalid_limit' });
+            return;
+        }
+        const allBookings = listAllBookings(limit);
+        loggingAdapter.debug('list all bookings', { role, limit, count: allBookings.length });
+        sendJson(res, 200, { role, limit, bookings: allBookings });
         return;
     }
 

@@ -1,15 +1,57 @@
 import { createRemoteJWKSet, jwtVerify } from 'jose';
 
+export type ModuleCredentials = {
+    customerId?: string;
+    role?: string;
+    sub?: string;
+};
+
+export class BookingsCredentials implements ModuleCredentials {
+    readonly customerId?: string;
+    readonly role?: string;
+    readonly sub?: string;
+
+    constructor(init: ModuleCredentials) {
+        this.customerId = init.customerId;
+        this.role = init.role;
+        this.sub = init.sub;
+    }
+
+    toString(): string {
+        const parts: string[] = [];
+        if (this.customerId !== undefined) {
+            parts.push(`customerId=${this.customerId}`);
+        }
+        if (this.role !== undefined) {
+            parts.push(`role=${this.role}`);
+        }
+        if (this.sub !== undefined) {
+            parts.push(`sub=${this.sub}`);
+        }
+        return parts.join(' ') || '[bookings credentials]';
+    }
+}
+
+export function toBookingsCredentials(data: ModuleCredentials | Record<string, unknown>): BookingsCredentials {
+    const init: ModuleCredentials = {};
+    for (const key of ['customerId', 'role', 'sub'] as const) {
+        if (data[key] !== undefined) {
+            init[key] = String(data[key]);
+        }
+    }
+    return new BookingsCredentials(init);
+}
+
 export type VerifyCredentialInput = {
     inboundCredential: string;
 };
 
 export type VerifyCredentialResult = {
     upstreamCredential: string;
-    sessionClaims?: Record<string, unknown>;
+    credentials: BookingsCredentials;
 };
 
-const DEFAULT_HS256_SECRET = 'demo-bookings-api-secret';
+const DEFAULT_HS256_SECRET = 'demo-bookings-secret';
 
 function resolveIssuer(): string | undefined {
     const issuer = process.env.OAUTH_ISSUER?.trim() || process.env.BOOKINGS_OAUTH_IDP_OIDC_URL?.trim();
@@ -48,14 +90,14 @@ function jwksForIssuer(issuer: string): ReturnType<typeof createRemoteJWKSet> {
     return jwks;
 }
 
-function pickSessionClaims(payload: Record<string, unknown>): Record<string, unknown> {
-    const claims: Record<string, unknown> = {};
-    for (const key of ['customerId', 'role', 'sub']) {
+function pickModuleCredentials(payload: Record<string, unknown>): ModuleCredentials {
+    const data: ModuleCredentials = {};
+    for (const key of ['customerId', 'role', 'sub'] as const) {
         if (payload[key] !== undefined) {
-            claims[key] = payload[key];
+            data[key] = String(payload[key]);
         }
     }
-    return claims;
+    return data;
 }
 
 async function verifyOidcCredential(token: string, issuer: string): Promise<VerifyCredentialResult> {
@@ -65,18 +107,24 @@ async function verifyOidcCredential(token: string, issuer: string): Promise<Veri
         verifyOptions.audience = audience;
     }
     const { payload } = await jwtVerify(token, jwksForIssuer(issuer), verifyOptions);
-    const sessionClaims = pickSessionClaims(payload as Record<string, unknown>);
-    return { upstreamCredential: token, sessionClaims };
+    const moduleCredentials = pickModuleCredentials(payload as Record<string, unknown>);
+    return {
+        upstreamCredential: token,
+        credentials: toBookingsCredentials(moduleCredentials)
+    };
 }
 
 async function verifyDemoHs256Credential(token: string): Promise<VerifyCredentialResult> {
     const secret = new TextEncoder().encode(resolveHs256Secret());
     const { payload } = await jwtVerify(token, secret, { algorithms: ['HS256'] });
-    const sessionClaims = pickSessionClaims(payload as Record<string, unknown>);
-    return { upstreamCredential: token, sessionClaims };
+    const moduleCredentials = pickModuleCredentials(payload as Record<string, unknown>);
+    return {
+        upstreamCredential: token,
+        credentials: toBookingsCredentials(moduleCredentials)
+    };
 }
 
-export async function verifyCredential(input: VerifyCredentialInput): Promise<VerifyCredentialResult> {
+export async function verifyBookingsCredentials(input: VerifyCredentialInput): Promise<VerifyCredentialResult> {
     const token = input.inboundCredential.trim();
     if (!token) {
         throw new Error('Missing credential.');
@@ -94,3 +142,5 @@ export async function verifyCredential(input: VerifyCredentialInput): Promise<Ve
     }
     return verifyDemoHs256Credential(token);
 }
+
+export { verifyBookingsCredentials as verifyCredential, toBookingsCredentials as toModuleCredentials };

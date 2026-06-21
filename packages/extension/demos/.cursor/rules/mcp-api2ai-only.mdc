@@ -6,8 +6,8 @@ alwaysApply: true
 # MCP-Nutzung auf api2ai-Server beschraenken
 
 - Diese Regel greift nur, wenn die Nutzeranfrage mit `api2ai` beginnt.
-- In Cursor ist pro DSL genau **ein** Eintrag in `.cursor/mcp.json` (Name entspricht der Demo-Zeile in `demos/README.md`, z. B. `open-meteo`, `todo`, `bookings-oauth`).
-- Dann stelle ausschliesslich MCP-Anfragen an diese konfigurierten Server (z. B. `open-meteo`, `todo`, `bookings-oauth`).
+- In Cursor ist pro DSL genau **ein** Eintrag in `.cursor/mcp.json` (Name entspricht der Demo-Zeile in `demos/README.md`, z. B. `open-meteo`, `todo`, `bookings`).
+- Dann stelle ausschliesslich MCP-Anfragen an diese konfigurierten Server (z. B. `open-meteo`, `todo`, `bookings`).
 - Nutze in diesem Fall keine anderen MCP-Server, auch wenn sie verfuegbar sind.
 - Nutze in diesem Fall **keine** allgemeine Recherche ausserhalb der erlaubten `api2ai*`-MCPs:
   - **keine Websuche** (z. B. `WebSearch`),
@@ -32,7 +32,7 @@ alwaysApply: true
   - **Keine** Websuche, kein WebFetch, keine direkte API, kein `invokeTool`/CLI aus `generated/**`, kein Lesen von `.env*` oder Tokens.
   - **Keine** langen Diagnose-Abschnitte oder Workarounds in derselben Antwort.
 - **Ausnahme — Bulk-Smoke-Test:** Bei `api2ai /test:all` (Skill `api2ai-test-all-mcp`) ein Aufruf **pro Tool** aller Server in `mcp.json`; Fehler pro Tool dokumentieren und mit den uebrigen Tools fortfahren (Server komplett down: Rest des Servers ueberspringen).
-- **Nutzer-Nachricht (kurz, auf Deutsch):** klar sagen, dass die Antwort **ohne laufende MCP-Tools** nicht geliefert werden kann; welcher **`serverName`** aus `mcp.json` fehlt oder fehlschlug (z. B. `todo`); **konkrete Schritte** (z. B. `npm run start`, MCP aktivieren, `bookings-oauth` Sign-in). Danach **aufhoeren** — keine inhaltliche Antwort aus Gedaechtnis.
+- **Nutzer-Nachricht (kurz, auf Deutsch):** klar sagen, dass die Antwort **ohne laufende MCP-Tools** nicht geliefert werden kann; welcher **`serverName`** aus `mcp.json` fehlt oder fehlschlug (z. B. `todo`); **konkrete Schritte** (z. B. `npm run start`, MCP aktivieren, `bookings` Sign-in). Danach **aufhoeren** — keine inhaltliche Antwort aus Gedaechtnis.
 - **Audit:** den fehlgeschlagenen (oder entfallenen) Versuch trotzdem dokumentieren; keine weiteren MCP-Eintraege erfinden.
 
 ## Tool-Wahl und Parameter ohne Workspace-/OpenAPI-Wissen
@@ -70,7 +70,7 @@ alwaysApply: true
 
 **Darunter je Eintrag (Bullet-Liste):**
 
-- **MCP-Server:** `serverName` aus `mcp.json` (z. B. `open-meteo`, `todo`, `bookings-oauth`)
+- **MCP-Server:** `serverName` aus `mcp.json` (z. B. `open-meteo`, `todo`, `bookings`)
 - **MCP-Tool:** technischer Toolname (z. B. `openMeteoForecast`) — genau einmal, nicht als Ueberschrift wiederholen
 - **Params:** exakt uebergebene Parameter/Argumente
 - **Antwort:** relevante Rohantwort (oder Fehler)

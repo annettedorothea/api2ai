@@ -5,7 +5,14 @@ import type {
     OpenApiSchema,
     Operation
 } from 'api-2-ai-dsl-language';
-import { coerceExampleFromSchemaType, getAccessKind, parseApiParamSpec } from 'api-2-ai-dsl-language';
+import {
+    coerceExampleFromSchemaType,
+    getAccessKind,
+    isToolAuthorizeEnabled,
+    isToolValidateEnabled,
+    parseApiParamSpec
+} from 'api-2-ai-dsl-language';
+import { resolveModuleCredentialNames } from '@core2ai/core/codegen';
 
 /** JSON-schema-like dict emitted into generated modules / MCP. */
 export type JsonSchemaDict = Record<string, unknown>;
@@ -16,6 +23,14 @@ function isTruthyString(value: string | undefined): boolean {
 
 function joinSections(sections: string[]): string {
     return sections.filter((s) => s.length > 0).join('\n\n');
+}
+
+function verifyCredentialsStubAuthPath(hostProduct: string, mcpModuleName: string | undefined): string {
+    if (!mcpModuleName) {
+        return `src/auth/${hostProduct}/<module>/verify*Credentials.ts`;
+    }
+    const names = resolveModuleCredentialNames(`generated/${hostProduct}/tools/${mcpModuleName}.ts`);
+    return `src/auth/${hostProduct}/${mcpModuleName}/${names.fileBase}.ts`;
 }
 
 /**
@@ -304,17 +319,40 @@ export function buildMcpDescription(
         sections.push(`Response:\n${responseText}`);
     }
 
-    if (getAccessKind(operation) === 'public') {
-        sections.push('Runtime: public endpoint — no Authorization header or MCP credential required.');
-    } else if (getAccessKind(operation) === 'checked' && auth) {
-        const prefixNote =
-            auth.prefix !== undefined && String(auth.prefix).trim().length > 0 ? ' (prefix applied to the secret)' : '';
+    const toolName = operation.toolName?.trim();
+    const toolFile = toolName ?? 'tool';
+    const capitalize = (name: string) => name.charAt(0).toUpperCase() + name.slice(1);
+    const access = getAccessKind(operation);
+    const hasAuthorize = isToolAuthorizeEnabled(operation);
+    const hasValidate = isToolValidateEnabled(operation);
+    const authPath = `src/auth/${hostProduct}/${mcpModuleName ?? 'mcp'}/${toolFile}.ts`;
+    const prefixNote =
+        auth && auth.prefix !== undefined && String(auth.prefix).trim().length > 0
+            ? ' (prefix applied to the secret)'
+            : '';
+
+    if (access === 'public' && !hasValidate) {
+        sections.push('Runtime: public endpoint — no credential required.');
+    } else if (access === 'public' && hasValidate) {
         sections.push(
-            `Runtime: checked — implement check${operation.toolName?.trim() ? operation.toolName.trim().charAt(0).toUpperCase() + operation.toolName.trim().slice(1) : 'Tool'}Parameters in src/auth/${hostProduct}/${mcpModuleName ?? 'mcp'}/${operation.toolName?.trim() ?? 'tool'}.ts (types from this tools module; run build:generated for .js); credential sent as ${auth.location} "${auth.name}"${prefixNote}.`
+            `Runtime: implement validate${capitalize(toolFile)}Input in ${authPath} (types from this tools module; run build:generated for .js).`
+        );
+    } else if (access === 'protected' && auth) {
+        const implParts: string[] = [];
+        if (hasAuthorize) {
+            implParts.push(`authorize${capitalize(toolFile)}`);
+        }
+        if (hasValidate) {
+            implParts.push(`validate${capitalize(toolFile)}Input`);
+        }
+        const implNote =
+            implParts.length > 0
+                ? `implement ${implParts.join(' and ')} in ${authPath}; `
+                : `implement ${verifyCredentialsStubAuthPath(hostProduct, mcpModuleName)}; `;
+        sections.push(
+            `Runtime: protected — ${implNote}credential sent as ${auth.location} "${auth.name}"${prefixNote}.`
         );
     } else if (auth) {
-        const prefixNote =
-            auth.prefix !== undefined && String(auth.prefix).trim().length > 0 ? ' (prefix applied to the secret)' : '';
         sections.push(
             `Runtime auth: MCP host injects the API credential via --auth-env; send as ${auth.location} "${auth.name}"${prefixNote}.`
         );

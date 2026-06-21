@@ -15,7 +15,9 @@ Auth:
 Operation:
     method=HttpMethod path=STRING '{'
         ('toolName' ':' toolName=ID)?
-        'access' ':' access=Access
+        'access' ':' access=AccessKind
+        ('authorize' ':' authorize=AuthorizeSpec)?
+        ('validate' ':' validate=ValidateSpec)?
         ('intent' ':' intent=DslText)?
         ('summary' ':' summary=DslText)?
         ('description' ':' description=DslText)?
@@ -38,8 +40,8 @@ ApiParamSpecField:
     'description' ':' description=DslText |
     'example' ':' example=DslText;
 
-Access:
-    PublicAccess | ProtectedAccess | CheckedAccess;
+AccessKind:
+    PublicAccess | ProtectedAccess;
 
 PublicAccess:
     {infer PublicAccess} 'public';
@@ -47,11 +49,20 @@ PublicAccess:
 ProtectedAccess:
     {infer ProtectedAccess} 'protected';
 
-CheckedAccess:
-    {infer CheckedAccess} 'checked' ('{' checkedBody=CheckedAccessBody '}')?;
+AuthorizeSpec:
+    AuthorizeTrue;
 
-CheckedAccessBody:
-    ('optionalParams' ':' '[' (optionalParams+=ID (',' optionalParams+=ID)*)? ']')?;
+AuthorizeTrue:
+    {infer AuthorizeTrue} 'true';
+
+ValidateSpec:
+    ValidateTrue | ValidateBody;
+
+ValidateTrue:
+    {infer ValidateTrue} 'true';
+
+ValidateBody:
+    {infer ValidateBody} '{' ('optionalParams' ':' '[' (optionalParams+=ID (',' optionalParams+=ID)*)? ']')? '}';
 
 AuthLocation returns string:
     'header' | 'query';

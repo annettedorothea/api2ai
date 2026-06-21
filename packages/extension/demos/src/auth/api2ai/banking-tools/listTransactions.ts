@@ -1,7 +1,7 @@
 import type { ModuleCredentials } from './verifyBankingCredentials.js';
 import type { InvokeOptions } from '../../../../generated/api2ai/tools/banking-tools.js';
 
-export function validateListAccountsInput(options: InvokeOptions, credentials: ModuleCredentials): InvokeOptions {
+export function validateListTransactionsInput(options: InvokeOptions, credentials: ModuleCredentials): InvokeOptions {
     const jwtCustomer = String(credentials.customerId ?? '').trim();
     if (jwtCustomer.length === 0) {
         throw new Error('Credential transform claims missing customerId.');

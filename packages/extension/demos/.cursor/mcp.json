@@ -63,7 +63,7 @@
                 "x-api-token": "demo-todo-api-key"
             }
         },
-        "bookings-oauth": {
+        "bookings": {
             "url": "http://127.0.0.1:3872/mcp",
             "auth": {
                 "CLIENT_ID": "mcp-demo-local"
@@ -75,7 +75,7 @@
                 "CLIENT_ID": "mcp-demo-local"
             }
         },
-        "banking-oauth": {
+        "banking": {
             "url": "http://127.0.0.1:3876/mcp",
             "auth": {
                 "CLIENT_ID": "mcp-demo-local"

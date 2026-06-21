@@ -1,13 +1,39 @@
 import { decodeJwt } from 'jose';
 import { loggingAdapter } from '../../../utils/logging-adapter.js';
 
+export type ModuleCredentials = {
+    customerId: string;
+    role: string;
+};
+
+export class BankingCredentials implements ModuleCredentials {
+    readonly customerId: string;
+    readonly role: string;
+
+    constructor(init: ModuleCredentials) {
+        this.customerId = init.customerId;
+        this.role = init.role;
+    }
+
+    toString(): string {
+        return `customerId=${this.customerId} role=${this.role}`;
+    }
+}
+
+export function toBankingCredentials(data: ModuleCredentials | Record<string, unknown>): BankingCredentials {
+    return new BankingCredentials({
+        customerId: String(data.customerId ?? ''),
+        role: String(data.role ?? '')
+    });
+}
+
 export type VerifyCredentialInput = {
     inboundCredential: string;
 };
 
 export type VerifyCredentialResult = {
     upstreamCredential: string;
-    sessionClaims?: Record<string, unknown>;
+    credentials: BankingCredentials;
 };
 
 function resolveInboundClaims(token: string): Record<string, unknown> {
@@ -18,7 +44,7 @@ function resolveInboundClaims(token: string): Record<string, unknown> {
     }
 }
 
-export async function verifyCredential(input: VerifyCredentialInput): Promise<VerifyCredentialResult> {
+export async function verifyBankingCredentials(input: VerifyCredentialInput): Promise<VerifyCredentialResult> {
     const token = input.inboundCredential.trim();
     if (!token) {
         throw new Error('Missing OAuth Bearer token.');
@@ -30,13 +56,15 @@ export async function verifyCredential(input: VerifyCredentialInput): Promise<Ve
         throw new Error('Banking OAuth credential: inbound token missing customerId or role.');
     }
     const upstreamCredential = `demo-api-${customerId}`;
-    loggingAdapter.debug('banking verifyCredential', {
+    loggingAdapter.debug('banking verifyBankingCredentials', {
         customerId,
         role,
         tokenPrefix: upstreamCredential.slice(0, 12)
     });
     return {
         upstreamCredential,
-        sessionClaims: { customerId, role }
+        credentials: toBankingCredentials({ customerId, role })
     };
 }
+
+export { verifyBankingCredentials as verifyCredential, toBankingCredentials as toModuleCredentials };

@@ -7,7 +7,7 @@ import { loggingAdapter } from '../src/utils/logging-adapter.js';
 
 const PORT = Number(process.env.BANKING_API_PORT) || 3858;
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const { accounts, transactions } = JSON.parse(readFileSync(path.join(__dirname, 'data', 'accounts.json'), 'utf8'));
+const { customers, accounts, transactions } = JSON.parse(readFileSync(path.join(__dirname, 'data', 'accounts.json'), 'utf8'));
 
 /** Demo opaque tokens minted by banking-tools verifyCredential (demo-api-{customerId}). */
 const DEMO_API_TOKENS = new Map([
@@ -91,6 +91,20 @@ const server = createServer(async (req, res) => {
         return;
     }
 
+    if (url.pathname === '/customers') {
+        const auth = requireApiToken(req, res);
+        if (!auth) {
+            return;
+        }
+        if (auth.role !== 'admin') {
+            loggingAdapter.warn('customers forbidden', { role: auth.role, customerId: auth.customerId });
+            sendJson(res, 403, { error: 'admin_required' });
+            return;
+        }
+        sendJson(res, 200, { role: auth.role, customers });
+        return;
+    }
+
     const accountsParams = matchPath(url.pathname, '/accounts/{customerId}');
     if (accountsParams) {
         const auth = requireApiToken(req, res);
@@ -103,14 +117,14 @@ const server = createServer(async (req, res) => {
         return;
     }
 
-    const txParams = matchPath(url.pathname, '/accounts/{accountId}/transactions');
+    const txParams = matchPath(url.pathname, '/accounts/{customerId}/{accountId}/transactions');
     if (txParams) {
         const auth = requireApiToken(req, res);
         if (!auth) {
             return;
         }
-        const accountId = txParams.accountId;
-        const account = accounts.find((a) => a.accountId === accountId);
+        const { customerId, accountId } = txParams;
+        const account = accounts.find((a) => a.accountId === accountId && a.customerId === customerId);
         if (!account) {
             sendJson(res, 404, { error: 'account_not_found' });
             return;

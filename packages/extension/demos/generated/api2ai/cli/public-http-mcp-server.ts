@@ -13,16 +13,14 @@ import { ListToolsRequestSchema, type ListToolsResult } from '@modelcontextproto
 import * as z from 'zod/v4';
 import { loggingAdapter } from '../../../src/utils/logging-adapter.js';
 
-type HttpMcpHostProfile = 'public' | 'passthrough';
-
-const HTTP_MCP_HOST_PROFILE: HttpMcpHostProfile = 'public';
-
 const LOCAL_ENV_FILES = ['.env', '.env.local'];
 
+/** Host context inside MCP server templates. Tool modules use ApiHostContext; this wider shape is shared across stdio/HTTP hosts. */
 type ApiLikeHostContext = {
     baseUrl?: string;
     credential?: string;
-    sessionClaims?: Record<string, unknown>;
+    upstreamCredential?: string;
+    credentials?: unknown;
 };
 
 type VerifyCredentialInput = {
@@ -31,7 +29,7 @@ type VerifyCredentialInput = {
 
 type VerifyCredentialResult = {
     upstreamCredential: string;
-    sessionClaims?: Record<string, unknown>;
+    credentials: unknown;
 };
 
 type VerifyCredentialFn = (input: VerifyCredentialInput) => Promise<VerifyCredentialResult>;
@@ -364,13 +362,6 @@ function parseHttpMcpHostArgv(argv: string[], envDirs: string[]): HttpMcpHostRun
     };
 }
 
-const DEFAULT_MCP_AUTH_HEADER = 'x-api-token';
-
-function readAuthHeaderNameFromEnv(): string {
-    const configured = process.env.MCP_AUTH_HEADER?.trim();
-    return configured && configured.length > 0 ? configured : DEFAULT_MCP_AUTH_HEADER;
-}
-
 function validateHttpMcpHostAtStartup(httpHostConfig: HttpMcpHostRuntimeConfig, _generated: GeneratedHostModule): void {
     const baseUrlKey = httpHostConfig.baseUrlEnvKey?.trim();
     if (!baseUrlKey) {
@@ -383,7 +374,7 @@ function validateHttpMcpHostAtStartup(httpHostConfig: HttpMcpHostRuntimeConfig, 
 
     if (_generated.requiresAuth && typeof _generated.verifyCredential !== 'function') {
         throw new Error(
-            'Generated tools require auth; implement verifyCredential in src/auth/api2ai/<module>/verifyCredential.ts and re-export from generated tools.'
+            'Generated tools require auth; implement verify*Credentials in src/auth/api2ai/<module>/ and re-export from generated tools.'
         );
     }
 }
@@ -455,8 +446,8 @@ async function runHttpMcpStandaloneFromArgv(argv: string[]): Promise<void> {
     validateHttpMcpHostAtStartup(httpHostConfig, generated);
     loggingAdapter.info('[mcp] public HTTP listening', {
         url: 'http://' + httpHostConfig.listenHost + ':' + httpHostConfig.port + httpHostConfig.mcpPath,
-        profile: HTTP_MCP_HOST_PROFILE,
-        credentialHeader: HTTP_MCP_HOST_PROFILE === 'public' ? undefined : readAuthHeaderNameFromEnv()
+        profile: 'public',
+        credentialHeader: undefined
     });
 
     const httpServer = http.createServer(async (req, res) => {
