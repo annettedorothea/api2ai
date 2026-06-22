@@ -101,7 +101,7 @@ export type {
 } from '../../../src/auth/api2ai/bookings-tools/verifyBookingsCredentials.js';
 
 export const mcpServerName = 'bookings-tools';
-export const mcpServerVersion = '0.4.0';
+export const mcpServerVersion = '0.4.1';
 
 const authorizers: Record<string, (credentials: ModuleCredentials) => void | Promise<void>> = {
     listAllBookings: authorizeListAllBookings

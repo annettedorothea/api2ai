@@ -2,9 +2,10 @@
     "mcpServers": {
         "open-meteo": {
             "command": "node",
+            "cwd": "${workspaceFolder}",
             "args": [
-                "./generated/api2ai/cli/stdio-mcp-server.js",
-                "./generated/api2ai/tools/open-meteo-tools.js",
+                "generated/api2ai/cli/stdio-mcp-server.js",
+                "generated/api2ai/tools/open-meteo-tools.js",
                 "--base-url-env",
                 "OPEN_METEO_BASE_URL"
             ],
@@ -14,9 +15,10 @@
         },
         "open-meteo-geocoding": {
             "command": "node",
+            "cwd": "${workspaceFolder}",
             "args": [
-                "./generated/api2ai/cli/stdio-mcp-server.js",
-                "./generated/api2ai/tools/open-meteo-geocoding-tools.js",
+                "generated/api2ai/cli/stdio-mcp-server.js",
+                "generated/api2ai/tools/open-meteo-geocoding-tools.js",
                 "--base-url-env",
                 "OPEN_METEO_GEOCODING_BASE_URL"
             ],
@@ -26,10 +28,11 @@
         },
         "github": {
             "command": "node",
+            "cwd": "${workspaceFolder}",
             "envFile": ".env.local",
             "args": [
-                "./generated/api2ai/cli/stdio-mcp-server.js",
-                "./generated/api2ai/tools/github-tools.js",
+                "generated/api2ai/cli/stdio-mcp-server.js",
+                "generated/api2ai/tools/github-tools.js",
                 "--base-url-env",
                 "GITHUB_BASE_URL",
                 "--auth-env",
@@ -41,10 +44,11 @@
         },
         "tmdb": {
             "command": "node",
+            "cwd": "${workspaceFolder}",
             "envFile": ".env.local",
             "args": [
-                "./generated/api2ai/cli/stdio-mcp-server.js",
-                "./generated/api2ai/tools/tmdb-tools.js",
+                "generated/api2ai/cli/stdio-mcp-server.js",
+                "generated/api2ai/tools/tmdb-tools.js",
                 "--base-url-env",
                 "TMDB_BASE_URL",
                 "--auth-env",
