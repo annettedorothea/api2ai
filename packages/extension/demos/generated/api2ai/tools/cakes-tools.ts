@@ -79,7 +79,7 @@ export type {
 } from '../../../src/auth/api2ai/cakes-tools/verifyCakesCredentials.js';
 
 export const mcpServerName = 'cakes-tools';
-export const mcpServerVersion = '0.3.0';
+export const mcpServerVersion = '0.4.0';
 
 export const inputZodByTool = {
     searchCakes: z
