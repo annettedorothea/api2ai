@@ -8,11 +8,12 @@ import {
     verifyCredential,
     toModuleCredentials,
     type ModuleCredentials
-} from '../../../src/auth/api2ai/bookings-tools/verifyBookingsCredentials.js';
-import { authorizeListAllBookings } from '../../../src/auth/api2ai/bookings-tools/listAllBookings.js';
-import { validateListVacationRentalsInput } from '../../../src/auth/api2ai/bookings-tools/listVacationRentals.js';
-import { validateListAllBookingsInput } from '../../../src/auth/api2ai/bookings-tools/listAllBookings.js';
-import { validateListBookingsInput } from '../../../src/auth/api2ai/bookings-tools/listBookings.js';
+} from '../../../src/hooks/api2ai/bookings-tools/verifyBookingsCredentials.js';
+import { authorizeListAllBookings } from '../../../src/hooks/api2ai/bookings-tools/listAllBookings.js';
+import { authorizeListBookings } from '../../../src/hooks/api2ai/bookings-tools/listBookings.js';
+import { prepareListVacationRentalsInput } from '../../../src/hooks/api2ai/bookings-tools/listVacationRentals.js';
+import { prepareListAllBookingsInput } from '../../../src/hooks/api2ai/bookings-tools/listAllBookings.js';
+import { prepareListBookingsInput } from '../../../src/hooks/api2ai/bookings-tools/listBookings.js';
 
 export type GeneratedTool = {
     toolName: string;
@@ -22,7 +23,7 @@ export type GeneratedTool = {
     path: string;
     access: 'public' | 'protected';
     hasAuthorize: boolean;
-    hasValidate: boolean;
+    hasPrepare: boolean;
 };
 
 export const generatedTools: GeneratedTool[] = [
@@ -30,34 +31,34 @@ export const generatedTools: GeneratedTool[] = [
         toolName: 'listVacationRentals',
         title: 'List vacation rentals with public availability (limit validated)',
         description:
-            'Intent:\nList Ferienwohnungen (vacation rental units) — public, no login.\n        Returns availability periods per unit (no guest names).\n        Query limit caps how many units are returned (default 10, max 10).\n\nAPI:\nPublic endpoint — no auth. Returns availability periods per unit (no guest identity).\nUse query limit to cap how many units are returned (max 10).\n\nMeta:\noperationId: list-vacation-rentals\n\nParameters:\n- limit (query): Query limit caps how many units are returned (default 10, max 10). (example: 10)\n\nExample:\nShow up to 10 vacation rentals and their free/occupied periods\n\nResponse:\nHTTP 200\nVacation rental units (public view)\nproperties (top-level): limit, units\n\nRuntime: implement validateListVacationRentalsInput in src/auth/api2ai/bookings-tools/listVacationRentals.ts (types from this tools module; run build:generated for .js).',
+            'Intent:\nList Ferienwohnungen (vacation rental units) — public, no login.\n        Returns availability periods per unit (no guest names).\n        Query limit caps how many units are returned (default 10, max 10).\n\nAPI:\nPublic endpoint — no auth. Returns availability periods per unit (no guest identity).\nUse query limit to cap how many units are returned (max 10).\n\nMeta:\noperationId: list-vacation-rentals\n\nParameters:\n- limit (query): Query limit caps how many units are returned (default 10, max 10). (example: 10)\n\nExample:\nShow up to 10 vacation rentals and their free/occupied periods\n\nResponse:\nHTTP 200\nVacation rental units (public view)\nproperties (top-level): limit, units\n\nRuntime: implement prepareListVacationRentalsInput in src/hooks/api2ai/bookings-tools/listVacationRentals.ts (types from this tools module; run build:generated for .js).',
         method: 'GET',
         path: '/vacation-rentals',
         access: 'public',
         hasAuthorize: false,
-        hasValidate: true
+        hasPrepare: true
     },
     {
         toolName: 'listAllBookings',
         title: 'List all customer bookings (admin only, limit validated)',
         description:
-            'Intent:\nAdmin only: list bookings across all customers (Bearer JWT role=admin).\n        Query limit caps how many bookings are returned (default 10, max 10).\n        authorize + validate demo — role gate before upstream call, limit in validate stub.\n\nAPI:\nRequires Bearer JWT with role=admin. Returns bookings from all customers, capped by limit (max 10).\n\nMeta:\noperationId: list-all-bookings\n\nParameters:\n- limit (query)\n\nExample:\nList up to 10 bookings from all customers\n\nResponse:\nHTTP 200\nCross-customer booking list\nproperties (top-level): bookings, limit, role\nDocumented errors:\nHTTP 401 — Missing or invalid token\nHTTP 403 — Admin role required\n\nRuntime: protected — implement authorizeListAllBookings and validateListAllBookingsInput in src/auth/api2ai/bookings-tools/listAllBookings.ts; credential sent as header "Authorization" (prefix applied to the secret).',
+            'Intent:\nAdmin only: list bookings across all customers (Bearer JWT role=admin).\n        Query limit caps how many bookings are returned (default 10, max 10).\n        authorize + prepare demo — role gate before upstream call, limit in prepare stub.\n\nAPI:\nRequires Bearer JWT with role=admin. Returns bookings from all customers, capped by limit (max 10).\n\nMeta:\noperationId: list-all-bookings\n\nParameters:\n- limit (query)\n\nExample:\nList up to 10 bookings from all customers\n\nResponse:\nHTTP 200\nCross-customer booking list\nproperties (top-level): bookings, limit, role\nDocumented errors:\nHTTP 401 — Missing or invalid token\nHTTP 403 — Admin role required\n\nRuntime: protected — implement authorizeListAllBookings and prepareListAllBookingsInput in src/hooks/api2ai/bookings-tools/listAllBookings.ts; credential sent as header "Authorization" (prefix applied to the secret).',
         method: 'GET',
         path: '/bookings',
         access: 'protected',
         hasAuthorize: true,
-        hasValidate: true
+        hasPrepare: true
     },
     {
         toolName: 'listBookings',
         title: 'List customer vacation rental bookings',
         description:
-            'Intent:\nList bookings for the authenticated customer (Bearer JWT).\n        Path customerId is optional: when empty or omitted, filled from JWT claim customerId.\n        Role user: path customerId must match JWT; role admin may list any customerId.\n        Returns bookingId, unitId, checkIn, checkOut for each stay.\n\nAPI:\nRequires Bearer JWT; role=user path customerId must match JWT claim; admin may read any customer.\n\nMeta:\noperationId: list-customer-bookings\n\nParameters:\n- customerId (path)\n\nExample:\nList my bookings\n\nResponse:\nHTTP 200\nBooking list\nproperties (top-level): bookings, customerId\nDocumented errors:\nHTTP 401 — Missing or invalid token\nHTTP 403 — Token customerId does not match path\n\nRuntime: protected — implement validateListBookingsInput in src/auth/api2ai/bookings-tools/listBookings.ts; credential sent as header "Authorization" (prefix applied to the secret).',
+            'Intent:\nList bookings for the authenticated customer (Bearer JWT).\n        Path customerId is optional: when empty or omitted, filled from JWT claim customerId.\n        Role user: path customerId must match JWT; role admin may list any customerId.\n        Returns bookingId, unitId, checkIn, checkOut for each stay.\n\nAPI:\nRequires Bearer JWT; role=user path customerId must match JWT claim; admin may read any customer.\n\nMeta:\noperationId: list-customer-bookings\n\nParameters:\n- customerId (path)\n\nExample:\nList my bookings\n\nResponse:\nHTTP 200\nBooking list\nproperties (top-level): bookings, customerId\nDocumented errors:\nHTTP 401 — Missing or invalid token\nHTTP 403 — Token customerId does not match path\n\nRuntime: protected — implement authorizeListBookings and prepareListBookingsInput in src/hooks/api2ai/bookings-tools/listBookings.ts; credential sent as header "Authorization" (prefix applied to the secret).',
         method: 'GET',
         path: '/bookings/{customerId}',
         access: 'protected',
-        hasAuthorize: false,
-        hasValidate: true
+        hasAuthorize: true,
+        hasPrepare: true
     }
 ];
 
@@ -92,28 +93,29 @@ export const authConfig: AuthConfig | undefined = {
 export {
     verifyCredential,
     toModuleCredentials
-} from '../../../src/auth/api2ai/bookings-tools/verifyBookingsCredentials.js';
+} from '../../../src/hooks/api2ai/bookings-tools/verifyBookingsCredentials.js';
 export type {
     VerifyCredentialInput,
     VerifyCredentialResult,
     ModuleCredentials,
     BookingsCredentials
-} from '../../../src/auth/api2ai/bookings-tools/verifyBookingsCredentials.js';
+} from '../../../src/hooks/api2ai/bookings-tools/verifyBookingsCredentials.js';
 
 export const mcpServerName = 'bookings-tools';
 export const mcpServerVersion = '0.4.1';
 
 const authorizers: Record<string, (credentials: ModuleCredentials) => void | Promise<void>> = {
-    listAllBookings: authorizeListAllBookings
+    listAllBookings: authorizeListAllBookings,
+    listBookings: authorizeListBookings
 };
 
-const validators: Record<
+const preparers: Record<
     string,
-    (options: InvokeOptions, credentials: ModuleCredentials) => InvokeOptions | Promise<InvokeOptions>
+    (options: InvokeOptions, credentials?: ModuleCredentials) => InvokeOptions | Promise<InvokeOptions>
 > = {
-    listVacationRentals: validateListVacationRentalsInput,
-    listAllBookings: validateListAllBookingsInput,
-    listBookings: validateListBookingsInput
+    listVacationRentals: prepareListVacationRentalsInput,
+    listAllBookings: prepareListAllBookingsInput,
+    listBookings: prepareListBookingsInput
 };
 
 export const inputZodByTool = {
@@ -304,21 +306,20 @@ export async function invokeTool(
             }
             await Promise.resolve(authorize(credentialsForStubs!));
         }
-    } else if (tool.hasValidate && credentialsForStubs === undefined && credentialsPlain != null) {
-        credentialsForStubs = toModuleCredentials(credentialsPlain as Record<string, unknown>);
     }
-    if (tool.hasValidate) {
-        const validate = validators[toolName];
-        if (typeof validate !== 'function') {
-            throw new Error('No validator for tool: ' + toolName);
+    if (tool.hasPrepare) {
+        const prepare = preparers[toolName];
+        if (typeof prepare !== 'function') {
+            throw new Error('No preparer for tool: ' + toolName);
         }
-        if (credentialsForStubs === undefined) {
-            if (tool.access === 'protected') {
-                throw new Error('Validate requires credentials; verify credential or pass host.credentials.');
+        if (tool.access === 'protected') {
+            if (credentialsForStubs === undefined) {
+                throw new Error('Prepare requires credentials; verify credential or pass host.credentials.');
             }
-            credentialsForStubs = toModuleCredentials({});
+            optionsResolved = await Promise.resolve(prepare(options, credentialsForStubs));
+        } else {
+            optionsResolved = await Promise.resolve(prepare(options));
         }
-        optionsResolved = await Promise.resolve(validate(options, credentialsForStubs));
     }
     const normalizedBaseUrl = baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl;
     const pathParams = { ...(optionsResolved.pathParams ?? {}) };

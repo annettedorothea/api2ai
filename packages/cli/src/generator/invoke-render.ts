@@ -42,7 +42,7 @@ function renderAuth401Hint(authKind: 'none' | 'credential'): string {
         : '';
 }
 
-import { renderInvokeAuthPipeline, type AuthPipelineTier, type AuthStubMaps } from './render-check-stubs.js';
+import { renderInvokeAuthPipeline, type AuthPipelineTier, type HookStubMaps } from './render-check-stubs.js';
 
 function renderQuerySerializationHelpers(querySerializationLiteralBody: string): string {
     return `const queryParamSerializationByTool = ${querySerializationLiteralBody};
@@ -111,7 +111,7 @@ function renderHostBinding(): string {
 function renderInvokeToolFunction(
     authKind: 'none' | 'credential',
     authPipelineTier: AuthPipelineTier,
-    stubMaps: AuthStubMaps
+    stubMaps: HookStubMaps
 ): string {
     const resolveCall = renderAuthApplicationBlock(authKind);
     const auth401Block = renderAuth401Hint(authKind);
@@ -207,7 +207,7 @@ export function createSharedInvokeBlock(
     querySerializationLiteralBody: string,
     authKind: 'none' | 'credential',
     authPipelineTier: AuthPipelineTier,
-    stubMaps: AuthStubMaps
+    stubMaps: HookStubMaps
 ): string {
     return `${renderQuerySerializationHelpers(querySerializationLiteralBody)}
 ${renderAuthHelpers(authKind)}

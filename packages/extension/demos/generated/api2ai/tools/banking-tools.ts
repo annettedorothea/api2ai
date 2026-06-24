@@ -8,10 +8,12 @@ import {
     verifyCredential,
     toModuleCredentials,
     type ModuleCredentials
-} from '../../../src/auth/api2ai/banking-tools/verifyBankingCredentials.js';
-import { authorizeListCustomers } from '../../../src/auth/api2ai/banking-tools/listCustomers.js';
-import { validateListAccountsInput } from '../../../src/auth/api2ai/banking-tools/listAccounts.js';
-import { validateListTransactionsInput } from '../../../src/auth/api2ai/banking-tools/listTransactions.js';
+} from '../../../src/hooks/api2ai/banking-tools/verifyBankingCredentials.js';
+import { authorizeListCustomers } from '../../../src/hooks/api2ai/banking-tools/listCustomers.js';
+import { authorizeListAccounts } from '../../../src/hooks/api2ai/banking-tools/listAccounts.js';
+import { authorizeListTransactions } from '../../../src/hooks/api2ai/banking-tools/listTransactions.js';
+import { prepareListAccountsInput } from '../../../src/hooks/api2ai/banking-tools/listAccounts.js';
+import { prepareListTransactionsInput } from '../../../src/hooks/api2ai/banking-tools/listTransactions.js';
 
 export type GeneratedTool = {
     toolName: string;
@@ -21,7 +23,7 @@ export type GeneratedTool = {
     path: string;
     access: 'public' | 'protected';
     hasAuthorize: boolean;
-    hasValidate: boolean;
+    hasPrepare: boolean;
 };
 
 export const generatedTools: GeneratedTool[] = [
@@ -29,34 +31,34 @@ export const generatedTools: GeneratedTool[] = [
         toolName: 'listCustomers',
         title: 'List all bank customers (admin only)',
         description:
-            'Intent:\nList all bank customers (admin only). Requires opaque API Bearer token with role=admin.\n        MCP authorize gate runs before the upstream call; users with role=user are rejected.\n\nAPI:\nRequires opaque API Bearer token with admin role.\n\nMeta:\noperationId: list-customers\n\nExample:\nList all customers in the banking directory\n\nResponse:\nHTTP 200 — top-level role, customers array. Each customer: customerId, displayName.\n        Documented errors:\n        HTTP 401 — Missing or invalid token\n        HTTP 403 — Admin role required\n\nRuntime: protected — implement authorizeListCustomers in src/auth/api2ai/banking-tools/listCustomers.ts; credential sent as header "Authorization" (prefix applied to the secret).',
+            'Intent:\nList all bank customers (admin only). Requires opaque API Bearer token with role=admin.\n        MCP authorize gate runs before the upstream call; users with role=user are rejected.\n\nAPI:\nRequires opaque API Bearer token with admin role.\n\nMeta:\noperationId: list-customers\n\nExample:\nList all customers in the banking directory\n\nResponse:\nHTTP 200 — top-level role, customers array. Each customer: customerId, displayName.\n        Documented errors:\n        HTTP 401 — Missing or invalid token\n        HTTP 403 — Admin role required\n\nRuntime: protected — implement authorizeListCustomers in src/hooks/api2ai/banking-tools/listCustomers.ts; credential sent as header "Authorization" (prefix applied to the secret).',
         method: 'GET',
         path: '/customers',
         access: 'protected',
         hasAuthorize: true,
-        hasValidate: false
+        hasPrepare: false
     },
     {
         toolName: 'listAccounts',
         title: 'List customer bank accounts',
         description:
-            'Intent:\nList bank accounts for the authenticated customer. Omitted customerId is filled from the token claim.\n\nAPI:\nRequires opaque API Bearer token. Role=user path customerId must match token claim; admin may read any customer.\n\nMeta:\noperationId: list-customer-accounts\n\nParameters:\n- customerId (path)\n\nExample:\nList my bank accounts\n\nResponse:\nHTTP 200 — top-level customerId, role, accounts array. Each account: accountId, type, iban, balance, currency.\n        Use accounts[].accountId for listTransactions (e.g. acc-alice-checking).\n        Documented errors:\n        HTTP 401 — Missing or invalid token\n        Parameter check: role=user rejects customerId that does not match the token claim (before upstream call).\n\nRuntime: protected — implement validateListAccountsInput in src/auth/api2ai/banking-tools/listAccounts.ts; credential sent as header "Authorization" (prefix applied to the secret).',
+            'Intent:\nList bank accounts for the authenticated customer. Omitted customerId is filled from the token claim.\n\nAPI:\nRequires opaque API Bearer token. Role=user path customerId must match token claim; admin may read any customer.\n\nMeta:\noperationId: list-customer-accounts\n\nParameters:\n- customerId (path)\n\nExample:\nList my bank accounts\n\nResponse:\nHTTP 200 — top-level customerId, role, accounts array. Each account: accountId, type, iban, balance, currency.\n        Use accounts[].accountId for listTransactions (e.g. acc-alice-checking).\n        Documented errors:\n        HTTP 401 — Missing or invalid token\n        Parameter check: role=user rejects customerId that does not match the token claim (before upstream call).\n\nRuntime: protected — implement authorizeListAccounts and prepareListAccountsInput in src/hooks/api2ai/banking-tools/listAccounts.ts; credential sent as header "Authorization" (prefix applied to the secret).',
         method: 'GET',
         path: '/accounts/{customerId}',
         access: 'protected',
-        hasAuthorize: false,
-        hasValidate: true
+        hasAuthorize: true,
+        hasPrepare: true
     },
     {
         toolName: 'listTransactions',
         title: 'List account transactions',
         description:
-            'Intent:\nList transactions for one account. Omitted customerId is filled from the token claim.\n        Requires opaque API Bearer token (IdP JWT is rejected upstream).\n\nAPI:\nRequires opaque API Bearer token. Role=user path customerId must match token claim; admin may read any customer.\n\nMeta:\noperationId: list-account-transactions\n\nParameters:\n- accountId (path)\n- customerId (path)\n\nExample:\nShow transactions for acc-alice-checking\n\nResponse:\nHTTP 200 — top-level accountId, customerId, transactions array. Each: transactionId, date, description, amount, currency.\n        Documented errors:\n        HTTP 401 — Missing or invalid token\n        HTTP 404 — Account not found\n        Parameter check: role=user rejects customerId that does not match the token claim (before upstream call).\n\nRuntime: protected — implement validateListTransactionsInput in src/auth/api2ai/banking-tools/listTransactions.ts; credential sent as header "Authorization" (prefix applied to the secret).',
+            'Intent:\nList transactions for one account. Omitted customerId is filled from the token claim.\n        Requires opaque API Bearer token (IdP JWT is rejected upstream).\n\nAPI:\nRequires opaque API Bearer token. Role=user path customerId must match token claim; admin may read any customer.\n\nMeta:\noperationId: list-account-transactions\n\nParameters:\n- accountId (path)\n- customerId (path)\n\nExample:\nShow transactions for acc-alice-checking\n\nResponse:\nHTTP 200 — top-level accountId, customerId, transactions array. Each: transactionId, date, description, amount, currency.\n        Documented errors:\n        HTTP 401 — Missing or invalid token\n        HTTP 404 — Account not found\n        Parameter check: role=user rejects customerId that does not match the token claim (before upstream call).\n\nRuntime: protected — implement authorizeListTransactions and prepareListTransactionsInput in src/hooks/api2ai/banking-tools/listTransactions.ts; credential sent as header "Authorization" (prefix applied to the secret).',
         method: 'GET',
         path: '/accounts/{customerId}/{accountId}/transactions',
         access: 'protected',
-        hasAuthorize: false,
-        hasValidate: true
+        hasAuthorize: true,
+        hasPrepare: true
     }
 ];
 
@@ -91,27 +93,29 @@ export const authConfig: AuthConfig | undefined = {
 export {
     verifyCredential,
     toModuleCredentials
-} from '../../../src/auth/api2ai/banking-tools/verifyBankingCredentials.js';
+} from '../../../src/hooks/api2ai/banking-tools/verifyBankingCredentials.js';
 export type {
     VerifyCredentialInput,
     VerifyCredentialResult,
     ModuleCredentials,
     BankingCredentials
-} from '../../../src/auth/api2ai/banking-tools/verifyBankingCredentials.js';
+} from '../../../src/hooks/api2ai/banking-tools/verifyBankingCredentials.js';
 
 export const mcpServerName = 'banking-tools';
 export const mcpServerVersion = '0.4.1';
 
 const authorizers: Record<string, (credentials: ModuleCredentials) => void | Promise<void>> = {
-    listCustomers: authorizeListCustomers
+    listCustomers: authorizeListCustomers,
+    listAccounts: authorizeListAccounts,
+    listTransactions: authorizeListTransactions
 };
 
-const validators: Record<
+const preparers: Record<
     string,
-    (options: InvokeOptions, credentials: ModuleCredentials) => InvokeOptions | Promise<InvokeOptions>
+    (options: InvokeOptions, credentials?: ModuleCredentials) => InvokeOptions | Promise<InvokeOptions>
 > = {
-    listAccounts: validateListAccountsInput,
-    listTransactions: validateListTransactionsInput
+    listAccounts: prepareListAccountsInput,
+    listTransactions: prepareListTransactionsInput
 };
 
 export const inputZodByTool = {
@@ -285,21 +289,20 @@ export async function invokeTool(
             }
             await Promise.resolve(authorize(credentialsForStubs!));
         }
-    } else if (tool.hasValidate && credentialsForStubs === undefined && credentialsPlain != null) {
-        credentialsForStubs = toModuleCredentials(credentialsPlain as Record<string, unknown>);
     }
-    if (tool.hasValidate) {
-        const validate = validators[toolName];
-        if (typeof validate !== 'function') {
-            throw new Error('No validator for tool: ' + toolName);
+    if (tool.hasPrepare) {
+        const prepare = preparers[toolName];
+        if (typeof prepare !== 'function') {
+            throw new Error('No preparer for tool: ' + toolName);
         }
-        if (credentialsForStubs === undefined) {
-            if (tool.access === 'protected') {
-                throw new Error('Validate requires credentials; verify credential or pass host.credentials.');
+        if (tool.access === 'protected') {
+            if (credentialsForStubs === undefined) {
+                throw new Error('Prepare requires credentials; verify credential or pass host.credentials.');
             }
-            credentialsForStubs = toModuleCredentials({});
+            optionsResolved = await Promise.resolve(prepare(options, credentialsForStubs));
+        } else {
+            optionsResolved = await Promise.resolve(prepare(options));
         }
-        optionsResolved = await Promise.resolve(validate(options, credentialsForStubs));
     }
     const normalizedBaseUrl = baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl;
     const pathParams = { ...(optionsResolved.pathParams ?? {}) };

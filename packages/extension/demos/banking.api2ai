@@ -27,7 +27,8 @@ GET "/customers" {
 GET "/accounts/{customerId}" {
     toolName: listAccounts
     access: protected
-    validate: {
+    authorize: true
+    prepare: {
         optionalParams: [customerId]
     }
     intent: '''
@@ -47,7 +48,8 @@ GET "/accounts/{customerId}" {
 GET "/accounts/{customerId}/{accountId}/transactions" {
     toolName: listTransactions
     access: protected
-    validate: {
+    authorize: true
+    prepare: {
         optionalParams: [customerId]
     }
     intent: '''

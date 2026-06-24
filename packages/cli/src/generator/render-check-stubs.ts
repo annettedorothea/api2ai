@@ -1,52 +1,52 @@
 import type { Model } from 'api-2-ai-dsl-language';
-import { accessRequiresAuth, isToolAuthorizeEnabled, isToolValidateEnabled } from 'api-2-ai-dsl-language';
+import { accessRequiresAuth, getAccessKind, isToolAuthorizeEnabled, isToolPrepareEnabled } from 'api-2-ai-dsl-language';
 import {
     authorizeExportName,
-    ensureToolAuthStubsFromSource,
+    ensureToolHookStubsFromSource,
     renderAuthorizerImports,
     renderAuthorizersMap,
-    renderValidatorImports,
-    renderValidatorsMap,
+    renderPreparerImports,
+    renderPreparersMap,
     renderInvokeAuthPipeline as renderInvokeAuthPipelineCore,
     resolveAuthPipelineTier,
     type AuthPipelineTier,
-    type AuthStubMaps,
-    type ToolAuthStubSpec,
-    validateInputExportName
+    type HookStubMaps,
+    type ToolHookStubSpec,
+    prepareInputExportName
 } from '@core2ai/core/codegen';
 
 export type ToolAccess = 'public' | 'protected';
 
 export {
     authorizeExportName,
-    validateInputExportName,
+    prepareInputExportName,
     renderAuthorizerImports,
     renderAuthorizersMap,
-    renderValidatorImports,
-    renderValidatorsMap,
+    renderPreparerImports,
+    renderPreparersMap,
     resolveAuthPipelineTier,
     type AuthPipelineTier,
-    type AuthStubMaps
+    type HookStubMaps
 };
 
-function listToolAuthSpecs(model: Model): ToolAuthStubSpec[] {
-    const specs: ToolAuthStubSpec[] = [];
+function listToolHookSpecs(model: Model): ToolHookStubSpec[] {
+    const specs: ToolHookStubSpec[] = [];
     for (const operation of model.operations) {
         const toolName = operation.toolName?.trim();
         if (!toolName) {
             continue;
         }
         const authorize = isToolAuthorizeEnabled(operation);
-        const validate = isToolValidateEnabled(operation);
-        if (authorize || validate) {
-            specs.push({ toolName, authorize, validate });
+        const prepare = isToolPrepareEnabled(operation);
+        if (authorize || prepare) {
+            specs.push({ toolName, authorize, prepare, access: getAccessKind(operation) });
         }
     }
     return specs;
 }
 
 export function listAuthorizeToolNames(model: Model): string[] {
-    return listToolAuthSpecs(model)
+    return listToolHookSpecs(model)
         .filter((spec) => spec.authorize)
         .map((spec) => spec.toolName);
 }
@@ -61,33 +61,33 @@ export function listProtectedToolNames(model: Model): string[] {
         });
 }
 
-export function listValidateToolNames(model: Model): string[] {
-    return listToolAuthSpecs(model)
-        .filter((spec) => spec.validate)
+export function listPrepareToolNames(model: Model): string[] {
+    return listToolHookSpecs(model)
+        .filter((spec) => spec.prepare)
         .map((spec) => spec.toolName);
 }
 
-/** Writes write-once `src/auth/{product}/<mcpModule>/<toolName>.ts` stubs; returns stub paths for imports. */
+/** Writes write-once `src/hooks/{product}/<mcpModule>/<toolName>.ts` stubs; returns stub paths for imports. */
 export async function renderCheckStubs(
     source: string,
     model: Model,
     toolsModuleTsPath: string
 ): Promise<Map<string, string>> {
-    const specs = listToolAuthSpecs(model);
+    const specs = listToolHookSpecs(model);
     if (specs.length === 0) {
         return new Map();
     }
-    return ensureToolAuthStubsFromSource(source, specs, toolsModuleTsPath);
+    return ensureToolHookStubsFromSource(source, specs, toolsModuleTsPath);
 }
 
 export function modelHasAuthPipeline(model: Model): boolean {
-    return model.operations.some((operation) => accessRequiresAuth(operation) || isToolValidateEnabled(operation));
+    return model.operations.some((operation) => accessRequiresAuth(operation) || isToolPrepareEnabled(operation));
 }
 
 export function renderInvokeAuthPipeline(
     tier: AuthPipelineTier,
     hasVerifyCredential: boolean,
-    stubMaps: AuthStubMaps
+    stubMaps: HookStubMaps
 ): string {
     return renderInvokeAuthPipelineCore('api2ai', tier, hasVerifyCredential, stubMaps);
 }

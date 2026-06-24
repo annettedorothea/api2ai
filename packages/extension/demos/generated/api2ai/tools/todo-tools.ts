@@ -4,7 +4,7 @@
  */
 import { loggingAdapter } from '../../../src/utils/logging-adapter.js';
 import * as z from 'zod/v4';
-import { verifyCredential } from '../../../src/auth/api2ai/todo-tools/verifyTodoCredentials.js';
+import { verifyCredential } from '../../../src/hooks/api2ai/todo-tools/verifyTodoCredentials.js';
 
 export type GeneratedTool = {
     toolName: string;
@@ -14,7 +14,7 @@ export type GeneratedTool = {
     path: string;
     access: 'public' | 'protected';
     hasAuthorize: boolean;
-    hasValidate: boolean;
+    hasPrepare: boolean;
 };
 
 export const generatedTools: GeneratedTool[] = [
@@ -22,78 +22,78 @@ export const generatedTools: GeneratedTool[] = [
         toolName: 'listCategories',
         title: 'List todo categories',
         description:
-            'Intent:\nList todo categories. Requires API key (MCP x-api-token → x-api-key).\n\nMeta:\noperationId: list-categories\n\nExample:\nList todo categories\n\nResponse:\nHTTP 200 — top-level categories array. Each category: id, name, color (ids: work, home, errands).\n        Documented errors:\n        HTTP 401 — Missing or invalid API key\n\nRuntime: protected — implement src/auth/api2ai/todo-tools/verifyTodoCredentials.ts; credential sent as header "x-api-key".',
+            'Intent:\nList todo categories. Requires API key (MCP x-api-token → x-api-key).\n\nMeta:\noperationId: list-categories\n\nExample:\nList todo categories\n\nResponse:\nHTTP 200 — top-level categories array. Each category: id, name, color (ids: work, home, errands).\n        Documented errors:\n        HTTP 401 — Missing or invalid API key\n\nRuntime: protected — implement src/hooks/api2ai/todo-tools/verifyTodoCredentials.ts; credential sent as header "x-api-key".',
         method: 'GET',
         path: '/categories',
         access: 'protected',
         hasAuthorize: false,
-        hasValidate: false
+        hasPrepare: false
     },
     {
         toolName: 'listTodos',
         title: 'List todos',
         description:
-            'Intent:\nList todos; optional filter by status (open|done) or categoryId.\n\nMeta:\noperationId: list-todos\n\nParameters:\n- categoryId (query): Optional query filter by category id — from listCategories categories[].id (work, home, errands). (example: work)\n- status (query): Optional query filter: open or done only (OpenAPI enum). (example: open)\n\nExample:\nList open todos\n\nResponse:\nHTTP 200 — top-level todos array. Each todo: id, title, status (open|done), categoryId, dueDate.\n        Documented errors:\n        HTTP 401 — Missing or invalid API key\n\nRuntime: protected — implement src/auth/api2ai/todo-tools/verifyTodoCredentials.ts; credential sent as header "x-api-key".',
+            'Intent:\nList todos; optional filter by status (open|done) or categoryId.\n\nMeta:\noperationId: list-todos\n\nParameters:\n- categoryId (query): Optional query filter by category id — from listCategories categories[].id (work, home, errands). (example: work)\n- status (query): Optional query filter: open or done only (OpenAPI enum). (example: open)\n\nExample:\nList open todos\n\nResponse:\nHTTP 200 — top-level todos array. Each todo: id, title, status (open|done), categoryId, dueDate.\n        Documented errors:\n        HTTP 401 — Missing or invalid API key\n\nRuntime: protected — implement src/hooks/api2ai/todo-tools/verifyTodoCredentials.ts; credential sent as header "x-api-key".',
         method: 'GET',
         path: '/todos',
         access: 'protected',
         hasAuthorize: false,
-        hasValidate: false
+        hasPrepare: false
     },
     {
         toolName: 'listTodosByCategory',
         title: 'List todos by category',
         description:
-            'Intent:\nList todos in one category. Optional query status: open or done.\n\nMeta:\noperationId: list-todos-by-category\n\nParameters:\n- categoryId (path): Category id (path). Values: work, home, errands — from listCategories categories[].id. (example: work)\n- status (query): Optional query filter: open or done only. (example: open)\n\nExample:\nList open todos in category work\n\nResponse:\nHTTP 200 — top-level categoryId and todos array (same todo shape as listTodos).\n        Documented errors:\n        HTTP 401 — Missing or invalid API key\n        HTTP 404 — Unknown category (invalid categoryId)\n\nRuntime: protected — implement src/auth/api2ai/todo-tools/verifyTodoCredentials.ts; credential sent as header "x-api-key".',
+            'Intent:\nList todos in one category. Optional query status: open or done.\n\nMeta:\noperationId: list-todos-by-category\n\nParameters:\n- categoryId (path): Category id (path). Values: work, home, errands — from listCategories categories[].id. (example: work)\n- status (query): Optional query filter: open or done only. (example: open)\n\nExample:\nList open todos in category work\n\nResponse:\nHTTP 200 — top-level categoryId and todos array (same todo shape as listTodos).\n        Documented errors:\n        HTTP 401 — Missing or invalid API key\n        HTTP 404 — Unknown category (invalid categoryId)\n\nRuntime: protected — implement src/hooks/api2ai/todo-tools/verifyTodoCredentials.ts; credential sent as header "x-api-key".',
         method: 'GET',
         path: '/categories/{categoryId}/todos',
         access: 'protected',
         hasAuthorize: false,
-        hasValidate: false
+        hasPrepare: false
     },
     {
         toolName: 'getTodo',
         title: 'Get todo by id',
         description:
-            'Intent:\nFetch one todo by path todoId (e.g. t-1).\n\nMeta:\noperationId: get-todo\n\nParameters:\n- todoId (path): Todo id (path) from listTodos todos[].id or createTodo response todo.id. (example: t-1)\n\nExample:\nGet todo t-1\n\nResponse:\nHTTP 200 — top-level property todo (id, title, status, categoryId, dueDate).\n        Documented errors:\n        HTTP 401 — Missing or invalid API key\n        HTTP 404 — Todo not found\n\nRuntime: protected — implement src/auth/api2ai/todo-tools/verifyTodoCredentials.ts; credential sent as header "x-api-key".',
+            'Intent:\nFetch one todo by path todoId (e.g. t-1).\n\nMeta:\noperationId: get-todo\n\nParameters:\n- todoId (path): Todo id (path) from listTodos todos[].id or createTodo response todo.id. (example: t-1)\n\nExample:\nGet todo t-1\n\nResponse:\nHTTP 200 — top-level property todo (id, title, status, categoryId, dueDate).\n        Documented errors:\n        HTTP 401 — Missing or invalid API key\n        HTTP 404 — Todo not found\n\nRuntime: protected — implement src/hooks/api2ai/todo-tools/verifyTodoCredentials.ts; credential sent as header "x-api-key".',
         method: 'GET',
         path: '/todos/{todoId}',
         access: 'protected',
         hasAuthorize: false,
-        hasValidate: false
+        hasPrepare: false
     },
     {
         toolName: 'createTodo',
         title: 'Create todo',
         description:
-            'Intent:\nCreate a todo. Use response todo.id for updateTodo or deleteTodo.\n\nMeta:\noperationId: create-todo\n\nRequest body:\nJSON object. Required: title (string), categoryId (work, home, or errands).\n        Optional: status (open|done), dueDate (ISO date YYYY-MM-DD).\n        Do not send id — server assigns it (e.g. t-5).\n\nExample:\nCreate todo Buy milk in errands\n\nResponse:\nHTTP 201 — top-level property todo with generated id (use todo.id next).\n        Documented errors:\n        HTTP 400 — Invalid input\n        HTTP 401 — Missing or invalid API key\n        HTTP 404 — Unknown categoryId\n\nRuntime: protected — implement src/auth/api2ai/todo-tools/verifyTodoCredentials.ts; credential sent as header "x-api-key".',
+            'Intent:\nCreate a todo. Use response todo.id for updateTodo or deleteTodo.\n\nMeta:\noperationId: create-todo\n\nRequest body:\nJSON object. Required: title (string), categoryId (work, home, or errands).\n        Optional: status (open|done), dueDate (ISO date YYYY-MM-DD).\n        Do not send id — server assigns it (e.g. t-5).\n\nExample:\nCreate todo Buy milk in errands\n\nResponse:\nHTTP 201 — top-level property todo with generated id (use todo.id next).\n        Documented errors:\n        HTTP 400 — Invalid input\n        HTTP 401 — Missing or invalid API key\n        HTTP 404 — Unknown categoryId\n\nRuntime: protected — implement src/hooks/api2ai/todo-tools/verifyTodoCredentials.ts; credential sent as header "x-api-key".',
         method: 'POST',
         path: '/todos',
         access: 'protected',
         hasAuthorize: false,
-        hasValidate: false
+        hasPrepare: false
     },
     {
         toolName: 'updateTodo',
         title: 'Update todo',
         description:
-            'Intent:\nUpdate a todo by path todoId (from createTodo or listTodos).\n\nMeta:\noperationId: update-todo\n\nParameters:\n- todoId (path): Todo id to update (path) — from createTodo todo.id or listTodos todos[].id. (example: t-1)\n\nRequest body:\nJSON object; send only fields to change (all optional): title, status (open|done),\n        categoryId (work, home, errands), dueDate (ISO date YYYY-MM-DD).\n        At least one field required. Do not send id in body.\n\nExample:\nMark todo t-1 as done\n\nResponse:\nHTTP 200 — top-level property todo with updated fields.\n        Documented errors:\n        HTTP 400 — Invalid input\n        HTTP 401 — Missing or invalid API key\n        HTTP 404 — Todo or category not found\n\nRuntime: protected — implement src/auth/api2ai/todo-tools/verifyTodoCredentials.ts; credential sent as header "x-api-key".',
+            'Intent:\nUpdate a todo by path todoId (from createTodo or listTodos).\n\nMeta:\noperationId: update-todo\n\nParameters:\n- todoId (path): Todo id to update (path) — from createTodo todo.id or listTodos todos[].id. (example: t-1)\n\nRequest body:\nJSON object; send only fields to change (all optional): title, status (open|done),\n        categoryId (work, home, errands), dueDate (ISO date YYYY-MM-DD).\n        At least one field required. Do not send id in body.\n\nExample:\nMark todo t-1 as done\n\nResponse:\nHTTP 200 — top-level property todo with updated fields.\n        Documented errors:\n        HTTP 400 — Invalid input\n        HTTP 401 — Missing or invalid API key\n        HTTP 404 — Todo or category not found\n\nRuntime: protected — implement src/hooks/api2ai/todo-tools/verifyTodoCredentials.ts; credential sent as header "x-api-key".',
         method: 'PATCH',
         path: '/todos/{todoId}',
         access: 'protected',
         hasAuthorize: false,
-        hasValidate: false
+        hasPrepare: false
     },
     {
         toolName: 'deleteTodo',
         title: 'Delete todo',
         description:
-            'Intent:\nDelete a todo by path todoId.\n\nMeta:\noperationId: delete-todo\n\nParameters:\n- todoId (path): Todo id to delete (path) — from createTodo todo.id or listTodos todos[].id. (example: t-2)\n\nExample:\nDelete todo t-2\n\nResponse:\nHTTP 200 — top-level todoId and deleted: true.\n        Documented errors:\n        HTTP 401 — Missing or invalid API key\n        HTTP 404 — Todo not found\n\nRuntime: protected — implement src/auth/api2ai/todo-tools/verifyTodoCredentials.ts; credential sent as header "x-api-key".',
+            'Intent:\nDelete a todo by path todoId.\n\nMeta:\noperationId: delete-todo\n\nParameters:\n- todoId (path): Todo id to delete (path) — from createTodo todo.id or listTodos todos[].id. (example: t-2)\n\nExample:\nDelete todo t-2\n\nResponse:\nHTTP 200 — top-level todoId and deleted: true.\n        Documented errors:\n        HTTP 401 — Missing or invalid API key\n        HTTP 404 — Todo not found\n\nRuntime: protected — implement src/hooks/api2ai/todo-tools/verifyTodoCredentials.ts; credential sent as header "x-api-key".',
         method: 'DELETE',
         path: '/todos/{todoId}',
         access: 'protected',
         hasAuthorize: false,
-        hasValidate: false
+        hasPrepare: false
     }
 ];
 
@@ -125,13 +125,13 @@ export const authConfig: AuthConfig | undefined = {
     prefix: ''
 };
 
-export { verifyCredential, toModuleCredentials } from '../../../src/auth/api2ai/todo-tools/verifyTodoCredentials.js';
+export { verifyCredential, toModuleCredentials } from '../../../src/hooks/api2ai/todo-tools/verifyTodoCredentials.js';
 export type {
     VerifyCredentialInput,
     VerifyCredentialResult,
     ModuleCredentials,
     TodoCredentials
-} from '../../../src/auth/api2ai/todo-tools/verifyTodoCredentials.js';
+} from '../../../src/hooks/api2ai/todo-tools/verifyTodoCredentials.js';
 
 export const mcpServerName = 'todo-tools';
 export const mcpServerVersion = '0.4.1';

@@ -3,14 +3,24 @@ openapi "./openapi/spaceflight-news.openapi.yaml"
 GET "/v4/articles/" {
     toolName: listSpaceflightArticles
     access: public
+    prepare: {
+        optionalParams: [limit]
+    }
     intent: '''
         - List recent spaceflight news articles (pagination: limit, offset, ordering).
+        - Query limit caps how many articles are returned (default 10, max 10).
         - Response contains title, summary teaser, and url per item — not the full article body.
         - Use search, has_launch, or news_site filters for SpaceX, launches, or specific outlets.
         - Follow result url only when full text is needed (same pattern for blogs and reports tools).
     '''
-    summary: "List spaceflight articles (teaser only; full text at response url)"
+    summary: "List spaceflight articles (limit validated, teaser only; full text at response url)"
     example: "Get the latest 5 articles"
+    params: {
+        limit: {
+            description: "Number of results per page (default 10, max 10)."
+            example: "10"
+        }
+    }
 }
 
 GET "/v4/articles/{id}/" {
@@ -24,9 +34,24 @@ GET "/v4/articles/{id}/" {
 GET "/v4/blogs/" {
     toolName: listSpaceflightBlogs
     access: public
-    intent: "list recent spaceflight blog posts; API returns summary teaser only, full post text at each result url"
-    summary: "List spaceflight blog posts (teaser only; full text at response url)"
+    prepare: {
+        optionalParams: [limit]
+    }
+    intent: '''
+        - List recent spaceflight blog posts (pagination: limit, offset, ordering).
+        - Query limit caps how many blog posts are returned (default 10, max 10).
+        - Response contains title, summary teaser, and url per item — not the full post body.
+        - Use search, has_launch, or news_site filters for SpaceX, launches, or specific outlets.
+        - Follow result url only when full text is needed (same pattern for articles and reports tools).
+    '''
+    summary: "List spaceflight blog posts (limit validated, teaser only; full text at response url)"
     example: "Get the latest 5 blog posts"
+    params: {
+        limit: {
+            description: "Number of results per page (default 10, max 10)."
+            example: "10"
+        }
+    }
 }
 
 GET "/v4/blogs/{id}/" {
@@ -40,9 +65,24 @@ GET "/v4/blogs/{id}/" {
 GET "/v4/reports/" {
     toolName: listSpaceflightReports
     access: public
-    intent: "list recent spaceflight reports; API returns summary teaser only, full report text at each result url"
-    summary: "List spaceflight reports (teaser only; full text at response url)"
+    prepare: {
+        optionalParams: [limit]
+    }
+    intent: '''
+        - List recent spaceflight reports (pagination: limit, offset, ordering).
+        - Query limit caps how many reports are returned (default 10, max 10).
+        - Response contains title, summary teaser, and url per item — not the full report body.
+        - Use search or news_site filters for specific outlets or topics.
+        - Follow result url only when full text is needed (same pattern for articles and blogs tools).
+    '''
+    summary: "List spaceflight reports (limit validated, teaser only; full text at response url)"
     example: "Get the latest 5 reports"
+    params: {
+        limit: {
+            description: "Number of results per page (default 10, max 10)."
+            example: "10"
+        }
+    }
 }
 
 GET "/v4/reports/{id}/" {

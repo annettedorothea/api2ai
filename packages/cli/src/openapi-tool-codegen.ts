@@ -9,7 +9,7 @@ import {
     coerceExampleFromSchemaType,
     getAccessKind,
     isToolAuthorizeEnabled,
-    isToolValidateEnabled,
+    isToolPrepareEnabled,
     parseApiParamSpec
 } from 'api-2-ai-dsl-language';
 import { resolveModuleCredentialNames } from '@core2ai/core/codegen';
@@ -27,10 +27,10 @@ function joinSections(sections: string[]): string {
 
 function verifyCredentialsStubAuthPath(hostProduct: string, mcpModuleName: string | undefined): string {
     if (!mcpModuleName) {
-        return `src/auth/${hostProduct}/<module>/verify*Credentials.ts`;
+        return `src/hooks/${hostProduct}/<module>/verify*Credentials.ts`;
     }
     const names = resolveModuleCredentialNames(`generated/${hostProduct}/tools/${mcpModuleName}.ts`);
-    return `src/auth/${hostProduct}/${mcpModuleName}/${names.fileBase}.ts`;
+    return `src/hooks/${hostProduct}/${mcpModuleName}/${names.fileBase}.ts`;
 }
 
 /**
@@ -324,26 +324,26 @@ export function buildMcpDescription(
     const capitalize = (name: string) => name.charAt(0).toUpperCase() + name.slice(1);
     const access = getAccessKind(operation);
     const hasAuthorize = isToolAuthorizeEnabled(operation);
-    const hasValidate = isToolValidateEnabled(operation);
-    const authPath = `src/auth/${hostProduct}/${mcpModuleName ?? 'mcp'}/${toolFile}.ts`;
+    const hasPrepare = isToolPrepareEnabled(operation);
+    const authPath = `src/hooks/${hostProduct}/${mcpModuleName ?? 'mcp'}/${toolFile}.ts`;
     const prefixNote =
         auth && auth.prefix !== undefined && String(auth.prefix).trim().length > 0
             ? ' (prefix applied to the secret)'
             : '';
 
-    if (access === 'public' && !hasValidate) {
+    if (access === 'public' && !hasPrepare) {
         sections.push('Runtime: public endpoint — no credential required.');
-    } else if (access === 'public' && hasValidate) {
+    } else if (access === 'public' && hasPrepare) {
         sections.push(
-            `Runtime: implement validate${capitalize(toolFile)}Input in ${authPath} (types from this tools module; run build:generated for .js).`
+            `Runtime: implement prepare${capitalize(toolFile)}Input in ${authPath} (types from this tools module; run build:generated for .js).`
         );
     } else if (access === 'protected' && auth) {
         const implParts: string[] = [];
         if (hasAuthorize) {
             implParts.push(`authorize${capitalize(toolFile)}`);
         }
-        if (hasValidate) {
-            implParts.push(`validate${capitalize(toolFile)}Input`);
+        if (hasPrepare) {
+            implParts.push(`prepare${capitalize(toolFile)}Input`);
         }
         const implNote =
             implParts.length > 0

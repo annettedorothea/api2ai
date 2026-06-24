@@ -1,9 +1,5 @@
-import type { ModuleCredentials } from './verifyBookingsCredentials.js';
-import type { InvokeOptions } from '../../../../generated/api2ai/tools/bookings-tools.js';
-
 const MAX_LIMIT = 10;
-
-function resolveLimitQuery(options: InvokeOptions): number {
+function resolveLimitQuery(options) {
     const raw = options.query?.limit;
     if (raw == null || String(raw).trim() === '') {
         return MAX_LIMIT;
@@ -17,13 +13,8 @@ function resolveLimitQuery(options: InvokeOptions): number {
     }
     return Math.floor(limit);
 }
-
-/** public + validate — cap units per request (no credentials required). */
-export function validateListVacationRentalsInput(
-    options: InvokeOptions,
-    credentials: ModuleCredentials
-): InvokeOptions {
-    void credentials;
+/** public + prepare — cap units per request (no credentials required). */
+export function prepareListVacationRentalsInput(options) {
     const limit = resolveLimitQuery(options);
     return {
         ...options,

@@ -17,7 +17,7 @@ Operation:
         ('toolName' ':' toolName=ID)?
         'access' ':' access=AccessKind
         ('authorize' ':' authorize=AuthorizeSpec)?
-        ('validate' ':' validate=ValidateSpec)?
+        ('prepare' ':' prepare=PrepareSpec)?
         ('intent' ':' intent=DslText)?
         ('summary' ':' summary=DslText)?
         ('description' ':' description=DslText)?
@@ -55,14 +55,14 @@ AuthorizeSpec:
 AuthorizeTrue:
     {infer AuthorizeTrue} 'true';
 
-ValidateSpec:
-    ValidateTrue | ValidateBody;
+PrepareSpec:
+    PrepareTrue | PrepareBody;
 
-ValidateTrue:
-    {infer ValidateTrue} 'true';
+PrepareTrue:
+    {infer PrepareTrue} 'true';
 
-ValidateBody:
-    {infer ValidateBody} '{' ('optionalParams' ':' '[' (optionalParams+=ID (',' optionalParams+=ID)*)? ']')? '}';
+PrepareBody:
+    {infer PrepareBody} '{' ('optionalParams' ':' '[' (optionalParams+=ID (',' optionalParams+=ID)*)? ']')? '}';
 
 AuthLocation returns string:
     'header' | 'query';

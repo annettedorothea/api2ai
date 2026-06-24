@@ -1,7 +1,5 @@
-import type { ModuleCredentials } from './verifyBankingCredentials.js';
-import type { InvokeOptions } from '../../../../generated/api2ai/tools/banking-tools.js';
-
-export function validateListAccountsInput(options: InvokeOptions, credentials: ModuleCredentials): InvokeOptions {
+/** protected + authorize — role gate (user | admin). */
+export function authorizeListTransactions(credentials) {
     const jwtCustomer = String(credentials.customerId ?? '').trim();
     if (jwtCustomer.length === 0) {
         throw new Error('Credential transform claims missing customerId.');
@@ -10,7 +8,17 @@ export function validateListAccountsInput(options: InvokeOptions, credentials: M
     if (role.length === 0) {
         throw new Error('Credential transform claims missing role.');
     }
-
+    if (role !== 'user' && role !== 'admin') {
+        throw new Error(`Unsupported role "${role}".`);
+    }
+}
+/** protected + prepare — fill optional customerId, scope for role=user. */
+export function prepareListTransactionsInput(options, credentials) {
+    if (!credentials) {
+        throw new Error('Prepare requires credentials.');
+    }
+    const jwtCustomer = String(credentials.customerId ?? '').trim();
+    const role = String(credentials.role ?? '').trim();
     let customerId = options.pathParams?.customerId;
     if (customerId == null || String(customerId).trim() === '') {
         customerId = jwtCustomer;
@@ -19,10 +27,6 @@ export function validateListAccountsInput(options: InvokeOptions, credentials: M
     if (role === 'user' && normalized !== jwtCustomer) {
         throw new Error(`customerId "${normalized}" does not match token claim "${jwtCustomer}".`);
     }
-    if (role !== 'user' && role !== 'admin') {
-        throw new Error(`Unsupported role "${role}".`);
-    }
-
     return {
         ...options,
         pathParams: { ...options.pathParams, customerId: normalized }

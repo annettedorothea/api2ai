@@ -1,5 +1,5 @@
 import type { Operation } from './generated/ast.js';
-import { isAuthorizeTrue, isProtectedAccess, isPublicAccess, isValidateBody, isValidateTrue } from './generated/ast.js';
+import { isAuthorizeTrue, isProtectedAccess, isPublicAccess, isPrepareBody, isPrepareTrue } from './generated/ast.js';
 
 export function getAccessKind(operation: Operation): 'public' | 'protected' {
     const access = operation.access;
@@ -23,18 +23,21 @@ export function isToolAuthorizeEnabled(operation: Operation): boolean {
     return isAuthorizeTrue(authorize);
 }
 
-export function isToolValidateEnabled(operation: Operation): boolean {
-    const validate = operation.validate;
-    if (!validate) {
+export function isToolPrepareEnabled(operation: Operation): boolean {
+    const prepare = operation.prepare;
+    if (!prepare) {
         return false;
     }
-    return isValidateTrue(validate) || isValidateBody(validate);
+    return isPrepareTrue(prepare) || isPrepareBody(prepare);
 }
 
+/** @deprecated Use isToolPrepareEnabled */
+export const isToolValidateEnabled = isToolPrepareEnabled;
+
 export function getOptionalParams(operation: Operation): readonly string[] {
-    const validate = operation.validate;
-    if (isValidateBody(validate) && validate.optionalParams) {
-        return validate.optionalParams;
+    const prepare = operation.prepare;
+    if (isPrepareBody(prepare) && prepare.optionalParams) {
+        return prepare.optionalParams;
     }
     return [];
 }

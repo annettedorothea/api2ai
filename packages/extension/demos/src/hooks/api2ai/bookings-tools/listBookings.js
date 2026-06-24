@@ -1,7 +1,5 @@
-import type { ModuleCredentials } from './verifyBookingsCredentials.js';
-import type { InvokeOptions } from '../../../../generated/api2ai/tools/bookings-tools.js';
-
-export function validateListBookingsInput(options: InvokeOptions, credentials: ModuleCredentials): InvokeOptions {
+/** protected + authorize — role gate (user | admin). */
+export function authorizeListBookings(credentials) {
     const jwtCustomer = String(credentials.customerId ?? '').trim();
     if (jwtCustomer.length === 0) {
         throw new Error('credentials missing customerId claim.');
@@ -10,7 +8,17 @@ export function validateListBookingsInput(options: InvokeOptions, credentials: M
     if (role.length === 0) {
         throw new Error('credentials missing role claim.');
     }
-
+    if (role !== 'user' && role !== 'admin') {
+        throw new Error(`Unsupported role "${role}".`);
+    }
+}
+/** protected + prepare — fill optional customerId, scope for role=user. */
+export function prepareListBookingsInput(options, credentials) {
+    if (!credentials) {
+        throw new Error('Prepare requires credentials.');
+    }
+    const jwtCustomer = String(credentials.customerId ?? '').trim();
+    const role = String(credentials.role ?? '').trim();
     let customerId = options.pathParams?.customerId;
     if (customerId == null || String(customerId).trim() === '') {
         customerId = jwtCustomer;
@@ -19,10 +27,6 @@ export function validateListBookingsInput(options: InvokeOptions, credentials: M
     if (role === 'user' && normalized !== jwtCustomer) {
         throw new Error(`customerId "${normalized}" does not match session claim "${jwtCustomer}".`);
     }
-    if (role !== 'user' && role !== 'admin') {
-        throw new Error(`Unsupported role "${role}".`);
-    }
-
     return {
         ...options,
         pathParams: { ...options.pathParams, customerId: normalized }

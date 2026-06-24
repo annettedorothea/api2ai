@@ -4,7 +4,7 @@
  */
 import { loggingAdapter } from '../../../src/utils/logging-adapter.js';
 import * as z from 'zod/v4';
-import { verifyCredential } from '../../../src/auth/api2ai/cakes-tools/verifyCakesCredentials.js';
+import { verifyCredential } from '../../../src/hooks/api2ai/cakes-tools/verifyCakesCredentials.js';
 
 export type GeneratedTool = {
     toolName: string;
@@ -14,7 +14,7 @@ export type GeneratedTool = {
     path: string;
     access: 'public' | 'protected';
     hasAuthorize: boolean;
-    hasValidate: boolean;
+    hasPrepare: boolean;
 };
 
 export const generatedTools: GeneratedTool[] = [
@@ -22,23 +22,23 @@ export const generatedTools: GeneratedTool[] = [
         toolName: 'searchCakes',
         title: 'Search cake recipes by keyword',
         description:
-            'Intent:\nSearch cake recipes by optional query q (title and keywords). Empty q returns all cakes.\n\nAPI:\nRequires Bearer JWT. Optional query q matches title and keywords (case-insensitive).\n\nMeta:\noperationId: search-cakes\n\nParameters:\n- q (query)\n\nExample:\nSearch cakes with Erdbeer\n\nResponse:\nHTTP 200 — top-level query, count, cakes array. Each cake: id, title, keywords, prepMinutes, servings.\n        Use cakes[].id for getCake (e.g. schwarzwaelder-kirschtorte).\n        Documented errors:\n        HTTP 401 — Missing or invalid token\n\nRuntime: protected — implement src/auth/api2ai/cakes-tools/verifyCakesCredentials.ts; credential sent as header "Authorization" (prefix applied to the secret).',
+            'Intent:\nSearch cake recipes by optional query q (title and keywords). Empty q returns all cakes.\n\nAPI:\nRequires Bearer JWT. Optional query q matches title and keywords (case-insensitive).\n\nMeta:\noperationId: search-cakes\n\nParameters:\n- q (query)\n\nExample:\nSearch cakes with Erdbeer\n\nResponse:\nHTTP 200 — top-level query, count, cakes array. Each cake: id, title, keywords, prepMinutes, servings.\n        Use cakes[].id for getCake (e.g. schwarzwaelder-kirschtorte).\n        Documented errors:\n        HTTP 401 — Missing or invalid token\n\nRuntime: protected — implement src/hooks/api2ai/cakes-tools/verifyCakesCredentials.ts; credential sent as header "Authorization" (prefix applied to the secret).',
         method: 'GET',
         path: '/cakes',
         access: 'protected',
         hasAuthorize: false,
-        hasValidate: false
+        hasPrepare: false
     },
     {
         toolName: 'getCake',
         title: 'Get cake recipe by id',
         description:
-            'Intent:\nFetch one cake recipe by path cakeId (from searchCakes).\n\nMeta:\noperationId: get-cake\n\nParameters:\n- cakeId (path)\n\nExample:\nGet Schwarzwälder Kirschtorte recipe\n\nResponse:\nHTTP 200 — top-level property cake (id, title, keywords, prepMinutes, servings, ingredients).\n        Documented errors:\n        HTTP 401 — Missing or invalid token\n        HTTP 404 — Unknown cake id\n\nRuntime: protected — implement src/auth/api2ai/cakes-tools/verifyCakesCredentials.ts; credential sent as header "Authorization" (prefix applied to the secret).',
+            'Intent:\nFetch one cake recipe by path cakeId (from searchCakes).\n\nMeta:\noperationId: get-cake\n\nParameters:\n- cakeId (path)\n\nExample:\nGet Schwarzwälder Kirschtorte recipe\n\nResponse:\nHTTP 200 — top-level property cake (id, title, keywords, prepMinutes, servings, ingredients).\n        Documented errors:\n        HTTP 401 — Missing or invalid token\n        HTTP 404 — Unknown cake id\n\nRuntime: protected — implement src/hooks/api2ai/cakes-tools/verifyCakesCredentials.ts; credential sent as header "Authorization" (prefix applied to the secret).',
         method: 'GET',
         path: '/cakes/{cakeId}',
         access: 'protected',
         hasAuthorize: false,
-        hasValidate: false
+        hasPrepare: false
     }
 ];
 
@@ -70,13 +70,13 @@ export const authConfig: AuthConfig | undefined = {
     prefix: 'Bearer '
 };
 
-export { verifyCredential, toModuleCredentials } from '../../../src/auth/api2ai/cakes-tools/verifyCakesCredentials.js';
+export { verifyCredential, toModuleCredentials } from '../../../src/hooks/api2ai/cakes-tools/verifyCakesCredentials.js';
 export type {
     VerifyCredentialInput,
     VerifyCredentialResult,
     ModuleCredentials,
     CakesCredentials
-} from '../../../src/auth/api2ai/cakes-tools/verifyCakesCredentials.js';
+} from '../../../src/hooks/api2ai/cakes-tools/verifyCakesCredentials.js';
 
 export const mcpServerName = 'cakes-tools';
 export const mcpServerVersion = '0.4.1';

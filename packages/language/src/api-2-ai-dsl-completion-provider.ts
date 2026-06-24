@@ -27,7 +27,7 @@ const CANONICAL_KEYWORD_SORT: Record<string, string> = {
     toolName: '0200',
     access: '0201',
     authorize: '0201.25',
-    validate: '0201.5',
+    prepare: '0201.5',
     intent: '0202',
     summary: '0203',
     description: '0204',
@@ -44,10 +44,10 @@ const ACCESS_KIND_INSERT: Record<string, string> = {
     public: 'public',
     protected: 'protected'
 };
-const VALIDATE_BODY_KEYWORD_INSERT: Record<string, string> = {
+const PREPARE_BODY_KEYWORD_INSERT: Record<string, string> = {
     optionalParams: 'optionalParams: [$1]$0'
 };
-const VALIDATE_SPEC_INSERT: Record<string, string> = {
+const PREPARE_SPEC_INSERT: Record<string, string> = {
     true: 'true',
     block: '{\n    optionalParams: [$1]\n}'
 };
@@ -60,7 +60,7 @@ const OPERATION_KEYWORD_INSERT: Record<string, string> = {
     toolName: 'toolName: $1$0',
     access: 'access: public$0',
     authorize: 'authorize: true$0',
-    validate: 'validate: true$0',
+    prepare: 'prepare: true$0',
     intent: 'intent: "$1"$0',
     summary: 'summary: "$1"$0',
     description: 'description: "$1"$0',
@@ -429,15 +429,15 @@ export class Api2AiDslCompletionProvider extends DefaultCompletionProvider {
         if (authorizeSpecItems.length > 0) {
             return CompletionList.create(this.deduplicateItems(authorizeSpecItems), false);
         }
-        const validateBodyItems = this.buildValidateBodyKeywordCompletionItems(document, params.position);
-        debugCompletion('getCompletion validateBodyItems count', validateBodyItems.length);
-        if (validateBodyItems.length > 0) {
-            return CompletionList.create(this.deduplicateItems(validateBodyItems), false);
+        const prepareBodyItems = this.buildPrepareBodyKeywordCompletionItems(document, params.position);
+        debugCompletion('getCompletion prepareBodyItems count', prepareBodyItems.length);
+        if (prepareBodyItems.length > 0) {
+            return CompletionList.create(this.deduplicateItems(prepareBodyItems), false);
         }
-        const validateSpecItems = this.buildValidateSpecCompletionItems(document, params.position);
-        debugCompletion('getCompletion validateSpecItems count', validateSpecItems.length);
-        if (validateSpecItems.length > 0) {
-            return CompletionList.create(this.deduplicateItems(validateSpecItems), false);
+        const prepareSpecItems = this.buildPrepareSpecCompletionItems(document, params.position);
+        debugCompletion('getCompletion prepareSpecItems count', prepareSpecItems.length);
+        if (prepareSpecItems.length > 0) {
+            return CompletionList.create(this.deduplicateItems(prepareSpecItems), false);
         }
         const optionalParamItems = await this.buildOptionalParamCompletionItems(document, params.position);
         debugCompletion('getCompletion optionalParamItems count', optionalParamItems.length);
@@ -590,7 +590,7 @@ export class Api2AiDslCompletionProvider extends DefaultCompletionProvider {
         }));
     }
 
-    private buildValidateBodyKeywordCompletionItems(document: LangiumDocument, position: Position): CompletionItem[] {
+    private buildPrepareBodyKeywordCompletionItems(document: LangiumDocument, position: Position): CompletionItem[] {
         const textDoc = document.textDocument;
         const text = textDoc.getText();
         const offset = textDoc.offsetAt(position);
@@ -609,8 +609,8 @@ export class Api2AiDslCompletionProvider extends DefaultCompletionProvider {
         }
         const operationStart = operation.$cstNode?.offset ?? 0;
         const beforeCursor = text.slice(operationStart, offset);
-        const validateBlockMatch = /validate\s*:\s*\{[^}]*$/.exec(beforeCursor);
-        if (!validateBlockMatch) {
+        const prepareBlockMatch = /prepare\s*:\s*\{[^}]*$/.exec(beforeCursor);
+        if (!prepareBlockMatch) {
             return [];
         }
         const openBraceOffset = beforeCursor.lastIndexOf('{');
@@ -625,7 +625,7 @@ export class Api2AiDslCompletionProvider extends DefaultCompletionProvider {
         if (prefix.length > 0 && !'optionalParams'.startsWith(prefix)) {
             return [];
         }
-        const insert = VALIDATE_BODY_KEYWORD_INSERT.optionalParams;
+        const insert = PREPARE_BODY_KEYWORD_INSERT.optionalParams;
         return [
             {
                 label: 'optionalParams',
@@ -670,7 +670,7 @@ export class Api2AiDslCompletionProvider extends DefaultCompletionProvider {
         ];
     }
 
-    private buildValidateSpecCompletionItems(document: LangiumDocument, position: Position): CompletionItem[] {
+    private buildPrepareSpecCompletionItems(document: LangiumDocument, position: Position): CompletionItem[] {
         const textDoc = document.textDocument;
         const text = textDoc.getText();
         const offset = textDoc.offsetAt(position);
@@ -678,7 +678,7 @@ export class Api2AiDslCompletionProvider extends DefaultCompletionProvider {
         if (textHasUnclosedString(line)) {
             return [];
         }
-        const match = /^\s*validate\s*:\s*(\w*)$/.exec(line);
+        const match = /^\s*prepare\s*:\s*(\w*)$/.exec(line);
         if (!match) {
             return [];
         }
@@ -690,22 +690,22 @@ export class Api2AiDslCompletionProvider extends DefaultCompletionProvider {
             items.push({
                 label: 'true',
                 kind: CompletionItemKind.Constant,
-                detail: 'Enable validate{Tool}Input stub',
+                detail: 'Enable prepare{Tool}Input stub',
                 insertTextFormat: InsertTextFormat.PlainText,
                 sortText: CANONICAL_KEYWORD_SORT.true,
-                insertText: VALIDATE_SPEC_INSERT.true,
-                textEdit: TextEdit.replace(range, VALIDATE_SPEC_INSERT.true)
+                insertText: PREPARE_SPEC_INSERT.true,
+                textEdit: TextEdit.replace(range, PREPARE_SPEC_INSERT.true)
             });
         }
         if (effectivePrefix.length === 0 || '{'.startsWith(effectivePrefix)) {
             items.push({
                 label: '{ optionalParams: [...] }',
                 kind: CompletionItemKind.Snippet,
-                detail: 'Validate with optionalParams',
+                detail: 'Prepare with optionalParams',
                 insertTextFormat: InsertTextFormat.Snippet,
                 sortText: '0213',
-                insertText: VALIDATE_SPEC_INSERT.block,
-                textEdit: TextEdit.replace(range, VALIDATE_SPEC_INSERT.block)
+                insertText: PREPARE_SPEC_INSERT.block,
+                textEdit: TextEdit.replace(range, PREPARE_SPEC_INSERT.block)
             });
         }
         return items;

@@ -407,7 +407,7 @@ async function validateOAuthHttpHostAtStartup(
 ): Promise<void> {
     if (_generated.requiresAuth && typeof _generated.verifyCredential !== 'function') {
         throw new Error(
-            'Generated tools require auth; implement verify*Credentials in src/auth/api2ai/<module>/ and re-export from generated tools.'
+            'Generated tools require auth; implement verify*Credentials in src/hooks/api2ai/<module>/ and re-export from generated tools.'
         );
     }
 

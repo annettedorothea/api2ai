@@ -317,7 +317,7 @@ function validateHostAtStartup(hostConfig: HostRuntimeConfig, generated: Generat
     }
     if (generated.requiresAuth && typeof generated.verifyCredential !== 'function') {
         throw new Error(
-            'Generated tools require auth; implement verify*Credentials in src/auth/api2ai/<module>/ and re-export from generated tools.'
+            'Generated tools require auth; implement verify*Credentials in src/hooks/api2ai/<module>/ and re-export from generated tools.'
         );
     }
 }

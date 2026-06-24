@@ -13,7 +13,7 @@ export type GeneratedTool = {
     path: string;
     access: 'public' | 'protected';
     hasAuthorize: boolean;
-    hasValidate: boolean;
+    hasPrepare: boolean;
 };
 
 export const generatedTools: GeneratedTool[] = [
@@ -26,7 +26,7 @@ export const generatedTools: GeneratedTool[] = [
         path: '/v1/search',
         access: 'public',
         hasAuthorize: false,
-        hasValidate: false
+        hasPrepare: false
     }
 ];
 

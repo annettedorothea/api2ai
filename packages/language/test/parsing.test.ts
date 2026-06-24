@@ -148,13 +148,13 @@ describe('Parsing tests', () => {
         expect(document.parseResult.parserErrors.length).toBeGreaterThan(0);
     });
 
-    test('parses validate: true on operation', async () => {
+    test('parses prepare: true on operation', async () => {
         document = await parse(`
             openapi "./langium-test-mini.openapi.yaml"
             GET "/orders" {
                 toolName: listOrders
                 access: public
-                validate: true
+                prepare: true
                 intent: "list"
             }
         `);
@@ -177,13 +177,13 @@ describe('Parsing tests', () => {
         expect(isPublicAccess(document.parseResult.value.operations[0].access)).toBe(true);
     });
 
-    test('parses optionalParams inside validate block', async () => {
+    test('parses optionalParams inside prepare block', async () => {
         document = await parse(`
             openapi "./langium-test-mini.openapi.yaml"
             GET "/customers/{id}" {
                 toolName: getCustomer
                 access: public
-                validate: {
+                prepare: {
                     optionalParams: [id]
                 }
                 intent: "get customer"

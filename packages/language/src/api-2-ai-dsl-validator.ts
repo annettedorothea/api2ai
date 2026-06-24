@@ -1,7 +1,7 @@
 import path from 'node:path';
 import type { ValidationAcceptor, ValidationChecks } from 'langium';
 import type { Api2AiDslAstType, Model, Operation } from './generated/ast.js';
-import { isValidateBody } from './generated/ast.js';
+import { isPrepareBody } from './generated/ast.js';
 import type { Api2AiDslServices } from './api-2-ai-dsl-module.js';
 import { accessRequiresAuth, getOptionalParams, isToolAuthorizeEnabled } from './operation-access.js';
 import {
@@ -201,7 +201,7 @@ export class Api2AiDslValidator {
                 operation.method,
                 operation.path
             )) {
-                const body = isValidateBody(operation.validate) ? operation.validate : undefined;
+                const body = isPrepareBody(operation.prepare) ? operation.prepare : undefined;
                 accept('warning', warning.message, {
                     node: body ?? operation,
                     property: 'optionalParams',

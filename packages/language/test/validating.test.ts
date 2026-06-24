@@ -254,13 +254,13 @@ describe('Validating', () => {
         expect(diagnostics.some((d) => d.message.includes('authorize: true requires access `protected`'))).toBe(true);
     });
 
-    test('accepts public with validate without auth block', async () => {
+    test('accepts public with prepare without auth block', async () => {
         document = await parseValidated(`
             openapi "./langium-test-mini.openapi.yaml"
             GET "/pet/{petId}" {
                 toolName: getPetById
                 access: public
-                validate: true
+                prepare: true
                 intent: "get one pet"
             }
         `);
@@ -275,7 +275,7 @@ describe('Validating', () => {
             GET "/pet/{petId}" {
                 toolName: getPetById
                 access: public
-                validate: {
+                prepare: {
                     optionalParams: [petId]
                 }
                 intent: "get one pet"
@@ -292,7 +292,7 @@ describe('Validating', () => {
             GET "/pet/{petId}" {
                 toolName: getPetById
                 access: public
-                validate: {
+                prepare: {
                     optionalParams: [customerId]
                 }
                 intent: "get one pet"
@@ -312,7 +312,7 @@ describe('Validating', () => {
             GET "/pet/{petId}" {
                 toolName: getPetById
                 access: public
-                validate: {
+                prepare: {
                     optionalParams: [petId, customerId]
                 }
                 intent: "get one pet"
