@@ -117,7 +117,7 @@ export type ApiHostContext = {
 export const requiresAuth = false;
 
 export const mcpServerName = 'spaceflight-news-tools';
-export const mcpServerVersion = '0.4.1';
+export const mcpServerVersion = '0.5.0';
 
 const preparers: Record<string, (options: InvokeOptions) => InvokeOptions | Promise<InvokeOptions>> = {
     listSpaceflightArticles: prepareListSpaceflightArticlesInput,

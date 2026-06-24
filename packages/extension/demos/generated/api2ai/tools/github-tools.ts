@@ -93,7 +93,7 @@ export type {
 } from '../../../src/hooks/api2ai/github-tools/verifyGithubCredentials.js';
 
 export const mcpServerName = 'github-tools';
-export const mcpServerVersion = '0.4.1';
+export const mcpServerVersion = '0.5.0';
 
 export const inputZodByTool = {
     getGitHubAuthenticatedUser: z

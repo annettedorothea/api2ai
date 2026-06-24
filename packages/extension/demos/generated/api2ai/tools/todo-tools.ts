@@ -134,7 +134,7 @@ export type {
 } from '../../../src/hooks/api2ai/todo-tools/verifyTodoCredentials.js';
 
 export const mcpServerName = 'todo-tools';
-export const mcpServerVersion = '0.4.1';
+export const mcpServerVersion = '0.5.0';
 
 export const inputZodByTool = {
     listCategories: z

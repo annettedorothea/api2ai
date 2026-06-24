@@ -102,7 +102,7 @@ export type {
 } from '../../../src/hooks/api2ai/banking-tools/verifyBankingCredentials.js';
 
 export const mcpServerName = 'banking-tools';
-export const mcpServerVersion = '0.4.1';
+export const mcpServerVersion = '0.5.0';
 
 const authorizers: Record<string, (credentials: ModuleCredentials) => void | Promise<void>> = {
     listCustomers: authorizeListCustomers,

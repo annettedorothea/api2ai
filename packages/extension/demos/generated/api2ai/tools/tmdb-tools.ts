@@ -200,7 +200,7 @@ export type {
 } from '../../../src/hooks/api2ai/tmdb-tools/verifyTmdbCredentials.js';
 
 export const mcpServerName = 'tmdb-tools';
-export const mcpServerVersion = '0.4.1';
+export const mcpServerVersion = '0.5.0';
 
 export const inputZodByTool = {
     searchTmdbMovies: z
