@@ -12,3 +12,6 @@ generated/**/*.js
 generated/**/*.js.map
 
 tmp/
+.open-webui-secret
+.open-webui-data/
+.open-webui-venv/

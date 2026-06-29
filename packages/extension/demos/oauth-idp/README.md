@@ -9,6 +9,31 @@ Shared mini OAuth 2.1 authorization server for MCP demos **`bookings`** and **`c
 
 Same `server.mjs` — oidc instance sets `OAUTH_IDP_SIGN_ALG=RS256`. MCP hosts use `BOOKINGS_OAUTH_IDP_URL` (:3860) and `BOOKINGS_OAUTH_IDP_OIDC_URL` (:3861).
 
+### Redirect URIs
+
+One env var in `.env.local` (both IdP instances read it):
+
+**`OAUTH_IDP_REDIRECT_URIS`** — comma-separated list:
+
+- **Exact URI** — e.g. `cursor://anysphere.cursor-mcp/oauth/callback`
+- **Prefix rule** — entry ends with `*` (matches any redirect that starts with the prefix before `*`)
+
+Default when unset: Cursor callback only.
+
+**Open WebUI** uses per-server callbacks like `http://localhost:3000/oauth/clients/mcp:<id>/callback`. Example:
+
+```bash
+OAUTH_IDP_REDIRECT_URIS=cursor://anysphere.cursor-mcp/oauth/callback,http://localhost:3000/oauth/clients/mcp:*
+```
+
+Restart demos after editing (`npm run demo:kill-all && npm run start`).
+
+**Open WebUI (native on host):** use `127.0.0.1` for MCP and OAuth Server URLs. Redirect prefix example:
+
+```bash
+OAUTH_IDP_REDIRECT_URIS=cursor://anysphere.cursor-mcp/oauth/callback,http://localhost:3000/oauth/clients/mcp:*
+```
+
 ```bash
 npm run start
 ```

@@ -285,6 +285,11 @@ function writeJsonRpcInternalError(res: ServerResponse): void {
     writeJsonRpcError(res, 500, -32_603, 'Internal server error');
 }
 
+/** GET/DELETE without an established session — spec-allowed probe response (Open WebUI Verify Connection). */
+function writeJsonRpcMethodNotAllowed(res: ServerResponse): void {
+    writeJsonRpcError(res, 405, -32_000, 'Method not allowed.');
+}
+
 type OAuthHttpHostRuntimeConfig = {
     baseUrlEnvKey?: string;
     envDirs: string[];
@@ -618,7 +623,7 @@ async function createMcpServerForSession(
         sessionEntries.delete(sessionId);
         sessionStore.delete(sessionId);
         sessionHeaders.delete(sessionId);
-        void server.close();
+        // Transport already closed — see public/passthrough HTTP host (avoid server.close loop).
     };
     await server.connect(transport);
     return { transport, server, session };
@@ -663,7 +668,7 @@ async function handleOAuthMcpRequest(
         writeJsonRpcError(res, 400, -32_000, 'Bad Request: Session ID required');
         return;
     } else {
-        res.writeHead(400).end('Missing session ID');
+        writeJsonRpcMethodNotAllowed(res);
         return;
     }
 

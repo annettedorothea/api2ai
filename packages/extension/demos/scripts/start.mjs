@@ -255,6 +255,7 @@ async function main() {
     }
     console.log('[start] Done. Demo services run in background (npm run demo:kill-all to stop).');
     console.log('[start] Cursor Settings → Tools & MCPs: enable servers, then reload MCP.');
+    console.log('[start] Open WebUI + demos: npm run start:open-webui');
     console.log('[start] Live logs: npm run start:foreground');
 }
 

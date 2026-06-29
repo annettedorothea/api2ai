@@ -57,12 +57,33 @@ One MCP server per row — names match `.cursor/mcp.json`.
 
 Protected/checked tools: implement `src/auth/api2ai/<tools-module>/verify*Credentials.ts` (write-once stub from generate).
 
+## Open WebUI (native)
+
+Test HTTP MCP servers in [Open WebUI](https://docs.openwebui.com/features/extensibility/mcp/) **on the host** (no Docker). Same URLs as Cursor (`127.0.0.1`).
+
+**Prerequisite:** `python3 -m pip install open-webui` (Python 3.11+ recommended; on macOS avoid bare `pip` if it points at missing `/usr/bin/python`).
+
+One-shot — demos + UI:
+
+```bash
+npm run start:open-webui
+```
+
+Or separately: `npm run start`, then `npm run open-webui`. The script prints copy-paste External Tools config for `spaceflight-news`, `todo`, and OAuth demos (`bookings`, …).
+
+- UI: `http://127.0.0.1:3000` (override with `OPEN_WEBUI_PORT` in `.env.local`)
+- Stop UI: `npm run open-webui:down`
+- Chat tool calls need a model — Groq Free Tier recommended on older Macs
+
 ## Scripts
 
 | Command                    | Purpose                                           |
 | -------------------------- | ------------------------------------------------- |
 | `npm run start`            | All mock APIs + HTTP/OAuth MCP hosts (background) |
 | `npm run start:foreground` | Same, logs in terminal until Ctrl+C               |
+| `npm run start:open-webui` | `start` then native Open WebUI + MCP setup hints  |
+| `npm run open-webui`       | Open WebUI only (expects `npm run start` already) |
+| `npm run open-webui:down`  | Stop Open WebUI on `OPEN_WEBUI_PORT` (keeps data) |
 | `npm run demo:kill-all`    | Stop MCP hosts and mock APIs                      |
 
 `start` does not overwrite `.env.local`. Reload MCP after `.api2ai`, `mcp.json`, or env changes.

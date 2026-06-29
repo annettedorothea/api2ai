@@ -45,4 +45,6 @@ console.log('[kill-all] stopping bookings…');
 runNode('./bookings/kill-server.mjs');
 console.log('[kill-all] stopping todo-api…');
 runNode('./todo-api/kill-server.mjs');
+console.log('[kill-all] stopping Open WebUI…');
+runNode('./scripts/stop-open-webui.mjs');
 console.log('[kill-all] done.');

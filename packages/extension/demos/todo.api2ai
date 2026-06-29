@@ -10,7 +10,8 @@ GET "/categories" {
     toolName: listCategories
     access: protected
     intent: '''
-        List todo categories. Requires API key (MCP x-api-token → x-api-key).
+        List todo categories before createTodo or when filtering by categoryId.
+        Response categories[].id values: work, home, errands.
     '''
     summary: "List todo categories"
     example: "List todo categories"
@@ -25,14 +26,16 @@ GET "/todos" {
     toolName: listTodos
     access: protected
     intent: '''
-        List todos; optional filter by status (open|done) or categoryId.
+        List todos. Optional query filters: status (open|done), categoryId (work|home|errands).
+        Use todos[].id (e.g. t-1) as pathParams.todoId for getTodo, updateTodo, deleteTodo.
+        Call shape: query optional only — e.g. query: { "status": "open" } or {} for all todos.
     '''
     summary: "List todos"
-    example: "List open todos"
+    example: "List all todos"
     params: {
         status: {
             description: '''
-                Optional query filter: open or done only (OpenAPI enum).
+                Optional query filter: open or done only. Omit to return all statuses.
             '''
             example: "open"
         }
@@ -54,14 +57,17 @@ GET "/categories/{categoryId}/todos" {
     toolName: listTodosByCategory
     access: protected
     intent: '''
-        List todos in one category. Optional query status: open or done.
+        List todos in one category. categoryId is a path param (work, home, or errands).
+        Optional query.status: open or done.
+        Call shape: pathParams.categoryId required; query.status optional.
     '''
     summary: "List todos by category"
     example: "List open todos in category work"
     params: {
         categoryId: {
             description: '''
-                Category id (path). Values: work, home, errands — from listCategories categories[].id.
+                Category id (path param pathParams.categoryId). Values: work, home, errands — from listCategories.
+                Do NOT use pathParams.id or pathParams.category.
             '''
             example: "work"
         }
@@ -84,14 +90,16 @@ GET "/todos/{todoId}" {
     toolName: getTodo
     access: protected
     intent: '''
-        Fetch one todo by path todoId (e.g. t-1).
+        Fetch one todo by id. Get todoId from listTodos todos[].id or createTodo todo.id.
+        Call shape: pathParams.todoId required — e.g. pathParams: { "todoId": "t-1" }.
+        Do NOT use pathParams.id.
     '''
     summary: "Get todo by id"
     example: "Get todo t-1"
     params: {
         todoId: {
             description: '''
-                Todo id (path) from listTodos todos[].id or createTodo response todo.id.
+                Todo id as pathParams.todoId (NOT pathParams.id). From listTodos todos[].id or createTodo todo.id.
             '''
             example: "t-1"
         }
@@ -108,14 +116,17 @@ POST "/todos" {
     toolName: createTodo
     access: protected
     intent: '''
-        Create a todo. Use response todo.id for updateTodo or deleteTodo.
+        Create a todo. Save response todo.id for later updateTodo or deleteTodo.
+        Call shape: body required — e.g. body: { "title": "Buy milk", "categoryId": "errands" }.
+        categoryId must be work, home, or errands (from listCategories).
     '''
     summary: "Create todo"
     example: "Create todo Buy milk in errands"
     body: '''
-        JSON object. Required: title (string), categoryId (work, home, or errands).
-        Optional: status (open|done), dueDate (ISO date YYYY-MM-DD).
-        Do not send id — server assigns it (e.g. t-5).
+        JSON body object (required). Required fields: title (string), categoryId (work|home|errands).
+        Optional: status (open|done, default open), dueDate (ISO date YYYY-MM-DD).
+        Do not send id in body — server assigns it (e.g. t-5).
+        Example: { "title": "Buy milk", "categoryId": "errands", "status": "open", "dueDate": "2026-06-15" }
     '''
     response: '''
         HTTP 201 — top-level property todo with generated id (use todo.id next).
@@ -130,22 +141,27 @@ PATCH "/todos/{todoId}" {
     toolName: updateTodo
     access: protected
     intent: '''
-        Update a todo by path todoId (from createTodo or listTodos).
+        Update a todo. Requires pathParams.todoId from listTodos todos[].id (e.g. t-1) and body with at least one field.
+        Do NOT use pathParams.id — the path key is todoId.
+        Example — mark done: pathParams: { "todoId": "t-1" }, body: { "status": "done" }.
+        Example — rename: pathParams: { "todoId": "t-2" }, body: { "title": "Buy organic milk" }.
     '''
     summary: "Update todo"
     example: "Mark todo t-1 as done"
     params: {
         todoId: {
             description: '''
-                Todo id to update (path) — from createTodo todo.id or listTodos todos[].id.
+                Todo id as pathParams.todoId (NOT pathParams.id). From listTodos todos[].id or createTodo todo.id.
             '''
             example: "t-1"
         }
     }
     body: '''
-        JSON object; send only fields to change (all optional): title, status (open|done),
-        categoryId (work, home, errands), dueDate (ISO date YYYY-MM-DD).
-        At least one field required. Do not send id in body.
+        JSON body object (required). Send only fields to change; at least one required.
+        Fields: status (open|done), title (string), categoryId (work|home|errands), dueDate (YYYY-MM-DD).
+        Do not send id in body.
+        Example mark done: { "status": "done" }
+        Example reopen: { "status": "open" }
     '''
     response: '''
         HTTP 200 — top-level property todo with updated fields.
@@ -160,14 +176,16 @@ DELETE "/todos/{todoId}" {
     toolName: deleteTodo
     access: protected
     intent: '''
-        Delete a todo by path todoId.
+        Delete a todo permanently. Requires pathParams.todoId from listTodos todos[].id.
+        Do NOT use pathParams.id.
+        Call shape: pathParams: { "todoId": "t-2" } — no body required.
     '''
     summary: "Delete todo"
     example: "Delete todo t-2"
     params: {
         todoId: {
             description: '''
-                Todo id to delete (path) — from createTodo todo.id or listTodos todos[].id.
+                Todo id as pathParams.todoId (NOT pathParams.id). From listTodos todos[].id or createTodo todo.id.
             '''
             example: "t-2"
         }
