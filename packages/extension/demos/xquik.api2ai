@@ -1,0 +1,19 @@
+openapi "./openapi/xquik-search.openapi.yaml"
+
+auth {
+    in: header
+    name: "X-API-Key"
+}
+
+GET "/api/v1/x/tweets/search" {
+    toolName: searchXquikTweets
+    access: protected
+    intent: '''
+        - Search public X posts with a user-provided Xquik API key.
+        - Use query q for keywords or X search operators.
+        - Keep limit small for interactive chats; use cursor only when the previous response includes next_cursor.
+        - Use queryType=Latest for chronological results or queryType=Top for engagement-ranked results.
+    '''
+    summary: "Search public X posts"
+    example: "Find recent posts about agentic workflows: query q=agentic workflows queryType=Latest limit=10"
+}

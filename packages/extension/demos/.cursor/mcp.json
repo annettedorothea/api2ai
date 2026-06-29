@@ -58,6 +58,22 @@
                 "TMDB_BASE_URL": "https://api.themoviedb.org"
             }
         },
+        "xquik": {
+            "command": "node",
+            "cwd": "${workspaceFolder}",
+            "envFile": ".env.local",
+            "args": [
+                "generated/api2ai/cli/stdio-mcp-server.js",
+                "generated/api2ai/tools/xquik-tools.js",
+                "--base-url-env",
+                "XQUIK_BASE_URL",
+                "--auth-env",
+                "XQUIK_API_KEY"
+            ],
+            "env": {
+                "XQUIK_BASE_URL": "https://xquik.com"
+            }
+        },
         "spaceflight-news": {
             "url": "http://127.0.0.1:3849/mcp"
         },

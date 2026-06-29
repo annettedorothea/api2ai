@@ -1,0 +1,153 @@
+openapi: 3.1.0
+info:
+    title: Xquik Search Demo
+    version: '1.0'
+servers:
+    - url: https://xquik.com
+components:
+    securitySchemes:
+        apiKey:
+            type: apiKey
+            in: header
+            name: X-API-Key
+    schemas:
+        TweetAuthor:
+            type: object
+            properties:
+                id:
+                    type: string
+                username:
+                    type: string
+                name:
+                    type: string
+                verified:
+                    type: boolean
+        Tweet:
+            type: object
+            properties:
+                id:
+                    type: string
+                text:
+                    type: string
+                createdAt:
+                    type: string
+                    format: date-time
+                likeCount:
+                    type: integer
+                retweetCount:
+                    type: integer
+                replyCount:
+                    type: integer
+                quoteCount:
+                    type: integer
+                viewCount:
+                    type: integer
+                bookmarkCount:
+                    type: integer
+                author:
+                    $ref: '#/components/schemas/TweetAuthor'
+        PaginatedTweets:
+            type: object
+            properties:
+                tweets:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/Tweet'
+                has_next_page:
+                    type: boolean
+                next_cursor:
+                    type: string
+        ErrorResponse:
+            type: object
+            properties:
+                error:
+                    type: string
+paths:
+    /api/v1/x/tweets/search:
+        get:
+            operationId: searchTweets
+            summary: Search tweets by query, Tweet ID, X status URL, or account date window
+            tags:
+                - Tweets
+            security:
+                - apiKey: []
+            parameters:
+                - name: q
+                  in: query
+                  required: true
+                  schema:
+                      type: string
+                  description: Search query.
+                - name: queryType
+                  in: query
+                  required: false
+                  schema:
+                      type: string
+                      enum:
+                          - Latest
+                          - Top
+                      default: Latest
+                  description: Sort order.
+                - name: cursor
+                  in: query
+                  required: false
+                  schema:
+                      type: string
+                  description: Pagination cursor from the previous response.
+                - name: sinceTime
+                  in: query
+                  required: false
+                  schema:
+                      type: string
+                  description: ISO 8601 timestamp. Return posts after this time.
+                - name: untilTime
+                  in: query
+                  required: false
+                  schema:
+                      type: string
+                  description: ISO 8601 timestamp. Return posts before this time.
+                - name: limit
+                  in: query
+                  required: false
+                  schema:
+                      type: integer
+                      default: 20
+                      maximum: 200
+                  description: Maximum number of posts to return.
+            responses:
+                '200':
+                    description: Search results.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/PaginatedTweets'
+                '400':
+                    description: Missing or invalid query.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+                '401':
+                    description: Authentication failed.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+                '402':
+                    description: Payment or credits required.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+                '429':
+                    description: Rate limit exceeded.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
+                '502':
+                    description: Service error.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
