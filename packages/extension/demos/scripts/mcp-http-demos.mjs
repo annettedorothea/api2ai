@@ -11,6 +11,32 @@ function loadProductName(demosRoot) {
 }
 
 export const HTTP_DEMOS = {
+    'open-meteo': {
+        host: 'public-http-mcp-server.js',
+        tools: 'open-meteo-tools.js',
+        baseUrlEnv: 'OPEN_METEO_BASE_URL',
+        portEnv: 'OPEN_METEO_HTTP_PORT'
+    },
+    'open-meteo-geocoding': {
+        host: 'public-http-mcp-server.js',
+        tools: 'open-meteo-geocoding-tools.js',
+        baseUrlEnv: 'OPEN_METEO_GEOCODING_BASE_URL',
+        portEnv: 'OPEN_METEO_GEOCODING_HTTP_PORT'
+    },
+    github: {
+        host: 'passthrough-http-mcp-server.js',
+        tools: 'github-tools.js',
+        baseUrlEnv: 'GITHUB_BASE_URL',
+        portEnv: 'GITHUB_HTTP_PORT',
+        authEnv: 'GITHUB_TOKEN'
+    },
+    tmdb: {
+        host: 'passthrough-http-mcp-server.js',
+        tools: 'tmdb-tools.js',
+        baseUrlEnv: 'TMDB_BASE_URL',
+        portEnv: 'TMDB_HTTP_PORT',
+        authEnv: 'TMDB_ACCESS_TOKEN'
+    },
     'spaceflight-news': {
         host: 'public-http-mcp-server.js',
         tools: 'spaceflight-news-tools.js',
@@ -28,7 +54,14 @@ export const HTTP_DEMOS = {
 };
 
 /** Hosts started by `npm run start` (HTTP entries in .cursor/mcp.json). */
-export const HTTP_START_DEMO_NAMES = ['spaceflight-news', 'todo'];
+export const HTTP_START_DEMO_NAMES = [
+    'open-meteo',
+    'open-meteo-geocoding',
+    'github',
+    'tmdb',
+    'spaceflight-news',
+    'todo'
+];
 
 export const HTTP_DEMO_NAMES = Object.keys(HTTP_DEMOS);
 
@@ -69,6 +102,9 @@ export function buildHostLaunch(name, demosRoot, env) {
         '--path',
         '/mcp'
     ];
+    if (demo.authEnv) {
+        args.push('--auth-env', demo.authEnv);
+    }
     const mcpUrl = `http://127.0.0.1:${port}/mcp`;
     const mcpAuthHeader = demo.mcpAuthHeaderEnv ? resolveMcpAuthHeader(demo, env) : undefined;
     const hostEnv = mcpAuthHeader ? { MCP_AUTH_HEADER: mcpAuthHeader } : {};

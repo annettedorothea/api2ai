@@ -78,9 +78,9 @@ export function printOpenWebUiMcpHints(openWebUiPort, env = process.env) {
         console.log(`  URL:              ${entry.url}`);
         console.log(`  Auth:             ${entry.auth}`);
         console.log(`  Client ID:        ${entry.clientId}`);
-        console.log(`  Client Secret:    (empty or demo — public client)`);
+        console.log(`  Client Secret:    demo (any placeholder — IdP uses public client, no secret check)`);
         console.log(`  OAuth Server URL: ${entry.oauthServerUrl}`);
-        console.log(`  Note: enable tool per chat; complete browser login (alice/bob/admin).`);
+        console.log(`  Note: per chat — Integrations (diamond icon beside +) → Tools; reload page if list empty; OAuth login alice/bob/admin.`);
         console.log('');
     }
 

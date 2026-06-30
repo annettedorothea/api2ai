@@ -24,6 +24,10 @@ describe('json-schema-to-zod-codegen', () => {
         expect(emitZodExpression(schema)).toBe('z.union([z.literal("a"), z.literal("b")])');
     });
 
+    it('emits number fields as union with string for LLM tool callers', () => {
+        expect(emitZodExpression({ type: 'number' })).toBe('z.union([z.number(), z.string()])');
+    });
+
     it('emits inputZodByTool export', () => {
         const out = emitInputZodByToolExport({
             demo: { type: 'object', properties: {}, additionalProperties: true }

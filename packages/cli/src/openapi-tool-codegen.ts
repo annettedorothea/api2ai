@@ -242,7 +242,44 @@ function dslParamPatchesByName(operation: Operation): Map<string, ReturnType<typ
     return map;
 }
 
-/** Flat parameter list for MCP tool description (path / query / header); complements nested inputSchema buckets. */
+/** Rewrite legacy nested pathParams/query wording in DSL text for flat MCP tool arguments. */
+export function flattenLegacyInvokeDescription(text: string): string {
+    return text
+        .replace(/pathParams\.([A-Za-z_][A-Za-z0-9_]*)/g, '$1')
+        .replace(/query\.([A-Za-z_][A-Za-z0-9_]*)/g, '$1')
+        .replace(/pathParams:\s*(\{[^}]+\})/g, '$1')
+        .replace(/query:\s*(\{[^}]+\})/g, '$1')
+        .replace(/path param pathParams\.([A-Za-z_][A-Za-z0-9_]*)/gi, 'path parameter $1')
+        .replace(/as pathParams\.([A-Za-z_][A-Za-z0-9_]*)/gi, 'as flat argument $1');
+}
+
+/** Hint for LLM callers: OpenAPI params are flat tool args, not pathParams/query buckets. */
+export function buildFlatCallShapeSection(_operation: Operation, details: OpenApiOperationDetails): string | undefined {
+    const buckets = buildInvokeParamBuckets(details);
+    const flatArgs = [...buckets.pathParams, ...buckets.query, ...buckets.headers];
+    const hasBody = Boolean(details.requestBody?.schema);
+    if (flatArgs.length === 0 && !hasBody) {
+        return undefined;
+    }
+    const parts: string[] = [];
+    if (flatArgs.length > 0) {
+        parts.push(`pass ${flatArgs.join(', ')} as top-level tool arguments`);
+    }
+    if (hasBody) {
+        parts.push('send the request payload in the `body` property');
+    }
+    return `${parts.join('; ')}. Do not nest path or query parameters under pathParams or query.`;
+}
+
+/** OpenAPI request-body JSON Schema for invokeTool body coercion (LLM string → typed JSON). */
+export function buildInvokeBodySchema(details: OpenApiOperationDetails): JsonSchemaDict | undefined {
+    if (!details.requestBody?.schema) {
+        return undefined;
+    }
+    return openApiSchemaToJsonSchema(details.requestBody.schema);
+}
+
+/** Flat parameter list for MCP tool description (path / query / header); matches flat MCP inputSchema properties. */
 export function buildInvokeParameterDescriptionSection(
     operation: Operation,
     details: OpenApiOperationDetails
@@ -261,7 +298,7 @@ export function buildInvokeParameterDescriptionSection(
         const description = pickEffectiveText(patch?.description, p.description);
         let line = `- ${p.name} (${p.in})`;
         if (description) {
-            line += `: ${description}`;
+            line += `: ${flattenLegacyInvokeDescription(description)}`;
         }
         const exampleText = patch?.example?.trim();
         if (exampleText && exampleText.length > 0) {
@@ -282,7 +319,12 @@ export function buildMcpDescription(
 ): string {
     const sections: string[] = [];
 
-    sections.push(`Intent:\n${operation.intent!.trim()}`);
+    sections.push(`Intent:\n${flattenLegacyInvokeDescription(operation.intent!.trim())}`);
+
+    const callShape = buildFlatCallShapeSection(operation, details);
+    if (callShape) {
+        sections.push(`MCP arguments:\n${callShape}`);
+    }
 
     const apiText = effectiveLongDescription(operation, details);
     if (apiText) {
@@ -311,7 +353,7 @@ export function buildMcpDescription(
     }
 
     if (operation.example !== undefined && operation.example.trim().length > 0) {
-        sections.push(`Example:\n${operation.example.trim()}`);
+        sections.push(`Example:\n${flattenLegacyInvokeDescription(operation.example.trim())}`);
     }
 
     const responseText = effectiveResponse(operation, details);
@@ -549,34 +591,11 @@ function parameterPropertySchema(p: OpenApiParameterDetails): JsonSchemaDict {
     if (!paramDesc) {
         return inner;
     }
+    const flatDesc = flattenLegacyInvokeDescription(paramDesc);
     if (typeof inner === 'object' && inner !== null && !Array.isArray(inner)) {
-        return { ...inner, description: paramDesc };
+        return { ...inner, description: flatDesc };
     }
     return inner;
-}
-
-function objectSchemaFromKeyedProps(
-    entries: Array<{ name: string; schema: JsonSchemaDict; required: boolean }>,
-    description?: string
-): JsonSchemaDict {
-    const props: Record<string, JsonSchemaDict> = {};
-    const required: string[] = [];
-    for (const e of entries) {
-        props[e.name] = e.schema;
-        if (e.required) {
-            required.push(e.name);
-        }
-    }
-    const obj: JsonSchemaDict = {
-        type: 'object',
-        properties: props,
-        required,
-        additionalProperties: false
-    };
-    if (description) {
-        obj.description = description;
-    }
-    return obj;
 }
 
 function parameterSchemaKind(schema: OpenApiSchema | undefined): 'array' | 'object' | 'primitive' {
@@ -666,7 +685,7 @@ function invokeParamBucket(parameter: OpenApiParameterDetails): InvokeParamBucke
     return undefined;
 }
 
-/** Merge DSL param description/example patches onto OpenAPI-derived MCP input schema (structure unchanged). */
+/** Merge DSL param description/example patches onto OpenAPI-derived flat MCP input schema. */
 export function applyApiParamPatches(
     schema: JsonSchemaDict,
     operation: Operation,
@@ -677,34 +696,26 @@ export function applyApiParamPatches(
         return schema;
     }
 
-    const locationByName = new Map<string, InvokeParamBucket>();
-    for (const parameter of details.parameters) {
-        const bucket = invokeParamBucket(parameter);
-        if (bucket) {
-            locationByName.set(parameter.name, bucket);
-        }
-    }
+    const knownParamNames = new Set(
+        details.parameters
+            .map((parameter) => invokeParamBucket(parameter) && parameter.name)
+            .filter((name): name is string => typeof name === 'string')
+    );
 
     const rootProps = { ...(schema.properties as Record<string, JsonSchemaDict>) };
     for (const entry of entries) {
-        const bucket = locationByName.get(entry.key);
-        if (!bucket) {
+        if (!knownParamNames.has(entry.key)) {
             continue;
         }
-        const bucketSchema = rootProps[bucket];
-        if (!bucketSchema || typeof bucketSchema !== 'object' || !bucketSchema.properties) {
-            continue;
-        }
-        const props = { ...(bucketSchema.properties as Record<string, JsonSchemaDict>) };
-        const existing = props[entry.key];
-        if (!existing) {
+        const existing = rootProps[entry.key];
+        if (!existing || typeof existing !== 'object') {
             continue;
         }
 
         const parsed = parseApiParamSpec(entry.spec);
         let next = { ...existing };
         if (parsed.description !== undefined && parsed.description.trim().length > 0) {
-            next = { ...next, description: parsed.description.trim() };
+            next = { ...next, description: flattenLegacyInvokeDescription(parsed.description.trim()) };
         }
         if (parsed.example !== undefined && parsed.example.trim().length > 0) {
             const coerced = coerceExampleFromSchemaType(parsed.example, next.type as string | string[] | undefined);
@@ -712,14 +723,33 @@ export function applyApiParamPatches(
                 next = { ...next, examples: [coerced] };
             }
         }
-        props[entry.key] = next;
-        rootProps[bucket] = { ...bucketSchema, properties: props };
+        rootProps[entry.key] = next;
     }
 
     return { ...schema, properties: rootProps };
 }
 
-/** Outer MCP tool input: pathParams | query | headers | body buckets. */
+export type InvokeParamBuckets = {
+    pathParams: string[];
+    query: string[];
+    headers: string[];
+    /** Query parameter names with OpenAPI `array` schema (LLM may pass a single string). */
+    arrayQuery: string[];
+};
+
+/** OpenAPI parameter names grouped for invokeTool normalization (flat MCP args → nested InvokeOptions). */
+export function buildInvokeParamBuckets(details: OpenApiOperationDetails): InvokeParamBuckets {
+    const { path, query, headers } = parametersByLocation(details.parameters);
+    const arrayQuery = query.filter((p) => parameterSchemaKind(p.schema) === 'array').map((p) => p.name);
+    return {
+        pathParams: path.map((p) => p.name),
+        query: query.map((p) => p.name),
+        headers: headers.map((p) => p.name),
+        arrayQuery
+    };
+}
+
+/** Flat MCP tool input: OpenAPI path/query/header params at root; optional body and extra headers. */
 export function buildToolInputSchema(
     details: OpenApiOperationDetails,
     optionalParams?: readonly string[],
@@ -747,24 +777,14 @@ export function buildToolInputSchema(
     const rootProps: Record<string, JsonSchemaDict> = {};
     const rootRequired: string[] = [];
 
-    if (pathEntries.length > 0) {
-        rootProps.pathParams = objectSchemaFromKeyedProps(pathEntries, 'Path parameters from OpenAPI.');
-        if (pathEntries.some((entry) => entry.required)) {
-            rootRequired.push('pathParams');
+    for (const entry of [...pathEntries, ...queryEntries, ...headerEntries]) {
+        rootProps[entry.name] = entry.schema;
+        if (entry.required) {
+            rootRequired.push(entry.name);
         }
-    } else {
-        rootProps.pathParams = { type: 'object', additionalProperties: true, description: 'No path parameters.' };
     }
 
-    if (queryEntries.length > 0) {
-        rootProps.query = objectSchemaFromKeyedProps(queryEntries, 'Query parameters from OpenAPI.');
-    } else {
-        rootProps.query = { type: 'object', additionalProperties: true, description: 'Optional query overrides.' };
-    }
-
-    if (headerEntries.length > 0) {
-        rootProps.headers = objectSchemaFromKeyedProps(headerEntries, 'Headers from OpenAPI (excluding Content-Type).');
-    } else {
+    if (headerEntries.length === 0) {
         rootProps.headers = {
             type: 'object',
             additionalProperties: { type: 'string' },

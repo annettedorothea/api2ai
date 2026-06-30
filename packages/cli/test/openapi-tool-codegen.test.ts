@@ -1,6 +1,14 @@
 import { describe, expect, test } from 'vitest';
 import type { OpenApiOperationDetails, Operation } from 'api-2-ai-dsl-language';
-import { buildMcpDescription, buildToolInputSchema, effectiveResponse } from '../src/openapi-tool-codegen.js';
+import {
+    buildMcpDescription,
+    buildInvokeParamBuckets,
+    buildToolInputSchema,
+    effectiveResponse,
+    flattenLegacyInvokeDescription,
+    buildFlatCallShapeSection,
+    buildInvokeBodySchema
+} from '../src/openapi-tool-codegen.js';
 
 function minimalOperation(overrides: Partial<Operation> = {}): Operation {
     return {
@@ -157,9 +165,62 @@ describe('buildToolInputSchema', () => {
         const body = (schema.properties as Record<string, Record<string, unknown>>).body;
         expect(body.description).toBe('Send title in JSON body.');
         expect(body.properties).toBeDefined();
+        expect(schema.properties).not.toHaveProperty('query');
     });
 
-    test('applies DSL params description patch to query property schema', () => {
+    test('places OpenAPI query params at schema root for LLM-friendly flat args', () => {
+        const schema = buildToolInputSchema(sampleDetails, []);
+        const props = schema.properties as Record<string, Record<string, unknown>>;
+        expect(props.page).toBeDefined();
+        expect(props.page.type).toBe('integer');
+        expect(schema.properties).not.toHaveProperty('pathParams');
+        expect(schema.properties).not.toHaveProperty('query');
+    });
+
+    test('buildInvokeParamBuckets groups parameter names by invoke bucket', () => {
+        const details: OpenApiOperationDetails = {
+            ...sampleDetails,
+            parameters: [
+                {
+                    name: 'todoId',
+                    in: 'path',
+                    required: true
+                },
+                {
+                    name: 'status',
+                    in: 'query',
+                    required: false,
+                    schema: { type: 'string' }
+                }
+            ]
+        };
+        expect(buildInvokeParamBuckets(details)).toEqual({
+            pathParams: ['todoId'],
+            query: ['status'],
+            headers: [],
+            arrayQuery: []
+        });
+    });
+
+    test('buildInvokeParamBuckets lists array query parameter names', () => {
+        const details: OpenApiOperationDetails = {
+            ...sampleDetails,
+            parameters: [
+                {
+                    name: 'hourly',
+                    in: 'query',
+                    required: false,
+                    schema: {
+                        type: 'array',
+                        items: { type: 'string', enum: ['temperature_2m'] }
+                    }
+                }
+            ]
+        };
+        expect(buildInvokeParamBuckets(details).arrayQuery).toEqual(['hourly']);
+    });
+
+    test('applies DSL params description patch to flat query property schema', () => {
         const schema = buildToolInputSchema(
             sampleDetails,
             [],
@@ -184,10 +245,8 @@ describe('buildToolInputSchema', () => {
                 }
             } as Partial<Operation>)
         );
-        const query = (schema.properties as Record<string, Record<string, unknown>>).query as {
-            properties: Record<string, Record<string, unknown>>;
-        };
-        expect(query.properties.page.description).toBe('1-based page index for the agent.');
+        const props = schema.properties as Record<string, Record<string, unknown>>;
+        expect(props.page.description).toBe('1-based page index for the agent.');
     });
 
     test('applies DSL params example patch using OpenAPI parameter type', () => {
@@ -215,9 +274,42 @@ describe('buildToolInputSchema', () => {
                 }
             } as Partial<Operation>)
         );
-        const query = (schema.properties as Record<string, Record<string, unknown>>).query as {
-            properties: Record<string, Record<string, unknown>>;
+        const props = schema.properties as Record<string, Record<string, unknown>>;
+        expect(props.page.examples).toEqual([2]);
+    });
+
+    test('flattenLegacyInvokeDescription rewrites pathParams and query bucket wording', () => {
+        expect(flattenLegacyInvokeDescription('pathParams.todoId required; query.status optional')).toBe(
+            'todoId required; status optional'
+        );
+        expect(flattenLegacyInvokeDescription('pathParams: { "todoId": "t-1" }')).toBe('{ "todoId": "t-1" }');
+    });
+
+    test('buildFlatCallShapeSection documents flat MCP arguments', () => {
+        const section = buildFlatCallShapeSection(minimalOperation(), sampleDetails);
+        expect(section).toContain('page');
+        expect(section).toContain('top-level tool arguments');
+        expect(section).toContain('Do not nest');
+    });
+
+    test('buildInvokeBodySchema returns request body JSON Schema for coercion', () => {
+        const details: OpenApiOperationDetails = {
+            ...sampleDetails,
+            requestBody: {
+                required: true,
+                description: 'Todo payload',
+                schema: {
+                    type: 'object',
+                    properties: {
+                        title: { type: 'string' },
+                        priority: { type: 'integer' }
+                    },
+                    required: ['title']
+                }
+            }
         };
-        expect(query.properties.page.examples).toEqual([2]);
+        const schema = buildInvokeBodySchema(details);
+        expect(schema?.type).toBe('object');
+        expect((schema?.properties as Record<string, unknown>).priority).toEqual({ type: 'integer' });
     });
 });

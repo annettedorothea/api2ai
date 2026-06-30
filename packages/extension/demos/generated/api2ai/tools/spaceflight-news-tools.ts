@@ -24,7 +24,7 @@ export const generatedTools: GeneratedTool[] = [
         toolName: 'listSpaceflightArticles',
         title: 'List spaceflight articles (limit validated, teaser only; full text at response url)',
         description:
-            'Intent:\n- List recent spaceflight news articles (pagination: limit, offset, ordering).\n        - Query limit caps how many articles are returned (default 10, max 10).\n        - Response contains title, summary teaser, and url per item — not the full article body.\n        - Use search, has_launch, or news_site filters for SpaceX, launches, or specific outlets.\n        - Follow result url only when full text is needed (same pattern for blogs and reports tools).\n\nMeta:\ntags: articles | operationId: articles_list\n\nParameters:\n- event (query): Search for all documents related to a specific event using its Launch Library 2 ID.\n- has_event (query): Get all documents that have a related event.\n- has_launch (query): Get all documents that have a related launch.\n- is_featured (query): Get all documents that are featured.\n- launch (query): Search for all documents related to a specific launch using its Launch Library 2 ID.\n- limit (query): Number of results per page (default 10, max 10). (example: 10)\n- news_site (query): Search for documents with a news_site__name present in a list of comma-separated values. Case insensitive.\n- news_site_exclude (query): Search for documents with a news_site__name not present in a list of comma-separated values. Case insensitive.\n- offset (query): The initial index from which to return the results.\n- ordering (query): Order the result on `published_at, -published_at, updated_at, -updated_at`.\n\n* `published_at` - Published at\n* `-published_at` - Published at (descending)\n* `updated_at` - Updated at\n* `-updated_at` - Updated at (descending)\n- published_at_gt (query): Get all documents published after a given ISO8601 timestamp (excluded).\n- published_at_gte (query): Get all documents published after a given ISO8601 timestamp (included).\n- published_at_lt (query): Get all documents published before a given ISO8601 timestamp (excluded).\n- published_at_lte (query): Get all documents published before a given ISO8601 timestamp (included).\n- search (query): Search for documents with a specific phrase in the title or summary.\n- summary_contains (query): Search for all documents with a specific phrase in the summary.\n- summary_contains_all (query): Search for documents with a summary containing all keywords from comma-separated values.\n- summary_contains_one (query): Search for documents with a summary containing at least one keyword from comma-separated values.\n- title_contains (query): Search for all documents with a specific phrase in the title.\n- title_contains_all (query): Search for documents with a title containing all keywords from comma-separated values.\n- title_contains_one (query): Search for documents with a title containing at least one keyword from comma-separated values.\n- updated_at_gt (query): Get all documents updated after a given ISO8601 timestamp (excluded).\n- updated_at_gte (query): Get all documents updated after a given ISO8601 timestamp (included).\n- updated_at_lt (query): Get all documents updated before a given ISO8601 timestamp (excluded).\n- updated_at_lte (query): Get all documents updated before a given ISO8601 timestamp (included).\n\nExample:\nGet the latest 5 articles\n\nResponse:\nHTTP 200\nproperties (top-level): count, next, previous, results\n\nRuntime: implement prepareListSpaceflightArticlesInput in src/hooks/api2ai/spaceflight-news-tools/listSpaceflightArticles.ts (types from this tools module; run build:generated for .js).',
+            'Intent:\n- List recent spaceflight news articles (pagination: limit, offset, ordering).\n        - Query limit caps how many articles are returned (default 10, max 10).\n        - Response contains title, summary teaser, and url per item — not the full article body.\n        - Use search, has_launch, or news_site filters for SpaceX, launches, or specific outlets.\n        - Follow result url only when full text is needed (same pattern for blogs and reports tools).\n\nMCP arguments:\npass event, has_event, has_launch, is_featured, launch, limit, news_site, news_site_exclude, offset, ordering, published_at_gt, published_at_gte, published_at_lt, published_at_lte, search, summary_contains, summary_contains_all, summary_contains_one, title_contains, title_contains_all, title_contains_one, updated_at_gt, updated_at_gte, updated_at_lt, updated_at_lte as top-level tool arguments. Do not nest path or query parameters under pathParams or query.\n\nMeta:\ntags: articles | operationId: articles_list\n\nParameters:\n- event (query): Search for all documents related to a specific event using its Launch Library 2 ID.\n- has_event (query): Get all documents that have a related event.\n- has_launch (query): Get all documents that have a related launch.\n- is_featured (query): Get all documents that are featured.\n- launch (query): Search for all documents related to a specific launch using its Launch Library 2 ID.\n- limit (query): Number of results per page (default 10, max 10). (example: 10)\n- news_site (query): Search for documents with a news_site__name present in a list of comma-separated values. Case insensitive.\n- news_site_exclude (query): Search for documents with a news_site__name not present in a list of comma-separated values. Case insensitive.\n- offset (query): The initial index from which to return the results.\n- ordering (query): Order the result on `published_at, -published_at, updated_at, -updated_at`.\n\n* `published_at` - Published at\n* `-published_at` - Published at (descending)\n* `updated_at` - Updated at\n* `-updated_at` - Updated at (descending)\n- published_at_gt (query): Get all documents published after a given ISO8601 timestamp (excluded).\n- published_at_gte (query): Get all documents published after a given ISO8601 timestamp (included).\n- published_at_lt (query): Get all documents published before a given ISO8601 timestamp (excluded).\n- published_at_lte (query): Get all documents published before a given ISO8601 timestamp (included).\n- search (query): Search for documents with a specific phrase in the title or summary.\n- summary_contains (query): Search for all documents with a specific phrase in the summary.\n- summary_contains_all (query): Search for documents with a summary containing all keywords from comma-separated values.\n- summary_contains_one (query): Search for documents with a summary containing at least one keyword from comma-separated values.\n- title_contains (query): Search for all documents with a specific phrase in the title.\n- title_contains_all (query): Search for documents with a title containing all keywords from comma-separated values.\n- title_contains_one (query): Search for documents with a title containing at least one keyword from comma-separated values.\n- updated_at_gt (query): Get all documents updated after a given ISO8601 timestamp (excluded).\n- updated_at_gte (query): Get all documents updated after a given ISO8601 timestamp (included).\n- updated_at_lt (query): Get all documents updated before a given ISO8601 timestamp (excluded).\n- updated_at_lte (query): Get all documents updated before a given ISO8601 timestamp (included).\n\nExample:\nGet the latest 5 articles\n\nResponse:\nHTTP 200\nproperties (top-level): count, next, previous, results\n\nRuntime: implement prepareListSpaceflightArticlesInput in src/hooks/api2ai/spaceflight-news-tools/listSpaceflightArticles.ts (types from this tools module; run build:generated for .js).',
         method: 'GET',
         path: '/v4/articles/',
         access: 'public',
@@ -35,7 +35,7 @@ export const generatedTools: GeneratedTool[] = [
         toolName: 'getSpaceflightArticleById',
         title: 'Get article by ID (teaser only; full text at response url)',
         description:
-            'Intent:\nget one spaceflight article by id; API returns summary teaser only, full article text at url\n\nMeta:\ntags: articles | operationId: articles_retrieve\n\nParameters:\n- id (path): A unique integer value identifying this article.\n\nExample:\nGet article with id 1\n\nResponse:\nHTTP 200\nproperties (top-level): authors, events, featured, id, image_url, launches, news_site, published_at, summary, title, updated_at, url\n\nRuntime: public endpoint — no credential required.',
+            'Intent:\nget one spaceflight article by id; API returns summary teaser only, full article text at url\n\nMCP arguments:\npass id as top-level tool arguments. Do not nest path or query parameters under pathParams or query.\n\nMeta:\ntags: articles | operationId: articles_retrieve\n\nParameters:\n- id (path): A unique integer value identifying this article.\n\nExample:\nGet article with id 1\n\nResponse:\nHTTP 200\nproperties (top-level): authors, events, featured, id, image_url, launches, news_site, published_at, summary, title, updated_at, url\n\nRuntime: public endpoint — no credential required.',
         method: 'GET',
         path: '/v4/articles/{id}/',
         access: 'public',
@@ -46,7 +46,7 @@ export const generatedTools: GeneratedTool[] = [
         toolName: 'listSpaceflightBlogs',
         title: 'List spaceflight blog posts (limit validated, teaser only; full text at response url)',
         description:
-            'Intent:\n- List recent spaceflight blog posts (pagination: limit, offset, ordering).\n        - Query limit caps how many blog posts are returned (default 10, max 10).\n        - Response contains title, summary teaser, and url per item — not the full post body.\n        - Use search, has_launch, or news_site filters for SpaceX, launches, or specific outlets.\n        - Follow result url only when full text is needed (same pattern for articles and reports tools).\n\nMeta:\ntags: blogs | operationId: blogs_list\n\nParameters:\n- event (query): Search for all documents related to a specific event using its Launch Library 2 ID.\n- has_event (query): Get all documents that have a related event.\n- has_launch (query): Get all documents that have a related launch.\n- is_featured (query): Get all documents that are featured.\n- launch (query): Search for all documents related to a specific launch using its Launch Library 2 ID.\n- limit (query): Number of results per page (default 10, max 10). (example: 10)\n- news_site (query): Search for documents with a news_site__name present in a list of comma-separated values. Case insensitive.\n- news_site_exclude (query): Search for documents with a news_site__name not present in a list of comma-separated values. Case insensitive.\n- offset (query): The initial index from which to return the results.\n- ordering (query): Order the result on `published_at, -published_at, updated_at, -updated_at`.\n\n* `published_at` - Published at\n* `-published_at` - Published at (descending)\n* `updated_at` - Updated at\n* `-updated_at` - Updated at (descending)\n- published_at_gt (query): Get all documents published after a given ISO8601 timestamp (excluded).\n- published_at_gte (query): Get all documents published after a given ISO8601 timestamp (included).\n- published_at_lt (query): Get all documents published before a given ISO8601 timestamp (excluded).\n- published_at_lte (query): Get all documents published before a given ISO8601 timestamp (included).\n- search (query): Search for documents with a specific phrase in the title or summary.\n- summary_contains (query): Search for all documents with a specific phrase in the summary.\n- summary_contains_all (query): Search for documents with a summary containing all keywords from comma-separated values.\n- summary_contains_one (query): Search for documents with a summary containing at least one keyword from comma-separated values.\n- title_contains (query): Search for all documents with a specific phrase in the title.\n- title_contains_all (query): Search for documents with a title containing all keywords from comma-separated values.\n- title_contains_one (query): Search for documents with a title containing at least one keyword from comma-separated values.\n- updated_at_gt (query): Get all documents updated after a given ISO8601 timestamp (excluded).\n- updated_at_gte (query): Get all documents updated after a given ISO8601 timestamp (included).\n- updated_at_lt (query): Get all documents updated before a given ISO8601 timestamp (excluded).\n- updated_at_lte (query): Get all documents updated before a given ISO8601 timestamp (included).\n\nExample:\nGet the latest 5 blog posts\n\nResponse:\nHTTP 200\nproperties (top-level): count, next, previous, results\n\nRuntime: implement prepareListSpaceflightBlogsInput in src/hooks/api2ai/spaceflight-news-tools/listSpaceflightBlogs.ts (types from this tools module; run build:generated for .js).',
+            'Intent:\n- List recent spaceflight blog posts (pagination: limit, offset, ordering).\n        - Query limit caps how many blog posts are returned (default 10, max 10).\n        - Response contains title, summary teaser, and url per item — not the full post body.\n        - Use search, has_launch, or news_site filters for SpaceX, launches, or specific outlets.\n        - Follow result url only when full text is needed (same pattern for articles and reports tools).\n\nMCP arguments:\npass event, has_event, has_launch, is_featured, launch, limit, news_site, news_site_exclude, offset, ordering, published_at_gt, published_at_gte, published_at_lt, published_at_lte, search, summary_contains, summary_contains_all, summary_contains_one, title_contains, title_contains_all, title_contains_one, updated_at_gt, updated_at_gte, updated_at_lt, updated_at_lte as top-level tool arguments. Do not nest path or query parameters under pathParams or query.\n\nMeta:\ntags: blogs | operationId: blogs_list\n\nParameters:\n- event (query): Search for all documents related to a specific event using its Launch Library 2 ID.\n- has_event (query): Get all documents that have a related event.\n- has_launch (query): Get all documents that have a related launch.\n- is_featured (query): Get all documents that are featured.\n- launch (query): Search for all documents related to a specific launch using its Launch Library 2 ID.\n- limit (query): Number of results per page (default 10, max 10). (example: 10)\n- news_site (query): Search for documents with a news_site__name present in a list of comma-separated values. Case insensitive.\n- news_site_exclude (query): Search for documents with a news_site__name not present in a list of comma-separated values. Case insensitive.\n- offset (query): The initial index from which to return the results.\n- ordering (query): Order the result on `published_at, -published_at, updated_at, -updated_at`.\n\n* `published_at` - Published at\n* `-published_at` - Published at (descending)\n* `updated_at` - Updated at\n* `-updated_at` - Updated at (descending)\n- published_at_gt (query): Get all documents published after a given ISO8601 timestamp (excluded).\n- published_at_gte (query): Get all documents published after a given ISO8601 timestamp (included).\n- published_at_lt (query): Get all documents published before a given ISO8601 timestamp (excluded).\n- published_at_lte (query): Get all documents published before a given ISO8601 timestamp (included).\n- search (query): Search for documents with a specific phrase in the title or summary.\n- summary_contains (query): Search for all documents with a specific phrase in the summary.\n- summary_contains_all (query): Search for documents with a summary containing all keywords from comma-separated values.\n- summary_contains_one (query): Search for documents with a summary containing at least one keyword from comma-separated values.\n- title_contains (query): Search for all documents with a specific phrase in the title.\n- title_contains_all (query): Search for documents with a title containing all keywords from comma-separated values.\n- title_contains_one (query): Search for documents with a title containing at least one keyword from comma-separated values.\n- updated_at_gt (query): Get all documents updated after a given ISO8601 timestamp (excluded).\n- updated_at_gte (query): Get all documents updated after a given ISO8601 timestamp (included).\n- updated_at_lt (query): Get all documents updated before a given ISO8601 timestamp (excluded).\n- updated_at_lte (query): Get all documents updated before a given ISO8601 timestamp (included).\n\nExample:\nGet the latest 5 blog posts\n\nResponse:\nHTTP 200\nproperties (top-level): count, next, previous, results\n\nRuntime: implement prepareListSpaceflightBlogsInput in src/hooks/api2ai/spaceflight-news-tools/listSpaceflightBlogs.ts (types from this tools module; run build:generated for .js).',
         method: 'GET',
         path: '/v4/blogs/',
         access: 'public',
@@ -57,7 +57,7 @@ export const generatedTools: GeneratedTool[] = [
         toolName: 'getSpaceflightBlogById',
         title: 'Get blog post by ID (teaser only; full text at response url)',
         description:
-            'Intent:\nget one spaceflight blog post by id; API returns summary teaser only, full post text at url\n\nMeta:\ntags: blogs | operationId: blogs_retrieve\n\nParameters:\n- id (path): A unique integer value identifying this blog.\n\nExample:\nGet blog post with id 1\n\nResponse:\nHTTP 200\nproperties (top-level): authors, events, featured, id, image_url, launches, news_site, published_at, summary, title, updated_at, url\n\nRuntime: public endpoint — no credential required.',
+            'Intent:\nget one spaceflight blog post by id; API returns summary teaser only, full post text at url\n\nMCP arguments:\npass id as top-level tool arguments. Do not nest path or query parameters under pathParams or query.\n\nMeta:\ntags: blogs | operationId: blogs_retrieve\n\nParameters:\n- id (path): A unique integer value identifying this blog.\n\nExample:\nGet blog post with id 1\n\nResponse:\nHTTP 200\nproperties (top-level): authors, events, featured, id, image_url, launches, news_site, published_at, summary, title, updated_at, url\n\nRuntime: public endpoint — no credential required.',
         method: 'GET',
         path: '/v4/blogs/{id}/',
         access: 'public',
@@ -68,7 +68,7 @@ export const generatedTools: GeneratedTool[] = [
         toolName: 'listSpaceflightReports',
         title: 'List spaceflight reports (limit validated, teaser only; full text at response url)',
         description:
-            'Intent:\n- List recent spaceflight reports (pagination: limit, offset, ordering).\n        - Query limit caps how many reports are returned (default 10, max 10).\n        - Response contains title, summary teaser, and url per item — not the full report body.\n        - Use search or news_site filters for specific outlets or topics.\n        - Follow result url only when full text is needed (same pattern for articles and blogs tools).\n\nMeta:\ntags: reports | operationId: reports_list\n\nParameters:\n- limit (query): Number of results per page (default 10, max 10). (example: 10)\n- news_site (query): Search for documents with a news_site__name present in a list of comma-separated values. Case insensitive.\n- news_site_exclude (query): Search for documents with a news_site__name not present in a list of comma-separated values. Case insensitive.\n- offset (query): The initial index from which to return the results.\n- ordering (query): Order the result on `published_at, -published_at, updated_at, -updated_at`.\n\n* `published_at` - Published at\n* `-published_at` - Published at (descending)\n* `updated_at` - Updated at\n* `-updated_at` - Updated at (descending)\n- published_at_gt (query): Get all documents published after a given ISO8601 timestamp (excluded).\n- published_at_gte (query): Get all documents published after a given ISO8601 timestamp (included).\n- published_at_lt (query): Get all documents published before a given ISO8601 timestamp (excluded).\n- published_at_lte (query): Get all documents published before a given ISO8601 timestamp (included).\n- search (query): Search for documents with a specific phrase in the title or summary.\n- summary_contains (query): Search for all documents with a specific phrase in the summary.\n- summary_contains_all (query): Search for documents with a summary containing all keywords from comma-separated values.\n- summary_contains_one (query): Search for documents with a summary containing at least one keyword from comma-separated values.\n- title_contains (query): Search for all documents with a specific phrase in the title.\n- title_contains_all (query): Search for documents with a title containing all keywords from comma-separated values.\n- title_contains_one (query): Search for documents with a title containing at least one keyword from comma-separated values.\n- updated_at_gt (query): Get all documents updated after a given ISO8601 timestamp (excluded).\n- updated_at_gte (query): Get all documents updated after a given ISO8601 timestamp (included).\n- updated_at_lt (query): Get all documents updated before a given ISO8601 timestamp (excluded).\n- updated_at_lte (query): Get all documents updated before a given ISO8601 timestamp (included).\n\nExample:\nGet the latest 5 reports\n\nResponse:\nHTTP 200\nproperties (top-level): count, next, previous, results\n\nRuntime: implement prepareListSpaceflightReportsInput in src/hooks/api2ai/spaceflight-news-tools/listSpaceflightReports.ts (types from this tools module; run build:generated for .js).',
+            'Intent:\n- List recent spaceflight reports (pagination: limit, offset, ordering).\n        - Query limit caps how many reports are returned (default 10, max 10).\n        - Response contains title, summary teaser, and url per item — not the full report body.\n        - Use search or news_site filters for specific outlets or topics.\n        - Follow result url only when full text is needed (same pattern for articles and blogs tools).\n\nMCP arguments:\npass limit, news_site, news_site_exclude, offset, ordering, published_at_gt, published_at_gte, published_at_lt, published_at_lte, search, summary_contains, summary_contains_all, summary_contains_one, title_contains, title_contains_all, title_contains_one, updated_at_gt, updated_at_gte, updated_at_lt, updated_at_lte as top-level tool arguments. Do not nest path or query parameters under pathParams or query.\n\nMeta:\ntags: reports | operationId: reports_list\n\nParameters:\n- limit (query): Number of results per page (default 10, max 10). (example: 10)\n- news_site (query): Search for documents with a news_site__name present in a list of comma-separated values. Case insensitive.\n- news_site_exclude (query): Search for documents with a news_site__name not present in a list of comma-separated values. Case insensitive.\n- offset (query): The initial index from which to return the results.\n- ordering (query): Order the result on `published_at, -published_at, updated_at, -updated_at`.\n\n* `published_at` - Published at\n* `-published_at` - Published at (descending)\n* `updated_at` - Updated at\n* `-updated_at` - Updated at (descending)\n- published_at_gt (query): Get all documents published after a given ISO8601 timestamp (excluded).\n- published_at_gte (query): Get all documents published after a given ISO8601 timestamp (included).\n- published_at_lt (query): Get all documents published before a given ISO8601 timestamp (excluded).\n- published_at_lte (query): Get all documents published before a given ISO8601 timestamp (included).\n- search (query): Search for documents with a specific phrase in the title or summary.\n- summary_contains (query): Search for all documents with a specific phrase in the summary.\n- summary_contains_all (query): Search for documents with a summary containing all keywords from comma-separated values.\n- summary_contains_one (query): Search for documents with a summary containing at least one keyword from comma-separated values.\n- title_contains (query): Search for all documents with a specific phrase in the title.\n- title_contains_all (query): Search for documents with a title containing all keywords from comma-separated values.\n- title_contains_one (query): Search for documents with a title containing at least one keyword from comma-separated values.\n- updated_at_gt (query): Get all documents updated after a given ISO8601 timestamp (excluded).\n- updated_at_gte (query): Get all documents updated after a given ISO8601 timestamp (included).\n- updated_at_lt (query): Get all documents updated before a given ISO8601 timestamp (excluded).\n- updated_at_lte (query): Get all documents updated before a given ISO8601 timestamp (included).\n\nExample:\nGet the latest 5 reports\n\nResponse:\nHTTP 200\nproperties (top-level): count, next, previous, results\n\nRuntime: implement prepareListSpaceflightReportsInput in src/hooks/api2ai/spaceflight-news-tools/listSpaceflightReports.ts (types from this tools module; run build:generated for .js).',
         method: 'GET',
         path: '/v4/reports/',
         access: 'public',
@@ -79,7 +79,7 @@ export const generatedTools: GeneratedTool[] = [
         toolName: 'getSpaceflightReportById',
         title: 'Get report by ID (teaser only; full text at response url)',
         description:
-            'Intent:\nget one spaceflight report by id; API returns summary teaser only, full report text at url\n\nMeta:\ntags: reports | operationId: reports_retrieve\n\nParameters:\n- id (path): A unique integer value identifying this report.\n\nExample:\nGet report with id 1\n\nResponse:\nHTTP 200\nproperties (top-level): authors, id, image_url, news_site, published_at, summary, title, updated_at, url\n\nRuntime: public endpoint — no credential required.',
+            'Intent:\nget one spaceflight report by id; API returns summary teaser only, full report text at url\n\nMCP arguments:\npass id as top-level tool arguments. Do not nest path or query parameters under pathParams or query.\n\nMeta:\ntags: reports | operationId: reports_retrieve\n\nParameters:\n- id (path): A unique integer value identifying this report.\n\nExample:\nGet report with id 1\n\nResponse:\nHTTP 200\nproperties (top-level): authors, id, image_url, news_site, published_at, summary, title, updated_at, url\n\nRuntime: public endpoint — no credential required.',
         method: 'GET',
         path: '/v4/reports/{id}/',
         access: 'public',
@@ -128,126 +128,125 @@ const preparers: Record<string, (options: InvokeOptions) => InvokeOptions | Prom
 export const inputZodByTool = {
     listSpaceflightArticles: z
         .object({
-            pathParams: z
-                .record(z.string(), z.union([z.string(), z.number(), z.boolean()]))
-                .describe('No path parameters.')
+            event: z
+                .union([z.array(z.union([z.number().int(), z.string()])), z.string()])
+                .describe('Search for all documents related to a specific event using its Launch Library 2 ID.')
                 .optional(),
-            query: z
-                .object({
-                    event: z
-                        .array(z.number())
-                        .describe('Search for all documents related to a specific event using its Launch Library 2 ID.')
-                        .optional(),
-                    has_event: z.boolean().describe('Get all documents that have a related event.').optional(),
-                    has_launch: z.boolean().describe('Get all documents that have a related launch.').optional(),
-                    is_featured: z.boolean().describe('Get all documents that are featured.').optional(),
-                    launch: z
-                        .array(z.string())
-                        .describe(
-                            'Search for all documents related to a specific launch using its Launch Library 2 ID.'
-                        )
-                        .optional(),
-                    limit: z
-                        .number()
-                        .describe('Number of results per page (default 10, max 10). (example: 10)')
-                        .optional(),
-                    news_site: z
-                        .string()
-                        .describe(
-                            'Search for documents with a news_site__name present in a list of comma-separated values. Case insensitive.'
-                        )
-                        .optional(),
-                    news_site_exclude: z
-                        .string()
-                        .describe(
-                            'Search for documents with a news_site__name not present in a list of comma-separated values. Case insensitive.'
-                        )
-                        .optional(),
-                    offset: z.number().describe('The initial index from which to return the results.').optional(),
-                    ordering: z
-                        .array(
-                            z.union([
-                                z.literal('-published_at'),
-                                z.literal('-updated_at'),
-                                z.literal('published_at'),
-                                z.literal('updated_at')
-                            ])
-                        )
-                        .describe(
-                            'Order the result on `published_at, -published_at, updated_at, -updated_at`.\n\n* `published_at` - Published at\n* `-published_at` - Published at (descending)\n* `updated_at` - Updated at\n* `-updated_at` - Updated at (descending)'
-                        )
-                        .optional(),
-                    published_at_gt: z
-                        .string()
-                        .describe('Get all documents published after a given ISO8601 timestamp (excluded).')
-                        .optional(),
-                    published_at_gte: z
-                        .string()
-                        .describe('Get all documents published after a given ISO8601 timestamp (included).')
-                        .optional(),
-                    published_at_lt: z
-                        .string()
-                        .describe('Get all documents published before a given ISO8601 timestamp (excluded).')
-                        .optional(),
-                    published_at_lte: z
-                        .string()
-                        .describe('Get all documents published before a given ISO8601 timestamp (included).')
-                        .optional(),
-                    search: z
-                        .string()
-                        .describe('Search for documents with a specific phrase in the title or summary.')
-                        .optional(),
-                    summary_contains: z
-                        .string()
-                        .describe('Search for all documents with a specific phrase in the summary.')
-                        .optional(),
-                    summary_contains_all: z
-                        .string()
-                        .describe(
-                            'Search for documents with a summary containing all keywords from comma-separated values.'
-                        )
-                        .optional(),
-                    summary_contains_one: z
-                        .string()
-                        .describe(
-                            'Search for documents with a summary containing at least one keyword from comma-separated values.'
-                        )
-                        .optional(),
-                    title_contains: z
-                        .string()
-                        .describe('Search for all documents with a specific phrase in the title.')
-                        .optional(),
-                    title_contains_all: z
-                        .string()
-                        .describe(
-                            'Search for documents with a title containing all keywords from comma-separated values.'
-                        )
-                        .optional(),
-                    title_contains_one: z
-                        .string()
-                        .describe(
-                            'Search for documents with a title containing at least one keyword from comma-separated values.'
-                        )
-                        .optional(),
-                    updated_at_gt: z
-                        .string()
-                        .describe('Get all documents updated after a given ISO8601 timestamp (excluded).')
-                        .optional(),
-                    updated_at_gte: z
-                        .string()
-                        .describe('Get all documents updated after a given ISO8601 timestamp (included).')
-                        .optional(),
-                    updated_at_lt: z
-                        .string()
-                        .describe('Get all documents updated before a given ISO8601 timestamp (excluded).')
-                        .optional(),
-                    updated_at_lte: z
-                        .string()
-                        .describe('Get all documents updated before a given ISO8601 timestamp (included).')
-                        .optional()
-                })
-                .strict()
-                .describe('Query parameters from OpenAPI.')
+            has_event: z
+                .union([z.boolean(), z.literal('true'), z.literal('false')])
+                .describe('Get all documents that have a related event.')
+                .optional(),
+            has_launch: z
+                .union([z.boolean(), z.literal('true'), z.literal('false')])
+                .describe('Get all documents that have a related launch.')
+                .optional(),
+            is_featured: z
+                .union([z.boolean(), z.literal('true'), z.literal('false')])
+                .describe('Get all documents that are featured.')
+                .optional(),
+            launch: z
+                .union([z.array(z.string()), z.string()])
+                .describe('Search for all documents related to a specific launch using its Launch Library 2 ID.')
+                .optional(),
+            limit: z
+                .union([z.number().int(), z.string()])
+                .describe('Number of results per page (default 10, max 10). (example: 10)')
+                .optional(),
+            news_site: z
+                .string()
+                .describe(
+                    'Search for documents with a news_site__name present in a list of comma-separated values. Case insensitive.'
+                )
+                .optional(),
+            news_site_exclude: z
+                .string()
+                .describe(
+                    'Search for documents with a news_site__name not present in a list of comma-separated values. Case insensitive.'
+                )
+                .optional(),
+            offset: z
+                .union([z.number().int(), z.string()])
+                .describe('The initial index from which to return the results.')
+                .optional(),
+            ordering: z
+                .union([
+                    z.array(
+                        z.union([
+                            z.literal('-published_at'),
+                            z.literal('-updated_at'),
+                            z.literal('published_at'),
+                            z.literal('updated_at')
+                        ])
+                    ),
+                    z.string()
+                ])
+                .describe(
+                    'Order the result on `published_at, -published_at, updated_at, -updated_at`.\n\n* `published_at` - Published at\n* `-published_at` - Published at (descending)\n* `updated_at` - Updated at\n* `-updated_at` - Updated at (descending)'
+                )
+                .optional(),
+            published_at_gt: z
+                .string()
+                .describe('Get all documents published after a given ISO8601 timestamp (excluded).')
+                .optional(),
+            published_at_gte: z
+                .string()
+                .describe('Get all documents published after a given ISO8601 timestamp (included).')
+                .optional(),
+            published_at_lt: z
+                .string()
+                .describe('Get all documents published before a given ISO8601 timestamp (excluded).')
+                .optional(),
+            published_at_lte: z
+                .string()
+                .describe('Get all documents published before a given ISO8601 timestamp (included).')
+                .optional(),
+            search: z
+                .string()
+                .describe('Search for documents with a specific phrase in the title or summary.')
+                .optional(),
+            summary_contains: z
+                .string()
+                .describe('Search for all documents with a specific phrase in the summary.')
+                .optional(),
+            summary_contains_all: z
+                .string()
+                .describe('Search for documents with a summary containing all keywords from comma-separated values.')
+                .optional(),
+            summary_contains_one: z
+                .string()
+                .describe(
+                    'Search for documents with a summary containing at least one keyword from comma-separated values.'
+                )
+                .optional(),
+            title_contains: z
+                .string()
+                .describe('Search for all documents with a specific phrase in the title.')
+                .optional(),
+            title_contains_all: z
+                .string()
+                .describe('Search for documents with a title containing all keywords from comma-separated values.')
+                .optional(),
+            title_contains_one: z
+                .string()
+                .describe(
+                    'Search for documents with a title containing at least one keyword from comma-separated values.'
+                )
+                .optional(),
+            updated_at_gt: z
+                .string()
+                .describe('Get all documents updated after a given ISO8601 timestamp (excluded).')
+                .optional(),
+            updated_at_gte: z
+                .string()
+                .describe('Get all documents updated after a given ISO8601 timestamp (included).')
+                .optional(),
+            updated_at_lt: z
+                .string()
+                .describe('Get all documents updated before a given ISO8601 timestamp (excluded).')
+                .optional(),
+            updated_at_lte: z
+                .string()
+                .describe('Get all documents updated before a given ISO8601 timestamp (included).')
                 .optional(),
             headers: z.record(z.string(), z.string()).describe('Optional extra headers.').optional(),
             body: z
@@ -259,14 +258,7 @@ export const inputZodByTool = {
         .describe('Arguments for invoking the generated HTTP wrapper.'),
     getSpaceflightArticleById: z
         .object({
-            pathParams: z
-                .object({ id: z.number().describe('A unique integer value identifying this article.') })
-                .strict()
-                .describe('Path parameters from OpenAPI.'),
-            query: z
-                .record(z.string(), z.union([z.string(), z.number(), z.boolean()]))
-                .describe('Optional query overrides.')
-                .optional(),
+            id: z.union([z.number().int(), z.string()]).describe('A unique integer value identifying this article.'),
             headers: z.record(z.string(), z.string()).describe('Optional extra headers.').optional(),
             body: z
                 .record(z.string(), z.union([z.string(), z.number(), z.boolean()]))
@@ -277,126 +269,125 @@ export const inputZodByTool = {
         .describe('Arguments for invoking the generated HTTP wrapper.'),
     listSpaceflightBlogs: z
         .object({
-            pathParams: z
-                .record(z.string(), z.union([z.string(), z.number(), z.boolean()]))
-                .describe('No path parameters.')
+            event: z
+                .union([z.array(z.union([z.number().int(), z.string()])), z.string()])
+                .describe('Search for all documents related to a specific event using its Launch Library 2 ID.')
                 .optional(),
-            query: z
-                .object({
-                    event: z
-                        .array(z.number())
-                        .describe('Search for all documents related to a specific event using its Launch Library 2 ID.')
-                        .optional(),
-                    has_event: z.boolean().describe('Get all documents that have a related event.').optional(),
-                    has_launch: z.boolean().describe('Get all documents that have a related launch.').optional(),
-                    is_featured: z.boolean().describe('Get all documents that are featured.').optional(),
-                    launch: z
-                        .array(z.string())
-                        .describe(
-                            'Search for all documents related to a specific launch using its Launch Library 2 ID.'
-                        )
-                        .optional(),
-                    limit: z
-                        .number()
-                        .describe('Number of results per page (default 10, max 10). (example: 10)')
-                        .optional(),
-                    news_site: z
-                        .string()
-                        .describe(
-                            'Search for documents with a news_site__name present in a list of comma-separated values. Case insensitive.'
-                        )
-                        .optional(),
-                    news_site_exclude: z
-                        .string()
-                        .describe(
-                            'Search for documents with a news_site__name not present in a list of comma-separated values. Case insensitive.'
-                        )
-                        .optional(),
-                    offset: z.number().describe('The initial index from which to return the results.').optional(),
-                    ordering: z
-                        .array(
-                            z.union([
-                                z.literal('-published_at'),
-                                z.literal('-updated_at'),
-                                z.literal('published_at'),
-                                z.literal('updated_at')
-                            ])
-                        )
-                        .describe(
-                            'Order the result on `published_at, -published_at, updated_at, -updated_at`.\n\n* `published_at` - Published at\n* `-published_at` - Published at (descending)\n* `updated_at` - Updated at\n* `-updated_at` - Updated at (descending)'
-                        )
-                        .optional(),
-                    published_at_gt: z
-                        .string()
-                        .describe('Get all documents published after a given ISO8601 timestamp (excluded).')
-                        .optional(),
-                    published_at_gte: z
-                        .string()
-                        .describe('Get all documents published after a given ISO8601 timestamp (included).')
-                        .optional(),
-                    published_at_lt: z
-                        .string()
-                        .describe('Get all documents published before a given ISO8601 timestamp (excluded).')
-                        .optional(),
-                    published_at_lte: z
-                        .string()
-                        .describe('Get all documents published before a given ISO8601 timestamp (included).')
-                        .optional(),
-                    search: z
-                        .string()
-                        .describe('Search for documents with a specific phrase in the title or summary.')
-                        .optional(),
-                    summary_contains: z
-                        .string()
-                        .describe('Search for all documents with a specific phrase in the summary.')
-                        .optional(),
-                    summary_contains_all: z
-                        .string()
-                        .describe(
-                            'Search for documents with a summary containing all keywords from comma-separated values.'
-                        )
-                        .optional(),
-                    summary_contains_one: z
-                        .string()
-                        .describe(
-                            'Search for documents with a summary containing at least one keyword from comma-separated values.'
-                        )
-                        .optional(),
-                    title_contains: z
-                        .string()
-                        .describe('Search for all documents with a specific phrase in the title.')
-                        .optional(),
-                    title_contains_all: z
-                        .string()
-                        .describe(
-                            'Search for documents with a title containing all keywords from comma-separated values.'
-                        )
-                        .optional(),
-                    title_contains_one: z
-                        .string()
-                        .describe(
-                            'Search for documents with a title containing at least one keyword from comma-separated values.'
-                        )
-                        .optional(),
-                    updated_at_gt: z
-                        .string()
-                        .describe('Get all documents updated after a given ISO8601 timestamp (excluded).')
-                        .optional(),
-                    updated_at_gte: z
-                        .string()
-                        .describe('Get all documents updated after a given ISO8601 timestamp (included).')
-                        .optional(),
-                    updated_at_lt: z
-                        .string()
-                        .describe('Get all documents updated before a given ISO8601 timestamp (excluded).')
-                        .optional(),
-                    updated_at_lte: z
-                        .string()
-                        .describe('Get all documents updated before a given ISO8601 timestamp (included).')
-                        .optional()
-                })
-                .strict()
-                .describe('Query parameters from OpenAPI.')
+            has_event: z
+                .union([z.boolean(), z.literal('true'), z.literal('false')])
+                .describe('Get all documents that have a related event.')
+                .optional(),
+            has_launch: z
+                .union([z.boolean(), z.literal('true'), z.literal('false')])
+                .describe('Get all documents that have a related launch.')
+                .optional(),
+            is_featured: z
+                .union([z.boolean(), z.literal('true'), z.literal('false')])
+                .describe('Get all documents that are featured.')
+                .optional(),
+            launch: z
+                .union([z.array(z.string()), z.string()])
+                .describe('Search for all documents related to a specific launch using its Launch Library 2 ID.')
+                .optional(),
+            limit: z
+                .union([z.number().int(), z.string()])
+                .describe('Number of results per page (default 10, max 10). (example: 10)')
+                .optional(),
+            news_site: z
+                .string()
+                .describe(
+                    'Search for documents with a news_site__name present in a list of comma-separated values. Case insensitive.'
+                )
+                .optional(),
+            news_site_exclude: z
+                .string()
+                .describe(
+                    'Search for documents with a news_site__name not present in a list of comma-separated values. Case insensitive.'
+                )
+                .optional(),
+            offset: z
+                .union([z.number().int(), z.string()])
+                .describe('The initial index from which to return the results.')
+                .optional(),
+            ordering: z
+                .union([
+                    z.array(
+                        z.union([
+                            z.literal('-published_at'),
+                            z.literal('-updated_at'),
+                            z.literal('published_at'),
+                            z.literal('updated_at')
+                        ])
+                    ),
+                    z.string()
+                ])
+                .describe(
+                    'Order the result on `published_at, -published_at, updated_at, -updated_at`.\n\n* `published_at` - Published at\n* `-published_at` - Published at (descending)\n* `updated_at` - Updated at\n* `-updated_at` - Updated at (descending)'
+                )
+                .optional(),
+            published_at_gt: z
+                .string()
+                .describe('Get all documents published after a given ISO8601 timestamp (excluded).')
+                .optional(),
+            published_at_gte: z
+                .string()
+                .describe('Get all documents published after a given ISO8601 timestamp (included).')
+                .optional(),
+            published_at_lt: z
+                .string()
+                .describe('Get all documents published before a given ISO8601 timestamp (excluded).')
+                .optional(),
+            published_at_lte: z
+                .string()
+                .describe('Get all documents published before a given ISO8601 timestamp (included).')
+                .optional(),
+            search: z
+                .string()
+                .describe('Search for documents with a specific phrase in the title or summary.')
+                .optional(),
+            summary_contains: z
+                .string()
+                .describe('Search for all documents with a specific phrase in the summary.')
+                .optional(),
+            summary_contains_all: z
+                .string()
+                .describe('Search for documents with a summary containing all keywords from comma-separated values.')
+                .optional(),
+            summary_contains_one: z
+                .string()
+                .describe(
+                    'Search for documents with a summary containing at least one keyword from comma-separated values.'
+                )
+                .optional(),
+            title_contains: z
+                .string()
+                .describe('Search for all documents with a specific phrase in the title.')
+                .optional(),
+            title_contains_all: z
+                .string()
+                .describe('Search for documents with a title containing all keywords from comma-separated values.')
+                .optional(),
+            title_contains_one: z
+                .string()
+                .describe(
+                    'Search for documents with a title containing at least one keyword from comma-separated values.'
+                )
+                .optional(),
+            updated_at_gt: z
+                .string()
+                .describe('Get all documents updated after a given ISO8601 timestamp (excluded).')
+                .optional(),
+            updated_at_gte: z
+                .string()
+                .describe('Get all documents updated after a given ISO8601 timestamp (included).')
+                .optional(),
+            updated_at_lt: z
+                .string()
+                .describe('Get all documents updated before a given ISO8601 timestamp (excluded).')
+                .optional(),
+            updated_at_lte: z
+                .string()
+                .describe('Get all documents updated before a given ISO8601 timestamp (included).')
                 .optional(),
             headers: z.record(z.string(), z.string()).describe('Optional extra headers.').optional(),
             body: z
@@ -408,14 +399,7 @@ export const inputZodByTool = {
         .describe('Arguments for invoking the generated HTTP wrapper.'),
     getSpaceflightBlogById: z
         .object({
-            pathParams: z
-                .object({ id: z.number().describe('A unique integer value identifying this blog.') })
-                .strict()
-                .describe('Path parameters from OpenAPI.'),
-            query: z
-                .record(z.string(), z.union([z.string(), z.number(), z.boolean()]))
-                .describe('Optional query overrides.')
-                .optional(),
+            id: z.union([z.number().int(), z.string()]).describe('A unique integer value identifying this blog.'),
             headers: z.record(z.string(), z.string()).describe('Optional extra headers.').optional(),
             body: z
                 .record(z.string(), z.union([z.string(), z.number(), z.boolean()]))
@@ -426,113 +410,105 @@ export const inputZodByTool = {
         .describe('Arguments for invoking the generated HTTP wrapper.'),
     listSpaceflightReports: z
         .object({
-            pathParams: z
-                .record(z.string(), z.union([z.string(), z.number(), z.boolean()]))
-                .describe('No path parameters.')
+            limit: z
+                .union([z.number().int(), z.string()])
+                .describe('Number of results per page (default 10, max 10). (example: 10)')
                 .optional(),
-            query: z
-                .object({
-                    limit: z
-                        .number()
-                        .describe('Number of results per page (default 10, max 10). (example: 10)')
-                        .optional(),
-                    news_site: z
-                        .string()
-                        .describe(
-                            'Search for documents with a news_site__name present in a list of comma-separated values. Case insensitive.'
-                        )
-                        .optional(),
-                    news_site_exclude: z
-                        .string()
-                        .describe(
-                            'Search for documents with a news_site__name not present in a list of comma-separated values. Case insensitive.'
-                        )
-                        .optional(),
-                    offset: z.number().describe('The initial index from which to return the results.').optional(),
-                    ordering: z
-                        .array(
-                            z.union([
-                                z.literal('-published_at'),
-                                z.literal('-updated_at'),
-                                z.literal('published_at'),
-                                z.literal('updated_at')
-                            ])
-                        )
-                        .describe(
-                            'Order the result on `published_at, -published_at, updated_at, -updated_at`.\n\n* `published_at` - Published at\n* `-published_at` - Published at (descending)\n* `updated_at` - Updated at\n* `-updated_at` - Updated at (descending)'
-                        )
-                        .optional(),
-                    published_at_gt: z
-                        .string()
-                        .describe('Get all documents published after a given ISO8601 timestamp (excluded).')
-                        .optional(),
-                    published_at_gte: z
-                        .string()
-                        .describe('Get all documents published after a given ISO8601 timestamp (included).')
-                        .optional(),
-                    published_at_lt: z
-                        .string()
-                        .describe('Get all documents published before a given ISO8601 timestamp (excluded).')
-                        .optional(),
-                    published_at_lte: z
-                        .string()
-                        .describe('Get all documents published before a given ISO8601 timestamp (included).')
-                        .optional(),
-                    search: z
-                        .string()
-                        .describe('Search for documents with a specific phrase in the title or summary.')
-                        .optional(),
-                    summary_contains: z
-                        .string()
-                        .describe('Search for all documents with a specific phrase in the summary.')
-                        .optional(),
-                    summary_contains_all: z
-                        .string()
-                        .describe(
-                            'Search for documents with a summary containing all keywords from comma-separated values.'
-                        )
-                        .optional(),
-                    summary_contains_one: z
-                        .string()
-                        .describe(
-                            'Search for documents with a summary containing at least one keyword from comma-separated values.'
-                        )
-                        .optional(),
-                    title_contains: z
-                        .string()
-                        .describe('Search for all documents with a specific phrase in the title.')
-                        .optional(),
-                    title_contains_all: z
-                        .string()
-                        .describe(
-                            'Search for documents with a title containing all keywords from comma-separated values.'
-                        )
-                        .optional(),
-                    title_contains_one: z
-                        .string()
-                        .describe(
-                            'Search for documents with a title containing at least one keyword from comma-separated values.'
-                        )
-                        .optional(),
-                    updated_at_gt: z
-                        .string()
-                        .describe('Get all documents updated after a given ISO8601 timestamp (excluded).')
-                        .optional(),
-                    updated_at_gte: z
-                        .string()
-                        .describe('Get all documents updated after a given ISO8601 timestamp (included).')
-                        .optional(),
-                    updated_at_lt: z
-                        .string()
-                        .describe('Get all documents updated before a given ISO8601 timestamp (excluded).')
-                        .optional(),
-                    updated_at_lte: z
-                        .string()
-                        .describe('Get all documents updated before a given ISO8601 timestamp (included).')
-                        .optional()
-                })
-                .strict()
-                .describe('Query parameters from OpenAPI.')
+            news_site: z
+                .string()
+                .describe(
+                    'Search for documents with a news_site__name present in a list of comma-separated values. Case insensitive.'
+                )
+                .optional(),
+            news_site_exclude: z
+                .string()
+                .describe(
+                    'Search for documents with a news_site__name not present in a list of comma-separated values. Case insensitive.'
+                )
+                .optional(),
+            offset: z
+                .union([z.number().int(), z.string()])
+                .describe('The initial index from which to return the results.')
+                .optional(),
+            ordering: z
+                .union([
+                    z.array(
+                        z.union([
+                            z.literal('-published_at'),
+                            z.literal('-updated_at'),
+                            z.literal('published_at'),
+                            z.literal('updated_at')
+                        ])
+                    ),
+                    z.string()
+                ])
+                .describe(
+                    'Order the result on `published_at, -published_at, updated_at, -updated_at`.\n\n* `published_at` - Published at\n* `-published_at` - Published at (descending)\n* `updated_at` - Updated at\n* `-updated_at` - Updated at (descending)'
+                )
+                .optional(),
+            published_at_gt: z
+                .string()
+                .describe('Get all documents published after a given ISO8601 timestamp (excluded).')
+                .optional(),
+            published_at_gte: z
+                .string()
+                .describe('Get all documents published after a given ISO8601 timestamp (included).')
+                .optional(),
+            published_at_lt: z
+                .string()
+                .describe('Get all documents published before a given ISO8601 timestamp (excluded).')
+                .optional(),
+            published_at_lte: z
+                .string()
+                .describe('Get all documents published before a given ISO8601 timestamp (included).')
+                .optional(),
+            search: z
+                .string()
+                .describe('Search for documents with a specific phrase in the title or summary.')
+                .optional(),
+            summary_contains: z
+                .string()
+                .describe('Search for all documents with a specific phrase in the summary.')
+                .optional(),
+            summary_contains_all: z
+                .string()
+                .describe('Search for documents with a summary containing all keywords from comma-separated values.')
+                .optional(),
+            summary_contains_one: z
+                .string()
+                .describe(
+                    'Search for documents with a summary containing at least one keyword from comma-separated values.'
+                )
+                .optional(),
+            title_contains: z
+                .string()
+                .describe('Search for all documents with a specific phrase in the title.')
+                .optional(),
+            title_contains_all: z
+                .string()
+                .describe('Search for documents with a title containing all keywords from comma-separated values.')
+                .optional(),
+            title_contains_one: z
+                .string()
+                .describe(
+                    'Search for documents with a title containing at least one keyword from comma-separated values.'
+                )
+                .optional(),
+            updated_at_gt: z
+                .string()
+                .describe('Get all documents updated after a given ISO8601 timestamp (excluded).')
+                .optional(),
+            updated_at_gte: z
+                .string()
+                .describe('Get all documents updated after a given ISO8601 timestamp (included).')
+                .optional(),
+            updated_at_lt: z
+                .string()
+                .describe('Get all documents updated before a given ISO8601 timestamp (excluded).')
+                .optional(),
+            updated_at_lte: z
+                .string()
+                .describe('Get all documents updated before a given ISO8601 timestamp (included).')
                 .optional(),
             headers: z.record(z.string(), z.string()).describe('Optional extra headers.').optional(),
             body: z
@@ -544,14 +520,7 @@ export const inputZodByTool = {
         .describe('Arguments for invoking the generated HTTP wrapper.'),
     getSpaceflightReportById: z
         .object({
-            pathParams: z
-                .object({ id: z.number().describe('A unique integer value identifying this report.') })
-                .strict()
-                .describe('Path parameters from OpenAPI.'),
-            query: z
-                .record(z.string(), z.union([z.string(), z.number(), z.boolean()]))
-                .describe('Optional query overrides.')
-                .optional(),
+            id: z.union([z.number().int(), z.string()]).describe('A unique integer value identifying this report.'),
             headers: z.record(z.string(), z.string()).describe('Optional extra headers.').optional(),
             body: z
                 .record(z.string(), z.union([z.string(), z.number(), z.boolean()]))
@@ -562,14 +531,6 @@ export const inputZodByTool = {
         .describe('Arguments for invoking the generated HTTP wrapper.'),
     getSpaceflightInfo: z
         .object({
-            pathParams: z
-                .record(z.string(), z.union([z.string(), z.number(), z.boolean()]))
-                .describe('No path parameters.')
-                .optional(),
-            query: z
-                .record(z.string(), z.union([z.string(), z.number(), z.boolean()]))
-                .describe('Optional query overrides.')
-                .optional(),
             headers: z.record(z.string(), z.string()).describe('Optional extra headers.').optional(),
             body: z
                 .record(z.string(), z.union([z.string(), z.number(), z.boolean()]))
@@ -580,6 +541,339 @@ export const inputZodByTool = {
         .describe('Arguments for invoking the generated HTTP wrapper.')
 };
 
+const invokeParamBucketsByTool = {
+    listSpaceflightArticles: {
+        pathParams: [],
+        query: [
+            'event',
+            'has_event',
+            'has_launch',
+            'is_featured',
+            'launch',
+            'limit',
+            'news_site',
+            'news_site_exclude',
+            'offset',
+            'ordering',
+            'published_at_gt',
+            'published_at_gte',
+            'published_at_lt',
+            'published_at_lte',
+            'search',
+            'summary_contains',
+            'summary_contains_all',
+            'summary_contains_one',
+            'title_contains',
+            'title_contains_all',
+            'title_contains_one',
+            'updated_at_gt',
+            'updated_at_gte',
+            'updated_at_lt',
+            'updated_at_lte'
+        ],
+        headers: [],
+        arrayQuery: ['event', 'launch', 'ordering']
+    },
+    getSpaceflightArticleById: {
+        pathParams: ['id'],
+        query: [],
+        headers: [],
+        arrayQuery: []
+    },
+    listSpaceflightBlogs: {
+        pathParams: [],
+        query: [
+            'event',
+            'has_event',
+            'has_launch',
+            'is_featured',
+            'launch',
+            'limit',
+            'news_site',
+            'news_site_exclude',
+            'offset',
+            'ordering',
+            'published_at_gt',
+            'published_at_gte',
+            'published_at_lt',
+            'published_at_lte',
+            'search',
+            'summary_contains',
+            'summary_contains_all',
+            'summary_contains_one',
+            'title_contains',
+            'title_contains_all',
+            'title_contains_one',
+            'updated_at_gt',
+            'updated_at_gte',
+            'updated_at_lt',
+            'updated_at_lte'
+        ],
+        headers: [],
+        arrayQuery: ['event', 'launch', 'ordering']
+    },
+    getSpaceflightBlogById: {
+        pathParams: ['id'],
+        query: [],
+        headers: [],
+        arrayQuery: []
+    },
+    listSpaceflightReports: {
+        pathParams: [],
+        query: [
+            'limit',
+            'news_site',
+            'news_site_exclude',
+            'offset',
+            'ordering',
+            'published_at_gt',
+            'published_at_gte',
+            'published_at_lt',
+            'published_at_lte',
+            'search',
+            'summary_contains',
+            'summary_contains_all',
+            'summary_contains_one',
+            'title_contains',
+            'title_contains_all',
+            'title_contains_one',
+            'updated_at_gt',
+            'updated_at_gte',
+            'updated_at_lt',
+            'updated_at_lte'
+        ],
+        headers: [],
+        arrayQuery: ['ordering']
+    },
+    getSpaceflightReportById: {
+        pathParams: ['id'],
+        query: [],
+        headers: [],
+        arrayQuery: []
+    },
+    getSpaceflightInfo: {
+        pathParams: [],
+        query: [],
+        headers: [],
+        arrayQuery: []
+    }
+};
+const invokeBodySchemaByTool = {};
+
+function coerceInvokeScalar(value: string | number | boolean): string | number | boolean {
+    if (typeof value === 'string') {
+        const trimmed = value.trim();
+        if (trimmed === 'true') {
+            return true;
+        }
+        if (trimmed === 'false') {
+            return false;
+        }
+        if (/^-?\d+(\.\d+)?([eE][+-]?\d+)?$/.test(trimmed)) {
+            const parsed = Number(trimmed);
+            if (Number.isFinite(parsed)) {
+                return parsed;
+            }
+        }
+    }
+    return value;
+}
+
+function coerceInvokePathBucket(
+    bucket: Record<string, string | number | boolean> | undefined
+): Record<string, string | number | boolean> | undefined {
+    if (!bucket) {
+        return undefined;
+    }
+    const out: Record<string, string | number | boolean> = {};
+    for (const [key, value] of Object.entries(bucket)) {
+        if (value === undefined || value === null) {
+            continue;
+        }
+        out[key] = coerceInvokeScalar(value);
+    }
+    return Object.keys(out).length > 0 ? out : undefined;
+}
+
+function coerceInvokeQueryArrayValue(value: string): ReadonlyArray<string | number | boolean> {
+    return value
+        .split(',')
+        .map((part) => part.trim())
+        .filter((part) => part.length > 0)
+        .map((part) => coerceInvokeScalar(part));
+}
+
+function coerceInvokeQueryBucket(toolName: string, bucket: InvokeOptions['query']): InvokeOptions['query'] {
+    if (!bucket) {
+        return undefined;
+    }
+    const arrayQueryKeys = new Set(
+        (invokeParamBucketsByTool as Record<string, { arrayQuery?: string[] }>)[toolName]?.arrayQuery ?? []
+    );
+    const out: Record<string, string | number | boolean | ReadonlyArray<string | number | boolean>> = {};
+    for (const [key, value] of Object.entries(bucket)) {
+        if (value === undefined || value === null) {
+            continue;
+        }
+        if (Array.isArray(value)) {
+            out[key] = value.map((element) => coerceInvokeScalar(element));
+            continue;
+        }
+        if (arrayQueryKeys.has(key) && typeof value === 'string') {
+            out[key] = coerceInvokeQueryArrayValue(value);
+            continue;
+        }
+        out[key] = coerceInvokeScalar(value as string | number | boolean);
+    }
+    return Object.keys(out).length > 0 ? out : undefined;
+}
+
+function coerceInvokeValueBySchema(value: unknown, schema: Record<string, unknown> | undefined): unknown {
+    if (!schema || value === undefined || value === null) {
+        return value;
+    }
+    const type = schema.type;
+    if (type === 'integer' || type === 'number') {
+        if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
+            return coerceInvokeScalar(value as string | number | boolean);
+        }
+        return value;
+    }
+    if (type === 'boolean') {
+        if (typeof value === 'boolean') {
+            return value;
+        }
+        if (typeof value === 'string') {
+            const trimmed = value.trim();
+            if (trimmed === 'true') {
+                return true;
+            }
+            if (trimmed === 'false') {
+                return false;
+            }
+        }
+        return value;
+    }
+    if (type === 'array') {
+        const items = schema.items as Record<string, unknown> | undefined;
+        if (typeof value === 'string') {
+            return value
+                .split(',')
+                .map((part) => part.trim())
+                .filter((part) => part.length > 0)
+                .map((part) => (items ? coerceInvokeValueBySchema(part, items) : coerceInvokeScalar(part)));
+        }
+        if (Array.isArray(value)) {
+            return value.map((element) =>
+                items
+                    ? coerceInvokeValueBySchema(element, items)
+                    : coerceInvokeScalar(element as string | number | boolean)
+            );
+        }
+        return value;
+    }
+    if (
+        type === 'object' &&
+        schema.properties &&
+        typeof schema.properties === 'object' &&
+        !Array.isArray(schema.properties) &&
+        typeof value === 'object' &&
+        value !== null &&
+        !Array.isArray(value)
+    ) {
+        const props = schema.properties as Record<string, Record<string, unknown>>;
+        const out: Record<string, unknown> = {};
+        for (const [key, element] of Object.entries(value as Record<string, unknown>)) {
+            if (element === undefined || element === null) {
+                continue;
+            }
+            const propSchema = props[key];
+            out[key] = propSchema ? coerceInvokeValueBySchema(element, propSchema) : element;
+        }
+        return out;
+    }
+    return value;
+}
+
+function coerceInvokeBody(toolName: string, body: unknown): unknown {
+    if (body === undefined || body === null) {
+        return body;
+    }
+    const schema = (invokeBodySchemaByTool as Record<string, Record<string, unknown> | undefined>)[toolName];
+    if (!schema) {
+        return body;
+    }
+    return coerceInvokeValueBySchema(body, schema);
+}
+
+function normalizeInvokeOptions(toolName: string, options: InvokeOptions): InvokeOptions {
+    const buckets = (
+        invokeParamBucketsByTool as Record<
+            string,
+            { pathParams?: string[]; query?: string[]; headers?: string[]; arrayQuery?: string[] }
+        >
+    )[toolName];
+    if (!buckets) {
+        return options;
+    }
+    const pathKeys = buckets.pathParams ?? [];
+    const queryKeys = buckets.query ?? [];
+    const headerKeys = buckets.headers ?? [];
+    const arrayQueryKeys = new Set(buckets.arrayQuery ?? []);
+    const knownFlatKeys = new Set([...pathKeys, ...queryKeys, ...headerKeys]);
+    const hasTopLevelFlatParam = Object.keys(options).some(
+        (key) =>
+            key !== 'body' && key !== 'headers' && key !== 'pathParams' && key !== 'query' && knownFlatKeys.has(key)
+    );
+    if (!hasTopLevelFlatParam) {
+        return {
+            ...options,
+            pathParams: coerceInvokePathBucket(options.pathParams),
+            query: coerceInvokeQueryBucket(toolName, options.query),
+            body: coerceInvokeBody(toolName, options.body)
+        };
+    }
+
+    const pathParams: Record<string, string | number | boolean> = { ...(options.pathParams ?? {}) };
+    const query: Record<string, string | number | boolean | ReadonlyArray<string | number | boolean>> = {
+        ...(options.query ?? {})
+    };
+    const headers: Record<string, string> =
+        options.headers && typeof options.headers === 'object' ? { ...options.headers } : {};
+
+    for (const [key, value] of Object.entries(options)) {
+        if (value === undefined || value === null) {
+            continue;
+        }
+        if (key === 'body' || key === 'pathParams' || key === 'query') {
+            continue;
+        }
+        if (key === 'headers') {
+            if (headerKeys.length === 0 && typeof value === 'object' && !Array.isArray(value)) {
+                Object.assign(headers, value as Record<string, string>);
+            }
+            continue;
+        }
+        if (pathKeys.includes(key)) {
+            pathParams[key] = value as string | number | boolean;
+        } else if (queryKeys.includes(key)) {
+            if (arrayQueryKeys.has(key) && typeof value === 'string') {
+                query[key] = coerceInvokeQueryArrayValue(value);
+            } else {
+                query[key] = value as string | number | boolean | ReadonlyArray<string | number | boolean>;
+            }
+        } else if (headerKeys.includes(key)) {
+            headers[key] = String(value);
+        }
+    }
+
+    return {
+        pathParams: coerceInvokePathBucket(pathParams),
+        query: coerceInvokeQueryBucket(toolName, query),
+        headers: Object.keys(headers).length > 0 ? headers : undefined,
+        body: coerceInvokeBody(toolName, options.body)
+    };
+}
 const queryParamSerializationByTool = {
     listSpaceflightArticles: {
         event: {
@@ -935,20 +1229,20 @@ export async function invokeTool(
         throw new Error('Unknown tool: ' + toolName);
     }
     loggingAdapter.debug('invokeTool', { toolName, method: tool.method, path: tool.path });
+    let optionsResolved = normalizeInvokeOptions(toolName, options);
 
     if (hostContext === undefined) {
         throw new Error('invokeTool requires hostContext from the MCP host (stdio-mcp-server or http-mcp-server).');
     }
     const host = hostContext as ApiHostContext;
     const { baseUrl } = host;
-    let optionsResolved = options;
 
     if (tool.hasPrepare) {
         const prepare = preparers[toolName];
         if (typeof prepare !== 'function') {
             throw new Error('No preparer for tool: ' + toolName);
         }
-        optionsResolved = await Promise.resolve(prepare(options));
+        optionsResolved = await Promise.resolve(prepare(optionsResolved));
     }
     const normalizedBaseUrl = baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl;
     const pathParams = { ...(optionsResolved.pathParams ?? {}) };

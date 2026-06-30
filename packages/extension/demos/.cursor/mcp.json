@@ -1,62 +1,16 @@
 {
     "mcpServers": {
         "open-meteo": {
-            "command": "node",
-            "cwd": "${workspaceFolder}",
-            "args": [
-                "generated/api2ai/cli/stdio-mcp-server.js",
-                "generated/api2ai/tools/open-meteo-tools.js",
-                "--base-url-env",
-                "OPEN_METEO_BASE_URL"
-            ],
-            "env": {
-                "OPEN_METEO_BASE_URL": "https://api.open-meteo.com"
-            }
+            "url": "http://127.0.0.1:3850/mcp"
         },
         "open-meteo-geocoding": {
-            "command": "node",
-            "cwd": "${workspaceFolder}",
-            "args": [
-                "generated/api2ai/cli/stdio-mcp-server.js",
-                "generated/api2ai/tools/open-meteo-geocoding-tools.js",
-                "--base-url-env",
-                "OPEN_METEO_GEOCODING_BASE_URL"
-            ],
-            "env": {
-                "OPEN_METEO_GEOCODING_BASE_URL": "https://geocoding-api.open-meteo.com"
-            }
+            "url": "http://127.0.0.1:3851/mcp"
         },
         "github": {
-            "command": "node",
-            "cwd": "${workspaceFolder}",
-            "envFile": ".env.local",
-            "args": [
-                "generated/api2ai/cli/stdio-mcp-server.js",
-                "generated/api2ai/tools/github-tools.js",
-                "--base-url-env",
-                "GITHUB_BASE_URL",
-                "--auth-env",
-                "GITHUB_TOKEN"
-            ],
-            "env": {
-                "GITHUB_BASE_URL": "https://api.github.com"
-            }
+            "url": "http://127.0.0.1:3854/mcp"
         },
         "tmdb": {
-            "command": "node",
-            "cwd": "${workspaceFolder}",
-            "envFile": ".env.local",
-            "args": [
-                "generated/api2ai/cli/stdio-mcp-server.js",
-                "generated/api2ai/tools/tmdb-tools.js",
-                "--base-url-env",
-                "TMDB_BASE_URL",
-                "--auth-env",
-                "TMDB_ACCESS_TOKEN"
-            ],
-            "env": {
-                "TMDB_BASE_URL": "https://api.themoviedb.org"
-            }
+            "url": "http://127.0.0.1:3855/mcp"
         },
         "spaceflight-news": {
             "url": "http://127.0.0.1:3849/mcp"

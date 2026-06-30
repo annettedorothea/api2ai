@@ -14,11 +14,11 @@ Diese Regel gilt, wenn die Nutzeranfrage mit `api2ai` beginnt.
 - Der Nutzer verwaltet Credentials selbst. Du darfst hoechstens **allgemein** sagen, welche Variable betroffen ist (z. B. `GITHUB_TOKEN`, `TMDB_ACCESS_TOKEN`) und dass der Nutzer sie bei Bedarf selbst setzen muss.
 - **bookings / cakes:** Cursor OAuth / Sign-in — kein Token in Env schreiben.
 - **todo:** Demo-API-Key in `headers.x-api-token` in `mcp.json` (Upstream `x-api-key`).
-- **tmdb / github:** Token in `.env.local`.
+- **github / tmdb:** Token in `.env.local`; HTTP host reads via `--auth-env` (no token in `mcp.json`).
 
 ## Auth-Fehler: Fehler melden, nicht umgehen
 
-- MCP-Server mit `--auth-env` nutzen **ausschliesslich** das vom Host injizierte Token — optionale `headers.Authorization` sind **kein** Ersatz.
+- MCP-Server mit `--auth-env` (stdio oder passthrough HTTP) nutzen **ausschliesslich** das vom Host injizierte Token — optionale `headers.Authorization` sind **kein** Ersatz.
 - Schlaegt ein authentifizierter MCP-Call fehl (z. B. `401`, `403`, „customerId does not match JWT claim“):
   - **Fehler woertlich** an den Nutzer melden,
   - **sofort stoppen** — keinen zweiten Versuch mit anderem `customerId` oder anderem OAuth-Account als Workaround,

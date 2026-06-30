@@ -16,7 +16,6 @@ function main() {
     if (!name || !HTTP_DEMOS[name]) {
         console.error(`Usage: node scripts/start-mcp-http.mjs <${HTTP_DEMO_NAMES.join('|')}>`);
         console.error('All hosts (background): node ./scripts/start-mcp-http-all.mjs');
-        console.error('stdio-only (secrets): tmdb, github in mcp.json.');
         process.exit(1);
     }
 

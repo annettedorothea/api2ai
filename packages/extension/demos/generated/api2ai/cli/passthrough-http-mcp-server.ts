@@ -299,6 +299,7 @@ function writeJsonRpcMethodNotAllowed(res: ServerResponse): void {
 
 type HttpMcpHostRuntimeConfig = {
     baseUrlEnvKey?: string;
+    authEnvKey?: string;
     envDirs: string[];
     listenHost: string;
     port: number;
@@ -307,6 +308,7 @@ type HttpMcpHostRuntimeConfig = {
 
 function parseHttpMcpHostArgv(argv: string[], envDirs: string[]): HttpMcpHostRuntimeConfig {
     let baseUrlEnv: string | undefined;
+    let authEnv: string | undefined;
     let listenHost = '127.0.0.1';
     let port: number | undefined;
     let mcpPath = '/mcp';
@@ -316,6 +318,13 @@ function parseHttpMcpHostArgv(argv: string[], envDirs: string[]): HttpMcpHostRun
             baseUrlEnv = argv[++i];
             if (!baseUrlEnv) {
                 throw new Error('Missing value after --base-url-env');
+            }
+            continue;
+        }
+        if (arg === '--auth-env') {
+            authEnv = argv[++i];
+            if (!authEnv) {
+                throw new Error('Missing value after --auth-env');
             }
             continue;
         }
@@ -357,11 +366,21 @@ function parseHttpMcpHostArgv(argv: string[], envDirs: string[]): HttpMcpHostRun
     }
     return {
         baseUrlEnvKey: baseUrlEnv,
+        authEnvKey: authEnv,
         envDirs,
         listenHost,
         port,
         mcpPath
     };
+}
+
+function readCredentialFromEnv(authEnvKey: string | undefined): string | undefined {
+    const key = authEnvKey?.trim();
+    if (!key) {
+        return undefined;
+    }
+    const value = process.env[key]?.trim();
+    return value && value.length > 0 ? value : undefined;
 }
 
 const DEFAULT_MCP_AUTH_HEADER = 'x-api-token';
@@ -405,7 +424,10 @@ async function resolveHostContextForHttpCall(
     incomingHeaders: Record<string, string | string[] | undefined>
 ): Promise<ApiLikeHostContext> {
     const headerName = readAuthHeaderNameFromEnv();
-    const credential = readCredentialFromHttpHeaders(incomingHeaders, headerName);
+    let credential = readCredentialFromHttpHeaders(incomingHeaders, headerName);
+    if (!credential?.trim()) {
+        credential = readCredentialFromEnv(httpHostConfig.authEnvKey);
+    }
     const { credential: c } = resolveRelayHostCredential(credential);
 
     const baseUrlKey = httpHostConfig.baseUrlEnvKey?.trim();

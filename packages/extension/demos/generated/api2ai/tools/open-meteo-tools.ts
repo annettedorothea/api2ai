@@ -21,7 +21,7 @@ export const generatedTools: GeneratedTool[] = [
         toolName: 'openMeteoForecast',
         title: '7 day weather forecast for coordinates',
         description:
-            'Intent:\nretrieve hourly weather forecast for coordinates\n\nAPI:\n- Fetch up to 7 days of weather forecast for fixed WGS84 coordinates (query: latitude, longitude).\n        - Supports hourly and daily aggregates; request only the variables needed (e.g. temperature_2m, precipitation_sum, weather_code).\n        - Prefer small hourly/daily arrays to keep MCP responses compact and agent-focused.\n        - Optional: timezone (e.g. Europe/Berlin), temperature_unit, wind_speed_unit, current_weather for nowcast.\n        - Resolve place names to coordinates first via openMeteoGeocodeSearch (api2ai-open-meteo-geocoding), then call this tool.\n        - Public endpoint; no API key. OpenAPI operation text is overridden here for clearer agent guidance.\n\nMeta:\ntags: Weather Forecast APIs\n\nParameters:\n- current_weather (query)\n- daily (query)\n- hourly (query)\n- latitude (query): WGS84 coordinate\n- longitude (query): WGS84 coordinate\n- past_days (query): If `past_days` is set, yesterdays or the day before yesterdays data are also returned.\n- temperature_unit (query)\n- timeformat (query): If format `unixtime` is selected, all time values are returned in UNIX epoch time in seconds. Please not that all time is then in GMT+0! For daily values with unix timestamp, please apply `utc_offset_seconds` again to get the correct date.\n- timezone (query): If `timezone` is set, all timestamps are returned as local-time and data is returned starting at 0:00 local-time. Any time zone name from the [time zone database](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones) is supported.\n- wind_speed_unit (query)\n\nExample:\nGet hourly temperature forecast for Offenburg, Germany\n\nResponse:\nHTTP 200\nOK\nproperties (top-level): current_weather, daily, daily_units, elevation, generationtime_ms, hourly, hourly_units, latitude, longitude, utc_offset_seconds\nDocumented errors:\nHTTP 400 — Bad Request\n\nRuntime: public endpoint — no credential required.',
+            'Intent:\nretrieve hourly weather forecast for coordinates\n\nMCP arguments:\npass hourly, daily, latitude, longitude, current_weather, temperature_unit, wind_speed_unit, timeformat, timezone, past_days as top-level tool arguments. Do not nest path or query parameters under pathParams or query.\n\nAPI:\n- Fetch up to 7 days of weather forecast for fixed WGS84 coordinates (query: latitude, longitude).\n        - Supports hourly and daily aggregates; request only the variables needed (e.g. temperature_2m, precipitation_sum, weather_code).\n        - Prefer small hourly/daily arrays to keep MCP responses compact and agent-focused.\n        - Optional: timezone (e.g. Europe/Berlin), temperature_unit, wind_speed_unit, current_weather for nowcast.\n        - Resolve place names to coordinates first via openMeteoGeocodeSearch (api2ai-open-meteo-geocoding), then call this tool.\n        - Public endpoint; no API key. OpenAPI operation text is overridden here for clearer agent guidance.\n\nMeta:\ntags: Weather Forecast APIs\n\nParameters:\n- current_weather (query)\n- daily (query)\n- hourly (query)\n- latitude (query): WGS84 coordinate\n- longitude (query): WGS84 coordinate\n- past_days (query): If `past_days` is set, yesterdays or the day before yesterdays data are also returned.\n- temperature_unit (query)\n- timeformat (query): If format `unixtime` is selected, all time values are returned in UNIX epoch time in seconds. Please not that all time is then in GMT+0! For daily values with unix timestamp, please apply `utc_offset_seconds` again to get the correct date.\n- timezone (query): If `timezone` is set, all timestamps are returned as local-time and data is returned starting at 0:00 local-time. Any time zone name from the [time zone database](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones) is supported.\n- wind_speed_unit (query)\n\nExample:\nGet hourly temperature forecast for Offenburg, Germany\n\nResponse:\nHTTP 200\nOK\nproperties (top-level): current_weather, daily, daily_units, elevation, generationtime_ms, hourly, hourly_units, latitude, longitude, utc_offset_seconds\nDocumented errors:\nHTTP 400 — Bad Request\n\nRuntime: public endpoint — no credential required.',
         method: 'GET',
         path: '/v1/forecast',
         access: 'public',
@@ -53,105 +53,97 @@ export const mcpServerVersion = '0.5.0';
 export const inputZodByTool = {
     openMeteoForecast: z
         .object({
-            pathParams: z
-                .record(z.string(), z.union([z.string(), z.number(), z.boolean()]))
-                .describe('No path parameters.')
+            hourly: z
+                .union([
+                    z.array(
+                        z.union([
+                            z.literal('temperature_2m'),
+                            z.literal('relative_humidity_2m'),
+                            z.literal('dew_point_2m'),
+                            z.literal('apparent_temperature'),
+                            z.literal('pressure_msl'),
+                            z.literal('cloud_cover'),
+                            z.literal('cloud_cover_low'),
+                            z.literal('cloud_cover_mid'),
+                            z.literal('cloud_cover_high'),
+                            z.literal('wind_speed_10m'),
+                            z.literal('wind_speed_80m'),
+                            z.literal('wind_speed_120m'),
+                            z.literal('wind_speed_180m'),
+                            z.literal('wind_direction_10m'),
+                            z.literal('wind_direction_80m'),
+                            z.literal('wind_direction_120m'),
+                            z.literal('wind_direction_180m'),
+                            z.literal('wind_gusts_10m'),
+                            z.literal('shortwave_radiation'),
+                            z.literal('direct_radiation'),
+                            z.literal('direct_normal_irradiance'),
+                            z.literal('diffuse_radiation'),
+                            z.literal('vapour_pressure_deficit'),
+                            z.literal('evapotranspiration'),
+                            z.literal('precipitation'),
+                            z.literal('weather_code'),
+                            z.literal('snow_height'),
+                            z.literal('freezing_level_height'),
+                            z.literal('soil_temperature_0cm'),
+                            z.literal('soil_temperature_6cm'),
+                            z.literal('soil_temperature_18cm'),
+                            z.literal('soil_temperature_54cm'),
+                            z.literal('soil_moisture_0_1cm'),
+                            z.literal('soil_moisture_1_3cm'),
+                            z.literal('soil_moisture_3_9cm'),
+                            z.literal('soil_moisture_9_27cm'),
+                            z.literal('soil_moisture_27_81cm')
+                        ])
+                    ),
+                    z.string()
+                ])
                 .optional(),
-            query: z
-                .object({
-                    hourly: z
-                        .array(
-                            z.union([
-                                z.literal('temperature_2m'),
-                                z.literal('relative_humidity_2m'),
-                                z.literal('dew_point_2m'),
-                                z.literal('apparent_temperature'),
-                                z.literal('pressure_msl'),
-                                z.literal('cloud_cover'),
-                                z.literal('cloud_cover_low'),
-                                z.literal('cloud_cover_mid'),
-                                z.literal('cloud_cover_high'),
-                                z.literal('wind_speed_10m'),
-                                z.literal('wind_speed_80m'),
-                                z.literal('wind_speed_120m'),
-                                z.literal('wind_speed_180m'),
-                                z.literal('wind_direction_10m'),
-                                z.literal('wind_direction_80m'),
-                                z.literal('wind_direction_120m'),
-                                z.literal('wind_direction_180m'),
-                                z.literal('wind_gusts_10m'),
-                                z.literal('shortwave_radiation'),
-                                z.literal('direct_radiation'),
-                                z.literal('direct_normal_irradiance'),
-                                z.literal('diffuse_radiation'),
-                                z.literal('vapour_pressure_deficit'),
-                                z.literal('evapotranspiration'),
-                                z.literal('precipitation'),
-                                z.literal('weather_code'),
-                                z.literal('snow_height'),
-                                z.literal('freezing_level_height'),
-                                z.literal('soil_temperature_0cm'),
-                                z.literal('soil_temperature_6cm'),
-                                z.literal('soil_temperature_18cm'),
-                                z.literal('soil_temperature_54cm'),
-                                z.literal('soil_moisture_0_1cm'),
-                                z.literal('soil_moisture_1_3cm'),
-                                z.literal('soil_moisture_3_9cm'),
-                                z.literal('soil_moisture_9_27cm'),
-                                z.literal('soil_moisture_27_81cm')
-                            ])
-                        )
-                        .optional(),
-                    daily: z
-                        .array(
-                            z.union([
-                                z.literal('temperature_2m_max'),
-                                z.literal('temperature_2m_min'),
-                                z.literal('apparent_temperature_max'),
-                                z.literal('apparent_temperature_min'),
-                                z.literal('precipitation_sum'),
-                                z.literal('precipitation_hours'),
-                                z.literal('weather_code'),
-                                z.literal('sunrise'),
-                                z.literal('sunset'),
-                                z.literal('wind_speed_10m_max'),
-                                z.literal('wind_gusts_10m_max'),
-                                z.literal('wind_direction_10m_dominant'),
-                                z.literal('shortwave_radiation_sum'),
-                                z.literal('uv_index_max'),
-                                z.literal('uv_index_clear_sky_max'),
-                                z.literal('et0_fao_evapotranspiration')
-                            ])
-                        )
-                        .optional(),
-                    latitude: z.number().describe('WGS84 coordinate'),
-                    longitude: z.number().describe('WGS84 coordinate'),
-                    current_weather: z.boolean().optional(),
-                    temperature_unit: z.union([z.literal('celsius'), z.literal('fahrenheit')]).optional(),
-                    wind_speed_unit: z
-                        .union([z.literal('kmh'), z.literal('ms'), z.literal('mph'), z.literal('kn')])
-                        .optional(),
-                    timeformat: z
-                        .union([z.literal('iso8601'), z.literal('unixtime')])
-                        .describe(
-                            'If format `unixtime` is selected, all time values are returned in UNIX epoch time in seconds. Please not that all time is then in GMT+0! For daily values with unix timestamp, please apply `utc_offset_seconds` again to get the correct date.'
-                        )
-                        .optional(),
-                    timezone: z
-                        .string()
-                        .describe(
-                            'If `timezone` is set, all timestamps are returned as local-time and data is returned starting at 0:00 local-time. Any time zone name from the [time zone database](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones) is supported.'
-                        )
-                        .optional(),
-                    past_days: z
-                        .union([z.literal(1), z.literal(2)])
-                        .describe(
-                            'If `past_days` is set, yesterdays or the day before yesterdays data are also returned.'
-                        )
-                        .optional()
-                })
-                .strict()
-                .describe('Query parameters from OpenAPI.')
+            daily: z
+                .union([
+                    z.array(
+                        z.union([
+                            z.literal('temperature_2m_max'),
+                            z.literal('temperature_2m_min'),
+                            z.literal('apparent_temperature_max'),
+                            z.literal('apparent_temperature_min'),
+                            z.literal('precipitation_sum'),
+                            z.literal('precipitation_hours'),
+                            z.literal('weather_code'),
+                            z.literal('sunrise'),
+                            z.literal('sunset'),
+                            z.literal('wind_speed_10m_max'),
+                            z.literal('wind_gusts_10m_max'),
+                            z.literal('wind_direction_10m_dominant'),
+                            z.literal('shortwave_radiation_sum'),
+                            z.literal('uv_index_max'),
+                            z.literal('uv_index_clear_sky_max'),
+                            z.literal('et0_fao_evapotranspiration')
+                        ])
+                    ),
+                    z.string()
+                ])
+                .optional(),
+            latitude: z.union([z.number(), z.string()]).describe('WGS84 coordinate'),
+            longitude: z.union([z.number(), z.string()]).describe('WGS84 coordinate'),
+            current_weather: z.union([z.boolean(), z.literal('true'), z.literal('false')]).optional(),
+            temperature_unit: z.union([z.literal('celsius'), z.literal('fahrenheit')]).optional(),
+            wind_speed_unit: z.union([z.literal('kmh'), z.literal('ms'), z.literal('mph'), z.literal('kn')]).optional(),
+            timeformat: z
+                .union([z.literal('iso8601'), z.literal('unixtime')])
+                .describe(
+                    'If format `unixtime` is selected, all time values are returned in UNIX epoch time in seconds. Please not that all time is then in GMT+0! For daily values with unix timestamp, please apply `utc_offset_seconds` again to get the correct date.'
+                )
+                .optional(),
+            timezone: z
+                .string()
+                .describe(
+                    'If `timezone` is set, all timestamps are returned as local-time and data is returned starting at 0:00 local-time. Any time zone name from the [time zone database](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones) is supported.'
+                )
+                .optional(),
+            past_days: z
+                .union([z.literal(1), z.literal('1'), z.literal(2), z.literal('2')])
+                .describe('If `past_days` is set, yesterdays or the day before yesterdays data are also returned.')
                 .optional(),
             headers: z.record(z.string(), z.string()).describe('Optional extra headers.').optional(),
             body: z
@@ -163,6 +155,241 @@ export const inputZodByTool = {
         .describe('Arguments for invoking the generated HTTP wrapper.')
 };
 
+const invokeParamBucketsByTool = {
+    openMeteoForecast: {
+        pathParams: [],
+        query: [
+            'hourly',
+            'daily',
+            'latitude',
+            'longitude',
+            'current_weather',
+            'temperature_unit',
+            'wind_speed_unit',
+            'timeformat',
+            'timezone',
+            'past_days'
+        ],
+        headers: [],
+        arrayQuery: ['hourly', 'daily']
+    }
+};
+const invokeBodySchemaByTool = {};
+
+function coerceInvokeScalar(value: string | number | boolean): string | number | boolean {
+    if (typeof value === 'string') {
+        const trimmed = value.trim();
+        if (trimmed === 'true') {
+            return true;
+        }
+        if (trimmed === 'false') {
+            return false;
+        }
+        if (/^-?\d+(\.\d+)?([eE][+-]?\d+)?$/.test(trimmed)) {
+            const parsed = Number(trimmed);
+            if (Number.isFinite(parsed)) {
+                return parsed;
+            }
+        }
+    }
+    return value;
+}
+
+function coerceInvokePathBucket(
+    bucket: Record<string, string | number | boolean> | undefined
+): Record<string, string | number | boolean> | undefined {
+    if (!bucket) {
+        return undefined;
+    }
+    const out: Record<string, string | number | boolean> = {};
+    for (const [key, value] of Object.entries(bucket)) {
+        if (value === undefined || value === null) {
+            continue;
+        }
+        out[key] = coerceInvokeScalar(value);
+    }
+    return Object.keys(out).length > 0 ? out : undefined;
+}
+
+function coerceInvokeQueryArrayValue(value: string): ReadonlyArray<string | number | boolean> {
+    return value
+        .split(',')
+        .map((part) => part.trim())
+        .filter((part) => part.length > 0)
+        .map((part) => coerceInvokeScalar(part));
+}
+
+function coerceInvokeQueryBucket(toolName: string, bucket: InvokeOptions['query']): InvokeOptions['query'] {
+    if (!bucket) {
+        return undefined;
+    }
+    const arrayQueryKeys = new Set(
+        (invokeParamBucketsByTool as Record<string, { arrayQuery?: string[] }>)[toolName]?.arrayQuery ?? []
+    );
+    const out: Record<string, string | number | boolean | ReadonlyArray<string | number | boolean>> = {};
+    for (const [key, value] of Object.entries(bucket)) {
+        if (value === undefined || value === null) {
+            continue;
+        }
+        if (Array.isArray(value)) {
+            out[key] = value.map((element) => coerceInvokeScalar(element));
+            continue;
+        }
+        if (arrayQueryKeys.has(key) && typeof value === 'string') {
+            out[key] = coerceInvokeQueryArrayValue(value);
+            continue;
+        }
+        out[key] = coerceInvokeScalar(value as string | number | boolean);
+    }
+    return Object.keys(out).length > 0 ? out : undefined;
+}
+
+function coerceInvokeValueBySchema(value: unknown, schema: Record<string, unknown> | undefined): unknown {
+    if (!schema || value === undefined || value === null) {
+        return value;
+    }
+    const type = schema.type;
+    if (type === 'integer' || type === 'number') {
+        if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
+            return coerceInvokeScalar(value as string | number | boolean);
+        }
+        return value;
+    }
+    if (type === 'boolean') {
+        if (typeof value === 'boolean') {
+            return value;
+        }
+        if (typeof value === 'string') {
+            const trimmed = value.trim();
+            if (trimmed === 'true') {
+                return true;
+            }
+            if (trimmed === 'false') {
+                return false;
+            }
+        }
+        return value;
+    }
+    if (type === 'array') {
+        const items = schema.items as Record<string, unknown> | undefined;
+        if (typeof value === 'string') {
+            return value
+                .split(',')
+                .map((part) => part.trim())
+                .filter((part) => part.length > 0)
+                .map((part) => (items ? coerceInvokeValueBySchema(part, items) : coerceInvokeScalar(part)));
+        }
+        if (Array.isArray(value)) {
+            return value.map((element) =>
+                items
+                    ? coerceInvokeValueBySchema(element, items)
+                    : coerceInvokeScalar(element as string | number | boolean)
+            );
+        }
+        return value;
+    }
+    if (
+        type === 'object' &&
+        schema.properties &&
+        typeof schema.properties === 'object' &&
+        !Array.isArray(schema.properties) &&
+        typeof value === 'object' &&
+        value !== null &&
+        !Array.isArray(value)
+    ) {
+        const props = schema.properties as Record<string, Record<string, unknown>>;
+        const out: Record<string, unknown> = {};
+        for (const [key, element] of Object.entries(value as Record<string, unknown>)) {
+            if (element === undefined || element === null) {
+                continue;
+            }
+            const propSchema = props[key];
+            out[key] = propSchema ? coerceInvokeValueBySchema(element, propSchema) : element;
+        }
+        return out;
+    }
+    return value;
+}
+
+function coerceInvokeBody(toolName: string, body: unknown): unknown {
+    if (body === undefined || body === null) {
+        return body;
+    }
+    const schema = (invokeBodySchemaByTool as Record<string, Record<string, unknown> | undefined>)[toolName];
+    if (!schema) {
+        return body;
+    }
+    return coerceInvokeValueBySchema(body, schema);
+}
+
+function normalizeInvokeOptions(toolName: string, options: InvokeOptions): InvokeOptions {
+    const buckets = (
+        invokeParamBucketsByTool as Record<
+            string,
+            { pathParams?: string[]; query?: string[]; headers?: string[]; arrayQuery?: string[] }
+        >
+    )[toolName];
+    if (!buckets) {
+        return options;
+    }
+    const pathKeys = buckets.pathParams ?? [];
+    const queryKeys = buckets.query ?? [];
+    const headerKeys = buckets.headers ?? [];
+    const arrayQueryKeys = new Set(buckets.arrayQuery ?? []);
+    const knownFlatKeys = new Set([...pathKeys, ...queryKeys, ...headerKeys]);
+    const hasTopLevelFlatParam = Object.keys(options).some(
+        (key) =>
+            key !== 'body' && key !== 'headers' && key !== 'pathParams' && key !== 'query' && knownFlatKeys.has(key)
+    );
+    if (!hasTopLevelFlatParam) {
+        return {
+            ...options,
+            pathParams: coerceInvokePathBucket(options.pathParams),
+            query: coerceInvokeQueryBucket(toolName, options.query),
+            body: coerceInvokeBody(toolName, options.body)
+        };
+    }
+
+    const pathParams: Record<string, string | number | boolean> = { ...(options.pathParams ?? {}) };
+    const query: Record<string, string | number | boolean | ReadonlyArray<string | number | boolean>> = {
+        ...(options.query ?? {})
+    };
+    const headers: Record<string, string> =
+        options.headers && typeof options.headers === 'object' ? { ...options.headers } : {};
+
+    for (const [key, value] of Object.entries(options)) {
+        if (value === undefined || value === null) {
+            continue;
+        }
+        if (key === 'body' || key === 'pathParams' || key === 'query') {
+            continue;
+        }
+        if (key === 'headers') {
+            if (headerKeys.length === 0 && typeof value === 'object' && !Array.isArray(value)) {
+                Object.assign(headers, value as Record<string, string>);
+            }
+            continue;
+        }
+        if (pathKeys.includes(key)) {
+            pathParams[key] = value as string | number | boolean;
+        } else if (queryKeys.includes(key)) {
+            if (arrayQueryKeys.has(key) && typeof value === 'string') {
+                query[key] = coerceInvokeQueryArrayValue(value);
+            } else {
+                query[key] = value as string | number | boolean | ReadonlyArray<string | number | boolean>;
+            }
+        } else if (headerKeys.includes(key)) {
+            headers[key] = String(value);
+        }
+    }
+
+    return {
+        pathParams: coerceInvokePathBucket(pathParams),
+        query: coerceInvokeQueryBucket(toolName, query),
+        headers: Object.keys(headers).length > 0 ? headers : undefined,
+        body: coerceInvokeBody(toolName, options.body)
+    };
+}
 const queryParamSerializationByTool = {
     openMeteoForecast: {
         hourly: {
@@ -270,13 +497,13 @@ export async function invokeTool(
         throw new Error('Unknown tool: ' + toolName);
     }
     loggingAdapter.debug('invokeTool', { toolName, method: tool.method, path: tool.path });
+    const optionsResolved = normalizeInvokeOptions(toolName, options);
 
     if (hostContext === undefined) {
         throw new Error('invokeTool requires hostContext from the MCP host (stdio-mcp-server or http-mcp-server).');
     }
     const host = hostContext as ApiHostContext;
     const { baseUrl } = host;
-    const optionsResolved = options;
     const normalizedBaseUrl = baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl;
     const pathParams = { ...(optionsResolved.pathParams ?? {}) };
     let resolvedPath = tool.path;

@@ -19,3 +19,4 @@ packages/language/src/generated/
 # Demo runtime folders
 packages/extension/demos/node_modules/
 packages/extension/demos/tmp/
+**/.open-webui-venv/
