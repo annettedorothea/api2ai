@@ -2,21 +2,12 @@
 /**
  * Stop demo backends, OAuth IDP, and MCP HTTP/OAuth hosts (safe to re-run).
  */
-import { copyFileSync, existsSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { loadProjectEnvLocal } from './generated/load-env-local.mjs';
 
 const demosRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-
-function ensureEnvFromExample() {
-    const examplePath = path.join(demosRoot, '.env.example');
-    const targetPath = path.join(demosRoot, '.env.local');
-    if (!existsSync(targetPath) && existsSync(examplePath)) {
-        copyFileSync(examplePath, targetPath);
-    }
-}
 
 function runNode(relativePath) {
     const result = spawnSync(process.execPath, [path.join(demosRoot, relativePath)], {
@@ -28,8 +19,6 @@ function runNode(relativePath) {
     }
 }
 
-loadProjectEnvLocal();
-ensureEnvFromExample();
 loadProjectEnvLocal();
 console.log('[kill-all] stopping MCP hosts…');
 runNode('./scripts/kill-mcp-hosts.mjs');

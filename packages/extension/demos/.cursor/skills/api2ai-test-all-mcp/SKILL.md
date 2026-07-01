@@ -47,7 +47,7 @@ Hook `.cursor/hooks/before-submit-test-all.sh` prueft bei Kurzformen, ob `.curso
 - **Write-Tools:** create → update (ID aus Response) → delete (gleiche ID). Praefix `MCPTEST` in Namen/Text.
 - **todo:** geschuetzte Tools mit Header aus `mcp.json` (`x-api-token`); keine anderen Keys probieren.
 - **bookings / cakes / banking:** Cursor OAuth Sign-in; bei `401`/`403` dokumentieren, nicht umgehen.
-- **github / tmdb:** ohne gueltiges Token in `.env.local` erwartbar `401` — als Auth-Fehler melden, nicht workarounden.
+- **github / tmdb:** ohne gueltiges Token in `.env` erwartbar `401` — als Auth-Fehler melden, nicht workarounden.
 
 ### 3. Aufrufe
 

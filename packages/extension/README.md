@@ -1,32 +1,97 @@
 # api2ai
 
-Language support and code generation for the **`.api2ai` DSL** (OpenAPI → MCP tools): syntax highlighting, validation, completion, and generate on save.
+Language support and code generation for the `.api2ai` DSL.
+
+The extension provides:
+
+- Syntax highlighting
+- Validation
+- Auto completion
+- Generate on save
+- MCP host generation
+
+`api2ai` generates curated MCP tools from existing OpenAPI specifications.
+
+---
 
 ## Requirements
 
 - VS Code or Cursor **1.67+**
-- Node.js **20+** in the demo workspace
-
-## Create demo workspace
-
-**Goal:** set up a local folder with example `.api2ai` files and MCP config.
-
-1. Command Palette → **`api2ai: Create demo workspace (MCP examples)`**
-2. Choose an **empty folder** (or confirm overwrite if retrying)
-3. Click **Open folder** when prompted
-
-**Next:** open **`README.md`** in that demo folder — it walks you through testing your first MCP server.
-
-## Your own `.api2ai` projects
-
-Open any folder with `.api2ai` files. On **save**, the extension generates `generated/api2ai/tools/*.ts` and compiles MCP hosts (run **`npm install`** once for TypeScript). Base URLs and API tokens belong in `.cursor/mcp.json` / env, not in the DSL.
-
-Command Palette: **Generate tool code (.ts + MCP host)** for manual generation of the focused file.
-
-## License
-
-MIT — Copyright (c) 2026 Annette Pohl. Full license text is in the VSIX (`LICENSE`).
+- Node.js **20+** for generated projects and demo workspaces
 
 ---
 
-#Col3:23
+## Quick Start
+
+### 1. Create a demo workspace
+
+Open the Command Palette and run:
+
+```text
+api2ai: Create demo workspace (MCP examples)
+```
+
+Choose an empty folder and open it when prompted.
+
+### 2. Open the demo README
+
+The generated workspace contains its own `README.md` with a guided walkthrough and several example projects.
+
+The Open-Meteo example works out of the box and does not require an API key.
+
+---
+
+## Working with your own APIs
+
+Open a folder containing `.api2ai` files.
+
+Whenever you save a file, the extension generates tool code and MCP hosts automatically.
+
+Generated files are written to:
+
+```text
+generated/api2ai/
+```
+
+API credentials and runtime configuration belong in:
+
+```text
+.cursor/mcp.json
+```
+
+You can also trigger generation manually:
+
+```text
+api2ai: Generate tool code (.ts + MCP host)
+```
+
+---
+
+## Documentation
+
+Looking for architecture, authentication, MCP concepts, integrations, or development guides?
+
+See the shared documentation in:
+
+https://github.com/annettedorothea/core2ai
+
+---
+
+## Related Projects
+
+- https://github.com/annettedorothea/core2ai
+- https://github.com/annettedorothea/db2ai
+
+---
+
+## License
+
+MIT — see `LICENSE`.
+
+---
+
+> _Whatever you do, work heartily, as for the Lord and not for men._
+>
+> **— Colossians 3:23**
+>
+> _Created by Annette Pohl_

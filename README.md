@@ -1,59 +1,66 @@
 # api2ai
 
-> **Pre-release** --- early access; APIs, DSL, and generated output may
-> change before v1.0.
+> Generate curated MCP tools from OpenAPI specifications.
 
-## Turn any OpenAPI specification into curated MCP tools.
+> **Pre-release**
+> APIs, the DSL, and generated output may change before v1.0.
 
-Generate MCP tools from existing APIs --- without writing custom MCP
-servers.
+## Ecosystem
+
+| Repository                                            | Purpose                                                |
+| ----------------------------------------------------- | ------------------------------------------------------ |
+| [core2ai](https://github.com/annettedorothea/core2ai) | Shared runtime, architecture, and documentation        |
+| [api2ai](https://github.com/annettedorothea/api2ai)   | Generate curated MCP tools from OpenAPI specifications |
+| [db2ai](https://github.com/annettedorothea/db2ai)     | Generate curated MCP tools from relational databases   |
+
+Instead of writing and maintaining custom MCP servers by hand, describe your API once and let `api2ai` generate the tooling for you.
 
 ---
 
-## Get Started
+## Quick Start
 
-The fastest way to try api2ai is with the VSIX extension and the bundled
-demo workspace.
+The easiest way to explore `api2ai` is with the VSIX extension and the bundled demo workspace.
 
-### 1. Install the VSIX
+### 1. Install the extension
 
-Download the [latest release](https://github.com/annettedorothea/api2ai/releases).
+Download the latest VSIX from the releases page:
 
-### 2. Create a Demo Workspace
+[https://github.com/annettedorothea/api2ai/releases](https://github.com/annettedorothea/api2ai/releases)
 
-Open Cursor or VS Code and run:
+### 2. Create a demo workspace
+
+In Cursor or VS Code, run:
 
 ```text
 api2ai: Create demo workspace (MCP examples)
 ```
 
-### 3. Test your first MCP server
+### 3. Start your first MCP server
 
-Open **`README.md`** in the demo folder and follow **Quick start**:
+Open the generated [Demo Workspace README](packages/extension/demos/README.md) and follow the Quick Start.
 
-- **No API token:** `npm run start`, enable **`open-meteo-geocoding`** + **`open-meteo`**, then ask for tomorrow's weather in a city (see demos README).
-- **With a personal PAT:** set **`GITHUB_TOKEN`** in **`.env.local`** (from `.env.example`), enable **`github`**, then ask for your GitHub profile or repos.
-
-No repository checkout required.
+The Open-Meteo example works out of the box and does not require an API key.
 
 ---
 
-## Demo
+## How it works
 
-![api2ai demo](images/api2ai.gif)
+```text
+OpenAPI Specification
+        │
+        ▼
+    .api2ai
+        │
+        ▼
+Generated MCP Server
+        │
+        ▼
+Cursor • ChatGPT • Claude • Open WebUI
+```
 
-The video shows:
+Example:
 
-- editing **`github.api2ai`** and generating MCP tools on save
-- enabling the **`github`** MCP server in Cursor
-- calling a tool with a PAT from **`.env.local`**
-- for a no-token first run: **`open-meteo`** / **`open-meteo-geocoding`** (Quick start in the demo README)
-
----
-
-## Example
-
-```api2ai
+```text
 openapi "./openapi/github-user-min.openapi.yaml"
 
 auth {
@@ -65,103 +72,39 @@ auth {
 GET "/user" {
     toolName: getGitHubAuthenticatedUser
     access: protected
-    intent: "return the GitHub user profile for the authenticated PAT; use to confirm which account the token represents before calling repo-scoped tools"
     summary: "Get the authenticated user"
-    example: "No path or query parameters"
 }
 ```
-
-### Flow
-
-```text
-OpenAPI
-    ↓
-.api2ai
-    ↓
-MCP Tool
-    ↓
-AI Agent
-```
-
----
-
-## Why api2ai?
-
-Building MCP tools manually usually requires:
-
-- defining tools
-- mapping API requests and responses
-- maintaining MCP server code
-- keeping everything in sync with your API
-
-api2ai lets you focus on describing API capabilities instead of writing
-MCP boilerplate.
 
 ---
 
 ## Documentation
 
-The architecture behind api2ai is documented in
-[core2ai](https://github.com/annettedorothea/core2ai):
+Looking for architecture, authentication, MCP concepts, integrations, or development guides?
 
-- [Tool Factory](https://github.com/annettedorothea/core2ai/blob/main/docs/01-layer-1-tool-factory.md)
-- [Tool Authoring](https://github.com/annettedorothea/core2ai/blob/main/docs/02-layer-2-tool-authoring.md)
-- [AI Runtime](https://github.com/annettedorothea/core2ai/blob/main/docs/03-layer-3-ai-runtime.md)
-- [Personas](https://github.com/annettedorothea/core2ai/blob/main/docs/04-personas.md)
+See the shared documentation in [core2ai](https://github.com/annettedorothea/core2ai):
 
-Overview: [core2ai docs](https://github.com/annettedorothea/core2ai/tree/main/docs)
+- [Documentation index](https://github.com/annettedorothea/core2ai/blob/main/docs/README.md)
 
 ---
 
 ## Related Projects
 
-- [**core2ai**](https://github.com/annettedorothea/core2ai) — shared runtime
-  and code generation infrastructure
-- [**db2ai**](https://github.com/annettedorothea/db2ai) — generate MCP tools
-  from SQL queries and relational databases
+- [core2ai](https://github.com/annettedorothea/core2ai) — Shared runtime, code generation infrastructure, and documentation.
+- [db2ai](https://github.com/annettedorothea/db2ai) — Generate curated MCP tools from relational databases.
 
 ---
 
 ## License
 
-MIT — see [LICENSE](./LICENSE).
+MIT — see [LICENSE](LICENSE).
 
-Integration, consulting, and support: open a [GitHub Discussion](https://github.com/annettedorothea/api2ai/discussions) or issue.
-
----
-
-## Develop from source (without VSIX)
-
-To run the extension from a git checkout instead of installing a release VSIX:
-
-1. Check out the sibling [**core2ai**](https://github.com/annettodorothea/core2ai) repo as `../core2ai` and build it once:
-
-```bash
-cd ../core2ai && npm install && npm run build
-```
-
-2. From this repo root:
-
-```bash
-npm install
-npm run langium:generate
-npm run build
-```
-
-3. In VS Code or Cursor: **Run and Debug** → **Run api2ai Extension**. This opens
-   [`packages/extension/demos`](./packages/extension/demos) in an Extension Development Host. The
-   launch task runs `langium:generate` and `build` again before start.
-
-To test MCP servers in that window (not only DSL editing and generate-on-save):
-
-```bash
-npm run install:demos
-npm run build:generated --prefix packages/extension/demos
-```
-
-Then follow **Quick start** in [`packages/extension/demos/README.md`](./packages/extension/demos/README.md)
-(`npm run start`, enable MCP servers).
+Questions, ideas, bug reports, and feature requests are always welcome through GitHub Discussions or Issues.
 
 ---
 
-#Col3:23
+> _Whatever you do, work heartily, as for the Lord and not for men._
+>
+> **— Colossians 3:23**
+>
+> _Created by Annette Pohl_

@@ -1,12 +1,12 @@
 #!/usr/bin/env node
 /**
- * Demo workspace setup: kill stale processes, env from example (once), install, generate, compile,
+ * Demo workspace setup: kill stale processes, load .env, install, generate, compile,
  * start backends + MCP hosts.
  *
  * Default (npm run start): background — terminal free after setup.
  * Foreground (npm run start:foreground): logs in this terminal until Ctrl+C.
  */
-import { copyFileSync, existsSync } from 'node:fs';
+import { existsSync } from 'node:fs';
 import path from 'node:path';
 import { spawn, spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
@@ -32,20 +32,13 @@ function runNpm(args) {
     }
 }
 
-function ensureEnvFromExample(exampleName, targetName) {
-    const examplePath = path.join(demosRoot, exampleName);
-    const targetPath = path.join(demosRoot, targetName);
-    if (existsSync(targetPath)) {
-        console.log(`[start] ${targetName} already exists — not overwritten.`);
-        return false;
-    }
-    if (!existsSync(examplePath)) {
-        console.error(`[start] ${exampleName} missing — copy env vars from docs or create ${targetName}.`);
+function requireProjectEnv() {
+    const envPath = path.join(demosRoot, '.env');
+    if (!existsSync(envPath)) {
+        console.error('[start] Missing .env in demo workspace.');
         process.exit(1);
     }
-    copyFileSync(examplePath, targetPath);
-    console.log(`[start] Created ${targetName} from ${exampleName} — edit tokens as needed.`);
-    return true;
+    loadProjectEnvLocal();
 }
 
 /** Short log prefix — display labels may include URL in parentheses. */
@@ -137,11 +130,7 @@ async function waitForBackend(label, port) {
 }
 
 async function main() {
-    loadProjectEnvLocal();
-    const createdEnv = ensureEnvFromExample('.env.example', '.env.local');
-    if (createdEnv) {
-        loadProjectEnvLocal();
-    }
+    requireProjectEnv();
 
     console.log('[start] stopping previous demo processes…');
     runNpm(['run', 'demo:kill-all']);
