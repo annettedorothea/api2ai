@@ -1,0 +1,235 @@
+openapi: 3.0.3
+info:
+    title: Xquik API minimal social data slice
+    version: '1.0.0'
+    description: Minimal read-only Xquik OpenAPI slice for api2ai demos.
+servers:
+    - url: https://xquik.com
+components:
+    securitySchemes:
+        apiKeyAuth:
+            type: apiKey
+            in: header
+            name: x-api-key
+    schemas:
+        Tweet:
+            type: object
+            properties:
+                id:
+                    type: string
+                text:
+                    type: string
+                createdAt:
+                    type: string
+                    format: date-time
+                likeCount:
+                    type: integer
+                retweetCount:
+                    type: integer
+                replyCount:
+                    type: integer
+                quoteCount:
+                    type: integer
+                viewCount:
+                    type: integer
+                author:
+                    type: object
+                    properties:
+                        id:
+                            type: string
+                        username:
+                            type: string
+                        name:
+                            type: string
+                        verified:
+                            type: boolean
+        User:
+            type: object
+            properties:
+                id:
+                    type: string
+                username:
+                    type: string
+                name:
+                    type: string
+                verified:
+                    type: boolean
+                followers:
+                    type: integer
+                following:
+                    type: integer
+        PaginatedTweets:
+            type: object
+            properties:
+                tweets:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/Tweet'
+                has_next_page:
+                    type: boolean
+                next_cursor:
+                    type: string
+        PaginatedUsers:
+            type: object
+            properties:
+                users:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/User'
+                has_next_page:
+                    type: boolean
+                next_cursor:
+                    type: string
+        Error:
+            type: object
+            properties:
+                error:
+                    type: string
+                message:
+                    type: string
+security:
+    - apiKeyAuth: []
+paths:
+    /api/v1/x/tweets/search:
+        get:
+            operationId: search-tweets
+            summary: Search tweets by query, status URL, or account window
+            parameters:
+                - name: q
+                  in: query
+                  required: true
+                  description: Search query, Tweet ID, or X status URL.
+                  schema:
+                      type: string
+                - name: queryType
+                  in: query
+                  required: false
+                  description: Sort order for keyword search.
+                  schema:
+                      type: string
+                      enum: [Latest, Top]
+                      default: Latest
+                - name: cursor
+                  in: query
+                  required: false
+                  description: Pagination cursor from the previous response.
+                  schema:
+                      type: string
+                - name: sinceTime
+                  in: query
+                  required: false
+                  description: ISO 8601 timestamp. Return tweets after this time.
+                  schema:
+                      type: string
+                - name: untilTime
+                  in: query
+                  required: false
+                  description: ISO 8601 timestamp. Return tweets before this time.
+                  schema:
+                      type: string
+                - name: limit
+                  in: query
+                  required: false
+                  description: Maximum tweets to return.
+                  schema:
+                      type: integer
+                      default: 20
+                      maximum: 200
+                - name: fromUser
+                  in: query
+                  required: false
+                  description: Limit results to tweets from this username.
+                  schema:
+                      type: string
+            responses:
+                '200':
+                    description: Search results.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/PaginatedTweets'
+                '400':
+                    description: Invalid query.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Error'
+                '401':
+                    description: Missing or invalid API key.
+                '402':
+                    description: Payment required.
+                '429':
+                    description: Rate limit exceeded.
+    /api/v1/x/users/search:
+        get:
+            operationId: search-users
+            summary: Search users by name or username
+            parameters:
+                - name: q
+                  in: query
+                  required: true
+                  description: User search query.
+                  schema:
+                      type: string
+                - name: cursor
+                  in: query
+                  required: false
+                  description: Pagination cursor from the previous response.
+                  schema:
+                      type: string
+            responses:
+                '200':
+                    description: User search results.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/PaginatedUsers'
+                '400':
+                    description: Invalid query.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Error'
+                '401':
+                    description: Missing or invalid API key.
+                '402':
+                    description: Payment required.
+                '429':
+                    description: Rate limit exceeded.
+    /api/v1/x/tweets/{id}:
+        get:
+            operationId: lookup-tweet
+            summary: Get a tweet with author and metrics
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  description: Tweet ID.
+                  schema:
+                      type: string
+            responses:
+                '200':
+                    description: Tweet with author details.
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    tweet:
+                                        $ref: '#/components/schemas/Tweet'
+                                    author:
+                                        $ref: '#/components/schemas/User'
+                '400':
+                    description: Invalid tweet ID.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Error'
+                '401':
+                    description: Missing or invalid API key.
+                '402':
+                    description: Payment required.
+                '404':
+                    description: Tweet not found.
+                '429':
+                    description: Rate limit exceeded.
