@@ -55,6 +55,24 @@ describe('Validating', () => {
         expect(document.diagnostics ?? []).toHaveLength(0);
     });
 
+    test('warns when auth block has no protected operations', async () => {
+        document = await parseValidated(`
+            openapi "./langium-test-mini.openapi.yaml"
+            auth {
+                in: header
+                name: "Authorization"
+            }
+            GET "/pet/{petId}" {
+                toolName: getPetById
+                access: public
+                intent: "get one pet"
+            }
+        `);
+
+        const diagnostics = document.diagnostics ?? [];
+        expect(diagnostics.some((d) => d.message.includes('auth block has no effect'))).toBe(true);
+    });
+
     test('reports an error for empty auth name', async () => {
         document = await parseValidated(`
             openapi "./langium-test-mini.openapi.yaml"

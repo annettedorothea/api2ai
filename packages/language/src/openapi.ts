@@ -522,7 +522,7 @@ export function getUnsupportedSerializationMessages(operation: OpenApiOperationD
 }
 
 function loadOpenApiNoCache(absolutePath: string): Promise<LoadedOpenApi> {
-    return SwaggerParser.validate(absolutePath).then((api) => {
+    return SwaggerParser.dereference(absolutePath).then((api) => {
         const spec = api as OpenApiDocument;
         const version = spec.openapi;
         if (!version || !version.startsWith('3.')) {

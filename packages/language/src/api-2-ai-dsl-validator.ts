@@ -78,17 +78,24 @@ export class Api2AiDslValidator {
             }
         }
 
-        if (!model.auth) {
-            for (const operation of model.operations) {
-                if (!operation.access) {
-                    continue;
-                }
-                if (accessRequiresAuth(operation)) {
-                    accept('error', 'access `protected` requires an auth block on the model.', {
-                        node: operation,
-                        property: 'access'
-                    });
-                }
+        if (model.auth) {
+            const hasProtected = model.operations.some((operation) => accessRequiresAuth(operation));
+            if (!hasProtected) {
+                accept('warning', 'auth block has no effect: no operation uses access protected.', {
+                    node: model.auth
+                });
+            }
+            return;
+        }
+        for (const operation of model.operations) {
+            if (!operation.access) {
+                continue;
+            }
+            if (accessRequiresAuth(operation)) {
+                accept('error', 'access `protected` requires an auth block on the model.', {
+                    node: operation,
+                    property: 'access'
+                });
             }
         }
     }
