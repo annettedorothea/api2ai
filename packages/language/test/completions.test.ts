@@ -112,6 +112,15 @@ describe('Completion for operation path', () => {
         expect(labels.length).toBeGreaterThan(0);
         expect(labels.some((l) => l.includes('/pet/{petId}'))).toBe(true);
     });
+
+    test('suggests auth location header or query after in colon', async () => {
+        const marker = '/*caret*/';
+        const content = `\nopenapi "./langium-test-mini.openapi.yaml"\nauth {\n    in: ${marker}\n}\nGET "/pet/{petId}" {\n    toolName: t\n    intent: "x"\n    access: public\n}`;
+        const list = await completionAt(content.replace(marker, ''), content.indexOf(marker));
+        const labels = (list?.items ?? []).map((item) => String(item.label));
+        expect(labels).toContain('header');
+        expect(labels).toContain('query');
+    });
 });
 
 describe('Completion for block keywords', () => {

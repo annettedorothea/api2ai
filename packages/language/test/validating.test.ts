@@ -379,6 +379,49 @@ describe('Validating', () => {
         expect(diagnostics.some((d) => d.message.includes('params entry "customerId"'))).toBe(true);
     });
 
+    test('warns when params example does not match OpenAPI integer schema', async () => {
+        document = await parseValidated(`
+            openapi "./langium-test-mini.openapi.yaml"
+            GET "/pet/{petId}" {
+                toolName: getPetById
+                access: public
+                intent: "get one pet"
+                params: {
+                    petId: {
+                        description: "pet id"
+                        example: "not-an-integer"
+                    }
+                }
+            }
+        `);
+
+        const diagnostics = document.diagnostics ?? [];
+        expect(diagnostics.some((d) => d.message.includes('integer'))).toBe(true);
+    });
+
+    test('reports header object parameter as unsupported serialization', async () => {
+        document = await parseValidated(`
+            openapi "./header-object.openapi.yaml"
+            GET "/meta" {
+                toolName: getMeta
+                access: public
+                intent: "get meta"
+            }
+        `);
+
+        const diagnostics = document.diagnostics ?? [];
+        expect(diagnostics.some((d) => d.message.includes('object typed') && d.message.includes('header'))).toBe(true);
+    });
+
+    test('validates extension test harness demo without diagnostics', async () => {
+        const demoPath = path.resolve(process.cwd(), '../extension/demos/test.api2ai');
+        const content = await import('node:fs').then((fs) => fs.readFileSync(demoPath, 'utf8'));
+        document = await parse(content, { validation: true, documentUri: demoPath });
+
+        expect(document.parseResult.parserErrors).toHaveLength(0);
+        expect(document.diagnostics ?? []).toHaveLength(0);
+    });
+
     test('validates extension bookings demo without diagnostics', async () => {
         const demoPath = path.resolve(process.cwd(), '../extension/demos/bookings.api2ai');
         const content = await import('node:fs').then((fs) => fs.readFileSync(demoPath, 'utf8'));

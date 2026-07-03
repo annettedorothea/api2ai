@@ -22,14 +22,14 @@ Hook `.cursor/hooks/before-submit-test-all.sh` prueft bei Kurzformen, ob `.curso
 ## Voraussetzungen
 
 - Demos-Workspace-Root mit `.cursor/mcp.json`
-- `npm run start` (alle HTTP-MCP-Hosts + Mock-APIs laufen im Hintergrund)
-- Alle benoetigten MCP-Server in Cursor aktiviert
+- `npm run start` (Mock-APIs inkl. `test-api`; HTTP-MCP-Hosts laufen im Hintergrund)
+- Alle benoetigten MCP-Server in Cursor aktiviert (inkl. **`test`** — stdio, nicht HTTP)
 - Keine `.env`-Dateien lesen oder aendern (siehe `api2ai-env-auth-policy`)
 
 ## Geltende Regeln
 
 - **Schema-only:** Parameter nur aus MCP-Tool-Descriptors (JSON Schema + Beispiele in `description`). Kein Repo-/OpenAPI-Wissen.
-- **Nur konfigurierte Server:** Eintraege in `.cursor/mcp.json` (`open-meteo`, `open-meteo-geocoding`, `github`, `tmdb`, `spaceflight-news`, `todo`, `bookings`, `cakes`, `banking`).
+- **Nur konfigurierte Server:** Eintraege in `.cursor/mcp.json` (`open-meteo`, `open-meteo-geocoding`, `github`, `tmdb`, `spaceflight-news`, `todo`, `bookings`, `cakes`, `banking`, `test`).
 - **Kein Workaround bei Fehlern:** Kein CLI, kein direkter HTTP, kein Retry mit anderen Credentials.
 - **Ausnahme zu „ein Aufruf“:** Bei diesem Skill genau **ein Aufruf pro Tool** — insgesamt alle Tools aller Server. Fehler pro Tool dokumentieren, mit naechstem Tool fortfahren (Server komplett down: Rest des Servers ueberspringen, Fehler melden).
 
@@ -48,6 +48,7 @@ Hook `.cursor/hooks/before-submit-test-all.sh` prueft bei Kurzformen, ob `.curso
 - **todo:** geschuetzte Tools mit Header aus `mcp.json` (`x-api-token`); keine anderen Keys probieren.
 - **bookings / cakes / banking:** Cursor OAuth Sign-in; bei `401`/`403` dokumentieren, nicht umgehen.
 - **github / tmdb:** ohne gueltiges Token in `.env` erwartbar `401` — als Auth-Fehler melden, nicht workarounden.
+- **test:** stdio-Host — `TEST_API_KEY` aus `.env` via `--auth-env`; Mock-API `test-api` muss laufen (`npm run start`). Geschuetzte Tools erwarten denselben Key als MCP-Credential.
 
 ### 3. Aufrufe
 

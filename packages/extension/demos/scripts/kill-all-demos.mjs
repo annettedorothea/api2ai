@@ -34,6 +34,8 @@ console.log('[kill-all] stopping bookings…');
 runNode('./bookings/kill-server.mjs');
 console.log('[kill-all] stopping todo-api…');
 runNode('./todo-api/kill-server.mjs');
+console.log('[kill-all] stopping test-api…');
+runNode('./test-api/kill-server.mjs');
 if (process.env.OPEN_WEBUI_SKIP_KILL === '1') {
     console.log('[kill-all] skipping Open WebUI (OPEN_WEBUI_SKIP_KILL=1).');
 } else {

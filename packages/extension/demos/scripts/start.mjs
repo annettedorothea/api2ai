@@ -174,6 +174,14 @@ async function main() {
         bankingPort
     );
 
+    const testApiPort = requireEnvInt('TEST_API_PORT');
+    startService(
+        'test-api',
+        [path.join(demosRoot, 'test-api', 'server.mjs')],
+        { TEST_API_PORT: String(testApiPort) },
+        testApiPort
+    );
+
     const idpPort = requireEnvInt('BOOKINGS_OAUTH_IDP_PORT');
     startService(
         'oauth-idp',
@@ -205,7 +213,8 @@ async function main() {
         ['bookings', bookingsPort],
         ['todo-api', todoPort],
         ['cakes-api', cakesPort],
-        ['banking-api', bankingPort]
+        ['banking-api', bankingPort],
+        ['test-api', testApiPort]
     ]) {
         await waitForBackend(label, port);
     }

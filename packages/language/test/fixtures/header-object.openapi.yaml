@@ -1,0 +1,20 @@
+openapi: 3.0.3
+info:
+    title: Header serialization fixture
+    version: 1.0.0
+paths:
+    /meta:
+        get:
+            operationId: getMeta
+            parameters:
+                - name: X-Meta
+                  in: header
+                  required: true
+                  schema:
+                      type: object
+                      properties:
+                          id:
+                              type: string
+            responses:
+                '200':
+                    description: OK

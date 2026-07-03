@@ -44,6 +44,7 @@ const ACCESS_KIND_INSERT: Record<string, string> = {
     public: 'public',
     protected: 'protected'
 };
+const AUTH_LOCATION_KINDS = ['header', 'query'] as const;
 const PREPARE_BODY_KEYWORD_INSERT: Record<string, string> = {
     optionalParams: 'optionalParams: [$1]$0'
 };
@@ -424,6 +425,11 @@ export class Api2AiDslCompletionProvider extends DefaultCompletionProvider {
         if (accessKindItems.length > 0) {
             return CompletionList.create(this.deduplicateItems(accessKindItems), false);
         }
+        const authLocationItems = this.buildAuthLocationCompletionItems(document, params.position);
+        debugCompletion('getCompletion authLocationItems count', authLocationItems.length);
+        if (authLocationItems.length > 0) {
+            return CompletionList.create(this.deduplicateItems(authLocationItems), false);
+        }
         const authorizeSpecItems = this.buildAuthorizeSpecCompletionItems(document, params.position);
         debugCompletion('getCompletion authorizeSpecItems count', authorizeSpecItems.length);
         if (authorizeSpecItems.length > 0) {
@@ -587,6 +593,40 @@ export class Api2AiDslCompletionProvider extends DefaultCompletionProvider {
             sortText: CANONICAL_KEYWORD_SORT[key],
             insertText: ACCESS_KIND_INSERT[key],
             textEdit: TextEdit.replace(range, ACCESS_KIND_INSERT[key])
+        }));
+    }
+
+    private buildAuthLocationCompletionItems(document: LangiumDocument, position: Position): CompletionItem[] {
+        const textDoc = document.textDocument;
+        const text = textDoc.getText();
+        const offset = textDoc.offsetAt(position);
+        const { line } = currentLineUntilOffset(text, offset);
+        if (textHasUnclosedString(line)) {
+            return [];
+        }
+        const context = findLastIncompleteBlockContext(text, offset);
+        if (!context || context.kind !== 'auth') {
+            return [];
+        }
+        const match = /^\s*in\s*:\s*(\w*)$/.exec(line);
+        if (!match) {
+            return [];
+        }
+        const typedPrefix = match[1] ?? '';
+        const { prefix, range } = currentWordRange(text, offset, textDoc);
+        const effectivePrefix = typedPrefix.length > 0 ? typedPrefix : prefix;
+        const keys = AUTH_LOCATION_KINDS.filter((key) => key.startsWith(effectivePrefix));
+        if (keys.length === 0) {
+            return [];
+        }
+        return keys.map((key) => ({
+            label: key,
+            kind: CompletionItemKind.EnumMember,
+            detail: 'Auth credential location',
+            insertTextFormat: InsertTextFormat.PlainText,
+            sortText: key === 'header' ? '0100.1' : '0100.2',
+            insertText: key,
+            textEdit: TextEdit.replace(range, key)
         }));
     }
 
