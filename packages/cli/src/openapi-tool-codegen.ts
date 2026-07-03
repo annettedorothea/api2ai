@@ -12,7 +12,7 @@ import {
     isToolPrepareEnabled,
     parseApiParamSpec
 } from 'api-2-ai-dsl-language';
-import { resolveModuleCredentialNames } from '@core2ai/core/codegen';
+import { resolveModuleCredentialNames } from '@toolfactory.dev/core/codegen';
 
 /** JSON-schema-like dict emitted into generated modules / MCP. */
 export type JsonSchemaDict = Record<string, unknown>;

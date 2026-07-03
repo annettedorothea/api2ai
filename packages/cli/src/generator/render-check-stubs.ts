@@ -13,7 +13,7 @@ import {
     type HookStubMaps,
     type ToolHookStubSpec,
     prepareInputExportName
-} from '@core2ai/core/codegen';
+} from '@toolfactory.dev/core/codegen';
 
 export type ToolAccess = 'public' | 'protected';
 

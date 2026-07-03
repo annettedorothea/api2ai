@@ -12,7 +12,7 @@ Policy: [core2ai docs/development/changelog-policy.md](https://github.com/annett
 
 ---
 
-## [1.0.0-rc] - TBD
+## [1.0.0-rc] - 2026-07-03
 
 First release-candidate: **curated MCP tools from OpenAPI 3.x** — select operations in `.api2ai`, enrich with intent and auth, generate executable MCP servers.
 
@@ -54,7 +54,7 @@ First release-candidate: **curated MCP tools from OpenAPI 3.x** — select opera
 
 - Install VSIX from GitHub release; open or create a project workspace
 - After upgrade: `npm run generate:all` and `npm run build:generated --prefix packages/extension/demos`
-- Sync `@core2ai/core` pin when upgrading sibling core2ai
+- Sync `@toolfactory.dev/core` pin when upgrading sibling core2ai
 - Before tagging final **1.0.0:** run `npm run check` and full `/test-all` with `npm run start` in demos
 
 ---

@@ -2,7 +2,7 @@ import { EmptyFileSystem } from 'langium';
 import { parseHelper } from 'langium/test';
 import { createApi2AiDslServices } from 'api-2-ai-dsl-language';
 import type { Model } from 'api-2-ai-dsl-language';
-import { collectLangiumDocumentErrors } from '@core2ai/core/codegen';
+import { collectLangiumDocumentErrors } from '@toolfactory.dev/core/codegen';
 import { describe, expect, test } from 'vitest';
 
 describe('document-actions validation', () => {
