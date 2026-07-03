@@ -2,7 +2,7 @@
 
 Welcome to the `api2ai` demo workspace.
 
-This workspace contains a collection of examples that demonstrate different aspects of MCP tool generation, authentication, and integration patterns.
+This workspace contains examples for MCP tool generation, authentication, authorization, and integration patterns.
 
 If this is your first time using `api2ai`, start with `open-meteo.api2ai`.
 
@@ -10,23 +10,33 @@ If this is your first time using `api2ai`, start with `open-meteo.api2ai`.
 
 ## Quick Start
 
-### 1. Open the Open-Meteo example
+### 1. Start the demo environment
 
-Open [open-meteo.api2ai](open-meteo.api2ai)
+From the demo workspace root:
 
-This example works out of the box and does not require an API key.
+```bash
+npm run start
+```
+
+This command:
+
+- installs missing dependencies
+- generates tool code
+- compiles generated files
+- starts demo backends
+- starts HTTP MCP hosts
+
+Leave the terminal running while working with the demos.
 
 ---
 
-### 2. Generate the MCP server
+### 2. Open the Open-Meteo example
 
-Save the file.
+Open:
 
-The extension automatically generates:
+[open-meteo.api2ai](open-meteo.api2ai)
 
-- tool implementations
-- MCP host configuration
-- runtime files
+This example works out of the box and does not require an API key.
 
 ---
 
@@ -42,27 +52,77 @@ api2ai Will I need an umbrella in London this weekend?
 api2ai Compare today's temperature in Paris and Rome.
 ```
 
-Using the `api2ai` prefix helps Cursor focus on the generated MCP tools and avoid unrelated built-in tools.
+Using the `api2ai` prefix helps Cursor focus on generated MCP tools and avoid unrelated built-in tools.
+
+---
+
+## Learning Path
+
+1. `open-meteo.api2ai`
+   Public tools without authentication.
+
+2. `todo.api2ai`
+   Introduces protected tools, `auth`, and `verifyCredential`.
+
+3. `banking.api2ai`
+   Demonstrates `authorize` and `prepare` hooks.
+
+4. `test.api2ai`
+   Coverage harness used by `/test-all`.
+
+Authoring documentation:
+
+https://github.com/annettedorothea/core2ai/tree/main/docs/authoring
 
 ---
 
 ## Available Demos
 
-| Demo                | Description                                                |
-| ------------------- | ---------------------------------------------------------- |
-| `open-meteo.api2ai` | Public weather API without authentication                  |
-| `github.api2ai`     | Personal access token authentication                       |
-| `bookings.api2ai`   | OAuth authentication and more advanced API design patterns |
+| Demo                          | Description                          |
+| ----------------------------- | ------------------------------------ |
+| `open-meteo.api2ai`           | Public weather API                   |
+| `open-meteo-geocoding.api2ai` | Public geocoding API                 |
+| `github.api2ai`               | Personal access token via host relay |
+| `tmdb.api2ai`                 | API key authentication               |
+| `todo.api2ai`                 | Passthrough MCP authentication       |
+| `bookings.api2ai`             | OAuth MCP with mock API              |
+| `cakes.api2ai`                | OAuth with upstream JWT API          |
+| `banking.api2ai`              | `authorize` and `prepare` hooks      |
+| `spaceflight-news.api2ai`     | Public API with `prepare` hook       |
+| `test.api2ai`                 | Test harness for `/test-all`         |
 
-Additional demos may be added over time as the ecosystem evolves.
+---
+
+## Testing
+
+Before release, run:
+
+```text
+/test-all
+```
+
+or:
+
+```text
+api2ai /test-all
+```
+
+Prerequisites:
+
+- `npm run start`
+- MCP servers enabled in `.cursor/mcp.json`
+
+The demo workspace includes the skill:
+
+```text
+api2ai-test-all-mcp
+```
 
 ---
 
 ## Next Steps
 
 After exploring the demos, try connecting one of your own APIs.
-
-A typical workflow looks like this:
 
 ```text
 OpenAPI Specification
@@ -78,11 +138,12 @@ Cursor • ChatGPT • Claude • Open WebUI
 
 ## Documentation
 
-Looking for architecture, authentication, MCP concepts, integrations, or development guides?
+Shared architecture, runtime, authoring, and integration documentation:
 
-See the shared documentation in:
-
-https://github.com/annettedorothea/core2ai
+- [Documentation index](https://github.com/annettedorothea/core2ai/blob/main/docs/README.md)
+- [Authoring guides](https://github.com/annettedorothea/core2ai/tree/main/docs/authoring)
+- [Cursor integration](https://github.com/annettedorothea/core2ai/blob/main/docs/integrations/cursor.md)
+- [MCP hosts](https://github.com/annettedorothea/core2ai/blob/main/docs/runtime/mcp-hosts.md)
 
 ---
 

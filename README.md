@@ -13,7 +13,9 @@
 | [api2ai](https://github.com/annettedorothea/api2ai)   | Generate curated MCP tools from OpenAPI specifications |
 | [db2ai](https://github.com/annettedorothea/db2ai)     | Generate curated MCP tools from relational databases   |
 
-Instead of writing and maintaining custom MCP servers by hand, describe your API once and let `api2ai` generate the tooling for you.
+Instead of hand-writing MCP servers, pick the OpenAPI operations you want as tools, enrich them in `.api2ai`, and generate executable MCP tooling.
+
+You curate which endpoints become tools — not every path in the specification is exposed automatically.
 
 ---
 
@@ -25,7 +27,7 @@ The easiest way to explore `api2ai` is with the VSIX extension and the bundled d
 
 Download the latest VSIX from the releases page:
 
-[https://github.com/annettedorothea/api2ai/releases](https://github.com/annettedorothea/api2ai/releases)
+https://github.com/annettedorothea/api2ai/releases
 
 ### 2. Create a demo workspace
 
@@ -47,6 +49,9 @@ The Open-Meteo example works out of the box and does not require an API key.
 
 ```text
 OpenAPI Specification
+        │
+        ▼
+  select & enrich
         │
         ▼
     .api2ai
@@ -85,6 +90,11 @@ Looking for architecture, authentication, MCP concepts, integrations, or develop
 See the shared documentation in [core2ai](https://github.com/annettedorothea/core2ai):
 
 - [Documentation index](https://github.com/annettedorothea/core2ai/blob/main/docs/README.md)
+- [api2ai DSL](https://github.com/annettedorothea/core2ai/blob/main/docs/authoring/api2ai-dsl.md)
+- [Supported OpenAPI patterns](https://github.com/annettedorothea/core2ai/blob/main/docs/authoring/supported-openapi.md)
+- [Auth and hooks](https://github.com/annettedorothea/core2ai/blob/main/docs/authoring/auth-and-hooks.md)
+
+See [CHANGELOG.md](CHANGELOG.md) for version history and upgrade notes.
 
 ---
 
