@@ -11,6 +11,7 @@ env.local
 **/src/generated
 syntaxes/
 *.tsbuildinfo
+packages/extension/demos/.env
 packages/extension/demos/.env.local
 packages/extension/demos/customer-portal.api2ai
 packages/extension/demos/openapi/customer-portal.openapi.yaml

@@ -1,15 +1,15 @@
 #!/usr/bin/env node
 /**
- * Demo workspace setup: kill stale processes, load .env, install, generate, compile,
+ * Demo workspace setup: kill stale processes, env from .env.example (once), install, generate, compile,
  * start backends + MCP hosts.
  *
  * Default (npm run start): background — terminal free after setup.
  * Foreground (npm run start:foreground): logs in this terminal until Ctrl+C.
  */
-import { existsSync } from 'node:fs';
 import path from 'node:path';
 import { spawn, spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
+import { ensureEnvFromExample } from './copy-env.mjs';
 import { loadProjectEnvLocal } from './generated/load-env-local.mjs';
 import { requireEnvInt } from './generated/require-env.mjs';
 import { buildHostLaunch, HTTP_START_DEMO_NAMES } from './mcp-http-demos.mjs';
@@ -33,11 +33,7 @@ function runNpm(args) {
 }
 
 function requireProjectEnv() {
-    const envPath = path.join(demosRoot, '.env');
-    if (!existsSync(envPath)) {
-        console.error('[start] Missing .env in demo workspace.');
-        process.exit(1);
-    }
+    ensureEnvFromExample();
     loadProjectEnvLocal();
 }
 

@@ -1,6 +1,6 @@
 [
     ".cursor/mcp.json",
-    ".env",
+    ".env.example",
     "README.md",
     "bookings.api2ai",
     "bookings/data/rentals.json",
@@ -35,6 +35,7 @@
     "openapi/xquik.openapi.yaml",
     "package.json",
     "project-generate.config.json",
+    "scripts/copy-env.mjs",
     "scripts/foreground-lifecycle.mjs",
     "scripts/generate-all.mjs",
     "scripts/generate.mjs",
