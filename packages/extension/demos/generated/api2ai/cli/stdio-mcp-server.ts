@@ -17,20 +17,9 @@ const LOCAL_ENV_FILES = ['.env', '.env.local'];
 type ApiLikeHostContext = {
     baseUrl?: string;
     credential?: string;
-    upstreamCredential?: string;
-    credentials?: unknown;
 };
 
-type VerifyCredentialInput = {
-    inboundCredential: string;
-};
-
-type VerifyCredentialResult = {
-    upstreamCredential: string;
-    credentials: unknown;
-};
-
-type VerifyCredentialFn = (input: VerifyCredentialInput) => Promise<VerifyCredentialResult>;
+type VerifyCredentialFn = (credential: string) => void | Promise<void>;
 
 type GeneratedHostModule = {
     generatedTools: Array<{ toolName: string; title?: string; description: string; access?: string }>;
@@ -314,11 +303,6 @@ function validateHostAtStartup(hostConfig: HostRuntimeConfig, generated: Generat
 
     if (generated.requiresAuth && !hostConfig.authEnvKey?.trim()) {
         throw new Error('Generated tools require auth; pass --auth-env <ENV_VAR_NAME> on the MCP host.');
-    }
-    if (generated.requiresAuth && typeof generated.verifyCredential !== 'function') {
-        throw new Error(
-            'Generated tools require auth; implement verify*Credentials in src/hooks/api2ai/<module>/ and re-export from generated tools.'
-        );
     }
 }
 

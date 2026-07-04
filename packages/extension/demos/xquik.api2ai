@@ -4,13 +4,18 @@ auth {
     in: header
     name: "x-api-key"
     prefix: ""
+    hooks: {
+        verifyCredential: true
+    }
 }
 
 GET "/api/v1/x/tweets/search" {
     toolName: searchXquikTweets
     access: protected
-    prepare: {
-        optionalParams: [queryType, cursor, sinceTime, untilTime, limit, fromUser]
+    hooks: {
+        prepareToolCall: {
+            clientMayOmit: [limit]
+        }
     }
     intent: '''
         Search X posts by keyword, Tweet ID, status URL, account, or date window.
@@ -43,9 +48,6 @@ GET "/api/v1/x/tweets/search" {
 GET "/api/v1/x/users/search" {
     toolName: searchXquikUsers
     access: protected
-    prepare: {
-        optionalParams: [cursor]
-    }
     intent: '''
         Search X users by name or username.
         Use this before user-scoped timeline tools when the user only provides a handle-like name.

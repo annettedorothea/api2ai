@@ -36,12 +36,6 @@
                 "CLIENT_ID": "mcp-demo-local"
             }
         },
-        "banking": {
-            "url": "http://127.0.0.1:3876/mcp",
-            "auth": {
-                "CLIENT_ID": "mcp-demo-local"
-            }
-        },
         "test": {
             "command": "node",
             "args": [

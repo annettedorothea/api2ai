@@ -1,5 +1,5 @@
-import type { Operation } from './generated/ast.js';
-import { isAuthorizeTrue, isProtectedAccess, isPublicAccess, isPrepareBody, isPrepareTrue } from './generated/ast.js';
+import type { Auth, Operation } from './generated/ast.js';
+import { isPrepareToolCallBody, isPrepareToolCallTrue, isProtectedAccess, isPublicAccess } from './generated/ast.js';
 
 export function getAccessKind(operation: Operation): 'public' | 'protected' {
     const access = operation.access;
@@ -15,29 +15,26 @@ export function getAccessKind(operation: Operation): 'public' | 'protected' {
     throw new Error('Operation is missing access.');
 }
 
-export function isToolAuthorizeEnabled(operation: Operation): boolean {
-    const authorize = operation.authorize;
-    if (!authorize) {
-        return false;
-    }
-    return isAuthorizeTrue(authorize);
+export function isVerifyCredentialEnabled(auth: Auth | undefined): boolean {
+    return auth?.hooks?.verifyCredential === true;
 }
 
-export function isToolPrepareEnabled(operation: Operation): boolean {
-    const prepare = operation.prepare;
-    if (!prepare) {
-        return false;
-    }
-    return isPrepareTrue(prepare) || isPrepareBody(prepare);
+export function isCheckToolAccessEnabled(operation: Operation): boolean {
+    return operation.hooks?.checkToolAccess === true;
 }
 
-/** @deprecated Use isToolPrepareEnabled */
-export const isToolValidateEnabled = isToolPrepareEnabled;
+export function isPrepareToolCallEnabled(operation: Operation): boolean {
+    const spec = operation.hooks?.prepareToolCall;
+    if (!spec) {
+        return false;
+    }
+    return isPrepareToolCallTrue(spec) || isPrepareToolCallBody(spec);
+}
 
-export function getOptionalParams(operation: Operation): readonly string[] {
-    const prepare = operation.prepare;
-    if (isPrepareBody(prepare) && prepare.optionalParams) {
-        return prepare.optionalParams;
+export function getClientMayOmit(operation: Operation): readonly string[] {
+    const spec = operation.hooks?.prepareToolCall;
+    if (isPrepareToolCallBody(spec) && spec.clientMayOmit) {
+        return spec.clientMayOmit;
     }
     return [];
 }

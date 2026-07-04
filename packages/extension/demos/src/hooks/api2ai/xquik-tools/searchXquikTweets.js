@@ -1,5 +1,5 @@
 export const MAX_XQUIK_TWEET_LIMIT = 20;
-export function prepareSearchXquikTweetsInput(options, _credentials) {
+export function prepareToolCallForSearchXquikTweets(options, _credential) {
     const raw = options.query?.limit;
     if (raw == null || String(raw).trim() === '') {
         return { ...options, query: { ...options.query, limit: MAX_XQUIK_TWEET_LIMIT } };

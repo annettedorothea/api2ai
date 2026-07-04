@@ -12,8 +12,8 @@ export type GeneratedTool = {
     method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' | 'HEAD' | 'OPTIONS' | 'TRACE';
     path: string;
     access: 'public' | 'protected';
-    hasAuthorize: boolean;
-    hasPrepare: boolean;
+    hasCheckToolAccess: boolean;
+    hasPrepareToolCall: boolean;
 };
 
 export const generatedTools: GeneratedTool[] = [
@@ -25,8 +25,8 @@ export const generatedTools: GeneratedTool[] = [
         method: 'GET',
         path: '/v1/forecast',
         access: 'public',
-        hasAuthorize: false,
-        hasPrepare: false
+        hasCheckToolAccess: false,
+        hasPrepareToolCall: false
     }
 ];
 
@@ -41,8 +41,6 @@ export type InvokeOptions = {
 export type ApiHostContext = {
     baseUrl: string;
     credential?: string;
-    upstreamCredential?: string;
-    credentials?: unknown;
 };
 
 export const requiresAuth = false;

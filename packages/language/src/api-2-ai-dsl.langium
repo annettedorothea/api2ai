@@ -10,14 +10,17 @@ Auth:
         ('in' ':' location=AuthLocation)?
         ('name' ':' name=STRING)?
         ('prefix' ':' prefix=STRING)?
+        ('hooks' ':' hooks=AuthHooks)?
     '}';
+
+AuthHooks:
+    '{' 'verifyCredential' ':' verifyCredential=Boolean '}';
 
 Operation:
     method=HttpMethod path=STRING '{'
         ('toolName' ':' toolName=ID)?
         'access' ':' access=AccessKind
-        ('authorize' ':' authorize=AuthorizeSpec)?
-        ('prepare' ':' prepare=PrepareSpec)?
+        ('hooks' ':' hooks=ToolHooks)?
         ('intent' ':' intent=DslText)?
         ('summary' ':' summary=DslText)?
         ('description' ':' description=DslText)?
@@ -26,6 +29,21 @@ Operation:
         ('body' ':' body=DslText)?
         ('response' ':' response=DslText)?
     '}';
+
+ToolHooks:
+    '{'
+        ('checkToolAccess' ':' checkToolAccess=Boolean)?
+        ('prepareToolCall' ':' prepareToolCall=PrepareToolCallSpec)?
+    '}';
+
+PrepareToolCallSpec:
+    PrepareToolCallTrue | PrepareToolCallBody;
+
+PrepareToolCallTrue:
+    {infer PrepareToolCallTrue} 'true';
+
+PrepareToolCallBody:
+    {infer PrepareToolCallBody} '{' 'clientMayOmit' ':' '[' (clientMayOmit+=ID (',' clientMayOmit+=ID)*)? ']' '}';
 
 ApiParamMap:
     '{' (entries += ApiParamEntry)* '}';
@@ -49,23 +67,11 @@ PublicAccess:
 ProtectedAccess:
     {infer ProtectedAccess} 'protected';
 
-AuthorizeSpec:
-    AuthorizeTrue;
-
-AuthorizeTrue:
-    {infer AuthorizeTrue} 'true';
-
-PrepareSpec:
-    PrepareTrue | PrepareBody;
-
-PrepareTrue:
-    {infer PrepareTrue} 'true';
-
-PrepareBody:
-    {infer PrepareBody} '{' ('optionalParams' ':' '[' (optionalParams+=ID (',' optionalParams+=ID)*)? ']')? '}';
-
 AuthLocation returns string:
     'header' | 'query';
+
+Boolean returns boolean:
+    'true' | 'false';
 
 HttpMethod returns string:
     'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' | 'HEAD' | 'OPTIONS' | 'TRACE';

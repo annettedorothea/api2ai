@@ -8,8 +8,8 @@ import type {
 import {
     coerceExampleFromSchemaType,
     getAccessKind,
-    isToolAuthorizeEnabled,
-    isToolPrepareEnabled,
+    isCheckToolAccessEnabled,
+    isPrepareToolCallEnabled,
     parseApiParamSpec
 } from 'api-2-ai-dsl-language';
 import { resolveModuleCredentialNames } from '@toolfactory.dev/core/codegen';
@@ -25,9 +25,9 @@ function joinSections(sections: string[]): string {
     return sections.filter((s) => s.length > 0).join('\n\n');
 }
 
-function verifyCredentialsStubAuthPath(hostProduct: string, mcpModuleName: string | undefined): string {
+function verifyCredentialStubAuthPath(hostProduct: string, mcpModuleName: string | undefined): string {
     if (!mcpModuleName) {
-        return `src/hooks/${hostProduct}/<module>/verify*Credentials.ts`;
+        return `src/hooks/${hostProduct}/<module>/verify*Credential.ts`;
     }
     const names = resolveModuleCredentialNames(`generated/${hostProduct}/tools/${mcpModuleName}.ts`);
     return `src/hooks/${hostProduct}/${mcpModuleName}/${names.fileBase}.ts`;
@@ -365,32 +365,32 @@ export function buildMcpDescription(
     const toolFile = toolName ?? 'tool';
     const capitalize = (name: string) => name.charAt(0).toUpperCase() + name.slice(1);
     const access = getAccessKind(operation);
-    const hasAuthorize = isToolAuthorizeEnabled(operation);
-    const hasPrepare = isToolPrepareEnabled(operation);
+    const hasCheckToolAccess = isCheckToolAccessEnabled(operation);
+    const hasPrepareToolCall = isPrepareToolCallEnabled(operation);
     const authPath = `src/hooks/${hostProduct}/${mcpModuleName ?? 'mcp'}/${toolFile}.ts`;
     const prefixNote =
         auth && auth.prefix !== undefined && String(auth.prefix).trim().length > 0
             ? ' (prefix applied to the secret)'
             : '';
 
-    if (access === 'public' && !hasPrepare) {
+    if (access === 'public' && !hasPrepareToolCall) {
         sections.push('Runtime: public endpoint — no credential required.');
-    } else if (access === 'public' && hasPrepare) {
+    } else if (access === 'public' && hasPrepareToolCall) {
         sections.push(
-            `Runtime: implement prepare${capitalize(toolFile)}Input in ${authPath} (types from this tools module; run build:generated for .js).`
+            `Runtime: implement prepareToolCallFor${capitalize(toolFile)} in ${authPath} (types from this tools module; run build:generated for .js).`
         );
     } else if (access === 'protected' && auth) {
         const implParts: string[] = [];
-        if (hasAuthorize) {
-            implParts.push(`authorize${capitalize(toolFile)}`);
+        if (hasCheckToolAccess) {
+            implParts.push(`checkToolAccessFor${capitalize(toolFile)}`);
         }
-        if (hasPrepare) {
-            implParts.push(`prepare${capitalize(toolFile)}Input`);
+        if (hasPrepareToolCall) {
+            implParts.push(`prepareToolCallFor${capitalize(toolFile)}`);
         }
         const implNote =
             implParts.length > 0
                 ? `implement ${implParts.join(' and ')} in ${authPath}; `
-                : `implement ${verifyCredentialsStubAuthPath(hostProduct, mcpModuleName)}; `;
+                : `implement ${verifyCredentialStubAuthPath(hostProduct, mcpModuleName)}; `;
         sections.push(
             `Runtime: protected — ${implNote}credential sent as ${auth.location} "${auth.name}"${prefixNote}.`
         );

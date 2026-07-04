@@ -4,9 +4,9 @@
  */
 import { loggingAdapter } from '../../../src/utils/logging-adapter.js';
 import * as z from 'zod/v4';
-import { prepareListSpaceflightArticlesInput } from '../../../src/hooks/api2ai/spaceflight-news-tools/listSpaceflightArticles.js';
-import { prepareListSpaceflightBlogsInput } from '../../../src/hooks/api2ai/spaceflight-news-tools/listSpaceflightBlogs.js';
-import { prepareListSpaceflightReportsInput } from '../../../src/hooks/api2ai/spaceflight-news-tools/listSpaceflightReports.js';
+import { prepareToolCallForListSpaceflightArticles } from '../../../src/hooks/api2ai/spaceflight-news-tools/listSpaceflightArticles.js';
+import { prepareToolCallForListSpaceflightBlogs } from '../../../src/hooks/api2ai/spaceflight-news-tools/listSpaceflightBlogs.js';
+import { prepareToolCallForListSpaceflightReports } from '../../../src/hooks/api2ai/spaceflight-news-tools/listSpaceflightReports.js';
 
 export type GeneratedTool = {
     toolName: string;
@@ -15,8 +15,8 @@ export type GeneratedTool = {
     method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' | 'HEAD' | 'OPTIONS' | 'TRACE';
     path: string;
     access: 'public' | 'protected';
-    hasAuthorize: boolean;
-    hasPrepare: boolean;
+    hasCheckToolAccess: boolean;
+    hasPrepareToolCall: boolean;
 };
 
 export const generatedTools: GeneratedTool[] = [
@@ -24,12 +24,12 @@ export const generatedTools: GeneratedTool[] = [
         toolName: 'listSpaceflightArticles',
         title: 'List spaceflight articles (limit validated, teaser only; full text at response url)',
         description:
-            'Intent:\n- List recent spaceflight news articles (pagination: limit, offset, ordering).\n        - Query limit caps how many articles are returned (default 10, max 10).\n        - Response contains title, summary teaser, and url per item — not the full article body.\n        - Use search, has_launch, or news_site filters for SpaceX, launches, or specific outlets.\n        - Follow result url only when full text is needed (same pattern for blogs and reports tools).\n\nMCP arguments:\npass event, has_event, has_launch, is_featured, launch, limit, news_site, news_site_exclude, offset, ordering, published_at_gt, published_at_gte, published_at_lt, published_at_lte, search, summary_contains, summary_contains_all, summary_contains_one, title_contains, title_contains_all, title_contains_one, updated_at_gt, updated_at_gte, updated_at_lt, updated_at_lte as top-level tool arguments. Do not nest path or query parameters under pathParams or query.\n\nMeta:\ntags: articles | operationId: articles_list\n\nParameters:\n- event (query): Search for all documents related to a specific event using its Launch Library 2 ID.\n- has_event (query): Get all documents that have a related event.\n- has_launch (query): Get all documents that have a related launch.\n- is_featured (query): Get all documents that are featured.\n- launch (query): Search for all documents related to a specific launch using its Launch Library 2 ID.\n- limit (query): Number of results per page (default 10, max 10). (example: 10)\n- news_site (query): Search for documents with a news_site__name present in a list of comma-separated values. Case insensitive.\n- news_site_exclude (query): Search for documents with a news_site__name not present in a list of comma-separated values. Case insensitive.\n- offset (query): The initial index from which to return the results.\n- ordering (query): Order the result on `published_at, -published_at, updated_at, -updated_at`.\n\n* `published_at` - Published at\n* `-published_at` - Published at (descending)\n* `updated_at` - Updated at\n* `-updated_at` - Updated at (descending)\n- published_at_gt (query): Get all documents published after a given ISO8601 timestamp (excluded).\n- published_at_gte (query): Get all documents published after a given ISO8601 timestamp (included).\n- published_at_lt (query): Get all documents published before a given ISO8601 timestamp (excluded).\n- published_at_lte (query): Get all documents published before a given ISO8601 timestamp (included).\n- search (query): Search for documents with a specific phrase in the title or summary.\n- summary_contains (query): Search for all documents with a specific phrase in the summary.\n- summary_contains_all (query): Search for documents with a summary containing all keywords from comma-separated values.\n- summary_contains_one (query): Search for documents with a summary containing at least one keyword from comma-separated values.\n- title_contains (query): Search for all documents with a specific phrase in the title.\n- title_contains_all (query): Search for documents with a title containing all keywords from comma-separated values.\n- title_contains_one (query): Search for documents with a title containing at least one keyword from comma-separated values.\n- updated_at_gt (query): Get all documents updated after a given ISO8601 timestamp (excluded).\n- updated_at_gte (query): Get all documents updated after a given ISO8601 timestamp (included).\n- updated_at_lt (query): Get all documents updated before a given ISO8601 timestamp (excluded).\n- updated_at_lte (query): Get all documents updated before a given ISO8601 timestamp (included).\n\nExample:\nGet the latest 5 articles\n\nResponse:\nHTTP 200\nproperties (top-level): count, next, previous, results\n\nRuntime: implement prepareListSpaceflightArticlesInput in src/hooks/api2ai/spaceflight-news-tools/listSpaceflightArticles.ts (types from this tools module; run build:generated for .js).',
+            'Intent:\n- List recent spaceflight news articles (pagination: limit, offset, ordering).\n        - Query limit caps how many articles are returned (default 10, max 10).\n        - Response contains title, summary teaser, and url per item — not the full article body.\n        - Use search, has_launch, or news_site filters for SpaceX, launches, or specific outlets.\n        - Follow result url only when full text is needed (same pattern for blogs and reports tools).\n\nMCP arguments:\npass event, has_event, has_launch, is_featured, launch, limit, news_site, news_site_exclude, offset, ordering, published_at_gt, published_at_gte, published_at_lt, published_at_lte, search, summary_contains, summary_contains_all, summary_contains_one, title_contains, title_contains_all, title_contains_one, updated_at_gt, updated_at_gte, updated_at_lt, updated_at_lte as top-level tool arguments. Do not nest path or query parameters under pathParams or query.\n\nMeta:\ntags: articles | operationId: articles_list\n\nParameters:\n- event (query): Search for all documents related to a specific event using its Launch Library 2 ID.\n- has_event (query): Get all documents that have a related event.\n- has_launch (query): Get all documents that have a related launch.\n- is_featured (query): Get all documents that are featured.\n- launch (query): Search for all documents related to a specific launch using its Launch Library 2 ID.\n- limit (query): Number of results per page (default 10, max 10). (example: 10)\n- news_site (query): Search for documents with a news_site__name present in a list of comma-separated values. Case insensitive.\n- news_site_exclude (query): Search for documents with a news_site__name not present in a list of comma-separated values. Case insensitive.\n- offset (query): The initial index from which to return the results.\n- ordering (query): Order the result on `published_at, -published_at, updated_at, -updated_at`.\n\n* `published_at` - Published at\n* `-published_at` - Published at (descending)\n* `updated_at` - Updated at\n* `-updated_at` - Updated at (descending)\n- published_at_gt (query): Get all documents published after a given ISO8601 timestamp (excluded).\n- published_at_gte (query): Get all documents published after a given ISO8601 timestamp (included).\n- published_at_lt (query): Get all documents published before a given ISO8601 timestamp (excluded).\n- published_at_lte (query): Get all documents published before a given ISO8601 timestamp (included).\n- search (query): Search for documents with a specific phrase in the title or summary.\n- summary_contains (query): Search for all documents with a specific phrase in the summary.\n- summary_contains_all (query): Search for documents with a summary containing all keywords from comma-separated values.\n- summary_contains_one (query): Search for documents with a summary containing at least one keyword from comma-separated values.\n- title_contains (query): Search for all documents with a specific phrase in the title.\n- title_contains_all (query): Search for documents with a title containing all keywords from comma-separated values.\n- title_contains_one (query): Search for documents with a title containing at least one keyword from comma-separated values.\n- updated_at_gt (query): Get all documents updated after a given ISO8601 timestamp (excluded).\n- updated_at_gte (query): Get all documents updated after a given ISO8601 timestamp (included).\n- updated_at_lt (query): Get all documents updated before a given ISO8601 timestamp (excluded).\n- updated_at_lte (query): Get all documents updated before a given ISO8601 timestamp (included).\n\nExample:\nGet the latest 5 articles\n\nResponse:\nHTTP 200\nproperties (top-level): count, next, previous, results\n\nRuntime: implement prepareToolCallForListSpaceflightArticles in src/hooks/api2ai/spaceflight-news-tools/listSpaceflightArticles.ts (types from this tools module; run build:generated for .js).',
         method: 'GET',
         path: '/v4/articles/',
         access: 'public',
-        hasAuthorize: false,
-        hasPrepare: true
+        hasCheckToolAccess: false,
+        hasPrepareToolCall: true
     },
     {
         toolName: 'getSpaceflightArticleById',
@@ -39,19 +39,19 @@ export const generatedTools: GeneratedTool[] = [
         method: 'GET',
         path: '/v4/articles/{id}/',
         access: 'public',
-        hasAuthorize: false,
-        hasPrepare: false
+        hasCheckToolAccess: false,
+        hasPrepareToolCall: false
     },
     {
         toolName: 'listSpaceflightBlogs',
         title: 'List spaceflight blog posts (limit validated, teaser only; full text at response url)',
         description:
-            'Intent:\n- List recent spaceflight blog posts (pagination: limit, offset, ordering).\n        - Query limit caps how many blog posts are returned (default 10, max 10).\n        - Response contains title, summary teaser, and url per item — not the full post body.\n        - Use search, has_launch, or news_site filters for SpaceX, launches, or specific outlets.\n        - Follow result url only when full text is needed (same pattern for articles and reports tools).\n\nMCP arguments:\npass event, has_event, has_launch, is_featured, launch, limit, news_site, news_site_exclude, offset, ordering, published_at_gt, published_at_gte, published_at_lt, published_at_lte, search, summary_contains, summary_contains_all, summary_contains_one, title_contains, title_contains_all, title_contains_one, updated_at_gt, updated_at_gte, updated_at_lt, updated_at_lte as top-level tool arguments. Do not nest path or query parameters under pathParams or query.\n\nMeta:\ntags: blogs | operationId: blogs_list\n\nParameters:\n- event (query): Search for all documents related to a specific event using its Launch Library 2 ID.\n- has_event (query): Get all documents that have a related event.\n- has_launch (query): Get all documents that have a related launch.\n- is_featured (query): Get all documents that are featured.\n- launch (query): Search for all documents related to a specific launch using its Launch Library 2 ID.\n- limit (query): Number of results per page (default 10, max 10). (example: 10)\n- news_site (query): Search for documents with a news_site__name present in a list of comma-separated values. Case insensitive.\n- news_site_exclude (query): Search for documents with a news_site__name not present in a list of comma-separated values. Case insensitive.\n- offset (query): The initial index from which to return the results.\n- ordering (query): Order the result on `published_at, -published_at, updated_at, -updated_at`.\n\n* `published_at` - Published at\n* `-published_at` - Published at (descending)\n* `updated_at` - Updated at\n* `-updated_at` - Updated at (descending)\n- published_at_gt (query): Get all documents published after a given ISO8601 timestamp (excluded).\n- published_at_gte (query): Get all documents published after a given ISO8601 timestamp (included).\n- published_at_lt (query): Get all documents published before a given ISO8601 timestamp (excluded).\n- published_at_lte (query): Get all documents published before a given ISO8601 timestamp (included).\n- search (query): Search for documents with a specific phrase in the title or summary.\n- summary_contains (query): Search for all documents with a specific phrase in the summary.\n- summary_contains_all (query): Search for documents with a summary containing all keywords from comma-separated values.\n- summary_contains_one (query): Search for documents with a summary containing at least one keyword from comma-separated values.\n- title_contains (query): Search for all documents with a specific phrase in the title.\n- title_contains_all (query): Search for documents with a title containing all keywords from comma-separated values.\n- title_contains_one (query): Search for documents with a title containing at least one keyword from comma-separated values.\n- updated_at_gt (query): Get all documents updated after a given ISO8601 timestamp (excluded).\n- updated_at_gte (query): Get all documents updated after a given ISO8601 timestamp (included).\n- updated_at_lt (query): Get all documents updated before a given ISO8601 timestamp (excluded).\n- updated_at_lte (query): Get all documents updated before a given ISO8601 timestamp (included).\n\nExample:\nGet the latest 5 blog posts\n\nResponse:\nHTTP 200\nproperties (top-level): count, next, previous, results\n\nRuntime: implement prepareListSpaceflightBlogsInput in src/hooks/api2ai/spaceflight-news-tools/listSpaceflightBlogs.ts (types from this tools module; run build:generated for .js).',
+            'Intent:\n- List recent spaceflight blog posts (pagination: limit, offset, ordering).\n        - Query limit caps how many blog posts are returned (default 10, max 10).\n        - Response contains title, summary teaser, and url per item — not the full post body.\n        - Use search, has_launch, or news_site filters for SpaceX, launches, or specific outlets.\n        - Follow result url only when full text is needed (same pattern for articles and reports tools).\n\nMCP arguments:\npass event, has_event, has_launch, is_featured, launch, limit, news_site, news_site_exclude, offset, ordering, published_at_gt, published_at_gte, published_at_lt, published_at_lte, search, summary_contains, summary_contains_all, summary_contains_one, title_contains, title_contains_all, title_contains_one, updated_at_gt, updated_at_gte, updated_at_lt, updated_at_lte as top-level tool arguments. Do not nest path or query parameters under pathParams or query.\n\nMeta:\ntags: blogs | operationId: blogs_list\n\nParameters:\n- event (query): Search for all documents related to a specific event using its Launch Library 2 ID.\n- has_event (query): Get all documents that have a related event.\n- has_launch (query): Get all documents that have a related launch.\n- is_featured (query): Get all documents that are featured.\n- launch (query): Search for all documents related to a specific launch using its Launch Library 2 ID.\n- limit (query): Number of results per page (default 10, max 10). (example: 10)\n- news_site (query): Search for documents with a news_site__name present in a list of comma-separated values. Case insensitive.\n- news_site_exclude (query): Search for documents with a news_site__name not present in a list of comma-separated values. Case insensitive.\n- offset (query): The initial index from which to return the results.\n- ordering (query): Order the result on `published_at, -published_at, updated_at, -updated_at`.\n\n* `published_at` - Published at\n* `-published_at` - Published at (descending)\n* `updated_at` - Updated at\n* `-updated_at` - Updated at (descending)\n- published_at_gt (query): Get all documents published after a given ISO8601 timestamp (excluded).\n- published_at_gte (query): Get all documents published after a given ISO8601 timestamp (included).\n- published_at_lt (query): Get all documents published before a given ISO8601 timestamp (excluded).\n- published_at_lte (query): Get all documents published before a given ISO8601 timestamp (included).\n- search (query): Search for documents with a specific phrase in the title or summary.\n- summary_contains (query): Search for all documents with a specific phrase in the summary.\n- summary_contains_all (query): Search for documents with a summary containing all keywords from comma-separated values.\n- summary_contains_one (query): Search for documents with a summary containing at least one keyword from comma-separated values.\n- title_contains (query): Search for all documents with a specific phrase in the title.\n- title_contains_all (query): Search for documents with a title containing all keywords from comma-separated values.\n- title_contains_one (query): Search for documents with a title containing at least one keyword from comma-separated values.\n- updated_at_gt (query): Get all documents updated after a given ISO8601 timestamp (excluded).\n- updated_at_gte (query): Get all documents updated after a given ISO8601 timestamp (included).\n- updated_at_lt (query): Get all documents updated before a given ISO8601 timestamp (excluded).\n- updated_at_lte (query): Get all documents updated before a given ISO8601 timestamp (included).\n\nExample:\nGet the latest 5 blog posts\n\nResponse:\nHTTP 200\nproperties (top-level): count, next, previous, results\n\nRuntime: implement prepareToolCallForListSpaceflightBlogs in src/hooks/api2ai/spaceflight-news-tools/listSpaceflightBlogs.ts (types from this tools module; run build:generated for .js).',
         method: 'GET',
         path: '/v4/blogs/',
         access: 'public',
-        hasAuthorize: false,
-        hasPrepare: true
+        hasCheckToolAccess: false,
+        hasPrepareToolCall: true
     },
     {
         toolName: 'getSpaceflightBlogById',
@@ -61,19 +61,19 @@ export const generatedTools: GeneratedTool[] = [
         method: 'GET',
         path: '/v4/blogs/{id}/',
         access: 'public',
-        hasAuthorize: false,
-        hasPrepare: false
+        hasCheckToolAccess: false,
+        hasPrepareToolCall: false
     },
     {
         toolName: 'listSpaceflightReports',
         title: 'List spaceflight reports (limit validated, teaser only; full text at response url)',
         description:
-            'Intent:\n- List recent spaceflight reports (pagination: limit, offset, ordering).\n        - Query limit caps how many reports are returned (default 10, max 10).\n        - Response contains title, summary teaser, and url per item — not the full report body.\n        - Use search or news_site filters for specific outlets or topics.\n        - Follow result url only when full text is needed (same pattern for articles and blogs tools).\n\nMCP arguments:\npass limit, news_site, news_site_exclude, offset, ordering, published_at_gt, published_at_gte, published_at_lt, published_at_lte, search, summary_contains, summary_contains_all, summary_contains_one, title_contains, title_contains_all, title_contains_one, updated_at_gt, updated_at_gte, updated_at_lt, updated_at_lte as top-level tool arguments. Do not nest path or query parameters under pathParams or query.\n\nMeta:\ntags: reports | operationId: reports_list\n\nParameters:\n- limit (query): Number of results per page (default 10, max 10). (example: 10)\n- news_site (query): Search for documents with a news_site__name present in a list of comma-separated values. Case insensitive.\n- news_site_exclude (query): Search for documents with a news_site__name not present in a list of comma-separated values. Case insensitive.\n- offset (query): The initial index from which to return the results.\n- ordering (query): Order the result on `published_at, -published_at, updated_at, -updated_at`.\n\n* `published_at` - Published at\n* `-published_at` - Published at (descending)\n* `updated_at` - Updated at\n* `-updated_at` - Updated at (descending)\n- published_at_gt (query): Get all documents published after a given ISO8601 timestamp (excluded).\n- published_at_gte (query): Get all documents published after a given ISO8601 timestamp (included).\n- published_at_lt (query): Get all documents published before a given ISO8601 timestamp (excluded).\n- published_at_lte (query): Get all documents published before a given ISO8601 timestamp (included).\n- search (query): Search for documents with a specific phrase in the title or summary.\n- summary_contains (query): Search for all documents with a specific phrase in the summary.\n- summary_contains_all (query): Search for documents with a summary containing all keywords from comma-separated values.\n- summary_contains_one (query): Search for documents with a summary containing at least one keyword from comma-separated values.\n- title_contains (query): Search for all documents with a specific phrase in the title.\n- title_contains_all (query): Search for documents with a title containing all keywords from comma-separated values.\n- title_contains_one (query): Search for documents with a title containing at least one keyword from comma-separated values.\n- updated_at_gt (query): Get all documents updated after a given ISO8601 timestamp (excluded).\n- updated_at_gte (query): Get all documents updated after a given ISO8601 timestamp (included).\n- updated_at_lt (query): Get all documents updated before a given ISO8601 timestamp (excluded).\n- updated_at_lte (query): Get all documents updated before a given ISO8601 timestamp (included).\n\nExample:\nGet the latest 5 reports\n\nResponse:\nHTTP 200\nproperties (top-level): count, next, previous, results\n\nRuntime: implement prepareListSpaceflightReportsInput in src/hooks/api2ai/spaceflight-news-tools/listSpaceflightReports.ts (types from this tools module; run build:generated for .js).',
+            'Intent:\n- List recent spaceflight reports (pagination: limit, offset, ordering).\n        - Query limit caps how many reports are returned (default 10, max 10).\n        - Response contains title, summary teaser, and url per item — not the full report body.\n        - Use search or news_site filters for specific outlets or topics.\n        - Follow result url only when full text is needed (same pattern for articles and blogs tools).\n\nMCP arguments:\npass limit, news_site, news_site_exclude, offset, ordering, published_at_gt, published_at_gte, published_at_lt, published_at_lte, search, summary_contains, summary_contains_all, summary_contains_one, title_contains, title_contains_all, title_contains_one, updated_at_gt, updated_at_gte, updated_at_lt, updated_at_lte as top-level tool arguments. Do not nest path or query parameters under pathParams or query.\n\nMeta:\ntags: reports | operationId: reports_list\n\nParameters:\n- limit (query): Number of results per page (default 10, max 10). (example: 10)\n- news_site (query): Search for documents with a news_site__name present in a list of comma-separated values. Case insensitive.\n- news_site_exclude (query): Search for documents with a news_site__name not present in a list of comma-separated values. Case insensitive.\n- offset (query): The initial index from which to return the results.\n- ordering (query): Order the result on `published_at, -published_at, updated_at, -updated_at`.\n\n* `published_at` - Published at\n* `-published_at` - Published at (descending)\n* `updated_at` - Updated at\n* `-updated_at` - Updated at (descending)\n- published_at_gt (query): Get all documents published after a given ISO8601 timestamp (excluded).\n- published_at_gte (query): Get all documents published after a given ISO8601 timestamp (included).\n- published_at_lt (query): Get all documents published before a given ISO8601 timestamp (excluded).\n- published_at_lte (query): Get all documents published before a given ISO8601 timestamp (included).\n- search (query): Search for documents with a specific phrase in the title or summary.\n- summary_contains (query): Search for all documents with a specific phrase in the summary.\n- summary_contains_all (query): Search for documents with a summary containing all keywords from comma-separated values.\n- summary_contains_one (query): Search for documents with a summary containing at least one keyword from comma-separated values.\n- title_contains (query): Search for all documents with a specific phrase in the title.\n- title_contains_all (query): Search for documents with a title containing all keywords from comma-separated values.\n- title_contains_one (query): Search for documents with a title containing at least one keyword from comma-separated values.\n- updated_at_gt (query): Get all documents updated after a given ISO8601 timestamp (excluded).\n- updated_at_gte (query): Get all documents updated after a given ISO8601 timestamp (included).\n- updated_at_lt (query): Get all documents updated before a given ISO8601 timestamp (excluded).\n- updated_at_lte (query): Get all documents updated before a given ISO8601 timestamp (included).\n\nExample:\nGet the latest 5 reports\n\nResponse:\nHTTP 200\nproperties (top-level): count, next, previous, results\n\nRuntime: implement prepareToolCallForListSpaceflightReports in src/hooks/api2ai/spaceflight-news-tools/listSpaceflightReports.ts (types from this tools module; run build:generated for .js).',
         method: 'GET',
         path: '/v4/reports/',
         access: 'public',
-        hasAuthorize: false,
-        hasPrepare: true
+        hasCheckToolAccess: false,
+        hasPrepareToolCall: true
     },
     {
         toolName: 'getSpaceflightReportById',
@@ -83,8 +83,8 @@ export const generatedTools: GeneratedTool[] = [
         method: 'GET',
         path: '/v4/reports/{id}/',
         access: 'public',
-        hasAuthorize: false,
-        hasPrepare: false
+        hasCheckToolAccess: false,
+        hasPrepareToolCall: false
     },
     {
         toolName: 'getSpaceflightInfo',
@@ -94,8 +94,8 @@ export const generatedTools: GeneratedTool[] = [
         method: 'GET',
         path: '/v4/info/',
         access: 'public',
-        hasAuthorize: false,
-        hasPrepare: false
+        hasCheckToolAccess: false,
+        hasPrepareToolCall: false
     }
 ];
 
@@ -110,8 +110,6 @@ export type InvokeOptions = {
 export type ApiHostContext = {
     baseUrl: string;
     credential?: string;
-    upstreamCredential?: string;
-    credentials?: unknown;
 };
 
 export const requiresAuth = false;
@@ -119,10 +117,13 @@ export const requiresAuth = false;
 export const mcpServerName = 'spaceflight-news-tools';
 export const mcpServerVersion = '0.5.0';
 
-const preparers: Record<string, (options: InvokeOptions) => InvokeOptions | Promise<InvokeOptions>> = {
-    listSpaceflightArticles: prepareListSpaceflightArticlesInput,
-    listSpaceflightBlogs: prepareListSpaceflightBlogsInput,
-    listSpaceflightReports: prepareListSpaceflightReportsInput
+const prepareToolCallHooks: Record<
+    string,
+    (options: InvokeOptions, credential?: string) => InvokeOptions | Promise<InvokeOptions>
+> = {
+    listSpaceflightArticles: prepareToolCallForListSpaceflightArticles,
+    listSpaceflightBlogs: prepareToolCallForListSpaceflightBlogs,
+    listSpaceflightReports: prepareToolCallForListSpaceflightReports
 };
 
 export const inputZodByTool = {
@@ -1288,13 +1289,30 @@ export async function invokeTool(
     }
     const host = hostContext as ApiHostContext;
     const { baseUrl } = host;
+    let credential: string | undefined = host.credential?.trim() ? String(host.credential).trim() : undefined;
 
-    if (tool.hasPrepare) {
-        const prepare = preparers[toolName];
-        if (typeof prepare !== 'function') {
-            throw new Error('No preparer for tool: ' + toolName);
+    if (tool.access === 'protected') {
+        const inbound = host.credential;
+        if (!inbound || !String(inbound).trim()) {
+            throw new Error(
+                'Missing host credential. stdio: set env for --auth-env on stdio-mcp-server; passthrough HTTP: MCP auth header (e.g. x-api-token); OAuth HTTP: complete MCP login (Authorization Bearer from Cursor).'
+            );
         }
-        optionsResolved = await Promise.resolve(prepare(optionsResolved));
+        credential = String(inbound).trim();
+    }
+    if (tool.hasPrepareToolCall) {
+        const prepareToolCall = prepareToolCallHooks[toolName];
+        if (typeof prepareToolCall !== 'function') {
+            throw new Error('No prepareToolCall hook for tool: ' + toolName);
+        }
+        if (tool.access === 'protected') {
+            if (credential === undefined) {
+                throw new Error('prepareToolCall requires credential for protected tools.');
+            }
+            optionsResolved = await Promise.resolve(prepareToolCall(optionsResolved, credential));
+        } else {
+            optionsResolved = await Promise.resolve(prepareToolCall(optionsResolved));
+        }
     }
     const normalizedBaseUrl = baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl;
     const pathParams = { ...(optionsResolved.pathParams ?? {}) };

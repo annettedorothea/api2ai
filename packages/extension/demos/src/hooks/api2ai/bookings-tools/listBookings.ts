@@ -1,28 +1,30 @@
-import type { ModuleCredentials } from './verifyBookingsCredentials.js';
+import { decodeJwtPayload } from '../../shared/decode-jwt-payload.js';
 import type { InvokeOptions } from '../../../../generated/api2ai/tools/bookings-tools.js';
 
-/** protected + authorize — role gate (user | admin). */
-export function authorizeListBookings(credentials: ModuleCredentials): void {
-    const jwtCustomer = String(credentials.customerId ?? '').trim();
+/** protected + checkToolAccess — role gate (user | admin). */
+export async function checkToolAccessForListBookings(credential: string): Promise<void> {
+    const claims = await decodeJwtPayload(credential);
+    const jwtCustomer = String(claims.customerId ?? '').trim();
     if (jwtCustomer.length === 0) {
-        throw new Error('credentials missing customerId claim.');
+        throw new Error('credential missing customerId claim.');
     }
-    const role = String(credentials.role ?? '').trim();
+    const role = String(claims.role ?? '').trim();
     if (role.length === 0) {
-        throw new Error('credentials missing role claim.');
+        throw new Error('credential missing role claim.');
     }
     if (role !== 'user' && role !== 'admin') {
         throw new Error(`Unsupported role "${role}".`);
     }
 }
 
-/** protected + prepare — fill optional customerId, scope for role=user. */
-export function prepareListBookingsInput(options: InvokeOptions, credentials?: ModuleCredentials): InvokeOptions {
-    if (!credentials) {
-        throw new Error('Prepare requires credentials.');
-    }
-    const jwtCustomer = String(credentials.customerId ?? '').trim();
-    const role = String(credentials.role ?? '').trim();
+/** protected + prepareToolCall — fill optional customerId, scope for role=user. */
+export async function prepareToolCallForListBookings(
+    options: InvokeOptions,
+    credential: string
+): Promise<InvokeOptions> {
+    const claims = await decodeJwtPayload(credential);
+    const jwtCustomer = String(claims.customerId ?? '').trim();
+    const role = String(claims.role ?? '').trim();
 
     let customerId = options.pathParams?.customerId;
     if (customerId == null || String(customerId).trim() === '') {

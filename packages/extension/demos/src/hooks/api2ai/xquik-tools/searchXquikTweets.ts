@@ -1,9 +1,8 @@
-import type { ModuleCredentials } from './verifyXquikCredentials.js';
 import type { InvokeOptions } from '../../../../generated/api2ai/tools/xquik-tools.js';
 
 export const MAX_XQUIK_TWEET_LIMIT = 20;
 
-export function prepareSearchXquikTweetsInput(options: InvokeOptions, _credentials?: ModuleCredentials): InvokeOptions {
+export function prepareToolCallForSearchXquikTweets(options: InvokeOptions, _credential: string): InvokeOptions {
     const raw = options.query?.limit;
     if (raw == null || String(raw).trim() === '') {
         return { ...options, query: { ...options.query, limit: MAX_XQUIK_TWEET_LIMIT } };

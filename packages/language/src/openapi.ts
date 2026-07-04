@@ -377,19 +377,19 @@ export type UnknownOptionalParamWarning = {
     message: string;
 };
 
-/** DSL optionalParams names that do not match any invoke parameter on the OpenAPI operation. */
-export function getUnknownOptionalParamWarnings(
-    optionalParams: readonly string[],
+/** DSL clientMayOmit names that do not match any invoke parameter on the OpenAPI operation. */
+export function getUnknownClientMayOmitWarnings(
+    clientMayOmit: readonly string[],
     openApiOperation: OpenApiOperationDetails,
     method: string,
     routePath: string
 ): UnknownOptionalParamWarning[] {
-    if (!optionalParams.length) {
+    if (!clientMayOmit.length) {
         return [];
     }
     const known = openApiInvokeParameterNames(openApiOperation);
     const warnings: UnknownOptionalParamWarning[] = [];
-    optionalParams.forEach((raw, index) => {
+    clientMayOmit.forEach((raw, index) => {
         const name = raw.trim();
         if (name.length === 0) {
             return;
@@ -400,7 +400,38 @@ export function getUnknownOptionalParamWarnings(
         warnings.push({
             index,
             name,
-            message: `optionalParams entry "${name}" is not a path, query, or header parameter on ${method} ${routePath} in the OpenAPI spec (no effect on the generated tool schema).`
+            message: `clientMayOmit entry "${name}" is not a path, query, or header parameter on ${method} ${routePath} in the OpenAPI spec (no effect on the generated tool schema).`
+        });
+    });
+    return warnings;
+}
+
+/** DSL clientMayOmit names that refer to OpenAPI parameters already marked optional (unnecessary). */
+export function getUnnecessaryClientMayOmitWarnings(
+    clientMayOmit: readonly string[],
+    openApiOperation: OpenApiOperationDetails,
+    method: string,
+    routePath: string
+): UnknownOptionalParamWarning[] {
+    if (!clientMayOmit.length) {
+        return [];
+    }
+    const warnings: UnknownOptionalParamWarning[] = [];
+    clientMayOmit.forEach((raw, index) => {
+        const name = raw.trim();
+        if (name.length === 0) {
+            return;
+        }
+        const parameter = openApiOperation.parameters.find(
+            (entry) => entry.name === name && (entry.in === 'path' || entry.in === 'query' || entry.in === 'header')
+        );
+        if (!parameter || parameter.required) {
+            return;
+        }
+        warnings.push({
+            index,
+            name,
+            message: `clientMayOmit entry "${name}" is already optional in OpenAPI on ${method} ${routePath} (no effect on the generated tool schema).`
         });
     });
     return warnings;

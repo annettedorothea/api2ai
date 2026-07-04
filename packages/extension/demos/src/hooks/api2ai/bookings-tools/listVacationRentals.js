@@ -13,8 +13,8 @@ function resolveLimitQuery(options) {
     }
     return Math.floor(limit);
 }
-/** public + prepare — cap units per request (no credentials required). */
-export function prepareListVacationRentalsInput(options) {
+/** public + prepareToolCall — cap units per request (no credential required). */
+export function prepareToolCallForListVacationRentals(options) {
     const limit = resolveLimitQuery(options);
     return {
         ...options,

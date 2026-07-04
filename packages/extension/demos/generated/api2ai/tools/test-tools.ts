@@ -4,14 +4,10 @@
  */
 import { loggingAdapter } from '../../../src/utils/logging-adapter.js';
 import * as z from 'zod/v4';
-import {
-    verifyCredential,
-    toModuleCredentials,
-    type ModuleCredentials
-} from '../../../src/hooks/api2ai/test-tools/verifyTestCredentials.js';
-import { authorizeTestGetAdminSecrets } from '../../../src/hooks/api2ai/test-tools/testGetAdminSecrets.js';
-import { prepareTestGetAdminSecretsInput } from '../../../src/hooks/api2ai/test-tools/testGetAdminSecrets.js';
-import { prepareTestListPublicPreparedInput } from '../../../src/hooks/api2ai/test-tools/testListPublicPrepared.js';
+import { verifyCredential } from '../../../src/hooks/api2ai/test-tools/verifyTestCredential.js';
+import { checkToolAccessForTestGetAdminSecrets } from '../../../src/hooks/api2ai/test-tools/testGetAdminSecrets.js';
+import { prepareToolCallForTestGetAdminSecrets } from '../../../src/hooks/api2ai/test-tools/testGetAdminSecrets.js';
+import { prepareToolCallForTestListPublicPrepared } from '../../../src/hooks/api2ai/test-tools/testListPublicPrepared.js';
 
 export type GeneratedTool = {
     toolName: string;
@@ -20,8 +16,8 @@ export type GeneratedTool = {
     method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' | 'HEAD' | 'OPTIONS' | 'TRACE';
     path: string;
     access: 'public' | 'protected';
-    hasAuthorize: boolean;
-    hasPrepare: boolean;
+    hasCheckToolAccess: boolean;
+    hasPrepareToolCall: boolean;
 };
 
 export const generatedTools: GeneratedTool[] = [
@@ -33,19 +29,19 @@ export const generatedTools: GeneratedTool[] = [
         method: 'GET',
         path: '/ping',
         access: 'public',
-        hasAuthorize: false,
-        hasPrepare: false
+        hasCheckToolAccess: false,
+        hasPrepareToolCall: false
     },
     {
         toolName: 'testProtectedStatus',
         title: 'Protected status',
         description:
-            'Intent:\nHarness protected route with query api_key\n\nMeta:\noperationId: test-protected-status\n\nExample:\nGet protected status\n\nResponse:\nHTTP 200\nOK\nproperties (top-level): status\nDocumented errors:\nHTTP 401 — Unauthorized\n\nRuntime: protected — implement src/hooks/api2ai/test-tools/verifyTestCredentials.ts; credential sent as query "api_key".',
+            'Intent:\nHarness protected route with query api_key\n\nMeta:\noperationId: test-protected-status\n\nExample:\nGet protected status\n\nResponse:\nHTTP 200\nOK\nproperties (top-level): status\nDocumented errors:\nHTTP 401 — Unauthorized\n\nRuntime: protected — implement src/hooks/api2ai/test-tools/verifyTestCredential.ts; credential sent as query "api_key".',
         method: 'GET',
         path: '/protected/status',
         access: 'protected',
-        hasAuthorize: false,
-        hasPrepare: false
+        hasCheckToolAccess: false,
+        hasPrepareToolCall: false
     },
     {
         toolName: 'testGetItem',
@@ -55,8 +51,8 @@ export const generatedTools: GeneratedTool[] = [
         method: 'GET',
         path: '/items/{itemId}',
         access: 'public',
-        hasAuthorize: false,
-        hasPrepare: false
+        hasCheckToolAccess: false,
+        hasPrepareToolCall: false
     },
     {
         toolName: 'testListItems',
@@ -66,8 +62,8 @@ export const generatedTools: GeneratedTool[] = [
         method: 'GET',
         path: '/items',
         access: 'public',
-        hasAuthorize: false,
-        hasPrepare: false
+        hasCheckToolAccess: false,
+        hasPrepareToolCall: false
     },
     {
         toolName: 'testSearchItems',
@@ -77,8 +73,8 @@ export const generatedTools: GeneratedTool[] = [
         method: 'GET',
         path: '/items/search',
         access: 'public',
-        hasAuthorize: false,
-        hasPrepare: false
+        hasCheckToolAccess: false,
+        hasPrepareToolCall: false
     },
     {
         toolName: 'testGetWithHeader',
@@ -88,8 +84,8 @@ export const generatedTools: GeneratedTool[] = [
         method: 'GET',
         path: '/items/with-header',
         access: 'public',
-        hasAuthorize: false,
-        hasPrepare: false
+        hasCheckToolAccess: false,
+        hasPrepareToolCall: false
     },
     {
         toolName: 'testCreateResource',
@@ -99,8 +95,8 @@ export const generatedTools: GeneratedTool[] = [
         method: 'POST',
         path: '/resources',
         access: 'public',
-        hasAuthorize: false,
-        hasPrepare: false
+        hasCheckToolAccess: false,
+        hasPrepareToolCall: false
     },
     {
         toolName: 'testPutResource',
@@ -110,8 +106,8 @@ export const generatedTools: GeneratedTool[] = [
         method: 'PUT',
         path: '/resources/{resourceId}',
         access: 'public',
-        hasAuthorize: false,
-        hasPrepare: false
+        hasCheckToolAccess: false,
+        hasPrepareToolCall: false
     },
     {
         toolName: 'testPatchResource',
@@ -121,8 +117,8 @@ export const generatedTools: GeneratedTool[] = [
         method: 'PATCH',
         path: '/resources/{resourceId}',
         access: 'public',
-        hasAuthorize: false,
-        hasPrepare: false
+        hasCheckToolAccess: false,
+        hasPrepareToolCall: false
     },
     {
         toolName: 'testDeleteResource',
@@ -132,8 +128,8 @@ export const generatedTools: GeneratedTool[] = [
         method: 'DELETE',
         path: '/resources/{resourceId}',
         access: 'public',
-        hasAuthorize: false,
-        hasPrepare: false
+        hasCheckToolAccess: false,
+        hasPrepareToolCall: false
     },
     {
         toolName: 'testProbeHead',
@@ -143,8 +139,8 @@ export const generatedTools: GeneratedTool[] = [
         method: 'HEAD',
         path: '/probe',
         access: 'public',
-        hasAuthorize: false,
-        hasPrepare: false
+        hasCheckToolAccess: false,
+        hasPrepareToolCall: false
     },
     {
         toolName: 'testProbeOptions',
@@ -154,8 +150,8 @@ export const generatedTools: GeneratedTool[] = [
         method: 'OPTIONS',
         path: '/probe',
         access: 'public',
-        hasAuthorize: false,
-        hasPrepare: false
+        hasCheckToolAccess: false,
+        hasPrepareToolCall: false
     },
     {
         toolName: 'testTraceRoute',
@@ -165,8 +161,8 @@ export const generatedTools: GeneratedTool[] = [
         method: 'TRACE',
         path: '/trace',
         access: 'public',
-        hasAuthorize: false,
-        hasPrepare: false
+        hasCheckToolAccess: false,
+        hasPrepareToolCall: false
     },
     {
         toolName: 'testOneOfBody',
@@ -176,8 +172,8 @@ export const generatedTools: GeneratedTool[] = [
         method: 'POST',
         path: '/composed/one-of',
         access: 'public',
-        hasAuthorize: false,
-        hasPrepare: false
+        hasCheckToolAccess: false,
+        hasPrepareToolCall: false
     },
     {
         toolName: 'testAnyOfBody',
@@ -187,8 +183,8 @@ export const generatedTools: GeneratedTool[] = [
         method: 'POST',
         path: '/composed/any-of',
         access: 'public',
-        hasAuthorize: false,
-        hasPrepare: false
+        hasCheckToolAccess: false,
+        hasPrepareToolCall: false
     },
     {
         toolName: 'testAllOfBody',
@@ -198,8 +194,8 @@ export const generatedTools: GeneratedTool[] = [
         method: 'POST',
         path: '/composed/all-of',
         access: 'public',
-        hasAuthorize: false,
-        hasPrepare: false
+        hasCheckToolAccess: false,
+        hasPrepareToolCall: false
     },
     {
         toolName: 'testRefBody',
@@ -209,30 +205,30 @@ export const generatedTools: GeneratedTool[] = [
         method: 'POST',
         path: '/echo/ref-body',
         access: 'public',
-        hasAuthorize: false,
-        hasPrepare: false
+        hasCheckToolAccess: false,
+        hasPrepareToolCall: false
     },
     {
         toolName: 'testGetAdminSecrets',
         title: 'List admin secrets',
         description:
-            'Intent:\nHarness authorize and prepare on protected tool\n\nMCP arguments:\npass limit as top-level tool arguments. Do not nest path or query parameters under pathParams or query.\n\nMeta:\noperationId: test-admin-secrets\n\nParameters:\n- limit (query)\n\nExample:\nList secrets limit 5\n\nResponse:\nHTTP 200\nOK\nproperties (top-level): secrets\nDocumented errors:\nHTTP 403 — Forbidden\n\nRuntime: protected — implement authorizeTestGetAdminSecrets and prepareTestGetAdminSecretsInput in src/hooks/api2ai/test-tools/testGetAdminSecrets.ts; credential sent as query "api_key".',
+            'Intent:\nHarness authorize and prepare on protected tool\n\nMCP arguments:\npass limit as top-level tool arguments. Do not nest path or query parameters under pathParams or query.\n\nMeta:\noperationId: test-admin-secrets\n\nParameters:\n- limit (query)\n\nExample:\nList secrets limit 5\n\nResponse:\nHTTP 200\nOK\nproperties (top-level): secrets\nDocumented errors:\nHTTP 403 — Forbidden\n\nRuntime: protected — implement checkToolAccessForTestGetAdminSecrets and prepareToolCallForTestGetAdminSecrets in src/hooks/api2ai/test-tools/testGetAdminSecrets.ts; credential sent as query "api_key".',
         method: 'GET',
         path: '/admin/secrets',
         access: 'protected',
-        hasAuthorize: true,
-        hasPrepare: true
+        hasCheckToolAccess: true,
+        hasPrepareToolCall: true
     },
     {
         toolName: 'testListPublicPrepared',
         title: 'List public prepared items',
         description:
-            'Intent:\nHarness public tool with prepare hook\n\nMCP arguments:\npass limit as top-level tool arguments. Do not nest path or query parameters under pathParams or query.\n\nMeta:\noperationId: test-public-prepared\n\nParameters:\n- limit (query)\n\nExample:\nList prepared items limit 3\n\nResponse:\nHTTP 200\nOK\nproperties (top-level): items\n\nRuntime: implement prepareTestListPublicPreparedInput in src/hooks/api2ai/test-tools/testListPublicPrepared.ts (types from this tools module; run build:generated for .js).',
+            'Intent:\nHarness public tool with prepare hook\n\nMCP arguments:\npass limit as top-level tool arguments. Do not nest path or query parameters under pathParams or query.\n\nMeta:\noperationId: test-public-prepared\n\nParameters:\n- limit (query)\n\nExample:\nList prepared items limit 3\n\nResponse:\nHTTP 200\nOK\nproperties (top-level): items\n\nRuntime: implement prepareToolCallForTestListPublicPrepared in src/hooks/api2ai/test-tools/testListPublicPrepared.ts (types from this tools module; run build:generated for .js).',
         method: 'GET',
         path: '/prepared/public',
         access: 'public',
-        hasAuthorize: false,
-        hasPrepare: true
+        hasCheckToolAccess: false,
+        hasPrepareToolCall: true
     }
 ];
 
@@ -247,8 +243,6 @@ export type InvokeOptions = {
 export type ApiHostContext = {
     baseUrl: string;
     credential?: string;
-    upstreamCredential?: string;
-    credentials?: unknown;
 };
 
 type AuthConfig = {
@@ -264,27 +258,21 @@ export const authConfig: AuthConfig | undefined = {
     prefix: ''
 };
 
-export { verifyCredential, toModuleCredentials } from '../../../src/hooks/api2ai/test-tools/verifyTestCredentials.js';
-export type {
-    VerifyCredentialInput,
-    VerifyCredentialResult,
-    ModuleCredentials,
-    TestCredentials
-} from '../../../src/hooks/api2ai/test-tools/verifyTestCredentials.js';
+export { verifyCredential } from '../../../src/hooks/api2ai/test-tools/verifyTestCredential.js';
 
 export const mcpServerName = 'test-tools';
 export const mcpServerVersion = '0.5.0';
 
-const authorizers: Record<string, (credentials: ModuleCredentials) => void | Promise<void>> = {
-    testGetAdminSecrets: authorizeTestGetAdminSecrets
+const checkToolAccessHooks: Record<string, (credential: string) => void | Promise<void>> = {
+    testGetAdminSecrets: checkToolAccessForTestGetAdminSecrets
 };
 
-const preparers: Record<
+const prepareToolCallHooks: Record<
     string,
-    (options: InvokeOptions, credentials?: ModuleCredentials) => InvokeOptions | Promise<InvokeOptions>
+    (options: InvokeOptions, credential?: string) => InvokeOptions | Promise<InvokeOptions>
 > = {
-    testGetAdminSecrets: prepareTestGetAdminSecretsInput,
-    testListPublicPrepared: prepareTestListPublicPreparedInput
+    testGetAdminSecrets: (options, credential) => prepareToolCallForTestGetAdminSecrets(options, credential!),
+    testListPublicPrepared: prepareToolCallForTestListPublicPrepared
 };
 
 export const inputZodByTool = {
@@ -1124,11 +1112,8 @@ export async function invokeTool(
     }
     const host = hostContext as ApiHostContext;
     const { baseUrl } = host;
-    let upstreamCredential = host.upstreamCredential;
-    const credentialsPlain = host.credentials;
-    let credentialsForStubs: ModuleCredentials | undefined =
-        credentialsPlain != null ? toModuleCredentials(credentialsPlain as Record<string, unknown>) : undefined;
-    let authCredential = host.credential;
+    let credential: string | undefined = host.credential?.trim() ? String(host.credential).trim() : undefined;
+    let authCredential: string | undefined = credential;
 
     if (tool.access === 'protected') {
         const inbound = host.credential;
@@ -1137,32 +1122,29 @@ export async function invokeTool(
                 'Missing host credential. stdio: set env for --auth-env on stdio-mcp-server; passthrough HTTP: MCP auth header (e.g. x-api-token); OAuth HTTP: complete MCP login (Authorization Bearer from Cursor).'
             );
         }
-        if (credentialsForStubs === undefined || upstreamCredential === undefined) {
-            const verified = await verifyCredential({ inboundCredential: String(inbound).trim() });
-            upstreamCredential = verified.upstreamCredential;
-            credentialsForStubs = verified.credentials;
-        }
-        authCredential = upstreamCredential ?? String(inbound).trim();
-        if (tool.hasAuthorize) {
-            const authorize = authorizers[toolName];
-            if (typeof authorize !== 'function') {
-                throw new Error('No authorizer for tool: ' + toolName);
+        credential = String(inbound).trim();
+        await verifyCredential(credential);
+        if (tool.hasCheckToolAccess) {
+            const checkToolAccess = checkToolAccessHooks[toolName];
+            if (typeof checkToolAccess !== 'function') {
+                throw new Error('No checkToolAccess hook for tool: ' + toolName);
             }
-            await Promise.resolve(authorize(credentialsForStubs!));
+            await Promise.resolve(checkToolAccess(credential));
         }
+        authCredential = credential;
     }
-    if (tool.hasPrepare) {
-        const prepare = preparers[toolName];
-        if (typeof prepare !== 'function') {
-            throw new Error('No preparer for tool: ' + toolName);
+    if (tool.hasPrepareToolCall) {
+        const prepareToolCall = prepareToolCallHooks[toolName];
+        if (typeof prepareToolCall !== 'function') {
+            throw new Error('No prepareToolCall hook for tool: ' + toolName);
         }
         if (tool.access === 'protected') {
-            if (credentialsForStubs === undefined) {
-                throw new Error('Prepare requires credentials; verify credential or pass host.credentials.');
+            if (credential === undefined) {
+                throw new Error('prepareToolCall requires credential for protected tools.');
             }
-            optionsResolved = await Promise.resolve(prepare(optionsResolved, credentialsForStubs));
+            optionsResolved = await Promise.resolve(prepareToolCall(optionsResolved, credential));
         } else {
-            optionsResolved = await Promise.resolve(prepare(optionsResolved));
+            optionsResolved = await Promise.resolve(prepareToolCall(optionsResolved));
         }
     }
     const normalizedBaseUrl = baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl;

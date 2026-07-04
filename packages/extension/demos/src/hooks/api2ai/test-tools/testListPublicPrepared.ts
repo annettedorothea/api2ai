@@ -17,8 +17,8 @@ function resolveLimitQuery(options: InvokeOptions): number {
     return Math.floor(limit);
 }
 
-/** public + prepare — cap list size without credentials. */
-export function prepareTestListPublicPreparedInput(options: InvokeOptions): InvokeOptions {
+/** public + prepare — cap list size without credential. */
+export function prepareToolCallForTestListPublicPrepared(options: InvokeOptions): InvokeOptions {
     const limit = resolveLimitQuery(options);
     return {
         ...options,

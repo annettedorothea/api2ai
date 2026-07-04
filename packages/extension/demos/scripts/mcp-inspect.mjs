@@ -175,23 +175,6 @@ async function startDeps(demoName) {
         await waitForTcpListen(idpPort, { label: 'oauth-idp' });
         return;
     }
-
-    if (demoName === 'banking') {
-        const bankingPort = requireEnvInt('BANKING_API_PORT');
-        const idpPort = requireEnvInt('ENTERPRISE_IDP_PORT');
-        const idpBaseUrl = `http://127.0.0.1:${idpPort}`;
-        startBackground('banking-api', [path.join(demosRoot, 'banking-api', 'server.mjs')], {
-            BANKING_API_PORT: String(bankingPort)
-        });
-        startBackground('enterprise-idp', [path.join(demosRoot, 'oauth-idp', 'server.mjs')], {
-            BOOKINGS_OAUTH_IDP_PORT: String(idpPort),
-            OAUTH_IDP_SIGN_ALG: 'RS256'
-        });
-        await waitForTcpListen(bankingPort, { label: 'banking-api' });
-        await waitForHttpOk(`${idpBaseUrl}/.well-known/openid-configuration`, {
-            label: 'enterprise-idp openid-configuration'
-        });
-    }
 }
 
 function needsDeps(demoName) {

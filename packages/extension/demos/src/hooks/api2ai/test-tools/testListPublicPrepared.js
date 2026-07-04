@@ -13,8 +13,8 @@ function resolveLimitQuery(options) {
     }
     return Math.floor(limit);
 }
-/** public + prepare — cap list size without credentials. */
-export function prepareTestListPublicPreparedInput(options) {
+/** public + prepare — cap list size without credential. */
+export function prepareToolCallForTestListPublicPrepared(options) {
     const limit = resolveLimitQuery(options);
     return {
         ...options,

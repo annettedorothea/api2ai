@@ -4,13 +4,8 @@
  */
 import { loggingAdapter } from '../../../src/utils/logging-adapter.js';
 import * as z from 'zod/v4';
-import {
-    verifyCredential,
-    toModuleCredentials,
-    type ModuleCredentials
-} from '../../../src/hooks/api2ai/xquik-tools/verifyXquikCredentials.js';
-import { prepareSearchXquikTweetsInput } from '../../../src/hooks/api2ai/xquik-tools/searchXquikTweets.js';
-import { prepareSearchXquikUsersInput } from '../../../src/hooks/api2ai/xquik-tools/searchXquikUsers.js';
+import { verifyCredential } from '../../../src/hooks/api2ai/xquik-tools/verifyXquikCredential.js';
+import { prepareToolCallForSearchXquikTweets } from '../../../src/hooks/api2ai/xquik-tools/searchXquikTweets.js';
 
 export type GeneratedTool = {
     toolName: string;
@@ -19,8 +14,8 @@ export type GeneratedTool = {
     method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' | 'HEAD' | 'OPTIONS' | 'TRACE';
     path: string;
     access: 'public' | 'protected';
-    hasAuthorize: boolean;
-    hasPrepare: boolean;
+    hasCheckToolAccess: boolean;
+    hasPrepareToolCall: boolean;
 };
 
 export const generatedTools: GeneratedTool[] = [
@@ -28,34 +23,34 @@ export const generatedTools: GeneratedTool[] = [
         toolName: 'searchXquikTweets',
         title: 'Search X posts',
         description:
-            'Intent:\nSearch X posts by keyword, Tweet ID, status URL, account, or date window.\n        Use queryType Latest for timeline-style checks and Top for engagement-ranked research.\n        Use next_cursor from a previous response as cursor for pagination.\n\nMCP arguments:\npass q, queryType, cursor, sinceTime, untilTime, limit, fromUser as top-level tool arguments. Do not nest path or query parameters under pathParams or query.\n\nMeta:\noperationId: search-tweets\n\nParameters:\n- cursor (query): Pagination cursor from the previous response.\n- fromUser (query): Optional username filter without @. (example: xquik)\n- limit (query): Maximum posts to return. Keep this small for agent workflows. (example: 20)\n- q (query): Required query string, Tweet ID, or X status URL. (example: open source agents)\n- queryType (query): Sort order for keyword search.\n- sinceTime (query): ISO 8601 timestamp. Return tweets after this time.\n- untilTime (query): ISO 8601 timestamp. Return tweets before this time.\n\nExample:\nFind recent posts about open source agents\n\nResponse:\nHTTP 200 returns tweets plus has_next_page and next_cursor.\n        Each tweet includes id, text, createdAt, metrics, and author fields.\n        Documented errors: HTTP 400 invalid query, HTTP 401 missing API key, HTTP 402 payment required, HTTP 429 rate limit exceeded.\n\nRuntime: protected — implement prepareSearchXquikTweetsInput in src/hooks/api2ai/xquik-tools/searchXquikTweets.ts; credential sent as header "x-api-key".',
+            'Intent:\nSearch X posts by keyword, Tweet ID, status URL, account, or date window.\n        Use queryType Latest for timeline-style checks and Top for engagement-ranked research.\n        Use next_cursor from a previous response as cursor for pagination.\n\nMCP arguments:\npass q, queryType, cursor, sinceTime, untilTime, limit, fromUser as top-level tool arguments. Do not nest path or query parameters under pathParams or query.\n\nMeta:\noperationId: search-tweets\n\nParameters:\n- cursor (query): Pagination cursor from the previous response.\n- fromUser (query): Optional username filter without @. (example: xquik)\n- limit (query): Maximum posts to return. Keep this small for agent workflows. (example: 20)\n- q (query): Required query string, Tweet ID, or X status URL. (example: open source agents)\n- queryType (query): Sort order for keyword search.\n- sinceTime (query): ISO 8601 timestamp. Return tweets after this time.\n- untilTime (query): ISO 8601 timestamp. Return tweets before this time.\n\nExample:\nFind recent posts about open source agents\n\nResponse:\nHTTP 200 returns tweets plus has_next_page and next_cursor.\n        Each tweet includes id, text, createdAt, metrics, and author fields.\n        Documented errors: HTTP 400 invalid query, HTTP 401 missing API key, HTTP 402 payment required, HTTP 429 rate limit exceeded.\n\nRuntime: protected — implement prepareToolCallForSearchXquikTweets in src/hooks/api2ai/xquik-tools/searchXquikTweets.ts; credential sent as header "x-api-key".',
         method: 'GET',
         path: '/api/v1/x/tweets/search',
         access: 'protected',
-        hasAuthorize: false,
-        hasPrepare: true
+        hasCheckToolAccess: false,
+        hasPrepareToolCall: true
     },
     {
         toolName: 'searchXquikUsers',
         title: 'Search X users',
         description:
-            'Intent:\nSearch X users by name or username.\n        Use this before user-scoped timeline tools when the user only provides a handle-like name.\n        Use next_cursor from a previous response as cursor for pagination.\n\nMCP arguments:\npass q, cursor as top-level tool arguments. Do not nest path or query parameters under pathParams or query.\n\nMeta:\noperationId: search-users\n\nParameters:\n- cursor (query): Pagination cursor from the previous response.\n- q (query): User search query.\n\nExample:\nFind accounts named Xquik\n\nResponse:\nHTTP 200 returns users plus has_next_page and next_cursor.\n        Each user can include id, username, name, verified, followers, and following.\n        Documented errors: HTTP 400 invalid query, HTTP 401 missing API key, HTTP 402 payment required, HTTP 429 rate limit exceeded.\n\nRuntime: protected — implement prepareSearchXquikUsersInput in src/hooks/api2ai/xquik-tools/searchXquikUsers.ts; credential sent as header "x-api-key".',
+            'Intent:\nSearch X users by name or username.\n        Use this before user-scoped timeline tools when the user only provides a handle-like name.\n        Use next_cursor from a previous response as cursor for pagination.\n\nMCP arguments:\npass q, cursor as top-level tool arguments. Do not nest path or query parameters under pathParams or query.\n\nMeta:\noperationId: search-users\n\nParameters:\n- cursor (query): Pagination cursor from the previous response.\n- q (query): User search query.\n\nExample:\nFind accounts named Xquik\n\nResponse:\nHTTP 200 returns users plus has_next_page and next_cursor.\n        Each user can include id, username, name, verified, followers, and following.\n        Documented errors: HTTP 400 invalid query, HTTP 401 missing API key, HTTP 402 payment required, HTTP 429 rate limit exceeded.\n\nRuntime: protected — implement src/hooks/api2ai/xquik-tools/verifyXquikCredential.ts; credential sent as header "x-api-key".',
         method: 'GET',
         path: '/api/v1/x/users/search',
         access: 'protected',
-        hasAuthorize: false,
-        hasPrepare: true
+        hasCheckToolAccess: false,
+        hasPrepareToolCall: false
     },
     {
         toolName: 'lookupXquikTweet',
         title: 'Get X post by ID',
         description:
-            'Intent:\nLook up one X post by Tweet ID.\n        Use ids returned by searchXquikTweets, or parse the numeric id from an X status URL first.\n\nMCP arguments:\npass id as top-level tool arguments. Do not nest path or query parameters under pathParams or query.\n\nMeta:\noperationId: lookup-tweet\n\nParameters:\n- id (path): Tweet ID from search results or an X status URL. (example: 1234567890)\n\nExample:\nGet Tweet ID 1234567890\n\nResponse:\nHTTP 200 returns tweet and author objects.\n        Documented errors: HTTP 400 invalid id, HTTP 401 missing API key, HTTP 402 payment required, HTTP 404 not found, HTTP 429 rate limit exceeded.\n\nRuntime: protected — implement src/hooks/api2ai/xquik-tools/verifyXquikCredentials.ts; credential sent as header "x-api-key".',
+            'Intent:\nLook up one X post by Tweet ID.\n        Use ids returned by searchXquikTweets, or parse the numeric id from an X status URL first.\n\nMCP arguments:\npass id as top-level tool arguments. Do not nest path or query parameters under pathParams or query.\n\nMeta:\noperationId: lookup-tweet\n\nParameters:\n- id (path): Tweet ID from search results or an X status URL. (example: 1234567890)\n\nExample:\nGet Tweet ID 1234567890\n\nResponse:\nHTTP 200 returns tweet and author objects.\n        Documented errors: HTTP 400 invalid id, HTTP 401 missing API key, HTTP 402 payment required, HTTP 404 not found, HTTP 429 rate limit exceeded.\n\nRuntime: protected — implement src/hooks/api2ai/xquik-tools/verifyXquikCredential.ts; credential sent as header "x-api-key".',
         method: 'GET',
         path: '/api/v1/x/tweets/{id}',
         access: 'protected',
-        hasAuthorize: false,
-        hasPrepare: false
+        hasCheckToolAccess: false,
+        hasPrepareToolCall: false
     }
 ];
 
@@ -70,8 +65,6 @@ export type InvokeOptions = {
 export type ApiHostContext = {
     baseUrl: string;
     credential?: string;
-    upstreamCredential?: string;
-    credentials?: unknown;
 };
 
 type AuthConfig = {
@@ -87,23 +80,16 @@ export const authConfig: AuthConfig | undefined = {
     prefix: ''
 };
 
-export { verifyCredential, toModuleCredentials } from '../../../src/hooks/api2ai/xquik-tools/verifyXquikCredentials.js';
-export type {
-    VerifyCredentialInput,
-    VerifyCredentialResult,
-    ModuleCredentials,
-    XquikCredentials
-} from '../../../src/hooks/api2ai/xquik-tools/verifyXquikCredentials.js';
+export { verifyCredential } from '../../../src/hooks/api2ai/xquik-tools/verifyXquikCredential.js';
 
 export const mcpServerName = 'xquik-tools';
 export const mcpServerVersion = '0.5.0';
 
-const preparers: Record<
+const prepareToolCallHooks: Record<
     string,
-    (options: InvokeOptions, credentials?: ModuleCredentials) => InvokeOptions | Promise<InvokeOptions>
+    (options: InvokeOptions, credential?: string) => InvokeOptions | Promise<InvokeOptions>
 > = {
-    searchXquikTweets: prepareSearchXquikTweetsInput,
-    searchXquikUsers: prepareSearchXquikUsersInput
+    searchXquikTweets: (options, credential) => prepareToolCallForSearchXquikTweets(options, credential!)
 };
 
 export const inputZodByTool = {
@@ -567,11 +553,8 @@ export async function invokeTool(
     }
     const host = hostContext as ApiHostContext;
     const { baseUrl } = host;
-    let upstreamCredential = host.upstreamCredential;
-    const credentialsPlain = host.credentials;
-    let credentialsForStubs: ModuleCredentials | undefined =
-        credentialsPlain != null ? toModuleCredentials(credentialsPlain as Record<string, unknown>) : undefined;
-    let authCredential = host.credential;
+    let credential: string | undefined = host.credential?.trim() ? String(host.credential).trim() : undefined;
+    let authCredential: string | undefined = credential;
 
     if (tool.access === 'protected') {
         const inbound = host.credential;
@@ -580,25 +563,22 @@ export async function invokeTool(
                 'Missing host credential. stdio: set env for --auth-env on stdio-mcp-server; passthrough HTTP: MCP auth header (e.g. x-api-token); OAuth HTTP: complete MCP login (Authorization Bearer from Cursor).'
             );
         }
-        if (credentialsForStubs === undefined || upstreamCredential === undefined) {
-            const verified = await verifyCredential({ inboundCredential: String(inbound).trim() });
-            upstreamCredential = verified.upstreamCredential;
-            credentialsForStubs = verified.credentials;
-        }
-        authCredential = upstreamCredential ?? String(inbound).trim();
+        credential = String(inbound).trim();
+        await verifyCredential(credential);
+        authCredential = credential;
     }
-    if (tool.hasPrepare) {
-        const prepare = preparers[toolName];
-        if (typeof prepare !== 'function') {
-            throw new Error('No preparer for tool: ' + toolName);
+    if (tool.hasPrepareToolCall) {
+        const prepareToolCall = prepareToolCallHooks[toolName];
+        if (typeof prepareToolCall !== 'function') {
+            throw new Error('No prepareToolCall hook for tool: ' + toolName);
         }
         if (tool.access === 'protected') {
-            if (credentialsForStubs === undefined) {
-                throw new Error('Prepare requires credentials; verify credential or pass host.credentials.');
+            if (credential === undefined) {
+                throw new Error('prepareToolCall requires credential for protected tools.');
             }
-            optionsResolved = await Promise.resolve(prepare(optionsResolved, credentialsForStubs));
+            optionsResolved = await Promise.resolve(prepareToolCall(optionsResolved, credential));
         } else {
-            optionsResolved = await Promise.resolve(prepare(optionsResolved));
+            optionsResolved = await Promise.resolve(prepareToolCall(optionsResolved));
         }
     }
     const normalizedBaseUrl = baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl;

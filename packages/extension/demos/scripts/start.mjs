@@ -166,14 +166,6 @@ async function main() {
         cakesPort
     );
 
-    const bankingPort = requireEnvInt('BANKING_API_PORT');
-    startService(
-        'banking-api',
-        [path.join(demosRoot, 'banking-api', 'server.mjs')],
-        { BANKING_API_PORT: String(bankingPort) },
-        bankingPort
-    );
-
     const testApiPort = requireEnvInt('TEST_API_PORT');
     startService(
         'test-api',
@@ -199,21 +191,11 @@ async function main() {
         idpOidcPort
     );
 
-    const enterpriseIdpPort = requireEnvInt('ENTERPRISE_IDP_PORT');
-    const enterpriseIdpBaseUrl = `http://127.0.0.1:${enterpriseIdpPort}`;
-    startService(
-        'enterprise-idp',
-        [path.join(demosRoot, 'oauth-idp', 'server.mjs')],
-        { BOOKINGS_OAUTH_IDP_PORT: String(enterpriseIdpPort), OAUTH_IDP_SIGN_ALG: 'RS256' },
-        enterpriseIdpPort
-    );
-
     console.log('[start] waiting for mock API backends…');
     for (const [label, port] of [
         ['bookings', bookingsPort],
         ['todo-api', todoPort],
         ['cakes-api', cakesPort],
-        ['banking-api', bankingPort],
         ['test-api', testApiPort]
     ]) {
         await waitForBackend(label, port);
@@ -225,11 +207,6 @@ async function main() {
     });
 
     await waitForTcpListen(idpPort, { label: `oauth-idp port ${idpPort}` });
-
-    console.log(`[start] waiting for enterprise-idp at ${enterpriseIdpBaseUrl}…`);
-    await waitForHttpOk(`${enterpriseIdpBaseUrl}/.well-known/openid-configuration`, {
-        label: 'enterprise-idp openid-configuration'
-    });
 
     for (const name of HTTP_START_DEMO_NAMES) {
         const { port, args, mcpUrl, hostEnv } = buildHostLaunch(name, demosRoot, process.env);

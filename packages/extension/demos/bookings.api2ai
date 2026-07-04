@@ -9,7 +9,9 @@ auth {
 GET "/vacation-rentals" {
     toolName: listVacationRentals
     access: public
-    prepare: true
+    hooks: {
+        prepareToolCall: true
+    }
     intent: '''
         List Ferienwohnungen (vacation rental units) — public, no login.
         Returns availability periods per unit (no guest names).
@@ -28,12 +30,14 @@ GET "/vacation-rentals" {
 GET "/bookings" {
     toolName: listAllBookings
     access: protected
-    authorize: true
-    prepare: true
+    hooks: {
+        checkToolAccess: true
+        prepareToolCall: true
+    }
     intent: '''
         Admin only: list bookings across all customers (Bearer JWT role=admin).
         Query limit caps how many bookings are returned (default 10, max 10).
-        authorize + prepare demo — role gate before upstream call, limit in prepare stub.
+        checkToolAccess + prepareToolCall demo — role gate before upstream call, limit in prepare stub.
     '''
     summary: "List all customer bookings (admin only, limit validated)"
     example: "List up to 10 bookings from all customers"
@@ -42,9 +46,11 @@ GET "/bookings" {
 GET "/bookings/{customerId}" {
     toolName: listBookings
     access: protected
-    authorize: true
-    prepare: {
-        optionalParams: [customerId]
+    hooks: {
+        checkToolAccess: true
+        prepareToolCall: {
+            clientMayOmit: [customerId]
+        }
     }
     intent: '''
         List bookings for the authenticated customer (Bearer JWT).

@@ -13,17 +13,14 @@ function resolveLimitQuery(options) {
     }
     return Math.floor(limit);
 }
-export function authorizeTestGetAdminSecrets(credentials) {
-    const role = String(credentials.role ?? '').trim();
-    if (role !== 'admin') {
-        throw new Error(`Admin role required; got "${role || 'unknown'}".`);
+export function checkToolAccessForTestGetAdminSecrets(credential) {
+    const expected = process.env.TEST_API_KEY?.trim() || 'demo-test-api-key';
+    if (credential.trim() !== expected) {
+        throw new Error('Admin role required; invalid test harness API key.');
     }
 }
-export function prepareTestGetAdminSecretsInput(options, credentials) {
-    if (!credentials) {
-        throw new Error('Prepare requires credentials.');
-    }
-    void credentials;
+export function prepareToolCallForTestGetAdminSecrets(options, credential) {
+    void credential;
     const limit = resolveLimitQuery(options);
     return {
         ...options,

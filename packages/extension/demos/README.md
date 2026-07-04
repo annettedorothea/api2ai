@@ -64,8 +64,8 @@ Using the `api2ai` prefix helps Cursor focus on generated MCP tools and avoid un
 2. `todo.api2ai`
    Introduces protected tools, `auth`, and `verifyCredential`.
 
-3. `banking.api2ai`
-   Demonstrates `authorize` and `prepare` hooks.
+3. `bookings.api2ai`
+   Demonstrates `checkToolAccess` and `prepareToolCall` hooks with OAuth MCP.
 
 4. `test.api2ai`
    Coverage harness used by `/test-all`.
@@ -78,19 +78,18 @@ https://github.com/annettedorothea/core2ai/tree/main/docs/authoring
 
 ## Available Demos
 
-| Demo                          | Description                          |
-| ----------------------------- | ------------------------------------ |
-| `open-meteo.api2ai`           | Public weather API                   |
-| `open-meteo-geocoding.api2ai` | Public geocoding API                 |
-| `github.api2ai`               | Personal access token via host relay |
-| `tmdb.api2ai`                 | API key authentication               |
-| `xquik.api2ai`                | Xquik read-only search (API key)     |
-| `todo.api2ai`                 | Passthrough MCP authentication       |
-| `bookings.api2ai`             | OAuth MCP with mock API              |
-| `cakes.api2ai`                | OAuth with upstream JWT API          |
-| `banking.api2ai`              | `authorize` and `prepare` hooks      |
-| `spaceflight-news.api2ai`     | Public API with `prepare` hook       |
-| `test.api2ai`                 | Test harness for `/test-all`         |
+| Demo                          | Description                            |
+| ----------------------------- | -------------------------------------- |
+| `open-meteo.api2ai`           | Public weather API                     |
+| `open-meteo-geocoding.api2ai` | Public geocoding API                   |
+| `github.api2ai`               | Personal access token via host relay   |
+| `tmdb.api2ai`                 | API key authentication                 |
+| `xquik.api2ai`                | Xquik read-only search (API key)       |
+| `todo.api2ai`                 | Passthrough MCP authentication         |
+| `bookings.api2ai`             | OAuth MCP with mock API                |
+| `cakes.api2ai`                | OAuth with upstream JWT API            |
+| `spaceflight-news.api2ai`     | Public API with `prepareToolCall` hook |
+| `test.api2ai`                 | Test harness for `/test-all`           |
 
 ---
 

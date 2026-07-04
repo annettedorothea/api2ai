@@ -20,20 +20,9 @@ const LOCAL_ENV_FILES = ['.env', '.env.local'];
 type ApiLikeHostContext = {
     baseUrl?: string;
     credential?: string;
-    upstreamCredential?: string;
-    credentials?: unknown;
 };
 
-type VerifyCredentialInput = {
-    inboundCredential: string;
-};
-
-type VerifyCredentialResult = {
-    upstreamCredential: string;
-    credentials: unknown;
-};
-
-type VerifyCredentialFn = (input: VerifyCredentialInput) => Promise<VerifyCredentialResult>;
+type VerifyCredentialFn = (credential: string) => void | Promise<void>;
 
 type GeneratedHostModule = {
     generatedTools: Array<{ toolName: string; title?: string; description: string; access?: string }>;
@@ -302,8 +291,7 @@ type OAuthHttpHostRuntimeConfig = {
 
 type McpOAuthSession = {
     sessionId: string;
-    upstreamCredential?: string;
-    credentials?: unknown;
+    credential?: string;
     verifiedAt?: number;
     createdAt: number;
 };
@@ -410,12 +398,6 @@ async function validateOAuthHttpHostAtStartup(
     httpHostConfig: OAuthHttpHostRuntimeConfig,
     _generated: GeneratedHostModule
 ): Promise<void> {
-    if (_generated.requiresAuth && typeof _generated.verifyCredential !== 'function') {
-        throw new Error(
-            'Generated tools require auth; implement verify*Credentials in src/hooks/api2ai/<module>/ and re-export from generated tools.'
-        );
-    }
-
     const baseUrlKey = httpHostConfig.baseUrlEnvKey?.trim();
     if (!baseUrlKey) {
         throw new Error('Required: --base-url-env <ENV_VAR_NAME>');
@@ -456,10 +438,10 @@ async function verifyCredentialForGate(generated: GeneratedHostModule, bearer: s
     }
     const verify = generated.verifyCredential;
     if (typeof verify !== 'function') {
-        return false;
+        return true;
     }
     try {
-        await verify({ inboundCredential: token });
+        await verify(token);
         return true;
     } catch {
         return false;
@@ -480,51 +462,37 @@ async function resolveHostContextForOAuthSession(
         sessionStore.set(sessionId, session);
     }
 
-    if (session?.verifiedAt && session.upstreamCredential) {
-        const credentials = session.credentials;
+    if (session?.verifiedAt && session.credential) {
         return withDbConnectionHostContext(_generated, {
             ...apiFields,
-            credential: session.upstreamCredential,
-            upstreamCredential: session.upstreamCredential,
-            credentials
+            credential: session.credential
         });
     }
 
     const bearer = readBearerFromHeaders(headers);
     const inbound = bearer?.trim();
     if (!inbound) {
-        if (session?.upstreamCredential) {
+        if (session?.credential) {
             return withDbConnectionHostContext(_generated, {
                 ...apiFields,
-                credential: session.upstreamCredential,
-                upstreamCredential: session.upstreamCredential,
-                credentials: session.credentials
+                credential: session.credential
             });
         }
         return withDbConnectionHostContext(_generated, { ...apiFields });
     }
 
     const verify = _generated.verifyCredential;
-    if (typeof verify !== 'function') {
-        throw new Error('verifyCredential is not exported from generated tools.');
+    if (typeof verify === 'function') {
+        await verify(inbound);
     }
-    const verified = await verify({ inboundCredential: inbound });
-    const upstreamCredential = verified.upstreamCredential.trim();
-    if (upstreamCredential.length === 0) {
-        throw new Error('verifyCredential returned an empty upstream credential.');
-    }
-    const credentials = JSON.parse(JSON.stringify(verified.credentials));
     if (session) {
-        session.upstreamCredential = upstreamCredential;
-        session.credentials = credentials;
+        session.credential = inbound;
         session.verifiedAt = Date.now();
     }
 
     return withDbConnectionHostContext(_generated, {
         ...apiFields,
-        credential: upstreamCredential,
-        upstreamCredential,
-        credentials
+        credential: inbound
     });
 }
 

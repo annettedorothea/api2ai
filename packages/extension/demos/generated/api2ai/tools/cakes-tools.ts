@@ -4,7 +4,6 @@
  */
 import { loggingAdapter } from '../../../src/utils/logging-adapter.js';
 import * as z from 'zod/v4';
-import { verifyCredential } from '../../../src/hooks/api2ai/cakes-tools/verifyCakesCredentials.js';
 
 export type GeneratedTool = {
     toolName: string;
@@ -13,8 +12,8 @@ export type GeneratedTool = {
     method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' | 'HEAD' | 'OPTIONS' | 'TRACE';
     path: string;
     access: 'public' | 'protected';
-    hasAuthorize: boolean;
-    hasPrepare: boolean;
+    hasCheckToolAccess: boolean;
+    hasPrepareToolCall: boolean;
 };
 
 export const generatedTools: GeneratedTool[] = [
@@ -22,23 +21,23 @@ export const generatedTools: GeneratedTool[] = [
         toolName: 'searchCakes',
         title: 'Search cake recipes by keyword',
         description:
-            'Intent:\nSearch cake recipes by optional query q (title and keywords). Empty q returns all cakes.\n\nMCP arguments:\npass q as top-level tool arguments. Do not nest path or query parameters under pathParams or query.\n\nAPI:\nRequires Bearer JWT. Optional query q matches title and keywords (case-insensitive).\n\nMeta:\noperationId: search-cakes\n\nParameters:\n- q (query)\n\nExample:\nSearch cakes with Erdbeer\n\nResponse:\nHTTP 200 — top-level query, count, cakes array. Each cake: id, title, keywords, prepMinutes, servings.\n        Use cakes[].id for getCake (e.g. schwarzwaelder-kirschtorte).\n        Documented errors:\n        HTTP 401 — Missing or invalid token\n\nRuntime: protected — implement src/hooks/api2ai/cakes-tools/verifyCakesCredentials.ts; credential sent as header "Authorization" (prefix applied to the secret).',
+            'Intent:\nSearch cake recipes by optional query q (title and keywords). Empty q returns all cakes.\n\nMCP arguments:\npass q as top-level tool arguments. Do not nest path or query parameters under pathParams or query.\n\nAPI:\nRequires Bearer JWT. Optional query q matches title and keywords (case-insensitive).\n\nMeta:\noperationId: search-cakes\n\nParameters:\n- q (query)\n\nExample:\nSearch cakes with Erdbeer\n\nResponse:\nHTTP 200 — top-level query, count, cakes array. Each cake: id, title, keywords, prepMinutes, servings.\n        Use cakes[].id for getCake (e.g. schwarzwaelder-kirschtorte).\n        Documented errors:\n        HTTP 401 — Missing or invalid token\n\nRuntime: protected — implement src/hooks/api2ai/cakes-tools/verifyCakesCredential.ts; credential sent as header "Authorization" (prefix applied to the secret).',
         method: 'GET',
         path: '/cakes',
         access: 'protected',
-        hasAuthorize: false,
-        hasPrepare: false
+        hasCheckToolAccess: false,
+        hasPrepareToolCall: false
     },
     {
         toolName: 'getCake',
         title: 'Get cake recipe by id',
         description:
-            'Intent:\nFetch one cake recipe by path cakeId (from searchCakes).\n\nMCP arguments:\npass cakeId as top-level tool arguments. Do not nest path or query parameters under pathParams or query.\n\nMeta:\noperationId: get-cake\n\nParameters:\n- cakeId (path)\n\nExample:\nGet Schwarzwälder Kirschtorte recipe\n\nResponse:\nHTTP 200 — top-level property cake (id, title, keywords, prepMinutes, servings, ingredients).\n        Documented errors:\n        HTTP 401 — Missing or invalid token\n        HTTP 404 — Unknown cake id\n\nRuntime: protected — implement src/hooks/api2ai/cakes-tools/verifyCakesCredentials.ts; credential sent as header "Authorization" (prefix applied to the secret).',
+            'Intent:\nFetch one cake recipe by path cakeId (from searchCakes).\n\nMCP arguments:\npass cakeId as top-level tool arguments. Do not nest path or query parameters under pathParams or query.\n\nMeta:\noperationId: get-cake\n\nParameters:\n- cakeId (path)\n\nExample:\nGet Schwarzwälder Kirschtorte recipe\n\nResponse:\nHTTP 200 — top-level property cake (id, title, keywords, prepMinutes, servings, ingredients).\n        Documented errors:\n        HTTP 401 — Missing or invalid token\n        HTTP 404 — Unknown cake id\n\nRuntime: protected — implement src/hooks/api2ai/cakes-tools/verifyCakesCredential.ts; credential sent as header "Authorization" (prefix applied to the secret).',
         method: 'GET',
         path: '/cakes/{cakeId}',
         access: 'protected',
-        hasAuthorize: false,
-        hasPrepare: false
+        hasCheckToolAccess: false,
+        hasPrepareToolCall: false
     }
 ];
 
@@ -53,8 +52,6 @@ export type InvokeOptions = {
 export type ApiHostContext = {
     baseUrl: string;
     credential?: string;
-    upstreamCredential?: string;
-    credentials?: unknown;
 };
 
 type AuthConfig = {
@@ -69,14 +66,6 @@ export const authConfig: AuthConfig | undefined = {
     name: 'Authorization',
     prefix: 'Bearer '
 };
-
-export { verifyCredential, toModuleCredentials } from '../../../src/hooks/api2ai/cakes-tools/verifyCakesCredentials.js';
-export type {
-    VerifyCredentialInput,
-    VerifyCredentialResult,
-    ModuleCredentials,
-    CakesCredentials
-} from '../../../src/hooks/api2ai/cakes-tools/verifyCakesCredentials.js';
 
 export const mcpServerName = 'cakes-tools';
 export const mcpServerVersion = '0.5.0';
@@ -478,8 +467,7 @@ export async function invokeTool(
     }
     const host = hostContext as ApiHostContext;
     const { baseUrl } = host;
-    let upstreamCredential = host.upstreamCredential;
-    let authCredential = host.credential;
+    let authCredential: string | undefined = host.credential?.trim() ? String(host.credential).trim() : undefined;
 
     if (tool.access === 'protected') {
         const inbound = host.credential;
@@ -488,11 +476,8 @@ export async function invokeTool(
                 'Missing host credential. stdio: set env for --auth-env on stdio-mcp-server; passthrough HTTP: MCP auth header (e.g. x-api-token); OAuth HTTP: complete MCP login (Authorization Bearer from Cursor).'
             );
         }
-        if (upstreamCredential === undefined) {
-            const verified = await verifyCredential({ inboundCredential: String(inbound).trim() });
-            upstreamCredential = verified.upstreamCredential;
-        }
-        authCredential = upstreamCredential ?? String(inbound).trim();
+        const credential = String(inbound).trim();
+        authCredential = credential;
     }
     const normalizedBaseUrl = baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl;
     const pathParams = { ...(optionsResolved.pathParams ?? {}) };

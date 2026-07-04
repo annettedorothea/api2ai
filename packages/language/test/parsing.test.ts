@@ -2,7 +2,7 @@ import { EmptyFileSystem, type LangiumDocument } from 'langium';
 import { parseHelper } from 'langium/test';
 import { beforeAll, describe, expect, test } from 'vitest';
 import { createApi2AiDslServices } from '../src/api-2-ai-dsl-module.js';
-import { getAccessKind, getOptionalParams, isToolValidateEnabled } from '../src/operation-access.js';
+import { getAccessKind, getClientMayOmit, isPrepareToolCallEnabled } from '../src/operation-access.js';
 import { isPublicAccess } from '../src/generated/ast.js';
 import type { Model } from '../src/generated/ast.js';
 
@@ -148,19 +148,21 @@ describe('Parsing tests', () => {
         expect(document.parseResult.parserErrors.length).toBeGreaterThan(0);
     });
 
-    test('parses prepare: true on operation', async () => {
+    test('parses prepareToolCall: true on operation', async () => {
         document = await parse(`
             openapi "./langium-test-mini.openapi.yaml"
             GET "/orders" {
                 toolName: listOrders
                 access: public
-                prepare: true
+                hooks: {
+                    prepareToolCall: true
+                }
                 intent: "list"
             }
         `);
 
         expect(document.parseResult.parserErrors).toHaveLength(0);
-        expect(isToolValidateEnabled(document.parseResult.value.operations[0])).toBe(true);
+        expect(isPrepareToolCallEnabled(document.parseResult.value.operations[0])).toBe(true);
     });
 
     test('parses public access on operation', async () => {
@@ -177,14 +179,16 @@ describe('Parsing tests', () => {
         expect(isPublicAccess(document.parseResult.value.operations[0].access)).toBe(true);
     });
 
-    test('parses optionalParams inside prepare block', async () => {
+    test('parses clientMayOmit inside prepareToolCall block', async () => {
         document = await parse(`
             openapi "./langium-test-mini.openapi.yaml"
             GET "/customers/{id}" {
                 toolName: getCustomer
                 access: public
-                prepare: {
-                    optionalParams: [id]
+                hooks: {
+                    prepareToolCall: {
+                        clientMayOmit: [id]
+                    }
                 }
                 intent: "get customer"
             }
@@ -192,8 +196,8 @@ describe('Parsing tests', () => {
 
         expect(document.parseResult.parserErrors).toHaveLength(0);
         const op = document.parseResult.value.operations[0];
-        expect(isToolValidateEnabled(op)).toBe(true);
-        expect(getOptionalParams(op)).toEqual(['id']);
+        expect(isPrepareToolCallEnabled(op)).toBe(true);
+        expect(getClientMayOmit(op)).toEqual(['id']);
     });
 
     test('parses params with description and example on operation', async () => {

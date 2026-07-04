@@ -4,6 +4,9 @@ auth {
     in: query
     name: "api_key"
     prefix: ""
+    hooks: {
+        verifyCredential: true
+    }
 }
 
 // Tests: public GET — no auth pipeline
@@ -182,8 +185,10 @@ POST "/echo/ref-body" {
 GET "/admin/secrets" {
     toolName: testGetAdminSecrets
     access: protected
-    authorize: true
-    prepare: true
+    hooks: {
+        checkToolAccess: true
+        prepareToolCall: true
+    }
     intent: "Harness authorize and prepare on protected tool"
     summary: "List admin secrets"
     example: "List secrets limit 5"
@@ -193,7 +198,9 @@ GET "/admin/secrets" {
 GET "/prepared/public" {
     toolName: testListPublicPrepared
     access: public
-    prepare: true
+    hooks: {
+        prepareToolCall: true
+    }
     intent: "Harness public tool with prepare hook"
     summary: "List public prepared items"
     example: "List prepared items limit 3"

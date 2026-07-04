@@ -4,8 +4,8 @@ import { createSharedInvokeBlock } from '../src/generator/invoke-render.js';
 describe('invoke-render', () => {
     test('emits TRACE fallback because fetch rejects that method', () => {
         const block = createSharedInvokeBlock('{}', '{}', '{}', 'none', 'none', {
-            authorizers: false,
-            preparers: false
+            checkToolAccess: false,
+            prepareToolCall: false
         });
         expect(block).toContain('performToolHttpRequest');
         expect(block).toContain("init.method !== 'TRACE'");

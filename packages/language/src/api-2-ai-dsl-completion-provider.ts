@@ -24,10 +24,12 @@ const CANONICAL_KEYWORD_SORT: Record<string, string> = {
     in: '0100',
     name: '0101',
     prefix: '0102',
+    hooks: '0102.5',
+    verifyCredential: '0102.6',
     toolName: '0200',
     access: '0201',
-    authorize: '0201.25',
-    prepare: '0201.5',
+    checkToolAccess: '0201.25',
+    prepareToolCall: '0201.5',
     intent: '0202',
     summary: '0203',
     description: '0204',
@@ -35,7 +37,7 @@ const CANONICAL_KEYWORD_SORT: Record<string, string> = {
     params: '0206',
     body: '0207',
     response: '0208',
-    optionalParams: '0300',
+    clientMayOmit: '0300',
     public: '0210',
     protected: '0211',
     true: '0212'
@@ -46,22 +48,22 @@ const ACCESS_KIND_INSERT: Record<string, string> = {
 };
 const AUTH_LOCATION_KINDS = ['header', 'query'] as const;
 const PREPARE_BODY_KEYWORD_INSERT: Record<string, string> = {
-    optionalParams: 'optionalParams: [$1]$0'
+    clientMayOmit: 'clientMayOmit: [$1]$0'
 };
 const PREPARE_SPEC_INSERT: Record<string, string> = {
     true: 'true',
-    block: '{\n    optionalParams: [$1]\n}'
+    block: '{\n    clientMayOmit: [$1]\n}'
 };
 const AUTH_KEYWORD_INSERT: Record<string, string> = {
     in: 'in: $1$0',
     name: 'name: "$1"$0',
-    prefix: 'prefix: "$1"$0'
+    prefix: 'prefix: "$1"$0',
+    hooks: 'hooks: {\n    verifyCredential: true\n}$0'
 };
 const OPERATION_KEYWORD_INSERT: Record<string, string> = {
     toolName: 'toolName: $1$0',
     access: 'access: public$0',
-    authorize: 'authorize: true$0',
-    prepare: 'prepare: true$0',
+    hooks: 'hooks: {\n    checkToolAccess: true\n    prepareToolCall: true\n}$0',
     intent: 'intent: "$1"$0',
     summary: 'summary: "$1"$0',
     description: 'description: "$1"$0',
@@ -430,25 +432,25 @@ export class Api2AiDslCompletionProvider extends DefaultCompletionProvider {
         if (authLocationItems.length > 0) {
             return CompletionList.create(this.deduplicateItems(authLocationItems), false);
         }
-        const authorizeSpecItems = this.buildAuthorizeSpecCompletionItems(document, params.position);
-        debugCompletion('getCompletion authorizeSpecItems count', authorizeSpecItems.length);
-        if (authorizeSpecItems.length > 0) {
-            return CompletionList.create(this.deduplicateItems(authorizeSpecItems), false);
+        const checkToolAccessSpecItems = this.buildCheckToolAccessSpecCompletionItems(document, params.position);
+        debugCompletion('getCompletion checkToolAccessSpecItems count', checkToolAccessSpecItems.length);
+        if (checkToolAccessSpecItems.length > 0) {
+            return CompletionList.create(this.deduplicateItems(checkToolAccessSpecItems), false);
         }
-        const prepareBodyItems = this.buildPrepareBodyKeywordCompletionItems(document, params.position);
-        debugCompletion('getCompletion prepareBodyItems count', prepareBodyItems.length);
-        if (prepareBodyItems.length > 0) {
-            return CompletionList.create(this.deduplicateItems(prepareBodyItems), false);
+        const prepareToolCallBodyItems = this.buildPrepareToolCallBodyKeywordCompletionItems(document, params.position);
+        debugCompletion('getCompletion prepareToolCallBodyItems count', prepareToolCallBodyItems.length);
+        if (prepareToolCallBodyItems.length > 0) {
+            return CompletionList.create(this.deduplicateItems(prepareToolCallBodyItems), false);
         }
-        const prepareSpecItems = this.buildPrepareSpecCompletionItems(document, params.position);
-        debugCompletion('getCompletion prepareSpecItems count', prepareSpecItems.length);
-        if (prepareSpecItems.length > 0) {
-            return CompletionList.create(this.deduplicateItems(prepareSpecItems), false);
+        const prepareToolCallSpecItems = this.buildPrepareToolCallSpecCompletionItems(document, params.position);
+        debugCompletion('getCompletion prepareToolCallSpecItems count', prepareToolCallSpecItems.length);
+        if (prepareToolCallSpecItems.length > 0) {
+            return CompletionList.create(this.deduplicateItems(prepareToolCallSpecItems), false);
         }
-        const optionalParamItems = await this.buildOptionalParamCompletionItems(document, params.position);
-        debugCompletion('getCompletion optionalParamItems count', optionalParamItems.length);
-        if (optionalParamItems.length > 0) {
-            return CompletionList.create(this.deduplicateItems(optionalParamItems), false);
+        const clientMayOmitItems = await this.buildClientMayOmitCompletionItems(document, params.position);
+        debugCompletion('getCompletion clientMayOmitItems count', clientMayOmitItems.length);
+        if (clientMayOmitItems.length > 0) {
+            return CompletionList.create(this.deduplicateItems(clientMayOmitItems), false);
         }
         const apiParamPatchItems = await this.buildApiParamPatchCompletionItems(document, params.position);
         debugCompletion('getCompletion apiParamPatchItems count', apiParamPatchItems.length);
@@ -560,7 +562,7 @@ export class Api2AiDslCompletionProvider extends DefaultCompletionProvider {
             kind: CompletionItemKind.Keyword,
             detail: context.kind === 'auth' ? 'Auth block property' : 'Operation block property',
             insertTextFormat: InsertTextFormat.Snippet,
-            sortText: CANONICAL_KEYWORD_SORT[key],
+            sortText: key === 'hooks' && context.kind === 'operation' ? '0201.45' : CANONICAL_KEYWORD_SORT[key],
             insertText: inserts[key],
             textEdit: TextEdit.replace(range, inserts[key])
         }));
@@ -630,7 +632,10 @@ export class Api2AiDslCompletionProvider extends DefaultCompletionProvider {
         }));
     }
 
-    private buildPrepareBodyKeywordCompletionItems(document: LangiumDocument, position: Position): CompletionItem[] {
+    private buildPrepareToolCallBodyKeywordCompletionItems(
+        document: LangiumDocument,
+        position: Position
+    ): CompletionItem[] {
         const textDoc = document.textDocument;
         const text = textDoc.getText();
         const offset = textDoc.offsetAt(position);
@@ -649,7 +654,7 @@ export class Api2AiDslCompletionProvider extends DefaultCompletionProvider {
         }
         const operationStart = operation.$cstNode?.offset ?? 0;
         const beforeCursor = text.slice(operationStart, offset);
-        const prepareBlockMatch = /prepare\s*:\s*\{[^}]*$/.exec(beforeCursor);
+        const prepareBlockMatch = /prepareToolCall\s*:\s*\{[^}]*$/.exec(beforeCursor);
         if (!prepareBlockMatch) {
             return [];
         }
@@ -658,28 +663,28 @@ export class Api2AiDslCompletionProvider extends DefaultCompletionProvider {
             return [];
         }
         const blockText = beforeCursor.slice(openBraceOffset + 1);
-        if (/\boptionalParams\b\s*:/.test(blockText)) {
+        if (/\bclientMayOmit\b\s*:/.test(blockText)) {
             return [];
         }
         const { prefix, range } = currentWordRange(text, offset, textDoc);
-        if (prefix.length > 0 && !'optionalParams'.startsWith(prefix)) {
+        if (prefix.length > 0 && !'clientMayOmit'.startsWith(prefix)) {
             return [];
         }
-        const insert = PREPARE_BODY_KEYWORD_INSERT.optionalParams;
+        const insert = PREPARE_BODY_KEYWORD_INSERT.clientMayOmit;
         return [
             {
-                label: 'optionalParams',
+                label: 'clientMayOmit',
                 kind: CompletionItemKind.Keyword,
-                detail: 'OpenAPI parameters optional in the tool schema',
+                detail: 'OpenAPI parameters the client may omit (hook fills defaults)',
                 insertTextFormat: InsertTextFormat.Snippet,
-                sortText: CANONICAL_KEYWORD_SORT.optionalParams,
+                sortText: CANONICAL_KEYWORD_SORT.clientMayOmit,
                 insertText: insert,
                 textEdit: TextEdit.replace(range, insert)
             }
         ];
     }
 
-    private buildAuthorizeSpecCompletionItems(document: LangiumDocument, position: Position): CompletionItem[] {
+    private buildCheckToolAccessSpecCompletionItems(document: LangiumDocument, position: Position): CompletionItem[] {
         const textDoc = document.textDocument;
         const text = textDoc.getText();
         const offset = textDoc.offsetAt(position);
@@ -687,7 +692,7 @@ export class Api2AiDslCompletionProvider extends DefaultCompletionProvider {
         if (textHasUnclosedString(line)) {
             return [];
         }
-        const match = /^\s*authorize\s*:\s*(\w*)$/.exec(line);
+        const match = /^\s*checkToolAccess\s*:\s*(\w*)$/.exec(line);
         if (!match) {
             return [];
         }
@@ -701,7 +706,7 @@ export class Api2AiDslCompletionProvider extends DefaultCompletionProvider {
             {
                 label: 'true',
                 kind: CompletionItemKind.Constant,
-                detail: 'Enable authorize{Tool} stub',
+                detail: 'Enable checkToolAccessFor{Tool} stub',
                 insertTextFormat: InsertTextFormat.PlainText,
                 sortText: CANONICAL_KEYWORD_SORT.true,
                 insertText: 'true',
@@ -710,7 +715,7 @@ export class Api2AiDslCompletionProvider extends DefaultCompletionProvider {
         ];
     }
 
-    private buildPrepareSpecCompletionItems(document: LangiumDocument, position: Position): CompletionItem[] {
+    private buildPrepareToolCallSpecCompletionItems(document: LangiumDocument, position: Position): CompletionItem[] {
         const textDoc = document.textDocument;
         const text = textDoc.getText();
         const offset = textDoc.offsetAt(position);
@@ -718,7 +723,7 @@ export class Api2AiDslCompletionProvider extends DefaultCompletionProvider {
         if (textHasUnclosedString(line)) {
             return [];
         }
-        const match = /^\s*prepare\s*:\s*(\w*)$/.exec(line);
+        const match = /^\s*prepareToolCall\s*:\s*(\w*)$/.exec(line);
         if (!match) {
             return [];
         }
@@ -730,7 +735,7 @@ export class Api2AiDslCompletionProvider extends DefaultCompletionProvider {
             items.push({
                 label: 'true',
                 kind: CompletionItemKind.Constant,
-                detail: 'Enable prepare{Tool}Input stub',
+                detail: 'Enable prepareToolCallFor{Tool} stub',
                 insertTextFormat: InsertTextFormat.PlainText,
                 sortText: CANONICAL_KEYWORD_SORT.true,
                 insertText: PREPARE_SPEC_INSERT.true,
@@ -739,9 +744,9 @@ export class Api2AiDslCompletionProvider extends DefaultCompletionProvider {
         }
         if (effectivePrefix.length === 0 || '{'.startsWith(effectivePrefix)) {
             items.push({
-                label: '{ optionalParams: [...] }',
+                label: '{ clientMayOmit: [...] }',
                 kind: CompletionItemKind.Snippet,
-                detail: 'Prepare with optionalParams',
+                detail: 'prepareToolCall with clientMayOmit',
                 insertTextFormat: InsertTextFormat.Snippet,
                 sortText: '0213',
                 insertText: PREPARE_SPEC_INSERT.block,
@@ -865,7 +870,7 @@ export class Api2AiDslCompletionProvider extends DefaultCompletionProvider {
         return [];
     }
 
-    private async buildOptionalParamCompletionItems(
+    private async buildClientMayOmitCompletionItems(
         document: LangiumDocument,
         position: Position
     ): Promise<CompletionItem[]> {
@@ -892,7 +897,7 @@ export class Api2AiDslCompletionProvider extends DefaultCompletionProvider {
             start: textDoc.positionAt(operationStart),
             end: position
         });
-        if (!/optionalParams\s*:\s*\[[^\]]*$/m.test(beforeCursor)) {
+        if (!/clientMayOmit\s*:\s*\[[^\]]*$/m.test(beforeCursor)) {
             return [];
         }
 

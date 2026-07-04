@@ -1,4 +1,3 @@
-import type { ModuleCredentials } from './verifyTestCredentials.js';
 import type { InvokeOptions } from '../../../../generated/api2ai/tools/test-tools.js';
 
 const MAX_LIMIT = 10;
@@ -18,21 +17,15 @@ function resolveLimitQuery(options: InvokeOptions): number {
     return Math.floor(limit);
 }
 
-export function authorizeTestGetAdminSecrets(credentials: ModuleCredentials): void {
-    const role = String(credentials.role ?? '').trim();
-    if (role !== 'admin') {
-        throw new Error(`Admin role required; got "${role || 'unknown'}".`);
+export function checkToolAccessForTestGetAdminSecrets(credential: string): void {
+    const expected = process.env.TEST_API_KEY?.trim() || 'demo-test-api-key';
+    if (credential.trim() !== expected) {
+        throw new Error('Admin role required; invalid test harness API key.');
     }
 }
 
-export function prepareTestGetAdminSecretsInput(
-    options: InvokeOptions,
-    credentials?: ModuleCredentials
-): InvokeOptions {
-    if (!credentials) {
-        throw new Error('Prepare requires credentials.');
-    }
-    void credentials;
+export function prepareToolCallForTestGetAdminSecrets(options: InvokeOptions, credential: string): InvokeOptions {
+    void credential;
     const limit = resolveLimitQuery(options);
     return {
         ...options,
