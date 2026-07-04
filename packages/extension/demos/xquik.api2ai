@@ -13,9 +13,7 @@ GET "/api/v1/x/tweets/search" {
     toolName: searchXquikTweets
     access: protected
     hooks: {
-        prepareToolCall: {
-            clientMayOmit: [limit]
-        }
+        prepareToolCall: true
     }
     intent: '''
         Search X posts by keyword, Tweet ID, status URL, account, or date window.
