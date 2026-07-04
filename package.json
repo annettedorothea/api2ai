@@ -1,7 +1,7 @@
 {
     "name": "api-2-ai-dsl-workspace",
     "description": "Base workspace package",
-    "version": "0.5.0",
+    "version": "1.0.0-rc",
     "license": "MIT",
     "type": "module",
     "private": true,

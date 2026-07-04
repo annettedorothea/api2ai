@@ -68,7 +68,7 @@ export const authConfig: AuthConfig | undefined = {
 };
 
 export const mcpServerName = 'cakes-tools';
-export const mcpServerVersion = '0.5.0';
+export const mcpServerVersion = '1.0.0-rc';
 
 export const inputZodByTool = {
     searchCakes: z

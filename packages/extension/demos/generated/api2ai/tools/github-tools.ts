@@ -82,7 +82,7 @@ export const authConfig: AuthConfig | undefined = {
 export { verifyCredential } from '../../../src/hooks/api2ai/github-tools/verifyGithubCredential.js';
 
 export const mcpServerName = 'github-tools';
-export const mcpServerVersion = '0.5.0';
+export const mcpServerVersion = '1.0.0-rc';
 
 export const inputZodByTool = {
     getGitHubAuthenticatedUser: z

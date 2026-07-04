@@ -192,7 +192,7 @@ export const authConfig: AuthConfig | undefined = {
 export { verifyCredential } from '../../../src/hooks/api2ai/tmdb-tools/verifyTmdbCredential.js';
 
 export const mcpServerName = 'tmdb-tools';
-export const mcpServerVersion = '0.5.0';
+export const mcpServerVersion = '1.0.0-rc';
 
 export const inputZodByTool = {
     searchTmdbMovies: z

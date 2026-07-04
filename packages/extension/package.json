@@ -2,7 +2,7 @@
     "name": "vscode-api2ai",
     "displayName": "api2ai",
     "description": "Language support and code generation for the .api2ai DSL (OpenAPI → MCP tools).",
-    "version": "0.5.0",
+    "version": "1.0.0-rc",
     "publisher": "api2ai",
     "license": "MIT",
     "icon": "icon.png",
