@@ -1,0 +1,82 @@
+openapi "./openapi/xquik.openapi.yaml"
+
+auth {
+    in: header
+    name: "x-api-key"
+    prefix: ""
+}
+
+GET "/api/v1/x/tweets/search" {
+    toolName: searchXquikTweets
+    access: protected
+    prepare: {
+        optionalParams: [queryType, cursor, sinceTime, untilTime, limit, fromUser]
+    }
+    intent: '''
+        Search X posts by keyword, Tweet ID, status URL, account, or date window.
+        Use queryType Latest for timeline-style checks and Top for engagement-ranked research.
+        Use next_cursor from a previous response as cursor for pagination.
+    '''
+    summary: "Search X posts"
+    example: "Find recent posts about open source agents"
+    params: {
+        q: {
+            description: "Required query string, Tweet ID, or X status URL."
+            example: "open source agents"
+        }
+        limit: {
+            description: "Maximum posts to return. Keep this small for agent workflows."
+            example: "20"
+        }
+        fromUser: {
+            description: "Optional username filter without @."
+            example: "xquik"
+        }
+    }
+    response: '''
+        HTTP 200 returns tweets plus has_next_page and next_cursor.
+        Each tweet includes id, text, createdAt, metrics, and author fields.
+        Documented errors: HTTP 400 invalid query, HTTP 401 missing API key, HTTP 402 payment required, HTTP 429 rate limit exceeded.
+    '''
+}
+
+GET "/api/v1/x/users/search" {
+    toolName: searchXquikUsers
+    access: protected
+    prepare: {
+        optionalParams: [cursor]
+    }
+    intent: '''
+        Search X users by name or username.
+        Use this before user-scoped timeline tools when the user only provides a handle-like name.
+        Use next_cursor from a previous response as cursor for pagination.
+    '''
+    summary: "Search X users"
+    example: "Find accounts named Xquik"
+    response: '''
+        HTTP 200 returns users plus has_next_page and next_cursor.
+        Each user can include id, username, name, verified, followers, and following.
+        Documented errors: HTTP 400 invalid query, HTTP 401 missing API key, HTTP 402 payment required, HTTP 429 rate limit exceeded.
+    '''
+}
+
+GET "/api/v1/x/tweets/{id}" {
+    toolName: lookupXquikTweet
+    access: protected
+    intent: '''
+        Look up one X post by Tweet ID.
+        Use ids returned by searchXquikTweets, or parse the numeric id from an X status URL first.
+    '''
+    summary: "Get X post by ID"
+    example: "Get Tweet ID 1234567890"
+    params: {
+        id: {
+            description: "Tweet ID from search results or an X status URL."
+            example: "1234567890"
+        }
+    }
+    response: '''
+        HTTP 200 returns tweet and author objects.
+        Documented errors: HTTP 400 invalid id, HTTP 401 missing API key, HTTP 402 payment required, HTTP 404 not found, HTTP 429 rate limit exceeded.
+    '''
+}

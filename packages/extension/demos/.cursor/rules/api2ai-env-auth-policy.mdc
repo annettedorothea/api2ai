@@ -14,7 +14,7 @@ Diese Regel gilt, wenn die Nutzeranfrage mit `api2ai` beginnt.
 - Der Nutzer verwaltet Credentials selbst. Du darfst hoechstens **allgemein** sagen, welche Variable betroffen ist (z. B. `GITHUB_TOKEN`, `TMDB_ACCESS_TOKEN`) und dass der Nutzer sie bei Bedarf selbst setzen muss.
 - **bookings / cakes:** Cursor OAuth / Sign-in — kein Token in Env schreiben.
 - **todo:** Demo-API-Key in `headers.x-api-token` in `mcp.json` (Upstream `x-api-key`).
-- **github / tmdb:** Token in `.env`; HTTP host reads via `--auth-env` (no token in `mcp.json`).
+- **github / tmdb / xquik:** Token in `.env`; HTTP host reads via `--auth-env` (no token in `mcp.json`).
 
 ## Auth-Fehler: Fehler melden, nicht umgehen
 

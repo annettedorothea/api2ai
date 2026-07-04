@@ -37,6 +37,15 @@ export const HTTP_DEMOS = {
         portEnv: 'TMDB_HTTP_PORT',
         authEnv: 'TMDB_ACCESS_TOKEN'
     },
+    xquik: {
+        host: 'passthrough-http-mcp-server.js',
+        tools: 'xquik-tools.js',
+        baseUrlEnv: 'XQUIK_BASE_URL',
+        portEnv: 'XQUIK_HTTP_PORT',
+        authEnv: 'XQUIK_API_KEY',
+        mcpAuthHeaderEnv: 'XQUIK_MCP_AUTH_HEADER',
+        authExpectedEnv: 'XQUIK_API_KEY'
+    },
     'spaceflight-news': {
         host: 'public-http-mcp-server.js',
         tools: 'spaceflight-news-tools.js',
@@ -59,6 +68,7 @@ export const HTTP_START_DEMO_NAMES = [
     'open-meteo-geocoding',
     'github',
     'tmdb',
+    'xquik',
     'spaceflight-news',
     'todo'
 ];

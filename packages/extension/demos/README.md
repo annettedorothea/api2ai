@@ -84,6 +84,7 @@ https://github.com/annettedorothea/core2ai/tree/main/docs/authoring
 | `open-meteo-geocoding.api2ai` | Public geocoding API                 |
 | `github.api2ai`               | Personal access token via host relay |
 | `tmdb.api2ai`                 | API key authentication               |
+| `xquik.api2ai`                | Xquik read-only search (API key)     |
 | `todo.api2ai`                 | Passthrough MCP authentication       |
 | `bookings.api2ai`             | OAuth MCP with mock API              |
 | `cakes.api2ai`                | OAuth with upstream JWT API          |

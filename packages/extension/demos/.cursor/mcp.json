@@ -12,6 +12,9 @@
         "tmdb": {
             "url": "http://127.0.0.1:3855/mcp"
         },
+        "xquik": {
+            "url": "http://127.0.0.1:3859/mcp"
+        },
         "spaceflight-news": {
             "url": "http://127.0.0.1:3849/mcp"
         },

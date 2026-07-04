@@ -28,8 +28,9 @@ First release-candidate: **curated MCP tools from OpenAPI 3.x** — select opera
 - **OpenAPI → Zod:** primitives, objects, arrays, `enum`, `nullable`, resolved `oneOf` / `anyOf` as unions; `allOf` may degrade to `z.unknown()` when composition cannot be flattened
 - **DSL overrides:** `params`, `body`, `response`, `intent`, `summary`, `description`, `example` to guide agents when the spec is weak
 - **TRACE invoke fallback:** `performToolHttpRequest` uses `node:http` / `node:https` when Node `fetch` rejects the TRACE method
-- **Demo workspace** with mock/local APIs and public upstreams: open-meteo, open-meteo-geocoding, github, tmdb, spaceflight-news, todo, bookings, cakes, banking
+- **Demo workspace** with mock/local APIs and public upstreams: open-meteo, open-meteo-geocoding, github, tmdb, xquik, spaceflight-news, todo, bookings, cakes, banking
 - **Coverage test harness:** `test.api2ai` + `test-api` mock (port 3857), stdio MCP server `test`, 18 tools covering HTTP methods, params, `$ref`, combinators, auth, authorize/prepare
+- **`xquik.api2ai` demo** (community PR by [@kriptoburak](https://github.com/kriptoburak)): read-only X post/user search via [Xquik](https://xquik.com) — `XQUIK_API_KEY` in demos `.env`
 - **Manual E2E gate:** `/test-all` skill (`api2ai-test-all-mcp`) — one MCP call per tool across all servers in `.cursor/mcp.json`
 - **Validator warning** when `auth { }` is set but every operation uses `access: public`
 - **LSP completions:** OpenAPI paths; `auth { in: ` → `header` / `query`; `access: ` → `public` / `protected`

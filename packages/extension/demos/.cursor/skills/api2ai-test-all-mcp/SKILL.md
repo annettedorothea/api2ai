@@ -29,7 +29,7 @@ Hook `.cursor/hooks/before-submit-test-all.sh` prueft bei Kurzformen, ob `.curso
 ## Geltende Regeln
 
 - **Schema-only:** Parameter nur aus MCP-Tool-Descriptors (JSON Schema + Beispiele in `description`). Kein Repo-/OpenAPI-Wissen.
-- **Nur konfigurierte Server:** Eintraege in `.cursor/mcp.json` (`open-meteo`, `open-meteo-geocoding`, `github`, `tmdb`, `spaceflight-news`, `todo`, `bookings`, `cakes`, `banking`, `test`).
+- **Nur konfigurierte Server:** Eintraege in `.cursor/mcp.json` (`open-meteo`, `open-meteo-geocoding`, `github`, `tmdb`, `xquik`, `spaceflight-news`, `todo`, `bookings`, `cakes`, `banking`, `test`).
 - **Kein Workaround bei Fehlern:** Kein CLI, kein direkter HTTP, kein Retry mit anderen Credentials.
 - **Ausnahme zu „ein Aufruf“:** Bei diesem Skill genau **ein Aufruf pro Tool** — insgesamt alle Tools aller Server. Fehler pro Tool dokumentieren, mit naechstem Tool fortfahren (Server komplett down: Rest des Servers ueberspringen, Fehler melden).
 
