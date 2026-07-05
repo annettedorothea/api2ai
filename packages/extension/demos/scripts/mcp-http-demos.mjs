@@ -10,36 +10,39 @@ function loadProductName(demosRoot) {
     return config.productName;
 }
 
+/**
+ * @param {string} demoName
+ * @param {string} hostKind
+ */
+function moduleServerFile(demoName, hostKind) {
+    return `${demoName}-${hostKind}-mcp-server.js`;
+}
+
 export const HTTP_DEMOS = {
     'open-meteo': {
-        host: 'public-http-mcp-server.js',
-        tools: 'open-meteo-tools.js',
+        hostKind: 'public-http',
         baseUrlEnv: 'OPEN_METEO_BASE_URL',
         portEnv: 'OPEN_METEO_HTTP_PORT'
     },
     'open-meteo-geocoding': {
-        host: 'public-http-mcp-server.js',
-        tools: 'open-meteo-geocoding-tools.js',
+        hostKind: 'public-http',
         baseUrlEnv: 'OPEN_METEO_GEOCODING_BASE_URL',
         portEnv: 'OPEN_METEO_GEOCODING_HTTP_PORT'
     },
     github: {
-        host: 'passthrough-http-mcp-server.js',
-        tools: 'github-tools.js',
+        hostKind: 'passthrough-http',
         baseUrlEnv: 'GITHUB_BASE_URL',
         portEnv: 'GITHUB_HTTP_PORT',
         authEnv: 'GITHUB_TOKEN'
     },
     tmdb: {
-        host: 'passthrough-http-mcp-server.js',
-        tools: 'tmdb-tools.js',
+        hostKind: 'passthrough-http',
         baseUrlEnv: 'TMDB_BASE_URL',
         portEnv: 'TMDB_HTTP_PORT',
         authEnv: 'TMDB_ACCESS_TOKEN'
     },
     xquik: {
-        host: 'passthrough-http-mcp-server.js',
-        tools: 'xquik-tools.js',
+        hostKind: 'passthrough-http',
         baseUrlEnv: 'XQUIK_BASE_URL',
         portEnv: 'XQUIK_HTTP_PORT',
         authEnv: 'XQUIK_API_KEY',
@@ -47,14 +50,12 @@ export const HTTP_DEMOS = {
         authExpectedEnv: 'XQUIK_API_KEY'
     },
     'spaceflight-news': {
-        host: 'public-http-mcp-server.js',
-        tools: 'spaceflight-news-tools.js',
+        hostKind: 'public-http',
         baseUrlEnv: 'SPACEFLIGHT_NEWS_BASE_URL',
         portEnv: 'SPACEFLIGHT_NEWS_HTTP_PORT'
     },
     todo: {
-        host: 'passthrough-http-mcp-server.js',
-        tools: 'todo-tools.js',
+        hostKind: 'passthrough-http',
         baseUrlEnv: 'TODO_API_BASE_URL',
         portEnv: 'TODO_HTTP_PORT',
         mcpAuthHeaderEnv: 'TODO_MCP_AUTH_HEADER',
@@ -100,18 +101,14 @@ export function buildHostLaunch(name, demosRoot, env) {
     requireEnv(demo.baseUrlEnv, env);
     const port = requireEnvInt(demo.portEnv, env);
     const product = loadProductName(demosRoot);
-    const hostJs = path.join(demosRoot, 'generated', product, 'cli', demo.host);
-    const toolsJs = path.join(demosRoot, 'generated', product, 'tools', demo.tools);
-    const args = [
-        hostJs,
-        toolsJs,
-        '--base-url-env',
-        demo.baseUrlEnv,
-        '--port',
-        String(port),
-        '--path',
-        '/mcp'
-    ];
+    const serverJs = path.join(
+        demosRoot,
+        'generated',
+        product,
+        'servers',
+        moduleServerFile(name, demo.hostKind)
+    );
+    const args = [serverJs, '--base-url-env', demo.baseUrlEnv, '--port', String(port), '--path', '/mcp'];
     if (demo.authEnv) {
         args.push('--auth-env', demo.authEnv);
     }

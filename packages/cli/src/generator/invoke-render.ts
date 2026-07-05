@@ -34,7 +34,7 @@ function renderAuthApplicationBlock(authKind: 'none' | 'credential'): string {
 function renderAuth401Hint(authKind: 'none' | 'credential'): string {
     return authKind === 'credential'
         ? `msg +=
-                    ' Check MCP host --auth-env on stdio-mcp-server (' +
+                    ' Check MCP host --auth-env (' +
                     authConfig.location +
                     ' ' +
                     authConfig.name +
@@ -319,7 +319,7 @@ function renderHostBinding(): string {
     return `
     if (hostContext === undefined) {
         throw new Error(
-            'invokeTool requires hostContext from the MCP host (stdio-mcp-server or http-mcp-server).'
+            'invokeTool requires hostContext from the MCP host (servers/*-mcp-server).'
         );
     }
     const host = hostContext as ApiHostContext;

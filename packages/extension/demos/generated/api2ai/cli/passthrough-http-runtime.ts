@@ -1,13 +1,12 @@
-#!/usr/bin/env node
 /**
- * Generated passthrough HTTP MCP Streamable HTTP host (static runtime — no @toolfactory.dev/core).
+ * Generated passthrough HTTP MCP Streamable HTTP runtime (static tools import).
  */
 import { randomUUID } from 'node:crypto';
 import * as fs from 'node:fs';
 import * as http from 'node:http';
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import * as path from 'node:path';
-import { pathToFileURL } from 'node:url';
+import { fileURLToPath } from 'node:url';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
 import { ListToolsRequestSchema, type ListToolsResult } from '@modelcontextprotocol/sdk/types.js';
@@ -430,6 +429,11 @@ type SessionEntry = {
 const sessionEntries = new Map<string, SessionEntry>();
 const sessionHeaders = new Map<string, Record<string, string | string[] | undefined>>();
 
+function defaultMcpEnvDirs(): string[] {
+    const runtimeDir = path.dirname(fileURLToPath(import.meta.url));
+    return [process.cwd(), path.join(runtimeDir, '..', 'tools')];
+}
+
 function isInitializeRequestBody(body: unknown): boolean {
     if (Array.isArray(body)) {
         return body.some((item) => isInitializeRequestBody(item));
@@ -467,8 +471,6 @@ async function createMcpServerForSession(
     transport.onclose = () => {
         sessionEntries.delete(sessionId);
         sessionHeaders.delete(sessionId);
-        // Transport already closed (onclose runs from transport.close). Do not call server.close()
-        // here — that re-enters transport.close() and overflows the stack.
     };
     await server.connect(transport);
     return { transport, server, sessionId };
@@ -521,25 +523,7 @@ async function handleHttpMcpRequest(
     }
 }
 
-async function runHttpMcpStandaloneFromArgv(argv: string[]): Promise<void> {
-    const modulePath = argv[0];
-    if (!modulePath) {
-        throw new Error(
-            'Usage: node passthrough-http-mcp-server.js <path-to-*-tools.js> [--base-url-env ENV] --port N [--host HOST] [--path /mcp]'
-        );
-    }
-    const envDirs = [process.cwd(), path.dirname(path.resolve(modulePath))];
-    loadLocalEnvFiles(envDirs);
-    const imported = await import(pathToFileURL(path.resolve(modulePath)).href);
-    if (!imported || typeof imported !== 'object') {
-        throw new Error(`Generated module "${modulePath}" did not export an object.`);
-    }
-    const generated = readGeneratedModule(imported as Record<string, unknown>);
-    const httpHostConfig = parseHttpMcpHostArgv(argv.slice(1), envDirs);
-    if (!httpHostConfig.baseUrlEnvKey) {
-        throw new Error('Required: --base-url-env <ENV_VAR_NAME>');
-    }
-    validateHttpMcpHostAtStartup(httpHostConfig, generated);
+async function listenHttpMcp(generated: GeneratedHostModule, httpHostConfig: HttpMcpHostRuntimeConfig): Promise<void> {
     loggingAdapter.info('[mcp] passthrough HTTP listening', {
         url: 'http://' + httpHostConfig.listenHost + ':' + httpHostConfig.port + httpHostConfig.mcpPath,
         profile: 'passthrough',
@@ -565,4 +549,17 @@ async function runHttpMcpStandaloneFromArgv(argv: string[]): Promise<void> {
     });
 }
 
-await runHttpMcpStandaloneFromArgv(process.argv.slice(2));
+export async function runPassthroughHttpMcp(
+    toolsModule: Record<string, unknown>,
+    argv: string[],
+    envDirs: string[] = defaultMcpEnvDirs()
+): Promise<void> {
+    loadLocalEnvFiles(envDirs);
+    const generated = readGeneratedModule(toolsModule);
+    const httpHostConfig = parseHttpMcpHostArgv(argv, envDirs);
+    if (!httpHostConfig.baseUrlEnvKey) {
+        throw new Error('Required: --base-url-env <ENV_VAR_NAME>');
+    }
+    validateHttpMcpHostAtStartup(httpHostConfig, generated);
+    await listenHttpMcp(generated, httpHostConfig);
+}

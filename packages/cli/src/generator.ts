@@ -6,6 +6,8 @@ import {
     resolveBootstrapProjectRootFromSource,
     resolveGeneratedCliDir,
     writeGeneratedDemosTestSupport,
+    writeGeneratedMcpRuntimes,
+    writeGeneratedModuleMcpServers,
     writeGeneratedScripts,
     type ProjectBootstrapConfig
 } from '@toolfactory.dev/core/codegen';
@@ -14,17 +16,17 @@ import * as path from 'node:path';
 import * as url from 'node:url';
 import { renderBootstrap } from './generator/render-bootstrap.js';
 import { renderCheckStubs } from './generator/render-check-stubs.js';
-import { renderOAuthHttpMcpHost } from './generator/render-oauth-http-mcp-host.js';
-import { renderHttpMcpHosts } from './generator/render-http-mcp-host.js';
-import { renderStdioMcpHost } from './generator/render-stdio-mcp-host.js';
 import { renderToolsModule } from './generator/render-tools-module.js';
 
 export type GeneratedOutputFiles = {
     tsPath: string;
-    stdioMcpHostPath: string;
-    publicHttpMcpHostPath: string;
-    passthroughHttpMcpHostPath: string;
-    oauthHttpMcpHostPath: string;
+    mcpRuntimePaths: {
+        stdioRuntimePath: string;
+        publicHttpRuntimePath: string;
+        passthroughHttpRuntimePath: string;
+        oauthHttpRuntimePath: string;
+    };
+    moduleMcpServerPaths: string[];
 };
 
 declare const __dirname: string | undefined;
@@ -57,7 +59,7 @@ function createBootstrapConfig(): ProjectBootstrapConfig {
             return path.resolve(dir, '..', '..');
         },
         missingDepsMessage(pjsonPath, missing) {
-            return `[generate] "${pjsonPath}": install MCP runtime dependencies: ${missing.join(', ')} (npm install), then generated/api2ai/cli/stdio-mcp-server.js can run.`;
+            return `[generate] "${pjsonPath}": install MCP runtime dependencies: ${missing.join(', ')} (npm install), then run a generated servers/*-mcp-server.js host.`;
         }
     };
 }
@@ -85,9 +87,8 @@ export async function generateOutput(model: Model, source: string, destination: 
 
     const projectRoot = resolveBootstrapProjectRootFromSource(source);
     const cliDir = resolveGeneratedCliDir(tsPath);
-    const stdioMcpHostPath = renderStdioMcpHost(cliDir, bootstrapConfig, projectRoot);
-    const httpMcpHostPaths = renderHttpMcpHosts(cliDir, bootstrapConfig, projectRoot);
-    const oauthHttpMcpHostPath = renderOAuthHttpMcpHost(cliDir, bootstrapConfig, projectRoot);
+    const mcpRuntimePaths = writeGeneratedMcpRuntimes(cliDir, bootstrapConfig, projectRoot);
+    const moduleMcpServerPaths = writeGeneratedModuleMcpServers(tsPath);
     renderBootstrap(projectRoot, bootstrapConfig);
     ensureLoggingAdapterStubFromSource(source);
     writeGeneratedDemosTestSupport(projectRoot);
@@ -95,9 +96,7 @@ export async function generateOutput(model: Model, source: string, destination: 
 
     return {
         tsPath,
-        stdioMcpHostPath,
-        publicHttpMcpHostPath: httpMcpHostPaths.publicHttpMcpHostPath,
-        passthroughHttpMcpHostPath: httpMcpHostPaths.passthroughHttpMcpHostPath,
-        oauthHttpMcpHostPath
+        mcpRuntimePaths,
+        moduleMcpServerPaths
     };
 }

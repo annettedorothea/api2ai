@@ -39,8 +39,7 @@
         "test": {
             "command": "node",
             "args": [
-                "${workspaceFolder}/generated/api2ai/cli/stdio-mcp-server.js",
-                "${workspaceFolder}/generated/api2ai/tools/test-tools.js",
+                "${workspaceFolder}/generated/api2ai/servers/test-stdio-mcp-server.js",
                 "--base-url-env",
                 "TEST_API_BASE_URL",
                 "--auth-env",

@@ -11,15 +11,13 @@ function loadProductName(demosRoot) {
 }
 
 export const OAUTH_HTTP_DEMOS = {
-    'bookings': {
-        tools: 'bookings-tools.js',
+    bookings: {
         baseUrlEnv: 'BOOKINGS_API_BASE_URL',
         oauthIdpUrlEnv: 'BOOKINGS_OAUTH_IDP_OIDC_URL',
         portEnv: 'BOOKINGS_OAUTH_HTTP_PORT',
         oauthScope: 'bookings'
     },
     cakes: {
-        tools: 'cakes-tools.js',
         baseUrlEnv: 'CAKES_API_BASE_URL',
         oauthIdpUrlEnv: 'BOOKINGS_OAUTH_IDP_URL',
         portEnv: 'CAKES_OAUTH_HTTP_PORT',
@@ -46,12 +44,10 @@ export function buildOAuthHostLaunch(name, demosRoot, env) {
     const oauthIdpUrl = requireEnv(demo.oauthIdpUrlEnv, env);
     const port = requireEnvInt(demo.portEnv, env);
     const product = loadProductName(demosRoot);
-    const hostJs = path.join(demosRoot, 'generated', product, 'cli', 'oauth-http-mcp-server.js');
-    const toolsJs = path.join(demosRoot, 'generated', product, 'tools', demo.tools);
+    const serverJs = path.join(demosRoot, 'generated', product, 'servers', `${name}-oauth-http-mcp-server.js`);
     const oauthScope = demo.oauthScope ?? name;
     const args = [
-        hostJs,
-        toolsJs,
+        serverJs,
         '--base-url-env',
         demo.baseUrlEnv,
         '--oauth-idp-url',

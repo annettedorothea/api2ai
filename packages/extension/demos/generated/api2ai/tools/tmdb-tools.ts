@@ -164,7 +164,7 @@ export const generatedTools: GeneratedTool[] = [
 ];
 
 export type InvokeOptions = {
-    /** MCP tool arguments only (host context is supplied by stdio-mcp-server / http-mcp-server). */
+    /** MCP tool arguments only (host context is supplied by the MCP host in servers/*). */
     pathParams?: Record<string, string | number | boolean>;
     query?: Record<string, string | number | boolean | ReadonlyArray<string | number | boolean>>;
     headers?: Record<string, string>;
@@ -1189,7 +1189,7 @@ export async function invokeTool(
     const optionsResolved = normalizeInvokeOptions(toolName, options);
 
     if (hostContext === undefined) {
-        throw new Error('invokeTool requires hostContext from the MCP host (stdio-mcp-server or http-mcp-server).');
+        throw new Error('invokeTool requires hostContext from the MCP host (servers/*-mcp-server).');
     }
     const host = hostContext as ApiHostContext;
     const { baseUrl } = host;
@@ -1199,7 +1199,7 @@ export async function invokeTool(
         const inbound = host.credential;
         if (!inbound || !String(inbound).trim()) {
             throw new Error(
-                'Missing host credential. stdio: set env for --auth-env on stdio-mcp-server; passthrough HTTP: MCP auth header (e.g. x-api-token); OAuth HTTP: complete MCP login (Authorization Bearer from Cursor).'
+                'Missing host credential. stdio: set env for --auth-env on the MCP host; passthrough HTTP: MCP auth header (e.g. x-api-token); OAuth HTTP: complete MCP login (Authorization Bearer from Cursor).'
             );
         }
         const credential = String(inbound).trim();
@@ -1255,12 +1255,7 @@ export async function invokeTool(
         if (response.status === 401) {
             msg += ' Unauthorized.';
             if (authConfig && tool.access === 'protected') {
-                msg +=
-                    ' Check MCP host --auth-env on stdio-mcp-server (' +
-                    authConfig.location +
-                    ' ' +
-                    authConfig.name +
-                    ').';
+                msg += ' Check MCP host --auth-env (' + authConfig.location + ' ' + authConfig.name + ').';
             }
         } else if (response.status === 403) {
             msg += ' Forbidden: insufficient permission for this request.';

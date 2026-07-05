@@ -333,7 +333,7 @@ export type GeneratedTool = {
 export const generatedTools: GeneratedTool[] = ${enrichedToolsLiteral};
 
 export type InvokeOptions = {
-    /** MCP tool arguments only (host context is supplied by stdio-mcp-server / http-mcp-server). */
+    /** MCP tool arguments only (host context is supplied by the MCP host in servers/*). */
     pathParams?: Record<string, string | number | boolean>;
     query?: Record<string, string | number | boolean | ReadonlyArray<string | number | boolean>>;
     headers?: Record<string, string>;

@@ -31,7 +31,7 @@ export const generatedTools: GeneratedTool[] = [
 ];
 
 export type InvokeOptions = {
-    /** MCP tool arguments only (host context is supplied by stdio-mcp-server / http-mcp-server). */
+    /** MCP tool arguments only (host context is supplied by the MCP host in servers/*). */
     pathParams?: Record<string, string | number | boolean>;
     query?: Record<string, string | number | boolean | ReadonlyArray<string | number | boolean>>;
     headers?: Record<string, string>;
@@ -550,7 +550,7 @@ export async function invokeTool(
     const optionsResolved = normalizeInvokeOptions(toolName, options);
 
     if (hostContext === undefined) {
-        throw new Error('invokeTool requires hostContext from the MCP host (stdio-mcp-server or http-mcp-server).');
+        throw new Error('invokeTool requires hostContext from the MCP host (servers/*-mcp-server).');
     }
     const host = hostContext as ApiHostContext;
     const { baseUrl } = host;
