@@ -19,6 +19,8 @@ import { loadProjectEnvLocal } from './generated/load-env-local.mjs';
 import { requireEnvInt } from './generated/require-env.mjs';
 import { buildHostLaunch, HTTP_DEMOS, HTTP_DEMO_NAMES } from './mcp-http-demos.mjs';
 import { buildOAuthHostLaunch, OAUTH_HTTP_DEMOS, OAUTH_HTTP_DEMO_NAMES } from './mcp-oauth-demos.mjs';
+import { printMcpInspectAuthHints } from './mcp-inspect-auth-hints.mjs';
+import { killListenersOnPort } from './generated/kill-listeners-on-port.mjs';
 
 const demosRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 
@@ -134,6 +136,7 @@ async function waitForHttpOk(url, { timeoutMs = 20_000, intervalMs = 200, label 
 async function startDeps(demoName) {
     if (demoName === 'todo') {
         const port = requireEnvInt('TODO_API_PORT');
+        killListenersOnPort(port, { logPrefix: 'todo-api:kill' });
         startBackground('todo-api', [path.join(demosRoot, 'todo-api', 'server.mjs')], {
             TODO_API_PORT: String(port)
         });
@@ -145,9 +148,12 @@ async function startDeps(demoName) {
         const bookingsPort = requireEnvInt('BOOKINGS_API_PORT');
         const idpPort = requireEnvInt('BOOKINGS_OAUTH_IDP_OIDC_PORT');
         const idpBaseUrl = `http://127.0.0.1:${idpPort}`;
+        killListenersOnPort(bookingsPort, { logPrefix: 'bookings:kill' });
+        killListenersOnPort(idpPort, { logPrefix: 'oauth-idp-oidc:kill' });
         startBackground('bookings', [path.join(demosRoot, 'bookings', 'server.mjs')], {
             BOOKINGS_API_PORT: String(bookingsPort)
         });
+        console.log('[mcp:inspect] starting oauth-idp-oidc (reloads OAUTH_IDP_REDIRECT_URIS from .env)');
         startBackground('oauth-idp-oidc', [path.join(demosRoot, 'oauth-idp', 'server.mjs')], {
             BOOKINGS_OAUTH_IDP_PORT: String(idpPort),
             OAUTH_IDP_SIGN_ALG: 'RS256'
@@ -162,6 +168,8 @@ async function startDeps(demoName) {
     if (demoName === 'cakes') {
         const cakesPort = requireEnvInt('CAKES_API_PORT');
         const idpPort = requireEnvInt('BOOKINGS_OAUTH_IDP_PORT');
+        killListenersOnPort(cakesPort, { logPrefix: 'cakes-api:kill' });
+        killListenersOnPort(idpPort, { logPrefix: 'oauth-idp:kill' });
         startBackground('cakes-api', [path.join(demosRoot, 'cakes-api', 'server.mjs')], {
             CAKES_API_PORT: String(cakesPort)
         });
@@ -207,9 +215,11 @@ async function ensureHostRunning(demoName, noStart, withDeps) {
 
     if (HTTP_DEMOS[demoName]) {
         ({ port, args, mcpUrl, hostEnv } = buildHostLaunch(demoName, demosRoot, process.env));
+        killListenersOnPort(port, { logPrefix: `mcp-http:${demoName}:kill` });
         startBackground(`mcp-http:${demoName}`, args, hostEnv);
     } else {
         ({ port, args, mcpUrl } = buildOAuthHostLaunch(demoName, demosRoot, process.env));
+        killListenersOnPort(port, { logPrefix: `mcp-oauth:${demoName}:kill` });
         startBackground(`mcp-oauth:${demoName}`, args);
     }
 
@@ -267,15 +277,11 @@ async function main() {
     const mcpEntry = await ensureHostRunning(demoName, noStart, withDeps);
     const inspectorArgs = buildInspectorArgs(mcpEntry);
 
-    if (mcpEntry.oauth) {
-        console.warn(
-            '[mcp:inspect] OAuth demo: Inspector has no Cursor Sign-in — initialize/tool calls may fail with 401. Prefer Cursor for OAuth flows.'
-        );
-    }
+    printMcpInspectAuthHints(demoName, process.env);
 
     console.log(`[mcp:inspect] opening MCP Inspector → ${mcpEntry.url}`);
     if (Object.keys(mcpEntry.headers).length > 0) {
-        console.log(`[mcp:inspect] headers: ${JSON.stringify(mcpEntry.headers)}`);
+        console.log(`[mcp:inspect] pre-filled headers (CLI): ${JSON.stringify(mcpEntry.headers)}`);
     }
 
     const onSignal = () => {

@@ -3,7 +3,7 @@
  */
 import path from 'node:path';
 import { readFileSync } from 'node:fs';
-import { requireEnv, requireEnvInt } from './generated/require-env.mjs';
+import { requireEnv, requireEnvInt, warnEnvIfMissing } from './generated/require-env.mjs';
 
 function loadProductName(demosRoot) {
     const config = JSON.parse(readFileSync(path.join(demosRoot, 'project-generate.config.json'), 'utf-8'));
@@ -118,8 +118,8 @@ export function buildHostLaunch(name, demosRoot, env) {
     const mcpUrl = `http://127.0.0.1:${port}/mcp`;
     const mcpAuthHeader = demo.mcpAuthHeaderEnv ? resolveMcpAuthHeader(demo, env) : undefined;
     const hostEnv = mcpAuthHeader ? { MCP_AUTH_HEADER: mcpAuthHeader } : {};
-    if (demo.authExpectedEnv) {
-        requireEnv(demo.authExpectedEnv, env);
+    for (const secretEnv of new Set([demo.authExpectedEnv, demo.authEnv].filter(Boolean))) {
+        warnEnvIfMissing(secretEnv, env);
     }
     return { demo, port, args, mcpUrl, mcpAuthHeader, hostEnv };
 }

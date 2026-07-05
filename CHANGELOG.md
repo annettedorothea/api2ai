@@ -21,7 +21,7 @@ First release-candidate: **curated MCP tools from OpenAPI 3.x** — select opera
 - **Langium `.api2ai` DSL** with VSIX extension (syntax, validation, completions, generate-on-save)
 - **OpenAPI 3.x loader** with `SwaggerParser.dereference()` — `$ref` in parameters, request bodies, and response schemas resolve before LSP validation and codegen
 - **Code generator:** per-DSL tool module (`*-tools.ts`), Zod input schemas, `invokeTool`, hook stubs under `src/hooks/api2ai/`
-- **Four MCP hosts per project:** stdio (Cursor), public HTTP, passthrough HTTP (client header → upstream), OAuth HTTP (Open WebUI / OAuth demos)
+- **Four MCP hosts per project:** stdio (Cursor), public HTTP, passthrough HTTP (client header → upstream), OAuth HTTP (MCP Inspector / OAuth demos)
 - **Upstream auth block:** `auth { in: header|query, name, prefix }` maps MCP credential to API header or query param on protected tools; optional `hooks: { verifyCredential: true }` for module verify stub
 - **Access control:** `access: public | protected` plus optional per-operation hooks — `checkToolAccess`, `prepareToolCall`, `clientMayOmit` (see core2ai auth pipeline)
 - **Flat MCP tool arguments** — agents pass `itemId`, `limit`, `X-Trace-Id` as top-level fields; nested `pathParams` / `query` objects are rejected by the tool JSON Schema
@@ -37,7 +37,7 @@ First release-candidate: **curated MCP tools from OpenAPI 3.x** — select opera
 
 ### Changed
 
-- Pre-0.5 iterative features (flat args, OAuth HTTP demos, Open WebUI stack) are folded into this baseline; changelog maintenance starts here
+- Pre-0.5 iterative features (flat args, OAuth HTTP demos, MCP Inspector workflow) are folded into this baseline; changelog maintenance starts here
 - **Hooks DSL:** `hooks: { checkToolAccess, prepareToolCall }` replaces top-level `authorize` / `prepare` on operations
 - **verifyCredential stubs:** renamed to `verify*Credential.ts`; credential is a raw string (void hook)
 - **Demos:** bookings/cakes use JWT in `checkToolAccess` / `prepareToolCall`

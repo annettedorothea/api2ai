@@ -14,6 +14,11 @@ import { loadProjectEnvLocal } from './generated/load-env-local.mjs';
 import { requireEnvInt } from './generated/require-env.mjs';
 import { buildHostLaunch, HTTP_START_DEMO_NAMES } from './mcp-http-demos.mjs';
 import { buildOAuthHostLaunch, OAUTH_HTTP_START_DEMO_NAMES } from './mcp-oauth-demos.mjs';
+import {
+    buildHttpMcpCatalogEntries,
+    buildOAuthMcpCatalogEntries
+} from './mcp-catalog-entries.mjs';
+import { printMcpServerCatalog } from './generated/print-mcp-catalog.mjs';
 import { waitForForegroundServiceShutdown } from './foreground-lifecycle.mjs';
 const demosRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const foreground =
@@ -125,6 +130,25 @@ async function waitForBackend(label, port) {
     console.log(`[start] ${label} listening on port ${port}.`);
 }
 
+/**
+ * @param {Map<string, { status: 'running' | 'skipped', skipReason?: string }>} httpStatus
+ * @param {Map<string, { status: 'running' | 'skipped', skipReason?: string }>} oauthStatus
+ */
+function printStartMcpCatalog(httpStatus, oauthStatus) {
+    printMcpServerCatalog({
+        logPrefix: '[start]',
+        title: 'Demo MCP hosts',
+        httpEntries: buildHttpMcpCatalogEntries(HTTP_START_DEMO_NAMES, process.env, httpStatus),
+        oauthEntries: buildOAuthMcpCatalogEntries(OAUTH_HTTP_START_DEMO_NAMES, process.env, oauthStatus),
+        footerLines: [
+            'Cursor: Settings → Tools & MCPs — enable servers, reload MCP.',
+            'HTTP debug: npm run mcp:inspect -- <demo>',
+            'Stop: npm run demo:kill-all',
+            'Live logs: npm run start:foreground'
+        ]
+    });
+}
+
 async function main() {
     requireProjectEnv();
 
@@ -204,30 +228,59 @@ async function main() {
 
     await waitForTcpListen(idpPort, { label: `oauth-idp port ${idpPort}` });
 
+    /** @type {Map<string, { status: 'running' | 'skipped', skipReason?: string }>} */
+    const httpStatus = new Map();
+    let httpHostsStarted = 0;
+    let httpHostsSkipped = 0;
     for (const name of HTTP_START_DEMO_NAMES) {
-        const { port, args, mcpUrl, hostEnv } = buildHostLaunch(name, demosRoot, process.env);
-        const label = `mcp-http:${name} (${mcpUrl})`;
-        startService(label, args, hostEnv);
-        await waitForMcpHost(label, port, mcpUrl);
+        const labelBase = `mcp-http:${name}`;
+        try {
+            const { port, args, mcpUrl, hostEnv } = buildHostLaunch(name, demosRoot, process.env);
+            const label = `${labelBase} (${mcpUrl})`;
+            startService(label, args, hostEnv);
+            await waitForMcpHost(label, port, mcpUrl);
+            httpHostsStarted += 1;
+            httpStatus.set(name, { status: 'running' });
+        } catch (error) {
+            httpHostsSkipped += 1;
+            const message = error instanceof Error ? error.message : String(error);
+            console.warn(`[start] ${labelBase} skipped: ${message}`);
+            httpStatus.set(name, { status: 'skipped', skipReason: message });
+        }
     }
+    console.log(`[start] HTTP MCP hosts: ${httpHostsStarted} started, ${httpHostsSkipped} skipped.`);
 
+    /** @type {Map<string, { status: 'running' | 'skipped', skipReason?: string }>} */
+    const oauthStatus = new Map();
+    let oauthHostsStarted = 0;
+    let oauthHostsSkipped = 0;
     for (const name of OAUTH_HTTP_START_DEMO_NAMES) {
-        const { port, args, mcpUrl } = buildOAuthHostLaunch(name, demosRoot, process.env);
-        const label = `mcp-oauth:${name} (${mcpUrl})`;
-        startService(label, args);
-        await waitForMcpHost(label, port, mcpUrl);
+        const labelBase = `mcp-oauth:${name}`;
+        try {
+            const { port, args, mcpUrl } = buildOAuthHostLaunch(name, demosRoot, process.env);
+            const label = `${labelBase} (${mcpUrl})`;
+            startService(label, args);
+            await waitForMcpHost(label, port, mcpUrl);
+            oauthHostsStarted += 1;
+            oauthStatus.set(name, { status: 'running' });
+        } catch (error) {
+            oauthHostsSkipped += 1;
+            const message = error instanceof Error ? error.message : String(error);
+            console.warn(`[start] ${labelBase} skipped: ${message}`);
+            oauthStatus.set(name, { status: 'skipped', skipReason: message });
+        }
     }
+    console.log(`[start] OAuth MCP hosts: ${oauthHostsStarted} started, ${oauthHostsSkipped} skipped.`);
+
+    printStartMcpCatalog(httpStatus, oauthStatus);
 
     if (foreground) {
-        console.log('[start] Setup done — services running. Cursor Settings → Tools & MCPs: enable servers, then reload MCP.');
+        console.log('[start] Setup done — services running.');
         console.log('[start] Ctrl+C stops all demo processes started here.');
         await waitForShutdownSignal();
         return;
     }
-    console.log('[start] Done. Demo services run in background (npm run demo:kill-all to stop).');
-    console.log('[start] Cursor Settings → Tools & MCPs: enable servers, then reload MCP.');
-    console.log('[start] Open WebUI + demos: npm run start:open-webui');
-    console.log('[start] Live logs: npm run start:foreground');
+    console.log('[start] Done. Demo services run in background.');
 }
 
 main().catch((error) => {

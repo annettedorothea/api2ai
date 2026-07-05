@@ -105,6 +105,13 @@ or:
 api2ai /test-all
 ```
 
+For HTTP transport debugging (tools, auth headers, sessions):
+
+```bash
+npm run mcp:inspect -- open-meteo
+npm run mcp:inspect -- todo --with-deps
+```
+
 Prerequisites:
 
 - `npm run start`
@@ -129,7 +136,7 @@ OpenAPI Specification
         ↓
 Generated MCP Server
         ↓
-Cursor • ChatGPT • Claude • Open WebUI
+Cursor • ChatGPT • Claude • MCP Inspector
 ```
 
 ---

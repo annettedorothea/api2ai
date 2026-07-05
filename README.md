@@ -60,7 +60,7 @@ OpenAPI Specification
 Generated MCP Server
         │
         ▼
-Cursor • ChatGPT • Claude • Open WebUI
+Cursor • ChatGPT • Claude • MCP Inspector
 ```
 
 Example:
