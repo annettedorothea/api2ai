@@ -22,14 +22,14 @@ Hook `.cursor/hooks/before-submit-test-all.sh` prueft bei Kurzformen, ob `.curso
 ## Voraussetzungen
 
 - Demos-Workspace-Root mit `.cursor/mcp.json`
-- `npm run start` (alle HTTP-MCP-Hosts + Mock-APIs laufen im Hintergrund)
-- Alle benoetigten MCP-Server in Cursor aktiviert
+- `npm run start` (Mock-APIs inkl. `test-api`; HTTP-MCP-Hosts laufen im Hintergrund)
+- Alle benoetigten MCP-Server in Cursor aktiviert (inkl. **`test`** — stdio, nicht HTTP)
 - Keine `.env`-Dateien lesen oder aendern (siehe `api2ai-env-auth-policy`)
 
 ## Geltende Regeln
 
 - **Schema-only:** Parameter nur aus MCP-Tool-Descriptors (JSON Schema + Beispiele in `description`). Kein Repo-/OpenAPI-Wissen.
-- **Nur konfigurierte Server:** Eintraege in `.cursor/mcp.json` (`open-meteo`, `open-meteo-geocoding`, `github`, `tmdb`, `spaceflight-news`, `todo`, `bookings`, `cakes`, `banking`).
+- **Nur konfigurierte Server:** Eintraege in `.cursor/mcp.json` (`open-meteo`, `open-meteo-geocoding`, `github`, `tmdb`, `xquik`, `spaceflight-news`, `todo`, `bookings`, `cakes`, `test`).
 - **Kein Workaround bei Fehlern:** Kein CLI, kein direkter HTTP, kein Retry mit anderen Credentials.
 - **Ausnahme zu „ein Aufruf“:** Bei diesem Skill genau **ein Aufruf pro Tool** — insgesamt alle Tools aller Server. Fehler pro Tool dokumentieren, mit naechstem Tool fortfahren (Server komplett down: Rest des Servers ueberspringen, Fehler melden).
 
@@ -46,15 +46,15 @@ Hook `.cursor/hooks/before-submit-test-all.sh` prueft bei Kurzformen, ob `.curso
 - **Read-Tools zuerst** (parallel pro Server moeglich).
 - **Write-Tools:** create → update (ID aus Response) → delete (gleiche ID). Praefix `MCPTEST` in Namen/Text.
 - **todo:** geschuetzte Tools mit Header aus `mcp.json` (`x-api-token`); keine anderen Keys probieren.
-- **bookings / cakes / banking:** Cursor OAuth Sign-in; bei `401`/`403` dokumentieren, nicht umgehen.
+- **bookings / cakes:** Cursor OAuth Sign-in; bei `401`/`403` dokumentieren, nicht umgehen.
 - **github / tmdb:** ohne gueltiges Token in `.env` erwartbar `401` — als Auth-Fehler melden, nicht workarounden.
+- **test:** stdio-Host — `TEST_API_KEY` aus `.env` via `--auth-env`; Mock-API `test-api` muss laufen (`npm run start`). Geschuetzte Tools erwarten denselben Key als MCP-Credential.
 
 ### 3. Aufrufe
 
-- MCP-Server-Name im Audit = `serverName` aus `mcp.json`, nicht der Cursor-`serverIdentifier`.
-- Pro Tool: Intent aus Descriptor als Audit-Ueberschrift (Deutsch, sinngemaess).
+- Pro Tool: ein MCP-Aufruf; Fehler in der Zusammenfassung (Abschnitt 4) festhalten — **kein** vollstaendiger Audit-Block pro Tool.
 
-### 4. Ergebnisbericht
+### 4. Ergebnisbericht (einzige Ausgabe — kein Audit)
 
 Kurz fuer den Nutzer:
 
@@ -71,10 +71,7 @@ Kurz fuer den Nutzer:
 
 - Leere Listen = OK, wenn kein Fehler.
 - Schreib-Tests: temporaere Datensaetze wieder loeschen; verbleibende Test-Objekte erwaehnen.
-
-### 5. Audit
-
-Vollstaendiger `Audit`-Abschnitt gemaess `mcp-api2ai-only.mdc` — pro Tool eine `###`-Ueberschrift mit MCP-Server, MCP-Tool, Params, Antwort (gekuerzt bei grossen payloads).
+- **Kein** Abschnitt `Audit` und keine pro-Tool-`###`-Bloecke — nur diese Tabelle und `Auffaelligkeiten`. (Ausnahme zu `mcp-api2ai-only.mdc` nur fuer `/test-all`.)
 
 ## Checkliste
 
@@ -83,6 +80,5 @@ Vollstaendiger `Audit`-Abschnitt gemaess `mcp-api2ai-only.mdc` — pro Tool eine
 - [ ] Alle Tool-Schemas gelesen
 - [ ] Read-Tools aller Server aufgerufen
 - [ ] Write-Tools (create/update/delete) getestet
-- [ ] Zusammenfassungstabelle
-- [ ] Audit
+- [ ] Zusammenfassungstabelle (kein Audit)
 ```

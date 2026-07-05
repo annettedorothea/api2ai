@@ -14,6 +14,7 @@ import { existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import { spawn, spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
+import { ensureEnvFromExample } from './copy-env.mjs';
 import { loadProjectEnvLocal } from './generated/load-env-local.mjs';
 import { requireEnvInt } from './generated/require-env.mjs';
 import { buildHostLaunch, HTTP_DEMOS, HTTP_DEMO_NAMES } from './mcp-http-demos.mjs';
@@ -59,11 +60,7 @@ function parseArgs(argv) {
 }
 
 function requireProjectEnv() {
-    const envPath = path.join(demosRoot, '.env');
-    if (!existsSync(envPath)) {
-        console.error('[mcp:inspect] Missing .env in demo workspace.');
-        process.exit(1);
-    }
+    ensureEnvFromExample();
     loadProjectEnvLocal();
 }
 
@@ -174,23 +171,6 @@ async function startDeps(demoName) {
         await waitForTcpListen(cakesPort, { label: 'cakes-api' });
         await waitForTcpListen(idpPort, { label: 'oauth-idp' });
         return;
-    }
-
-    if (demoName === 'banking') {
-        const bankingPort = requireEnvInt('BANKING_API_PORT');
-        const idpPort = requireEnvInt('ENTERPRISE_IDP_PORT');
-        const idpBaseUrl = `http://127.0.0.1:${idpPort}`;
-        startBackground('banking-api', [path.join(demosRoot, 'banking-api', 'server.mjs')], {
-            BANKING_API_PORT: String(bankingPort)
-        });
-        startBackground('enterprise-idp', [path.join(demosRoot, 'oauth-idp', 'server.mjs')], {
-            BOOKINGS_OAUTH_IDP_PORT: String(idpPort),
-            OAUTH_IDP_SIGN_ALG: 'RS256'
-        });
-        await waitForTcpListen(bankingPort, { label: 'banking-api' });
-        await waitForHttpOk(`${idpBaseUrl}/.well-known/openid-configuration`, {
-            label: 'enterprise-idp openid-configuration'
-        });
     }
 }
 

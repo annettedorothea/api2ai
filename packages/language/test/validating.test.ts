@@ -55,6 +55,24 @@ describe('Validating', () => {
         expect(document.diagnostics ?? []).toHaveLength(0);
     });
 
+    test('warns when auth block has no protected operations', async () => {
+        document = await parseValidated(`
+            openapi "./langium-test-mini.openapi.yaml"
+            auth {
+                in: header
+                name: "Authorization"
+            }
+            GET "/pet/{petId}" {
+                toolName: getPetById
+                access: public
+                intent: "get one pet"
+            }
+        `);
+
+        const diagnostics = document.diagnostics ?? [];
+        expect(diagnostics.some((d) => d.message.includes('auth block has no effect'))).toBe(true);
+    });
+
     test('reports an error for empty auth name', async () => {
         document = await parseValidated(`
             openapi "./langium-test-mini.openapi.yaml"
@@ -239,44 +257,33 @@ describe('Validating', () => {
         expect(diagnostics.some((d) => d.message.includes('requires an auth block'))).toBe(true);
     });
 
-    test('reports authorize on public access', async () => {
+    test('reports checkToolAccess on public access', async () => {
         document = await parseValidated(`
             openapi "./langium-test-mini.openapi.yaml"
             GET "/pet/{petId}" {
                 toolName: getPetById
                 access: public
-                authorize: true
+                hooks: {
+                    checkToolAccess: true
+                }
                 intent: "get one pet"
             }
         `);
 
         const diagnostics = document.diagnostics ?? [];
-        expect(diagnostics.some((d) => d.message.includes('authorize: true requires access `protected`'))).toBe(true);
+        expect(diagnostics.some((d) => d.message.includes('checkToolAccess: true requires access `protected`'))).toBe(
+            true
+        );
     });
 
-    test('accepts public with prepare without auth block', async () => {
+    test('accepts public with prepareToolCall without auth block', async () => {
         document = await parseValidated(`
             openapi "./langium-test-mini.openapi.yaml"
             GET "/pet/{petId}" {
                 toolName: getPetById
                 access: public
-                prepare: true
-                intent: "get one pet"
-            }
-        `);
-
-        const diagnostics = document.diagnostics ?? [];
-        expect(diagnostics).toHaveLength(0);
-    });
-
-    test('accepts optionalParams when parameter exists and is required in OpenAPI', async () => {
-        document = await parseValidated(`
-            openapi "./langium-test-mini.openapi.yaml"
-            GET "/pet/{petId}" {
-                toolName: getPetById
-                access: public
-                prepare: {
-                    optionalParams: [petId]
+                hooks: {
+                    prepareToolCall: true
                 }
                 intent: "get one pet"
             }
@@ -286,14 +293,35 @@ describe('Validating', () => {
         expect(diagnostics).toHaveLength(0);
     });
 
-    test('warns when optionalParams entry is not in OpenAPI', async () => {
+    test('accepts clientMayOmit when parameter exists and is required in OpenAPI', async () => {
         document = await parseValidated(`
             openapi "./langium-test-mini.openapi.yaml"
             GET "/pet/{petId}" {
                 toolName: getPetById
                 access: public
-                prepare: {
-                    optionalParams: [customerId]
+                hooks: {
+                    prepareToolCall: {
+                        clientMayOmit: [petId]
+                    }
+                }
+                intent: "get one pet"
+            }
+        `);
+
+        const diagnostics = document.diagnostics ?? [];
+        expect(diagnostics).toHaveLength(0);
+    });
+
+    test('warns when clientMayOmit entry is not in OpenAPI', async () => {
+        document = await parseValidated(`
+            openapi "./langium-test-mini.openapi.yaml"
+            GET "/pet/{petId}" {
+                toolName: getPetById
+                access: public
+                hooks: {
+                    prepareToolCall: {
+                        clientMayOmit: [customerId]
+                    }
                 }
                 intent: "get one pet"
             }
@@ -302,18 +330,20 @@ describe('Validating', () => {
         const diagnostics = document.diagnostics ?? [];
         expect(diagnostics).toHaveLength(1);
         expect(diagnostics[0]?.severity).toBe(2);
-        expect(diagnostics[0]?.message).toContain('optionalParams entry "customerId"');
+        expect(diagnostics[0]?.message).toContain('clientMayOmit entry "customerId"');
         expect(diagnostics[0]?.message).toContain('no effect on the generated tool schema');
     });
 
-    test('warns only for unknown optionalParams entries when list is mixed', async () => {
+    test('warns only for unknown clientMayOmit entries when list is mixed', async () => {
         document = await parseValidated(`
             openapi "./langium-test-mini.openapi.yaml"
             GET "/pet/{petId}" {
                 toolName: getPetById
                 access: public
-                prepare: {
-                    optionalParams: [petId, customerId]
+                hooks: {
+                    prepareToolCall: {
+                        clientMayOmit: [petId, customerId]
+                    }
                 }
                 intent: "get one pet"
             }
@@ -323,6 +353,28 @@ describe('Validating', () => {
         expect(diagnostics).toHaveLength(1);
         expect(diagnostics[0]?.message).toContain('"customerId"');
         expect(diagnostics[0]?.message).not.toContain('"petId"');
+    });
+
+    test('warns when clientMayOmit lists an OpenAPI-optional parameter', async () => {
+        document = await parseValidated(`
+            openapi "./langium-test-mini.openapi.yaml"
+            GET "/pet/{petId}" {
+                toolName: getPetById
+                access: public
+                hooks: {
+                    prepareToolCall: {
+                        clientMayOmit: [limit]
+                    }
+                }
+                intent: "get one pet"
+            }
+        `);
+
+        const diagnostics = document.diagnostics ?? [];
+        expect(diagnostics).toHaveLength(1);
+        expect(diagnostics[0]?.severity).toBe(2);
+        expect(diagnostics[0]?.message).toContain('clientMayOmit entry "limit"');
+        expect(diagnostics[0]?.message).toContain('already optional');
     });
 
     test('warns when DSL body is set but OpenAPI has no requestBody', async () => {
@@ -359,6 +411,49 @@ describe('Validating', () => {
 
         const diagnostics = document.diagnostics ?? [];
         expect(diagnostics.some((d) => d.message.includes('params entry "customerId"'))).toBe(true);
+    });
+
+    test('warns when params example does not match OpenAPI integer schema', async () => {
+        document = await parseValidated(`
+            openapi "./langium-test-mini.openapi.yaml"
+            GET "/pet/{petId}" {
+                toolName: getPetById
+                access: public
+                intent: "get one pet"
+                params: {
+                    petId: {
+                        description: "pet id"
+                        example: "not-an-integer"
+                    }
+                }
+            }
+        `);
+
+        const diagnostics = document.diagnostics ?? [];
+        expect(diagnostics.some((d) => d.message.includes('integer'))).toBe(true);
+    });
+
+    test('reports header object parameter as unsupported serialization', async () => {
+        document = await parseValidated(`
+            openapi "./header-object.openapi.yaml"
+            GET "/meta" {
+                toolName: getMeta
+                access: public
+                intent: "get meta"
+            }
+        `);
+
+        const diagnostics = document.diagnostics ?? [];
+        expect(diagnostics.some((d) => d.message.includes('object typed') && d.message.includes('header'))).toBe(true);
+    });
+
+    test('validates extension test harness demo without diagnostics', async () => {
+        const demoPath = path.resolve(process.cwd(), '../extension/demos/test.api2ai');
+        const content = await import('node:fs').then((fs) => fs.readFileSync(demoPath, 'utf8'));
+        document = await parse(content, { validation: true, documentUri: demoPath });
+
+        expect(document.parseResult.parserErrors).toHaveLength(0);
+        expect(document.diagnostics ?? []).toHaveLength(0);
     });
 
     test('validates extension bookings demo without diagnostics', async () => {

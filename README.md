@@ -13,7 +13,9 @@
 | [api2ai](https://github.com/annettedorothea/api2ai)   | Generate curated MCP tools from OpenAPI specifications |
 | [db2ai](https://github.com/annettedorothea/db2ai)     | Generate curated MCP tools from relational databases   |
 
-Instead of writing and maintaining custom MCP servers by hand, describe your API once and let `api2ai` generate the tooling for you.
+Instead of hand-writing MCP servers, pick the OpenAPI operations you want as tools, enrich them in `.api2ai`, and generate executable MCP tooling.
+
+You curate which endpoints become tools — not every path in the specification is exposed automatically.
 
 ---
 
@@ -25,7 +27,7 @@ The easiest way to explore `api2ai` is with the VSIX extension and the bundled d
 
 Download the latest VSIX from the releases page:
 
-[https://github.com/annettedorothea/api2ai/releases](https://github.com/annettedorothea/api2ai/releases)
+https://github.com/annettedorothea/api2ai/releases
 
 ### 2. Create a demo workspace
 
@@ -47,6 +49,9 @@ The Open-Meteo example works out of the box and does not require an API key.
 
 ```text
 OpenAPI Specification
+        │
+        ▼
+  select & enrich
         │
         ▼
     .api2ai
@@ -80,11 +85,9 @@ GET "/user" {
 
 ## Documentation
 
-Looking for architecture, authentication, MCP concepts, integrations, or development guides?
+[Documentation index](https://github.com/annettedorothea/core2ai/blob/main/docs/README.md) — architecture, authoring, runtime, and integrations.
 
-See the shared documentation in [core2ai](https://github.com/annettedorothea/core2ai):
-
-- [Documentation index](https://github.com/annettedorothea/core2ai/blob/main/docs/README.md)
+See [CHANGELOG.md](CHANGELOG.md) for version history and upgrade notes.
 
 ---
 
@@ -95,11 +98,15 @@ See the shared documentation in [core2ai](https://github.com/annettedorothea/cor
 
 ---
 
+## Feedback
+
+**1.0.0-rc** — we welcome feedback on onboarding, documentation, DSL ergonomics, and MCP integration. Share your experience in [GitHub Discussions](https://github.com/annettedorothea/api2ai/discussions/3). For bugs, open an [Issue](https://github.com/annettedorothea/api2ai/issues).
+
+---
+
 ## License
 
 MIT — see [LICENSE](LICENSE).
-
-Questions, ideas, bug reports, and feature requests are always welcome through GitHub Discussions or Issues.
 
 ---
 

@@ -3,8 +3,10 @@ openapi "./openapi/spaceflight-news.openapi.yaml"
 GET "/v4/articles/" {
     toolName: listSpaceflightArticles
     access: public
-    prepare: {
-        optionalParams: [limit]
+    hooks: {
+        prepareToolCall: {
+            clientMayOmit: [limit]
+        }
     }
     intent: '''
         - List recent spaceflight news articles (pagination: limit, offset, ordering).
@@ -34,8 +36,10 @@ GET "/v4/articles/{id}/" {
 GET "/v4/blogs/" {
     toolName: listSpaceflightBlogs
     access: public
-    prepare: {
-        optionalParams: [limit]
+    hooks: {
+        prepareToolCall: {
+            clientMayOmit: [limit]
+        }
     }
     intent: '''
         - List recent spaceflight blog posts (pagination: limit, offset, ordering).
@@ -65,8 +69,10 @@ GET "/v4/blogs/{id}/" {
 GET "/v4/reports/" {
     toolName: listSpaceflightReports
     access: public
-    prepare: {
-        optionalParams: [limit]
+    hooks: {
+        prepareToolCall: {
+            clientMayOmit: [limit]
+        }
     }
     intent: '''
         - List recent spaceflight reports (pagination: limit, offset, ordering).

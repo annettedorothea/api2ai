@@ -4,6 +4,9 @@ auth {
     in: header
     name: "Authorization"
     prefix: "Bearer "
+    hooks: {
+        verifyCredential: true
+    }
 }
 
 GET "/3/search/movie" {

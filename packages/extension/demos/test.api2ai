@@ -1,0 +1,207 @@
+openapi "./openapi/test.openapi.yaml"
+
+auth {
+    in: query
+    name: "api_key"
+    prefix: ""
+    hooks: {
+        verifyCredential: true
+    }
+}
+
+// Tests: public GET — no auth pipeline
+GET "/ping" {
+    toolName: testPing
+    access: public
+    intent: "Harness public GET ping"
+    summary: "Public ping"
+    example: "Ping the test API"
+}
+
+// Tests: protected + auth in query + verifyCredential
+GET "/protected/status" {
+    toolName: testProtectedStatus
+    access: protected
+    intent: "Harness protected route with query api_key"
+    summary: "Protected status"
+    example: "Get protected status"
+}
+
+// Tests: required path parameter
+GET "/items/{itemId}" {
+    toolName: testGetItem
+    access: public
+    intent: "Harness path param itemId"
+    summary: "Get item by id"
+    example: "Get item item-1"
+}
+
+// Tests: query optional enum + required query; DSL params override
+GET "/items" {
+    toolName: testListItems
+    access: public
+    intent: "Harness query params status (optional enum) and tag (required)"
+    summary: "List items by tag"
+    example: "List open items for tag harness"
+    params: {
+        status: {
+            description: "Optional filter open or done"
+            example: "open"
+        }
+        tag: {
+            description: "Required category tag for the listing"
+            example: "harness"
+        }
+    }
+}
+
+// Tests: query array (form style)
+GET "/items/search" {
+    toolName: testSearchItems
+    access: public
+    intent: "Harness query array tags"
+    summary: "Search items by tags"
+    example: "Search tags alpha and beta"
+}
+
+// Tests: upstream header parameter (not MCP auth)
+GET "/items/with-header" {
+    toolName: testGetWithHeader
+    access: public
+    intent: "Harness required header X-Trace-Id on upstream request"
+    summary: "Get item with trace header"
+    example: "Call with trace id trace-1"
+}
+
+// Tests: POST JSON body; DSL summary, description, example, body, response
+POST "/resources" {
+    toolName: testCreateResource
+    access: public
+    intent: "Harness POST with inline body schema"
+    summary: "Create harness resource"
+    description: '''
+        Creates a resource in the test API. Use for MCP write smoke.
+    '''
+    example: "Create resource MCPTEST-name"
+    body: '''
+        Required: name (string). Optional: note (string).
+    '''
+    response: '''
+        HTTP 201 — id and name of the created resource.
+    '''
+}
+
+// Tests: PUT + request body $ref (deref)
+PUT "/resources/{resourceId}" {
+    toolName: testPutResource
+    access: public
+    intent: "Harness PUT with $ref body ResourceUpdate"
+    summary: "Replace resource"
+    example: "Put resource res-1 name MCPTEST-updated"
+}
+
+// Tests: PATCH + $ref body
+PATCH "/resources/{resourceId}" {
+    toolName: testPatchResource
+    access: public
+    intent: "Harness PATCH with $ref body ResourcePatch"
+    summary: "Patch resource note"
+    example: "Patch resource res-1 note MCPTEST-note"
+}
+
+// Tests: DELETE path only
+DELETE "/resources/{resourceId}" {
+    toolName: testDeleteResource
+    access: public
+    intent: "Harness DELETE without body"
+    summary: "Delete resource"
+    example: "Delete resource res-1"
+}
+
+// Tests: HTTP HEAD
+HEAD "/probe" {
+    toolName: testProbeHead
+    access: public
+    intent: "Harness HEAD method"
+    summary: "Probe HEAD"
+    example: "HEAD probe"
+}
+
+// Tests: HTTP OPTIONS
+OPTIONS "/probe" {
+    toolName: testProbeOptions
+    access: public
+    intent: "Harness OPTIONS method"
+    summary: "Probe OPTIONS"
+    example: "OPTIONS probe"
+}
+
+// Tests: HTTP TRACE
+TRACE "/trace" {
+    toolName: testTraceRoute
+    access: public
+    intent: "Harness TRACE method"
+    summary: "Trace route"
+    example: "TRACE trace path"
+}
+
+// Tests: oneOf request body → Zod union
+POST "/composed/one-of" {
+    toolName: testOneOfBody
+    access: public
+    intent: "Harness oneOf body schema"
+    summary: "Post oneOf body variant a or b"
+    example: "Post oneOf kind a valueA hello"
+}
+
+// Tests: anyOf request body
+POST "/composed/any-of" {
+    toolName: testAnyOfBody
+    access: public
+    intent: "Harness anyOf body schema"
+    summary: "Post anyOf body text or count mode"
+    example: "Post anyOf mode text text hello"
+}
+
+// Tests: allOf body (codegen fallback / unknown)
+POST "/composed/all-of" {
+    toolName: testAllOfBody
+    access: public
+    intent: "Harness allOf body — expect permissive schema fallback"
+    summary: "Post allOf composed body"
+    example: "Post allOf base x extra y"
+}
+
+// Tests: POST body $ref from components (deref regression)
+POST "/echo/ref-body" {
+    toolName: testRefBody
+    access: public
+    intent: "Harness components $ref request body RefBodyInput"
+    summary: "Echo ref body"
+    example: "Post ref body payload hello"
+}
+
+// Tests: protected + authorize + prepare
+GET "/admin/secrets" {
+    toolName: testGetAdminSecrets
+    access: protected
+    hooks: {
+        checkToolAccess: true
+        prepareToolCall: true
+    }
+    intent: "Harness authorize and prepare on protected tool"
+    summary: "List admin secrets"
+    example: "List secrets limit 5"
+}
+
+// Tests: public + prepare (no auth)
+GET "/prepared/public" {
+    toolName: testListPublicPrepared
+    access: public
+    hooks: {
+        prepareToolCall: true
+    }
+    intent: "Harness public tool with prepare hook"
+    summary: "List public prepared items"
+    example: "List prepared items limit 3"
+}

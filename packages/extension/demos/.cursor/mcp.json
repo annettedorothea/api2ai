@@ -12,6 +12,9 @@
         "tmdb": {
             "url": "http://127.0.0.1:3855/mcp"
         },
+        "xquik": {
+            "url": "http://127.0.0.1:3859/mcp"
+        },
         "spaceflight-news": {
             "url": "http://127.0.0.1:3849/mcp"
         },
@@ -33,11 +36,17 @@
                 "CLIENT_ID": "mcp-demo-local"
             }
         },
-        "banking": {
-            "url": "http://127.0.0.1:3876/mcp",
-            "auth": {
-                "CLIENT_ID": "mcp-demo-local"
-            }
+        "test": {
+            "command": "node",
+            "args": [
+                "${workspaceFolder}/generated/api2ai/cli/stdio-mcp-server.js",
+                "${workspaceFolder}/generated/api2ai/tools/test-tools.js",
+                "--base-url-env",
+                "TEST_API_BASE_URL",
+                "--auth-env",
+                "TEST_API_KEY"
+            ],
+            "envFile": "${workspaceFolder}/.env"
         }
     }
 }

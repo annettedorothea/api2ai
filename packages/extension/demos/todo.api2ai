@@ -4,6 +4,9 @@ auth {
     in: header
     name: "x-api-key"
     prefix: ""
+    hooks: {
+        verifyCredential: true
+    }
 }
 
 GET "/categories" {

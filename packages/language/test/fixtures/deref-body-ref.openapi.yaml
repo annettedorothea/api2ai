@@ -1,0 +1,25 @@
+openapi: 3.0.3
+info:
+    title: Dereference body ref fixture
+    version: 1.0.0
+paths:
+    /items:
+        post:
+            operationId: createItem
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/ItemInput'
+            responses:
+                '201':
+                    description: Created
+components:
+    schemas:
+        ItemInput:
+            type: object
+            required: [title]
+            properties:
+                title:
+                    type: string

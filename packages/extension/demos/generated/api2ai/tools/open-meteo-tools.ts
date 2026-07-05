@@ -12,8 +12,8 @@ export type GeneratedTool = {
     method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' | 'HEAD' | 'OPTIONS' | 'TRACE';
     path: string;
     access: 'public' | 'protected';
-    hasAuthorize: boolean;
-    hasPrepare: boolean;
+    hasCheckToolAccess: boolean;
+    hasPrepareToolCall: boolean;
 };
 
 export const generatedTools: GeneratedTool[] = [
@@ -25,8 +25,8 @@ export const generatedTools: GeneratedTool[] = [
         method: 'GET',
         path: '/v1/forecast',
         access: 'public',
-        hasAuthorize: false,
-        hasPrepare: false
+        hasCheckToolAccess: false,
+        hasPrepareToolCall: false
     }
 ];
 
@@ -41,14 +41,12 @@ export type InvokeOptions = {
 export type ApiHostContext = {
     baseUrl: string;
     credential?: string;
-    upstreamCredential?: string;
-    credentials?: unknown;
 };
 
 export const requiresAuth = false;
 
 export const mcpServerName = 'open-meteo-tools';
-export const mcpServerVersion = '0.5.0';
+export const mcpServerVersion = '1.0.0-rc';
 
 export const inputZodByTool = {
     openMeteoForecast: z
@@ -487,6 +485,58 @@ function appendSerializedQueryParams(
     }
 }
 
+async function performToolHttpRequest(
+    url: URL,
+    init: { method: string; headers: Record<string, string>; body?: string }
+): Promise<Response> {
+    if (init.method !== 'TRACE') {
+        return fetch(url, init as RequestInit);
+    }
+    const client = url.protocol === 'https:' ? await import('node:https') : await import('node:http');
+    return new Promise((resolve, reject) => {
+        const req = client.request(
+            {
+                protocol: url.protocol,
+                hostname: url.hostname,
+                port: url.port || undefined,
+                path: url.pathname + url.search,
+                method: 'TRACE',
+                headers: init.headers
+            },
+            (res) => {
+                const chunks: Buffer[] = [];
+                res.on('data', (chunk: Buffer) => chunks.push(chunk));
+                res.on('end', () => {
+                    const responseHeaders = new Headers();
+                    for (const [name, value] of Object.entries(res.headers)) {
+                        if (value === undefined) {
+                            continue;
+                        }
+                        if (Array.isArray(value)) {
+                            for (const entry of value) {
+                                responseHeaders.append(name, entry);
+                            }
+                        } else {
+                            responseHeaders.set(name, value);
+                        }
+                    }
+                    resolve(
+                        new Response(Buffer.concat(chunks), {
+                            status: res.statusCode ?? 500,
+                            headers: responseHeaders
+                        })
+                    );
+                });
+            }
+        );
+        req.on('error', reject);
+        if (init.body) {
+            req.write(init.body);
+        }
+        req.end();
+    });
+}
+
 export async function invokeTool(
     toolName: string,
     options: InvokeOptions = {},
@@ -527,7 +577,11 @@ export async function invokeTool(
         requestInit.body = JSON.stringify(optionsResolved.body);
     }
 
-    const response = await fetch(url, requestInit as RequestInit);
+    const response = await performToolHttpRequest(url, {
+        method: tool.method,
+        headers: requestHeaders as Record<string, string>,
+        body: typeof requestInit.body === 'string' ? requestInit.body : undefined
+    });
     if (!response.ok) {
         const retryAfter = response.headers.get('retry-after');
         let bodySnippet = '';

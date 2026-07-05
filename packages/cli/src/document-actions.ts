@@ -3,7 +3,7 @@ import {
     assertDocumentValidForGenerate,
     collectLangiumDocumentErrors,
     printDocumentValidationErrors
-} from '@core2ai/core/codegen';
+} from '@toolfactory.dev/core/codegen';
 import chalk from 'chalk';
 import type { LangiumDocument } from 'langium';
 import { NodeFileSystem } from 'langium/node';

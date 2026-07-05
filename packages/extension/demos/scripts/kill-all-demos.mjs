@@ -25,15 +25,14 @@ runNode('./scripts/kill-mcp-hosts.mjs');
 console.log('[kill-all] stopping OAuth IDP…');
 runNode('./oauth-idp/kill-server.mjs');
 runNode('./oauth-idp/kill-server-oidc.mjs');
-runNode('./oauth-idp/kill-server-enterprise.mjs');
-console.log('[kill-all] stopping banking-api…');
-runNode('./banking-api/kill-server.mjs');
 console.log('[kill-all] stopping cakes-api…');
 runNode('./cakes-api/kill-server.mjs');
 console.log('[kill-all] stopping bookings…');
 runNode('./bookings/kill-server.mjs');
 console.log('[kill-all] stopping todo-api…');
 runNode('./todo-api/kill-server.mjs');
+console.log('[kill-all] stopping test-api…');
+runNode('./test-api/kill-server.mjs');
 if (process.env.OPEN_WEBUI_SKIP_KILL === '1') {
     console.log('[kill-all] skipping Open WebUI (OPEN_WEBUI_SKIP_KILL=1).');
 } else {

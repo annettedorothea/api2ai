@@ -1,4 +1,4 @@
-import type { ModuleCredentials } from './verifyBookingsCredentials.js';
+import { decodeJwtPayload } from '../../shared/decode-jwt-payload.js';
 import type { InvokeOptions } from '../../../../generated/api2ai/tools/bookings-tools.js';
 
 const MAX_LIMIT = 10;
@@ -18,9 +18,10 @@ function resolveLimitQuery(options: InvokeOptions): number {
     return Math.floor(limit);
 }
 
-/** protected + authorize — admin-only cross-customer listing. */
-export function authorizeListAllBookings(credentials: ModuleCredentials): void {
-    const role = String(credentials.role ?? '').trim();
+/** protected + checkToolAccess — admin-only cross-customer listing. */
+export async function checkToolAccessForListAllBookings(credential: string): Promise<void> {
+    const claims = await decodeJwtPayload(credential);
+    const role = String(claims.role ?? '').trim();
     if (role.length === 0) {
         throw new Error('JWT payload missing role claim.');
     }
@@ -29,12 +30,12 @@ export function authorizeListAllBookings(credentials: ModuleCredentials): void {
     }
 }
 
-/** protected + authorize + prepare — admin gate plus limit cap. */
-export function prepareListAllBookingsInput(options: InvokeOptions, credentials?: ModuleCredentials): InvokeOptions {
-    if (!credentials) {
-        throw new Error('Prepare requires credentials.');
-    }
-    void credentials;
+/** protected + prepareToolCall — admin gate plus limit cap. */
+export async function prepareToolCallForListAllBookings(
+    options: InvokeOptions,
+    credential: string
+): Promise<InvokeOptions> {
+    await checkToolAccessForListAllBookings(credential);
     const limit = resolveLimitQuery(options);
     return {
         ...options,

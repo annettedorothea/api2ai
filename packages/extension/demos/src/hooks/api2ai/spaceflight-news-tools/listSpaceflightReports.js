@@ -1,5 +1,5 @@
 import { withValidatedListLimit } from './resolveLimitQuery.js';
-/** public + prepare — cap reports per request (no credentials required). */
-export function prepareListSpaceflightReportsInput(options) {
+/** public + prepare — cap reports per request (no credential required). */
+export function prepareToolCallForListSpaceflightReports(options) {
     return withValidatedListLimit(options);
 }

@@ -112,6 +112,15 @@ describe('Completion for operation path', () => {
         expect(labels.length).toBeGreaterThan(0);
         expect(labels.some((l) => l.includes('/pet/{petId}'))).toBe(true);
     });
+
+    test('suggests auth location header or query after in colon', async () => {
+        const marker = '/*caret*/';
+        const content = `\nopenapi "./langium-test-mini.openapi.yaml"\nauth {\n    in: ${marker}\n}\nGET "/pet/{petId}" {\n    toolName: t\n    intent: "x"\n    access: public\n}`;
+        const list = await completionAt(content.replace(marker, ''), content.indexOf(marker));
+        const labels = (list?.items ?? []).map((item) => String(item.label));
+        expect(labels).toContain('header');
+        expect(labels).toContain('query');
+    });
 });
 
 describe('Completion for block keywords', () => {
@@ -145,8 +154,7 @@ describe('Completion for block keywords', () => {
                 [
                     'toolName',
                     'access',
-                    'authorize',
-                    'prepare',
+                    'hooks',
                     'intent',
                     'summary',
                     'description',
@@ -159,8 +167,7 @@ describe('Completion for block keywords', () => {
         ).toEqual([
             'toolName',
             'access',
-            'authorize',
-            'prepare',
+            'hooks',
             'intent',
             'summary',
             'description',
@@ -181,8 +188,7 @@ describe('Completion for block keywords', () => {
                 [
                     'toolName',
                     'access',
-                    'authorize',
-                    'prepare',
+                    'hooks',
                     'intent',
                     'summary',
                     'description',
@@ -195,8 +201,7 @@ describe('Completion for block keywords', () => {
         ).toEqual([
             'toolName',
             'access',
-            'authorize',
-            'prepare',
+            'hooks',
             'intent',
             'summary',
             'description',
@@ -215,33 +220,33 @@ describe('Completion for block keywords', () => {
         expect(labels).toEqual(expect.arrayContaining(['public', 'protected']));
     });
 
-    test('suggests optionalParams inside prepare block', async () => {
+    test('suggests clientMayOmit inside prepareToolCall block', async () => {
         const marker = '/*caret*/';
-        const content = `\nopenapi "./langium-test-mini.openapi.yaml"\nGET "/pet/{petId}" {\n    toolName: getPetById\n    access: public\n    prepare: {\n        ${marker}\n    }\n    intent: "get one pet"\n}`;
+        const content = `\nopenapi "./langium-test-mini.openapi.yaml"\nGET "/pet/{petId}" {\n    toolName: getPetById\n    access: public\n    hooks: {\n        prepareToolCall: {\n            ${marker}\n        }\n    }\n    intent: "get one pet"\n}`;
         const list = await completionAt(content.replace(marker, ''), content.indexOf(marker));
         const labels = (list?.items ?? []).map((item) => String(item.label));
-        expect(labels).toContain('optionalParams');
+        expect(labels).toContain('clientMayOmit');
     });
 
-    test('suggests required OpenAPI params inside optionalParams list', async () => {
+    test('suggests required OpenAPI params inside clientMayOmit list', async () => {
         const marker = '/*caret*/';
-        const content = `\nopenapi "./langium-test-mini.openapi.yaml"\nGET "/pet/{petId}" {\n    toolName: getPetById\n    access: public\n    prepare: {\n        optionalParams: [${marker}]\n    }\n    intent: "get one pet"\n}`;
-        const list = await completionAt(content.replace(marker, ''), content.indexOf(marker));
-        const labels = (list?.items ?? []).map((item) => String(item.label));
-        expect(labels).toContain('petId');
-    });
-
-    test('suggests required OpenAPI params for empty optionalParams list slot', async () => {
-        const marker = '/*caret*/';
-        const content = `\nopenapi "./langium-test-mini.openapi.yaml"\nGET "/pet/{petId}" {\n    toolName: getPetById\n    access: public\n    prepare: {\n        optionalParams: [${marker}]\n    }\n    intent: "get one pet"\n}`;
+        const content = `\nopenapi "./langium-test-mini.openapi.yaml"\nGET "/pet/{petId}" {\n    toolName: getPetById\n    access: public\n    hooks: {\n        prepareToolCall: {\n            clientMayOmit: [${marker}]\n        }\n    }\n    intent: "get one pet"\n}`;
         const list = await completionAt(content.replace(marker, ''), content.indexOf(marker));
         const labels = (list?.items ?? []).map((item) => String(item.label));
         expect(labels).toContain('petId');
     });
 
-    test('suggests required OpenAPI params when editing existing optionalParams value', async () => {
+    test('suggests required OpenAPI params for empty clientMayOmit list slot', async () => {
         const marker = '/*caret*/';
-        const content = `\nopenapi "./langium-test-mini.openapi.yaml"\nGET "/pet/{petId}" {\n    toolName: getPetById\n    access: public\n    prepare: {\n        optionalParams: [pet${marker}]\n    }\n    intent: "get one pet"\n}`;
+        const content = `\nopenapi "./langium-test-mini.openapi.yaml"\nGET "/pet/{petId}" {\n    toolName: getPetById\n    access: public\n    hooks: {\n        prepareToolCall: {\n            clientMayOmit: [${marker}]\n        }\n    }\n    intent: "get one pet"\n}`;
+        const list = await completionAt(content.replace(marker, ''), content.indexOf(marker));
+        const labels = (list?.items ?? []).map((item) => String(item.label));
+        expect(labels).toContain('petId');
+    });
+
+    test('suggests required OpenAPI params when editing existing clientMayOmit value', async () => {
+        const marker = '/*caret*/';
+        const content = `\nopenapi "./langium-test-mini.openapi.yaml"\nGET "/pet/{petId}" {\n    toolName: getPetById\n    access: public\n    hooks: {\n        prepareToolCall: {\n            clientMayOmit: [pet${marker}]\n        }\n    }\n    intent: "get one pet"\n}`;
         const list = await completionAt(content.replace(marker, ''), content.indexOf(marker));
         const labels = (list?.items ?? []).map((item) => String(item.label));
         expect(labels).toContain('petId');

@@ -40,7 +40,7 @@ function resolveEmbedHome(cliPath, embedDirName) {
     return undefined;
 }
 
-/** Live monorepo CLI (packages/cli) — prefers linked @core2ai/core over stale extension embed. */
+/** Live monorepo CLI (packages/cli) — prefers linked @toolfactory.dev/core over stale extension embed. */
 function findMonorepoSourceCli() {
     const candidate = path.join(projectRoot, '..', '..', 'cli', 'bin', 'cli.js');
     return existsSync(candidate) ? candidate : undefined;

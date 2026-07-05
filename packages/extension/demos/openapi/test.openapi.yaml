@@ -1,0 +1,395 @@
+openapi: 3.0.3
+info:
+    title: api2ai test harness API
+    description: Artificial paths for OpenAPI/DSL coverage (not a product API).
+    version: 0.1.0
+servers:
+    - url: http://127.0.0.1:3857
+paths:
+    /ping:
+        get:
+            operationId: test-ping
+            summary: Public ping
+            responses:
+                '200':
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    ok:
+                                        type: boolean
+    /protected/status:
+        get:
+            operationId: test-protected-status
+            summary: Protected status (api_key query)
+            responses:
+                '200':
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    status:
+                                        type: string
+                '401':
+                    description: Unauthorized
+    /items/{itemId}:
+        get:
+            operationId: test-get-item
+            summary: Get item by id
+            parameters:
+                - name: itemId
+                  in: path
+                  required: true
+                  schema:
+                      type: string
+            responses:
+                '200':
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    itemId:
+                                        type: string
+    /items:
+        get:
+            operationId: test-list-items
+            summary: List items with query filters
+            parameters:
+                - name: status
+                  in: query
+                  required: false
+                  schema:
+                      type: string
+                      enum: [open, done]
+                - name: tag
+                  in: query
+                  required: true
+                  schema:
+                      type: string
+            responses:
+                '200':
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    items:
+                                        type: array
+                                        items:
+                                            type: string
+    /items/search:
+        get:
+            operationId: test-search-items
+            summary: Search with array query param
+            parameters:
+                - name: tags
+                  in: query
+                  required: false
+                  style: form
+                  explode: true
+                  schema:
+                      type: array
+                      items:
+                          type: string
+            responses:
+                '200':
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    tags:
+                                        type: array
+                                        items:
+                                            type: string
+    /items/with-header:
+        get:
+            operationId: test-get-with-header
+            summary: Requires upstream trace header
+            parameters:
+                - name: X-Trace-Id
+                  in: header
+                  required: true
+                  schema:
+                      type: string
+            responses:
+                '200':
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    traceId:
+                                        type: string
+    /resources:
+        post:
+            operationId: test-create-resource
+            summary: Create resource
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            required: [name]
+                            properties:
+                                name:
+                                    type: string
+                                note:
+                                    type: string
+            responses:
+                '201':
+                    description: Created
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    id:
+                                        type: string
+                                    name:
+                                        type: string
+    /resources/{resourceId}:
+        put:
+            operationId: test-put-resource
+            summary: Replace resource
+            parameters:
+                - name: resourceId
+                  in: path
+                  required: true
+                  schema:
+                      type: string
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/ResourceUpdate'
+            responses:
+                '200':
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    resourceId:
+                                        type: string
+                                    name:
+                                        type: string
+        patch:
+            operationId: test-patch-resource
+            summary: Patch resource
+            parameters:
+                - name: resourceId
+                  in: path
+                  required: true
+                  schema:
+                      type: string
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/ResourcePatch'
+            responses:
+                '200':
+                    description: OK
+        delete:
+            operationId: test-delete-resource
+            summary: Delete resource
+            parameters:
+                - name: resourceId
+                  in: path
+                  required: true
+                  schema:
+                      type: string
+            responses:
+                '204':
+                    description: No content
+    /probe:
+        head:
+            operationId: test-probe-head
+            summary: HEAD probe
+            responses:
+                '200':
+                    description: OK
+        options:
+            operationId: test-probe-options
+            summary: OPTIONS probe
+            responses:
+                '204':
+                    description: No content
+    /trace:
+        trace:
+            operationId: test-trace-route
+            summary: TRACE route
+            responses:
+                '200':
+                    description: OK
+    /composed/one-of:
+        post:
+            operationId: test-one-of-body
+            summary: oneOf request body
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            oneOf:
+                                - type: object
+                                  required: [kind, valueA]
+                                  properties:
+                                      kind:
+                                          type: string
+                                          enum: [a]
+                                      valueA:
+                                          type: string
+                                - type: object
+                                  required: [kind, valueB]
+                                  properties:
+                                      kind:
+                                          type: string
+                                          enum: [b]
+                                      valueB:
+                                          type: integer
+            responses:
+                '200':
+                    description: OK
+    /composed/any-of:
+        post:
+            operationId: test-any-of-body
+            summary: anyOf request body
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            anyOf:
+                                - type: object
+                                  required: [mode]
+                                  properties:
+                                      mode:
+                                          type: string
+                                          enum: [text]
+                                      text:
+                                          type: string
+                                - type: object
+                                  required: [mode]
+                                  properties:
+                                      mode:
+                                          type: string
+                                          enum: [count]
+                                      count:
+                                          type: integer
+            responses:
+                '200':
+                    description: OK
+    /composed/all-of:
+        post:
+            operationId: test-all-of-body
+            summary: allOf request body (fallback codegen)
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            allOf:
+                                - type: object
+                                  properties:
+                                      base:
+                                          type: string
+                                - type: object
+                                  properties:
+                                      extra:
+                                          type: string
+            responses:
+                '200':
+                    description: OK
+    /echo/ref-body:
+        post:
+            operationId: test-ref-body
+            summary: Body via components $ref
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/RefBodyInput'
+            responses:
+                '200':
+                    description: OK
+    /admin/secrets:
+        get:
+            operationId: test-admin-secrets
+            summary: Admin secrets (authorize + prepare)
+            parameters:
+                - name: limit
+                  in: query
+                  required: false
+                  schema:
+                      type: integer
+            responses:
+                '200':
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    secrets:
+                                        type: array
+                                        items:
+                                            type: string
+                '403':
+                    description: Forbidden
+    /prepared/public:
+        get:
+            operationId: test-public-prepared
+            summary: Public route with prepare hook
+            parameters:
+                - name: limit
+                  in: query
+                  required: false
+                  schema:
+                      type: integer
+            responses:
+                '200':
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    items:
+                                        type: array
+                                        items:
+                                            type: string
+components:
+    schemas:
+        ResourceUpdate:
+            type: object
+            required: [name]
+            properties:
+                name:
+                    type: string
+        ResourcePatch:
+            type: object
+            properties:
+                note:
+                    type: string
+        RefBodyInput:
+            type: object
+            required: [payload]
+            properties:
+                payload:
+                    type: string

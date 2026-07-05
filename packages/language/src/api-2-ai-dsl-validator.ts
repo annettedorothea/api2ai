@@ -1,14 +1,15 @@
 import path from 'node:path';
 import type { ValidationAcceptor, ValidationChecks } from 'langium';
 import type { Api2AiDslAstType, Model, Operation } from './generated/ast.js';
-import { isPrepareBody } from './generated/ast.js';
+import { isPrepareToolCallBody } from './generated/ast.js';
 import type { Api2AiDslServices } from './api-2-ai-dsl-module.js';
-import { accessRequiresAuth, getOptionalParams, isToolAuthorizeEnabled } from './operation-access.js';
+import { accessRequiresAuth, getClientMayOmit, isCheckToolAccessEnabled } from './operation-access.js';
 import {
     getCookieParameterMessages,
     getDslBodyWithoutOpenApiRequestBodyWarning,
     getUnknownApiParamPatchWarnings,
-    getUnknownOptionalParamWarnings,
+    getUnknownClientMayOmitWarnings,
+    getUnnecessaryClientMayOmitWarnings,
     getUnsupportedSerializationMessages,
     findOpenApiInvokeParameter,
     loadOpenApi,
@@ -70,25 +71,32 @@ export class Api2AiDslValidator {
             if (!operation.access) {
                 continue;
             }
-            if (isToolAuthorizeEnabled(operation) && !accessRequiresAuth(operation)) {
-                accept('error', 'authorize: true requires access `protected`.', {
+            if (isCheckToolAccessEnabled(operation) && !accessRequiresAuth(operation)) {
+                accept('error', 'checkToolAccess: true requires access `protected`.', {
                     node: operation,
-                    property: 'authorize'
+                    property: 'hooks'
                 });
             }
         }
 
-        if (!model.auth) {
-            for (const operation of model.operations) {
-                if (!operation.access) {
-                    continue;
-                }
-                if (accessRequiresAuth(operation)) {
-                    accept('error', 'access `protected` requires an auth block on the model.', {
-                        node: operation,
-                        property: 'access'
-                    });
-                }
+        if (model.auth) {
+            const hasProtected = model.operations.some((operation) => accessRequiresAuth(operation));
+            if (!hasProtected) {
+                accept('warning', 'auth block has no effect: no operation uses access protected.', {
+                    node: model.auth
+                });
+            }
+            return;
+        }
+        for (const operation of model.operations) {
+            if (!operation.access) {
+                continue;
+            }
+            if (accessRequiresAuth(operation)) {
+                accept('error', 'access `protected` requires an auth block on the model.', {
+                    node: operation,
+                    property: 'access'
+                });
             }
         }
     }
@@ -194,17 +202,37 @@ export class Api2AiDslValidator {
                 });
             }
 
-            const optionalParams = getOptionalParams(operation);
-            for (const warning of getUnknownOptionalParamWarnings(
-                optionalParams,
+            const clientMayOmit = getClientMayOmit(operation);
+            for (const warning of getUnknownClientMayOmitWarnings(
+                clientMayOmit,
                 openApiOperation,
                 operation.method,
                 operation.path
             )) {
-                const body = isPrepareBody(operation.prepare) ? operation.prepare : undefined;
+                const prepareBody =
+                    operation.hooks?.prepareToolCall && isPrepareToolCallBody(operation.hooks.prepareToolCall)
+                        ? operation.hooks.prepareToolCall
+                        : undefined;
                 accept('warning', warning.message, {
-                    node: body ?? operation,
-                    property: 'optionalParams',
+                    node: prepareBody ?? operation,
+                    property: 'clientMayOmit',
+                    index: warning.index
+                });
+            }
+
+            for (const warning of getUnnecessaryClientMayOmitWarnings(
+                clientMayOmit,
+                openApiOperation,
+                operation.method,
+                operation.path
+            )) {
+                const prepareBody =
+                    operation.hooks?.prepareToolCall && isPrepareToolCallBody(operation.hooks.prepareToolCall)
+                        ? operation.hooks.prepareToolCall
+                        : undefined;
+                accept('warning', warning.message, {
+                    node: prepareBody ?? operation,
+                    property: 'clientMayOmit',
                     index: warning.index
                 });
             }

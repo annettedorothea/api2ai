@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Generated public HTTP MCP Streamable HTTP host (static runtime — no @core2ai/core).
+ * Generated public HTTP MCP Streamable HTTP host (static runtime — no @toolfactory.dev/core).
  */
 import { randomUUID } from 'node:crypto';
 import * as fs from 'node:fs';
@@ -20,20 +20,9 @@ const LOCAL_ENV_FILES = ['.env', '.env.local'];
 type ApiLikeHostContext = {
     baseUrl?: string;
     credential?: string;
-    upstreamCredential?: string;
-    credentials?: unknown;
 };
 
-type VerifyCredentialInput = {
-    inboundCredential: string;
-};
-
-type VerifyCredentialResult = {
-    upstreamCredential: string;
-    credentials: unknown;
-};
-
-type VerifyCredentialFn = (input: VerifyCredentialInput) => Promise<VerifyCredentialResult>;
+type VerifyCredentialFn = (credential: string) => void | Promise<void>;
 
 type GeneratedHostModule = {
     generatedTools: Array<{ toolName: string; title?: string; description: string; access?: string }>;
@@ -382,12 +371,6 @@ function validateHttpMcpHostAtStartup(httpHostConfig: HttpMcpHostRuntimeConfig, 
     const baseUrl = process.env[baseUrlKey]?.trim();
     if (!baseUrl) {
         throw new Error('Environment variable "' + baseUrlKey + '" is missing or empty (required by --base-url-env).');
-    }
-
-    if (_generated.requiresAuth && typeof _generated.verifyCredential !== 'function') {
-        throw new Error(
-            'Generated tools require auth; implement verify*Credentials in src/hooks/api2ai/<module>/ and re-export from generated tools.'
-        );
     }
 }
 

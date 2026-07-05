@@ -1,5 +1,5 @@
 import { withValidatedListLimit } from './resolveLimitQuery.js';
-/** public + prepare — cap blog posts per request (no credentials required). */
-export function prepareListSpaceflightBlogsInput(options) {
+/** public + prepare — cap blog posts per request (no credential required). */
+export function prepareToolCallForListSpaceflightBlogs(options) {
     return withValidatedListLimit(options);
 }

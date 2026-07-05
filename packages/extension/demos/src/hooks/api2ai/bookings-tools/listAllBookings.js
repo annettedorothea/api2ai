@@ -1,3 +1,4 @@
+import { decodeJwtPayload } from '../../shared/decode-jwt-payload.js';
 const MAX_LIMIT = 10;
 function resolveLimitQuery(options) {
     const raw = options.query?.limit;
@@ -13,9 +14,10 @@ function resolveLimitQuery(options) {
     }
     return Math.floor(limit);
 }
-/** protected + authorize — admin-only cross-customer listing. */
-export function authorizeListAllBookings(credentials) {
-    const role = String(credentials.role ?? '').trim();
+/** protected + checkToolAccess — admin-only cross-customer listing. */
+export async function checkToolAccessForListAllBookings(credential) {
+    const claims = await decodeJwtPayload(credential);
+    const role = String(claims.role ?? '').trim();
     if (role.length === 0) {
         throw new Error('JWT payload missing role claim.');
     }
@@ -23,12 +25,9 @@ export function authorizeListAllBookings(credentials) {
         throw new Error(`Admin role required to list all bookings; JWT role is "${role}".`);
     }
 }
-/** protected + authorize + prepare — admin gate plus limit cap. */
-export function prepareListAllBookingsInput(options, credentials) {
-    if (!credentials) {
-        throw new Error('Prepare requires credentials.');
-    }
-    void credentials;
+/** protected + prepareToolCall — admin gate plus limit cap. */
+export async function prepareToolCallForListAllBookings(options, credential) {
+    await checkToolAccessForListAllBookings(credential);
     const limit = resolveLimitQuery(options);
     return {
         ...options,

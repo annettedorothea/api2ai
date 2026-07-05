@@ -1,15 +1,15 @@
 #!/usr/bin/env node
 /**
- * Demo workspace setup: kill stale processes, load .env, install, generate, compile,
+ * Demo workspace setup: kill stale processes, env from .env.example (once), install, generate, compile,
  * start backends + MCP hosts.
  *
  * Default (npm run start): background — terminal free after setup.
  * Foreground (npm run start:foreground): logs in this terminal until Ctrl+C.
  */
-import { existsSync } from 'node:fs';
 import path from 'node:path';
 import { spawn, spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
+import { ensureEnvFromExample } from './copy-env.mjs';
 import { loadProjectEnvLocal } from './generated/load-env-local.mjs';
 import { requireEnvInt } from './generated/require-env.mjs';
 import { buildHostLaunch, HTTP_START_DEMO_NAMES } from './mcp-http-demos.mjs';
@@ -33,11 +33,7 @@ function runNpm(args) {
 }
 
 function requireProjectEnv() {
-    const envPath = path.join(demosRoot, '.env');
-    if (!existsSync(envPath)) {
-        console.error('[start] Missing .env in demo workspace.');
-        process.exit(1);
-    }
+    ensureEnvFromExample();
     loadProjectEnvLocal();
 }
 
@@ -166,12 +162,12 @@ async function main() {
         cakesPort
     );
 
-    const bankingPort = requireEnvInt('BANKING_API_PORT');
+    const testApiPort = requireEnvInt('TEST_API_PORT');
     startService(
-        'banking-api',
-        [path.join(demosRoot, 'banking-api', 'server.mjs')],
-        { BANKING_API_PORT: String(bankingPort) },
-        bankingPort
+        'test-api',
+        [path.join(demosRoot, 'test-api', 'server.mjs')],
+        { TEST_API_PORT: String(testApiPort) },
+        testApiPort
     );
 
     const idpPort = requireEnvInt('BOOKINGS_OAUTH_IDP_PORT');
@@ -191,21 +187,12 @@ async function main() {
         idpOidcPort
     );
 
-    const enterpriseIdpPort = requireEnvInt('ENTERPRISE_IDP_PORT');
-    const enterpriseIdpBaseUrl = `http://127.0.0.1:${enterpriseIdpPort}`;
-    startService(
-        'enterprise-idp',
-        [path.join(demosRoot, 'oauth-idp', 'server.mjs')],
-        { BOOKINGS_OAUTH_IDP_PORT: String(enterpriseIdpPort), OAUTH_IDP_SIGN_ALG: 'RS256' },
-        enterpriseIdpPort
-    );
-
     console.log('[start] waiting for mock API backends…');
     for (const [label, port] of [
         ['bookings', bookingsPort],
         ['todo-api', todoPort],
         ['cakes-api', cakesPort],
-        ['banking-api', bankingPort]
+        ['test-api', testApiPort]
     ]) {
         await waitForBackend(label, port);
     }
@@ -216,11 +203,6 @@ async function main() {
     });
 
     await waitForTcpListen(idpPort, { label: `oauth-idp port ${idpPort}` });
-
-    console.log(`[start] waiting for enterprise-idp at ${enterpriseIdpBaseUrl}…`);
-    await waitForHttpOk(`${enterpriseIdpBaseUrl}/.well-known/openid-configuration`, {
-        label: 'enterprise-idp openid-configuration'
-    });
 
     for (const name of HTTP_START_DEMO_NAMES) {
         const { port, args, mcpUrl, hostEnv } = buildHostLaunch(name, demosRoot, process.env);
