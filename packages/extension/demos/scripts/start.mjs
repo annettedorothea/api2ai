@@ -3,8 +3,8 @@
  * Demo workspace setup: kill stale processes, env from .env.example (once), install, generate, compile,
  * start backends + MCP hosts.
  *
- * Default (npm run start): background — terminal free after setup.
- * Foreground (npm run start:foreground): logs in this terminal until Ctrl+C.
+ * Default (npm run start): foreground — MCP banners and logs in this terminal until Ctrl+C.
+ * Background (npm run start:background): detached, terminal free after setup.
  */
 import path from 'node:path';
 import { spawn, spawnSync } from 'node:child_process';
@@ -18,13 +18,20 @@ import {
     buildHttpMcpCatalogEntries,
     buildOAuthMcpCatalogEntries
 } from './mcp-catalog-entries.mjs';
-import { printMcpServerCatalog } from './generated/print-mcp-catalog.mjs';
+import { printStartMcpSummary } from './generated/print-mcp-catalog.mjs';
 import { waitForForegroundServiceShutdown } from './foreground-lifecycle.mjs';
 const demosRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const foreground =
-    process.env.START_FOREGROUND === '1' ||
-    process.env.START_FOREGROUND === 'true' ||
-    process.env.START_FOREGROUND === 'yes';
+
+function envTruthy(name) {
+    const value = process.env[name]?.trim().toLowerCase();
+    return value === '1' || value === 'true' || value === 'yes';
+}
+
+/** Detached children, stdio ignored — opt-in via START_BACKGROUND or npm run start:background. */
+const background = envTruthy('START_BACKGROUND');
+
+/** Default: logs and MCP banners in this terminal until Ctrl+C. */
+const foreground = !background;
 
 /** Foreground children — stopped on Ctrl+C. */
 /** @type {import('node:child_process').ChildProcess[]} */
@@ -88,7 +95,6 @@ function waitForShutdownSignal() {
 
 async function waitForMcpHost(label, port, mcpUrl) {
     await waitForTcpListen(port, { label: mcpUrl });
-    console.log(`[start] ${label} listening on port ${port}.`);
 }
 
 async function waitForHttpOk(url, { timeoutMs = 20_000, intervalMs = 200, label = url } = {}) {
@@ -134,17 +140,18 @@ async function waitForBackend(label, port) {
  * @param {Map<string, { status: 'running' | 'skipped', skipReason?: string }>} httpStatus
  * @param {Map<string, { status: 'running' | 'skipped', skipReason?: string }>} oauthStatus
  */
-function printStartMcpCatalog(httpStatus, oauthStatus) {
-    printMcpServerCatalog({
+function printStartMcpSummaryFromStatus(httpStatus, oauthStatus) {
+    printStartMcpSummary({
         logPrefix: '[start]',
         title: 'Demo MCP hosts',
         httpEntries: buildHttpMcpCatalogEntries(HTTP_START_DEMO_NAMES, process.env, httpStatus),
         oauthEntries: buildOAuthMcpCatalogEntries(OAUTH_HTTP_START_DEMO_NAMES, process.env, oauthStatus),
+        compactRunningUrls: !foreground,
         footerLines: [
             'Cursor: Settings → Tools & MCPs — enable servers, reload MCP.',
             'HTTP debug: npm run mcp:inspect -- <demo>',
             'Stop: npm run demo:kill-all',
-            'Live logs: npm run start:foreground'
+            foreground ? 'Detached mode: npm run start:background' : 'Live banners: npm run start'
         ]
     });
 }
@@ -159,7 +166,9 @@ async function main() {
     runNpm(['run', 'generate:all']);
     runNpm(['run', 'build:generated']);
     if (foreground) {
-        console.log('[start] Foreground mode — LOG_LEVEL=debug for services, logs in this terminal.');
+        console.log('[start] foreground — LOG_LEVEL=debug, MCP banners in this terminal.');
+    } else {
+        console.log('[start] background — services detached; use npm run start for live banners.');
     }
 
     const bookingsPort = requireEnvInt('BOOKINGS_API_PORT');
@@ -230,8 +239,6 @@ async function main() {
 
     /** @type {Map<string, { status: 'running' | 'skipped', skipReason?: string }>} */
     const httpStatus = new Map();
-    let httpHostsStarted = 0;
-    let httpHostsSkipped = 0;
     for (const name of HTTP_START_DEMO_NAMES) {
         const labelBase = `mcp-http:${name}`;
         try {
@@ -239,21 +246,16 @@ async function main() {
             const label = `${labelBase} (${mcpUrl})`;
             startService(label, args, hostEnv);
             await waitForMcpHost(label, port, mcpUrl);
-            httpHostsStarted += 1;
             httpStatus.set(name, { status: 'running' });
         } catch (error) {
-            httpHostsSkipped += 1;
             const message = error instanceof Error ? error.message : String(error);
             console.warn(`[start] ${labelBase} skipped: ${message}`);
             httpStatus.set(name, { status: 'skipped', skipReason: message });
         }
     }
-    console.log(`[start] HTTP MCP hosts: ${httpHostsStarted} started, ${httpHostsSkipped} skipped.`);
 
     /** @type {Map<string, { status: 'running' | 'skipped', skipReason?: string }>} */
     const oauthStatus = new Map();
-    let oauthHostsStarted = 0;
-    let oauthHostsSkipped = 0;
     for (const name of OAUTH_HTTP_START_DEMO_NAMES) {
         const labelBase = `mcp-oauth:${name}`;
         try {
@@ -261,18 +263,15 @@ async function main() {
             const label = `${labelBase} (${mcpUrl})`;
             startService(label, args);
             await waitForMcpHost(label, port, mcpUrl);
-            oauthHostsStarted += 1;
             oauthStatus.set(name, { status: 'running' });
         } catch (error) {
-            oauthHostsSkipped += 1;
             const message = error instanceof Error ? error.message : String(error);
             console.warn(`[start] ${labelBase} skipped: ${message}`);
             oauthStatus.set(name, { status: 'skipped', skipReason: message });
         }
     }
-    console.log(`[start] OAuth MCP hosts: ${oauthHostsStarted} started, ${oauthHostsSkipped} skipped.`);
 
-    printStartMcpCatalog(httpStatus, oauthStatus);
+    printStartMcpSummaryFromStatus(httpStatus, oauthStatus);
 
     if (foreground) {
         console.log('[start] Setup done — services running.');

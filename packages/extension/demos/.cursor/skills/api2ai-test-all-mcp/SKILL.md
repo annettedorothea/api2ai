@@ -22,7 +22,8 @@ Hook `.cursor/hooks/before-submit-test-all.sh` prueft bei Kurzformen, ob `.curso
 ## Voraussetzungen
 
 - Demos-Workspace-Root mit `.cursor/mcp.json`
-- `npm run start` (Mock-APIs inkl. `test-api`; HTTP-MCP-Hosts laufen im Hintergrund)
+- `npm run start` (foreground, Mock-APIs inkl. `test-api` + MCP-Hosts)
+- Fuer Automation / freies Terminal: `npm run start:background`
 - Alle benoetigten MCP-Server in Cursor aktiviert (inkl. **`test`** — stdio, nicht HTTP)
 - Keine `.env`-Dateien lesen oder aendern (siehe `api2ai-env-auth-policy`)
 

@@ -125,6 +125,56 @@ api2ai-test-all-mcp
 
 ---
 
+## Bundling an MCP Server
+
+Generated MCP hosts can be bundled into standalone deployment packages.
+
+Example (`spaceflight-news` — public HTTP, no API key):
+
+```bash
+npm run build:generated
+npm run build:mcp -- --host public-http spaceflight-news
+```
+
+This creates a distributable MCP bundle in:
+
+```text
+dist/mcp/spaceflight-news-public-http/
+```
+
+Depending on the selected host type, configure environment variables before starting the server.
+
+From the bundle directory:
+
+```bash
+cd dist/mcp/spaceflight-news-public-http
+npm install
+cp .env.example .env
+npm start
+```
+
+`npm start` runs `server.mjs` with the demo flags from `build:mcp` (for api2ai HTTP hosts: `--base-url-env …`, `--port`, `--path`). Values come from `.env`; the env **variable name** is fixed in the bundle `package.json` script.
+
+Edit `.env` if you need to change upstream URLs, ports, or credentials.
+
+The bundle contains:
+
+- the MCP server runtime
+- generated tools
+- a minimal `package.json`
+- `.env.example`
+- `mcp.json.example`
+
+Supported host types:
+
+- `public-http`
+- `passthrough-http`
+- `oauth-http`
+
+This feature is still evolving and may change before the final `1.0` release.
+
+---
+
 ## Next Steps
 
 After exploring the demos, try connecting one of your own APIs.
