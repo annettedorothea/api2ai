@@ -69,13 +69,7 @@ api2ai: Generate tool code (.ts + MCP host)
 
 ## Documentation
 
-See the shared documentation in [core2ai](https://github.com/annettedorothea/core2ai):
-
-- [Documentation index](https://github.com/annettedorothea/core2ai/blob/main/docs/README.md)
-- [api2ai DSL](https://github.com/annettedorothea/core2ai/blob/main/docs/authoring/api2ai-dsl.md)
-- [Supported OpenAPI patterns](https://github.com/annettedorothea/core2ai/blob/main/docs/authoring/supported-openapi.md)
-- [Auth and hooks](https://github.com/annettedorothea/core2ai/blob/main/docs/authoring/auth-and-hooks.md)
-- [MCP hosts](https://github.com/annettedorothea/core2ai/blob/main/docs/runtime/mcp-hosts.md)
+[Documentation index](https://github.com/annettedorothea/core2ai/blob/main/docs/README.md) — architecture, authoring, runtime, and integrations.
 
 ---
 
@@ -83,6 +77,12 @@ See the shared documentation in [core2ai](https://github.com/annettedorothea/cor
 
 - https://github.com/annettedorothea/core2ai
 - https://github.com/annettedorothea/db2ai
+
+---
+
+## Feedback
+
+**1.0.0-rc** — share onboarding and integration feedback in [GitHub Discussions](https://github.com/annettedorothea/api2ai/discussions/3). For bugs, open an [Issue](https://github.com/annettedorothea/api2ai/issues).
 
 ---
 

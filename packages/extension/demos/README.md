@@ -70,9 +70,7 @@ Using the `api2ai` prefix helps Cursor focus on generated MCP tools and avoid un
 4. `test.api2ai`
    Coverage harness used by `/test-all`.
 
-Authoring documentation:
-
-https://github.com/annettedorothea/core2ai/tree/main/docs/authoring
+Authoring documentation: [Documentation index](https://github.com/annettedorothea/core2ai/blob/main/docs/README.md)
 
 ---
 
@@ -138,12 +136,7 @@ Cursor • ChatGPT • Claude • Open WebUI
 
 ## Documentation
 
-Shared architecture, runtime, authoring, and integration documentation:
-
-- [Documentation index](https://github.com/annettedorothea/core2ai/blob/main/docs/README.md)
-- [Authoring guides](https://github.com/annettedorothea/core2ai/tree/main/docs/authoring)
-- [Cursor integration](https://github.com/annettedorothea/core2ai/blob/main/docs/integrations/cursor.md)
-- [MCP hosts](https://github.com/annettedorothea/core2ai/blob/main/docs/runtime/mcp-hosts.md)
+[Documentation index](https://github.com/annettedorothea/core2ai/blob/main/docs/README.md) — architecture, authoring, runtime, and integrations.
 
 ---
 
@@ -151,6 +144,12 @@ Shared architecture, runtime, authoring, and integration documentation:
 
 - https://github.com/annettedorothea/core2ai
 - https://github.com/annettedorothea/db2ai
+
+---
+
+## Feedback
+
+**1.0.0-rc** — share onboarding and integration feedback in [GitHub Discussions](https://github.com/annettedorothea/api2ai/discussions/3). For bugs, open an [Issue](https://github.com/annettedorothea/api2ai/issues).
 
 ---
 
