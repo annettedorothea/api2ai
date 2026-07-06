@@ -46,7 +46,7 @@ export type ApiHostContext = {
 export const requiresAuth = false;
 
 export const mcpServerName = 'open-meteo-geocoding-tools';
-export const mcpServerVersion = '1.0.0-rc';
+export const mcpServerVersion = '1.0.0-rc.1';
 
 export const inputZodByTool = {
     openMeteoGeocodeSearch: z

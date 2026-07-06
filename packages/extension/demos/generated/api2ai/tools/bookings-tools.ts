@@ -84,7 +84,7 @@ export const authConfig: AuthConfig | undefined = {
 };
 
 export const mcpServerName = 'bookings-tools';
-export const mcpServerVersion = '1.0.0-rc';
+export const mcpServerVersion = '1.0.0-rc.1';
 
 const checkToolAccessHooks: Record<string, (credential: string) => void | Promise<void>> = {
     listAllBookings: checkToolAccessForListAllBookings,

@@ -261,7 +261,7 @@ export const authConfig: AuthConfig | undefined = {
 export { verifyCredential } from '../../../src/hooks/api2ai/test-tools/verifyTestCredential.js';
 
 export const mcpServerName = 'test-tools';
-export const mcpServerVersion = '1.0.0-rc';
+export const mcpServerVersion = '1.0.0-rc.1';
 
 const checkToolAccessHooks: Record<string, (credential: string) => void | Promise<void>> = {
     testGetAdminSecrets: checkToolAccessForTestGetAdminSecrets

@@ -126,7 +126,7 @@ export const authConfig: AuthConfig | undefined = {
 export { verifyCredential } from '../../../src/hooks/api2ai/todo-tools/verifyTodoCredential.js';
 
 export const mcpServerName = 'todo-tools';
-export const mcpServerVersion = '1.0.0-rc';
+export const mcpServerVersion = '1.0.0-rc.1';
 
 export const inputZodByTool = {
     listCategories: z
