@@ -11,14 +11,6 @@ import { spawn, spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { ensureEnvFromExample } from './copy-env.mjs';
 import { loadProjectEnvLocal } from './generated/load-env-local.mjs';
-import { requireEnvInt } from './generated/require-env.mjs';
-import { buildHostLaunch, HTTP_START_DEMO_NAMES } from './mcp-http-demos.mjs';
-import { buildOAuthHostLaunch, OAUTH_HTTP_START_DEMO_NAMES } from './mcp-oauth-demos.mjs';
-import {
-    buildHttpMcpCatalogEntries,
-    buildOAuthMcpCatalogEntries
-} from './mcp-catalog-entries.mjs';
-import { printStartMcpSummary } from './generated/print-mcp-catalog.mjs';
 import { waitForForegroundServiceShutdown } from './foreground-lifecycle.mjs';
 const demosRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 
@@ -139,8 +131,16 @@ async function waitForBackend(label, port) {
 /**
  * @param {Map<string, { status: 'running' | 'skipped', skipReason?: string }>} httpStatus
  * @param {Map<string, { status: 'running' | 'skipped', skipReason?: string }>} oauthStatus
+ * @param {Awaited<ReturnType<typeof loadStartModules>>} modules
  */
-function printStartMcpSummaryFromStatus(httpStatus, oauthStatus) {
+function printStartMcpSummaryFromStatus(httpStatus, oauthStatus, modules) {
+    const {
+        HTTP_START_DEMO_NAMES,
+        OAUTH_HTTP_START_DEMO_NAMES,
+        buildHttpMcpCatalogEntries,
+        buildOAuthMcpCatalogEntries,
+        printStartMcpSummary
+    } = modules;
     printStartMcpSummary({
         logPrefix: '[start]',
         title: 'Demo MCP hosts',
@@ -156,6 +156,32 @@ function printStartMcpSummaryFromStatus(httpStatus, oauthStatus) {
     });
 }
 
+async function loadStartModules() {
+    const [
+        { requireEnvInt },
+        { buildHostLaunch, HTTP_START_DEMO_NAMES },
+        { buildOAuthHostLaunch, OAUTH_HTTP_START_DEMO_NAMES },
+        { buildHttpMcpCatalogEntries, buildOAuthMcpCatalogEntries },
+        { printStartMcpSummary }
+    ] = await Promise.all([
+        import('./generated/require-env.mjs'),
+        import('./mcp-http-demos.mjs'),
+        import('./mcp-oauth-demos.mjs'),
+        import('./mcp-catalog-entries.mjs'),
+        import('./generated/print-mcp-catalog.mjs')
+    ]);
+    return {
+        requireEnvInt,
+        buildHostLaunch,
+        HTTP_START_DEMO_NAMES,
+        buildOAuthHostLaunch,
+        OAUTH_HTTP_START_DEMO_NAMES,
+        buildHttpMcpCatalogEntries,
+        buildOAuthMcpCatalogEntries,
+        printStartMcpSummary
+    };
+}
+
 async function main() {
     requireProjectEnv();
 
@@ -165,6 +191,9 @@ async function main() {
     runNpm(['install']);
     runNpm(['run', 'generate:all']);
     runNpm(['run', 'build:generated']);
+    const modules = await loadStartModules();
+    const { requireEnvInt, buildHostLaunch, HTTP_START_DEMO_NAMES, buildOAuthHostLaunch, OAUTH_HTTP_START_DEMO_NAMES } =
+        modules;
     if (foreground) {
         console.log('[start] foreground — LOG_LEVEL=debug, MCP banners in this terminal.');
     } else {
@@ -271,7 +300,7 @@ async function main() {
         }
     }
 
-    printStartMcpSummaryFromStatus(httpStatus, oauthStatus);
+    printStartMcpSummaryFromStatus(httpStatus, oauthStatus, modules);
 
     if (foreground) {
         console.log('[start] Setup done — services running.');
