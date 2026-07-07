@@ -13,12 +13,6 @@ function resolveLimitQuery(options) {
     }
     return Math.floor(limit);
 }
-export function checkToolAccessForTestGetAdminSecrets(credential) {
-    const expected = process.env.TEST_API_KEY?.trim() || 'demo-test-api-key';
-    if (credential.trim() !== expected) {
-        throw new Error('Admin role required; invalid test harness API key.');
-    }
-}
 export function prepareToolCallForTestGetAdminSecrets(options, credential) {
     void credential;
     const limit = resolveLimitQuery(options);

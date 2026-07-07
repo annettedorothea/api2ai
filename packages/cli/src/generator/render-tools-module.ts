@@ -28,6 +28,7 @@ import {
     buildInvokeParamBuckets,
     buildInvokeBodySchema,
     buildQueryParamSerializationLookup,
+    buildQueryParamWireNamesLookup,
     buildToolInputSchema,
     type JsonSchemaDict
 } from '../openapi-tool-codegen.js';
@@ -171,22 +172,41 @@ function buildQuerySerializationFromLoaded(
     return out;
 }
 
+function buildQueryParamWireNamesFromLoaded(
+    model: Model,
+    loaded: LoadedOpenApi
+): Record<string, Record<string, string>> {
+    const out: Record<string, Record<string, string>> = {};
+    for (const operation of model.operations) {
+        const key = makeOperationLookupKey(operation.method, operation.path);
+        const details = loaded.operations.get(key);
+        if (!details) {
+            continue;
+        }
+        out[requireToolName(operation)] = buildQueryParamWireNamesLookup(details);
+    }
+    return out;
+}
+
 function mergeParallelToolData(
     toolsMeta: ResolvedToolCodegen[],
     schemas: Record<string, JsonSchemaDict>,
     querySerialization: Record<string, Record<string, { style: string; explode: boolean }>>,
+    queryParamWireNames: Record<string, Record<string, string>>,
     invokeParamBuckets: Record<string, ReturnType<typeof buildInvokeParamBuckets>>,
     invokeBodySchemas: Record<string, JsonSchemaDict | undefined>
 ): {
     toolsLiteral: string;
     orderedSchemas: Record<string, JsonSchemaDict>;
     querySerializationLiteral: string;
+    queryParamWireNamesLiteral: string;
     invokeParamBucketsLiteral: string;
     invokeBodySchemaByToolLiteral: string;
 } {
     const toolsLiteral = serializeJsonForModule(toolsMeta);
     const orderedSchemas: Record<string, JsonSchemaDict> = {};
     const orderedQuerySerialization: Record<string, Record<string, { style: string; explode: boolean }>> = {};
+    const orderedQueryParamWireNames: Record<string, Record<string, string>> = {};
     const orderedInvokeParamBuckets: Record<string, ReturnType<typeof buildInvokeParamBuckets>> = {};
     const orderedInvokeBodySchemas: Record<string, JsonSchemaDict | undefined> = {};
     for (const t of toolsMeta) {
@@ -199,6 +219,7 @@ function mergeParallelToolData(
                 additionalProperties: true
             } as JsonSchemaDict);
         orderedQuerySerialization[t.toolName] = querySerialization[t.toolName] ?? {};
+        orderedQueryParamWireNames[t.toolName] = queryParamWireNames[t.toolName] ?? {};
         orderedInvokeParamBuckets[t.toolName] = invokeParamBuckets[t.toolName] ?? {
             pathParams: [],
             query: [],
@@ -211,6 +232,7 @@ function mergeParallelToolData(
         toolsLiteral,
         orderedSchemas,
         querySerializationLiteral: serializeJsonForModule(orderedQuerySerialization),
+        queryParamWireNamesLiteral: serializeJsonForModule(orderedQueryParamWireNames),
         invokeParamBucketsLiteral: serializeJsonForModule(orderedInvokeParamBuckets),
         invokeBodySchemaByToolLiteral: serializeJsonForModule(orderedInvokeBodySchemas)
     };
@@ -365,15 +387,24 @@ export async function renderToolsModule(input: RenderToolsModuleInput): Promise<
     const toolsMeta = resolveToolsFromLoaded(model, loaded, mcpModuleName, hostProduct);
     const schemas = buildSchemasFromLoaded(model, loaded);
     const querySerialization = buildQuerySerializationFromLoaded(model, loaded);
+    const queryParamWireNames = buildQueryParamWireNamesFromLoaded(model, loaded);
     const invokeParamBuckets = buildInvokeParamBucketsFromLoaded(model, loaded);
     const invokeBodySchemas = buildInvokeBodySchemasFromLoaded(model, loaded);
     const {
         toolsLiteral,
         orderedSchemas,
         querySerializationLiteral,
+        queryParamWireNamesLiteral,
         invokeParamBucketsLiteral,
         invokeBodySchemaByToolLiteral
-    } = mergeParallelToolData(toolsMeta, schemas, querySerialization, invokeParamBuckets, invokeBodySchemas);
+    } = mergeParallelToolData(
+        toolsMeta,
+        schemas,
+        querySerialization,
+        queryParamWireNames,
+        invokeParamBuckets,
+        invokeBodySchemas
+    );
     const authKind = authRuntimeKind(model);
     const mcpServerIdentity = resolveMcpServerIdentityFromDestination(destinationTsPath, bootstrapConfig);
     const mcpServerIdentityBlock = renderMcpServerIdentityExports(mcpServerIdentity.name, mcpServerIdentity.version);
@@ -392,7 +423,9 @@ export async function renderToolsModule(input: RenderToolsModuleInput): Promise<
             ? renderCheckToolAccessHookImports(destinationTsPath, stubPaths, checkToolAccessToolNames)
             : '';
     const prepareToolCallImports =
-        prepareToolCallToolNames.length > 0 ? renderPrepareToolCallHookImports(destinationTsPath, stubPaths) : '';
+        prepareToolCallToolNames.length > 0
+            ? renderPrepareToolCallHookImports(destinationTsPath, stubPaths, prepareToolCallToolNames)
+            : '';
     const authStubImports = [checkToolAccessImports, prepareToolCallImports].filter((s) => s.length > 0).join('\n');
     const authMapBlocks: string[] = [];
     if (authPipelineTier === 'full') {
@@ -411,6 +444,7 @@ export async function renderToolsModule(input: RenderToolsModuleInput): Promise<
     };
     const toolRuntimeBlock = `${authRuntimePrefixBlock}${buildInputZodBlock(orderedSchemas)}\n${createSharedInvokeBlock(
         querySerializationLiteral,
+        queryParamWireNamesLiteral,
         invokeParamBucketsLiteral,
         invokeBodySchemaByToolLiteral,
         authKind,

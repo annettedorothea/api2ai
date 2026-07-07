@@ -4,9 +4,9 @@
  */
 import { loggingAdapter } from '../../../src/utils/logging-adapter.js';
 import * as z from 'zod/v4';
-import { prepareToolCallForListSpaceflightArticles } from '../../../src/hooks/api2ai/spaceflight-news-tools/listSpaceflightArticles.js';
-import { prepareToolCallForListSpaceflightBlogs } from '../../../src/hooks/api2ai/spaceflight-news-tools/listSpaceflightBlogs.js';
-import { prepareToolCallForListSpaceflightReports } from '../../../src/hooks/api2ai/spaceflight-news-tools/listSpaceflightReports.js';
+import { prepareToolCallForListSpaceflightArticles } from '../../../src/hooks/api2ai/spaceflight-news-tools/prepareToolCallForListSpaceflightArticles.js';
+import { prepareToolCallForListSpaceflightBlogs } from '../../../src/hooks/api2ai/spaceflight-news-tools/prepareToolCallForListSpaceflightBlogs.js';
+import { prepareToolCallForListSpaceflightReports } from '../../../src/hooks/api2ai/spaceflight-news-tools/prepareToolCallForListSpaceflightReports.js';
 
 export type GeneratedTool = {
     toolName: string;
@@ -24,7 +24,7 @@ export const generatedTools: GeneratedTool[] = [
         toolName: 'listSpaceflightArticles',
         title: 'List spaceflight articles (limit validated, teaser only; full text at response url)',
         description:
-            'Intent:\n- List recent spaceflight news articles (pagination: limit, offset, ordering).\n        - Query limit caps how many articles are returned (default 10, max 10).\n        - Response contains title, summary teaser, and url per item — not the full article body.\n        - Use search, has_launch, or news_site filters for SpaceX, launches, or specific outlets.\n        - Follow result url only when full text is needed (same pattern for blogs and reports tools).\n\nMCP arguments:\npass event, has_event, has_launch, is_featured, launch, limit, news_site, news_site_exclude, offset, ordering, published_at_gt, published_at_gte, published_at_lt, published_at_lte, search, summary_contains, summary_contains_all, summary_contains_one, title_contains, title_contains_all, title_contains_one, updated_at_gt, updated_at_gte, updated_at_lt, updated_at_lte as top-level tool arguments. Do not nest path or query parameters under pathParams or query.\n\nMeta:\ntags: articles | operationId: articles_list\n\nParameters:\n- event (query): Search for all documents related to a specific event using its Launch Library 2 ID.\n- has_event (query): Get all documents that have a related event.\n- has_launch (query): Get all documents that have a related launch.\n- is_featured (query): Get all documents that are featured.\n- launch (query): Search for all documents related to a specific launch using its Launch Library 2 ID.\n- limit (query): Number of results per page (default 10, max 10). (example: 10)\n- news_site (query): Search for documents with a news_site__name present in a list of comma-separated values. Case insensitive.\n- news_site_exclude (query): Search for documents with a news_site__name not present in a list of comma-separated values. Case insensitive.\n- offset (query): The initial index from which to return the results.\n- ordering (query): Order the result on `published_at, -published_at, updated_at, -updated_at`.\n\n* `published_at` - Published at\n* `-published_at` - Published at (descending)\n* `updated_at` - Updated at\n* `-updated_at` - Updated at (descending)\n- published_at_gt (query): Get all documents published after a given ISO8601 timestamp (excluded).\n- published_at_gte (query): Get all documents published after a given ISO8601 timestamp (included).\n- published_at_lt (query): Get all documents published before a given ISO8601 timestamp (excluded).\n- published_at_lte (query): Get all documents published before a given ISO8601 timestamp (included).\n- search (query): Search for documents with a specific phrase in the title or summary.\n- summary_contains (query): Search for all documents with a specific phrase in the summary.\n- summary_contains_all (query): Search for documents with a summary containing all keywords from comma-separated values.\n- summary_contains_one (query): Search for documents with a summary containing at least one keyword from comma-separated values.\n- title_contains (query): Search for all documents with a specific phrase in the title.\n- title_contains_all (query): Search for documents with a title containing all keywords from comma-separated values.\n- title_contains_one (query): Search for documents with a title containing at least one keyword from comma-separated values.\n- updated_at_gt (query): Get all documents updated after a given ISO8601 timestamp (excluded).\n- updated_at_gte (query): Get all documents updated after a given ISO8601 timestamp (included).\n- updated_at_lt (query): Get all documents updated before a given ISO8601 timestamp (excluded).\n- updated_at_lte (query): Get all documents updated before a given ISO8601 timestamp (included).\n\nExample:\nGet the latest 5 articles\n\nResponse:\nHTTP 200\nproperties (top-level): count, next, previous, results\n\nRuntime: implement prepareToolCallForListSpaceflightArticles in src/hooks/api2ai/spaceflight-news-tools/listSpaceflightArticles.ts (types from this tools module; run build:generated for .js).',
+            'Intent:\n- List recent spaceflight news articles (pagination: limit, offset, ordering).\n        - Query limit caps how many articles are returned (default 10, max 10).\n        - Response contains title, summary teaser, and url per item — not the full article body.\n        - Use search, has_launch, or news_site filters for SpaceX, launches, or specific outlets.\n        - Follow result url only when full text is needed (same pattern for blogs and reports tools).\n\nMCP arguments:\npass event, has_event, has_launch, is_featured, launch, limit, news_site, news_site_exclude, offset, ordering, published_at_gt, published_at_gte, published_at_lt, published_at_lte, search, summary_contains, summary_contains_all, summary_contains_one, title_contains, title_contains_all, title_contains_one, updated_at_gt, updated_at_gte, updated_at_lt, updated_at_lte as top-level tool arguments. Do not nest path or query parameters under pathParams or query.\n\nMeta:\ntags: articles | operationId: articles_list\n\nParameters:\n- event (query): Search for all documents related to a specific event using its Launch Library 2 ID.\n- has_event (query): Get all documents that have a related event.\n- has_launch (query): Get all documents that have a related launch.\n- is_featured (query): Get all documents that are featured.\n- launch (query): Search for all documents related to a specific launch using its Launch Library 2 ID.\n- limit (query): Number of results per page (default 10, max 10). (example: 10)\n- news_site (query): Search for documents with a news_site__name present in a list of comma-separated values. Case insensitive.\n- news_site_exclude (query): Search for documents with a news_site__name not present in a list of comma-separated values. Case insensitive.\n- offset (query): The initial index from which to return the results.\n- ordering (query): Order the result on `published_at, -published_at, updated_at, -updated_at`.\n\n* `published_at` - Published at\n* `-published_at` - Published at (descending)\n* `updated_at` - Updated at\n* `-updated_at` - Updated at (descending)\n- published_at_gt (query): Get all documents published after a given ISO8601 timestamp (excluded).\n- published_at_gte (query): Get all documents published after a given ISO8601 timestamp (included).\n- published_at_lt (query): Get all documents published before a given ISO8601 timestamp (excluded).\n- published_at_lte (query): Get all documents published before a given ISO8601 timestamp (included).\n- search (query): Search for documents with a specific phrase in the title or summary.\n- summary_contains (query): Search for all documents with a specific phrase in the summary.\n- summary_contains_all (query): Search for documents with a summary containing all keywords from comma-separated values.\n- summary_contains_one (query): Search for documents with a summary containing at least one keyword from comma-separated values.\n- title_contains (query): Search for all documents with a specific phrase in the title.\n- title_contains_all (query): Search for documents with a title containing all keywords from comma-separated values.\n- title_contains_one (query): Search for documents with a title containing at least one keyword from comma-separated values.\n- updated_at_gt (query): Get all documents updated after a given ISO8601 timestamp (excluded).\n- updated_at_gte (query): Get all documents updated after a given ISO8601 timestamp (included).\n- updated_at_lt (query): Get all documents updated before a given ISO8601 timestamp (excluded).\n- updated_at_lte (query): Get all documents updated before a given ISO8601 timestamp (included).\n\nExample:\nGet the latest 5 articles\n\nResponse:\nHTTP 200\nproperties (top-level): count, next, previous, results\n\nRuntime: implement prepareToolCallForListSpaceflightArticles in src/hooks/api2ai/spaceflight-news-tools/prepareToolCallForListSpaceflightArticles.ts (types from this tools module; run build:generated for .js).',
         method: 'GET',
         path: '/v4/articles/',
         access: 'public',
@@ -46,7 +46,7 @@ export const generatedTools: GeneratedTool[] = [
         toolName: 'listSpaceflightBlogs',
         title: 'List spaceflight blog posts (limit validated, teaser only; full text at response url)',
         description:
-            'Intent:\n- List recent spaceflight blog posts (pagination: limit, offset, ordering).\n        - Query limit caps how many blog posts are returned (default 10, max 10).\n        - Response contains title, summary teaser, and url per item — not the full post body.\n        - Use search, has_launch, or news_site filters for SpaceX, launches, or specific outlets.\n        - Follow result url only when full text is needed (same pattern for articles and reports tools).\n\nMCP arguments:\npass event, has_event, has_launch, is_featured, launch, limit, news_site, news_site_exclude, offset, ordering, published_at_gt, published_at_gte, published_at_lt, published_at_lte, search, summary_contains, summary_contains_all, summary_contains_one, title_contains, title_contains_all, title_contains_one, updated_at_gt, updated_at_gte, updated_at_lt, updated_at_lte as top-level tool arguments. Do not nest path or query parameters under pathParams or query.\n\nMeta:\ntags: blogs | operationId: blogs_list\n\nParameters:\n- event (query): Search for all documents related to a specific event using its Launch Library 2 ID.\n- has_event (query): Get all documents that have a related event.\n- has_launch (query): Get all documents that have a related launch.\n- is_featured (query): Get all documents that are featured.\n- launch (query): Search for all documents related to a specific launch using its Launch Library 2 ID.\n- limit (query): Number of results per page (default 10, max 10). (example: 10)\n- news_site (query): Search for documents with a news_site__name present in a list of comma-separated values. Case insensitive.\n- news_site_exclude (query): Search for documents with a news_site__name not present in a list of comma-separated values. Case insensitive.\n- offset (query): The initial index from which to return the results.\n- ordering (query): Order the result on `published_at, -published_at, updated_at, -updated_at`.\n\n* `published_at` - Published at\n* `-published_at` - Published at (descending)\n* `updated_at` - Updated at\n* `-updated_at` - Updated at (descending)\n- published_at_gt (query): Get all documents published after a given ISO8601 timestamp (excluded).\n- published_at_gte (query): Get all documents published after a given ISO8601 timestamp (included).\n- published_at_lt (query): Get all documents published before a given ISO8601 timestamp (excluded).\n- published_at_lte (query): Get all documents published before a given ISO8601 timestamp (included).\n- search (query): Search for documents with a specific phrase in the title or summary.\n- summary_contains (query): Search for all documents with a specific phrase in the summary.\n- summary_contains_all (query): Search for documents with a summary containing all keywords from comma-separated values.\n- summary_contains_one (query): Search for documents with a summary containing at least one keyword from comma-separated values.\n- title_contains (query): Search for all documents with a specific phrase in the title.\n- title_contains_all (query): Search for documents with a title containing all keywords from comma-separated values.\n- title_contains_one (query): Search for documents with a title containing at least one keyword from comma-separated values.\n- updated_at_gt (query): Get all documents updated after a given ISO8601 timestamp (excluded).\n- updated_at_gte (query): Get all documents updated after a given ISO8601 timestamp (included).\n- updated_at_lt (query): Get all documents updated before a given ISO8601 timestamp (excluded).\n- updated_at_lte (query): Get all documents updated before a given ISO8601 timestamp (included).\n\nExample:\nGet the latest 5 blog posts\n\nResponse:\nHTTP 200\nproperties (top-level): count, next, previous, results\n\nRuntime: implement prepareToolCallForListSpaceflightBlogs in src/hooks/api2ai/spaceflight-news-tools/listSpaceflightBlogs.ts (types from this tools module; run build:generated for .js).',
+            'Intent:\n- List recent spaceflight blog posts (pagination: limit, offset, ordering).\n        - Query limit caps how many blog posts are returned (default 10, max 10).\n        - Response contains title, summary teaser, and url per item — not the full post body.\n        - Use search, has_launch, or news_site filters for SpaceX, launches, or specific outlets.\n        - Follow result url only when full text is needed (same pattern for articles and reports tools).\n\nMCP arguments:\npass event, has_event, has_launch, is_featured, launch, limit, news_site, news_site_exclude, offset, ordering, published_at_gt, published_at_gte, published_at_lt, published_at_lte, search, summary_contains, summary_contains_all, summary_contains_one, title_contains, title_contains_all, title_contains_one, updated_at_gt, updated_at_gte, updated_at_lt, updated_at_lte as top-level tool arguments. Do not nest path or query parameters under pathParams or query.\n\nMeta:\ntags: blogs | operationId: blogs_list\n\nParameters:\n- event (query): Search for all documents related to a specific event using its Launch Library 2 ID.\n- has_event (query): Get all documents that have a related event.\n- has_launch (query): Get all documents that have a related launch.\n- is_featured (query): Get all documents that are featured.\n- launch (query): Search for all documents related to a specific launch using its Launch Library 2 ID.\n- limit (query): Number of results per page (default 10, max 10). (example: 10)\n- news_site (query): Search for documents with a news_site__name present in a list of comma-separated values. Case insensitive.\n- news_site_exclude (query): Search for documents with a news_site__name not present in a list of comma-separated values. Case insensitive.\n- offset (query): The initial index from which to return the results.\n- ordering (query): Order the result on `published_at, -published_at, updated_at, -updated_at`.\n\n* `published_at` - Published at\n* `-published_at` - Published at (descending)\n* `updated_at` - Updated at\n* `-updated_at` - Updated at (descending)\n- published_at_gt (query): Get all documents published after a given ISO8601 timestamp (excluded).\n- published_at_gte (query): Get all documents published after a given ISO8601 timestamp (included).\n- published_at_lt (query): Get all documents published before a given ISO8601 timestamp (excluded).\n- published_at_lte (query): Get all documents published before a given ISO8601 timestamp (included).\n- search (query): Search for documents with a specific phrase in the title or summary.\n- summary_contains (query): Search for all documents with a specific phrase in the summary.\n- summary_contains_all (query): Search for documents with a summary containing all keywords from comma-separated values.\n- summary_contains_one (query): Search for documents with a summary containing at least one keyword from comma-separated values.\n- title_contains (query): Search for all documents with a specific phrase in the title.\n- title_contains_all (query): Search for documents with a title containing all keywords from comma-separated values.\n- title_contains_one (query): Search for documents with a title containing at least one keyword from comma-separated values.\n- updated_at_gt (query): Get all documents updated after a given ISO8601 timestamp (excluded).\n- updated_at_gte (query): Get all documents updated after a given ISO8601 timestamp (included).\n- updated_at_lt (query): Get all documents updated before a given ISO8601 timestamp (excluded).\n- updated_at_lte (query): Get all documents updated before a given ISO8601 timestamp (included).\n\nExample:\nGet the latest 5 blog posts\n\nResponse:\nHTTP 200\nproperties (top-level): count, next, previous, results\n\nRuntime: implement prepareToolCallForListSpaceflightBlogs in src/hooks/api2ai/spaceflight-news-tools/prepareToolCallForListSpaceflightBlogs.ts (types from this tools module; run build:generated for .js).',
         method: 'GET',
         path: '/v4/blogs/',
         access: 'public',
@@ -68,7 +68,7 @@ export const generatedTools: GeneratedTool[] = [
         toolName: 'listSpaceflightReports',
         title: 'List spaceflight reports (limit validated, teaser only; full text at response url)',
         description:
-            'Intent:\n- List recent spaceflight reports (pagination: limit, offset, ordering).\n        - Query limit caps how many reports are returned (default 10, max 10).\n        - Response contains title, summary teaser, and url per item — not the full report body.\n        - Use search or news_site filters for specific outlets or topics.\n        - Follow result url only when full text is needed (same pattern for articles and blogs tools).\n\nMCP arguments:\npass limit, news_site, news_site_exclude, offset, ordering, published_at_gt, published_at_gte, published_at_lt, published_at_lte, search, summary_contains, summary_contains_all, summary_contains_one, title_contains, title_contains_all, title_contains_one, updated_at_gt, updated_at_gte, updated_at_lt, updated_at_lte as top-level tool arguments. Do not nest path or query parameters under pathParams or query.\n\nMeta:\ntags: reports | operationId: reports_list\n\nParameters:\n- limit (query): Number of results per page (default 10, max 10). (example: 10)\n- news_site (query): Search for documents with a news_site__name present in a list of comma-separated values. Case insensitive.\n- news_site_exclude (query): Search for documents with a news_site__name not present in a list of comma-separated values. Case insensitive.\n- offset (query): The initial index from which to return the results.\n- ordering (query): Order the result on `published_at, -published_at, updated_at, -updated_at`.\n\n* `published_at` - Published at\n* `-published_at` - Published at (descending)\n* `updated_at` - Updated at\n* `-updated_at` - Updated at (descending)\n- published_at_gt (query): Get all documents published after a given ISO8601 timestamp (excluded).\n- published_at_gte (query): Get all documents published after a given ISO8601 timestamp (included).\n- published_at_lt (query): Get all documents published before a given ISO8601 timestamp (excluded).\n- published_at_lte (query): Get all documents published before a given ISO8601 timestamp (included).\n- search (query): Search for documents with a specific phrase in the title or summary.\n- summary_contains (query): Search for all documents with a specific phrase in the summary.\n- summary_contains_all (query): Search for documents with a summary containing all keywords from comma-separated values.\n- summary_contains_one (query): Search for documents with a summary containing at least one keyword from comma-separated values.\n- title_contains (query): Search for all documents with a specific phrase in the title.\n- title_contains_all (query): Search for documents with a title containing all keywords from comma-separated values.\n- title_contains_one (query): Search for documents with a title containing at least one keyword from comma-separated values.\n- updated_at_gt (query): Get all documents updated after a given ISO8601 timestamp (excluded).\n- updated_at_gte (query): Get all documents updated after a given ISO8601 timestamp (included).\n- updated_at_lt (query): Get all documents updated before a given ISO8601 timestamp (excluded).\n- updated_at_lte (query): Get all documents updated before a given ISO8601 timestamp (included).\n\nExample:\nGet the latest 5 reports\n\nResponse:\nHTTP 200\nproperties (top-level): count, next, previous, results\n\nRuntime: implement prepareToolCallForListSpaceflightReports in src/hooks/api2ai/spaceflight-news-tools/listSpaceflightReports.ts (types from this tools module; run build:generated for .js).',
+            'Intent:\n- List recent spaceflight reports (pagination: limit, offset, ordering).\n        - Query limit caps how many reports are returned (default 10, max 10).\n        - Response contains title, summary teaser, and url per item — not the full report body.\n        - Use search or news_site filters for specific outlets or topics.\n        - Follow result url only when full text is needed (same pattern for articles and blogs tools).\n\nMCP arguments:\npass limit, news_site, news_site_exclude, offset, ordering, published_at_gt, published_at_gte, published_at_lt, published_at_lte, search, summary_contains, summary_contains_all, summary_contains_one, title_contains, title_contains_all, title_contains_one, updated_at_gt, updated_at_gte, updated_at_lt, updated_at_lte as top-level tool arguments. Do not nest path or query parameters under pathParams or query.\n\nMeta:\ntags: reports | operationId: reports_list\n\nParameters:\n- limit (query): Number of results per page (default 10, max 10). (example: 10)\n- news_site (query): Search for documents with a news_site__name present in a list of comma-separated values. Case insensitive.\n- news_site_exclude (query): Search for documents with a news_site__name not present in a list of comma-separated values. Case insensitive.\n- offset (query): The initial index from which to return the results.\n- ordering (query): Order the result on `published_at, -published_at, updated_at, -updated_at`.\n\n* `published_at` - Published at\n* `-published_at` - Published at (descending)\n* `updated_at` - Updated at\n* `-updated_at` - Updated at (descending)\n- published_at_gt (query): Get all documents published after a given ISO8601 timestamp (excluded).\n- published_at_gte (query): Get all documents published after a given ISO8601 timestamp (included).\n- published_at_lt (query): Get all documents published before a given ISO8601 timestamp (excluded).\n- published_at_lte (query): Get all documents published before a given ISO8601 timestamp (included).\n- search (query): Search for documents with a specific phrase in the title or summary.\n- summary_contains (query): Search for all documents with a specific phrase in the summary.\n- summary_contains_all (query): Search for documents with a summary containing all keywords from comma-separated values.\n- summary_contains_one (query): Search for documents with a summary containing at least one keyword from comma-separated values.\n- title_contains (query): Search for all documents with a specific phrase in the title.\n- title_contains_all (query): Search for documents with a title containing all keywords from comma-separated values.\n- title_contains_one (query): Search for documents with a title containing at least one keyword from comma-separated values.\n- updated_at_gt (query): Get all documents updated after a given ISO8601 timestamp (excluded).\n- updated_at_gte (query): Get all documents updated after a given ISO8601 timestamp (included).\n- updated_at_lt (query): Get all documents updated before a given ISO8601 timestamp (excluded).\n- updated_at_lte (query): Get all documents updated before a given ISO8601 timestamp (included).\n\nExample:\nGet the latest 5 reports\n\nResponse:\nHTTP 200\nproperties (top-level): count, next, previous, results\n\nRuntime: implement prepareToolCallForListSpaceflightReports in src/hooks/api2ai/spaceflight-news-tools/prepareToolCallForListSpaceflightReports.ts (types from this tools module; run build:generated for .js).',
         method: 'GET',
         path: '/v4/reports/',
         access: 'public',
@@ -115,7 +115,7 @@ export type ApiHostContext = {
 export const requiresAuth = false;
 
 export const mcpServerName = 'spaceflight-news-tools';
-export const mcpServerVersion = '1.0.0-rc.1';
+export const mcpServerVersion = '1.0.0-rc.2';
 
 const prepareToolCallHooks: Record<
     string,
@@ -807,6 +807,10 @@ function coerceInvokeBody(toolName: string, body: unknown): unknown {
     return coerceInvokeValueBySchema(body, schema);
 }
 
+function isInvokeQueryBucketValue(value: unknown): value is Record<string, unknown> {
+    return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
 function normalizeInvokeOptions(toolName: string, options: InvokeOptions): InvokeOptions {
     const buckets = (
         invokeParamBucketsByTool as Record<
@@ -822,23 +826,37 @@ function normalizeInvokeOptions(toolName: string, options: InvokeOptions): Invok
     const headerKeys = buckets.headers ?? [];
     const arrayQueryKeys = new Set(buckets.arrayQuery ?? []);
     const knownFlatKeys = new Set([...pathKeys, ...queryKeys, ...headerKeys]);
-    const hasTopLevelFlatParam = Object.keys(options).some(
-        (key) =>
-            key !== 'body' && key !== 'headers' && key !== 'pathParams' && key !== 'query' && knownFlatKeys.has(key)
-    );
+    const hasTopLevelFlatParam = Object.keys(options).some((key) => {
+        if (key === 'body' || key === 'pathParams' || key === 'headers') {
+            return false;
+        }
+        if (key === 'query') {
+            return queryKeys.includes('query') && !isInvokeQueryBucketValue(options.query);
+        }
+        return knownFlatKeys.has(key);
+    });
     if (!hasTopLevelFlatParam) {
         return {
             ...options,
             pathParams: coerceInvokePathBucket(options.pathParams),
-            query: coerceInvokeQueryBucket(toolName, options.query),
+            query: coerceInvokeQueryBucket(
+                toolName,
+                isInvokeQueryBucketValue(options.query) ? options.query : undefined
+            ),
             body: coerceInvokeBody(toolName, options.body)
         };
     }
 
     const pathParams: Record<string, string | number | boolean> = { ...(options.pathParams ?? {}) };
-    const query: Record<string, string | number | boolean | ReadonlyArray<string | number | boolean>> = {
-        ...(options.query ?? {})
-    };
+    const query: Record<string, string | number | boolean | ReadonlyArray<string | number | boolean>> =
+        isInvokeQueryBucketValue(options.query)
+            ? {
+                  ...(options.query as Record<
+                      string,
+                      string | number | boolean | ReadonlyArray<string | number | boolean>
+                  >)
+              }
+            : {};
     const headers: Record<string, string> =
         options.headers && typeof options.headers === 'object' ? { ...options.headers } : {};
 
@@ -846,7 +864,17 @@ function normalizeInvokeOptions(toolName: string, options: InvokeOptions): Invok
         if (value === undefined || value === null) {
             continue;
         }
-        if (key === 'body' || key === 'pathParams' || key === 'query') {
+        if (key === 'body' || key === 'pathParams') {
+            continue;
+        }
+        if (key === 'query') {
+            if (queryKeys.includes('query') && !isInvokeQueryBucketValue(value)) {
+                if (arrayQueryKeys.has(key) && typeof value === 'string') {
+                    query[key] = coerceInvokeQueryArrayValue(value);
+                } else {
+                    query[key] = value as string | number | boolean | ReadonlyArray<string | number | boolean>;
+                }
+            }
             continue;
         }
         if (key === 'headers') {
@@ -1167,6 +1195,15 @@ const queryParamSerializationByTool = {
     getSpaceflightReportById: {},
     getSpaceflightInfo: {}
 };
+const queryParamWireNamesByTool = {
+    listSpaceflightArticles: {},
+    getSpaceflightArticleById: {},
+    listSpaceflightBlogs: {},
+    getSpaceflightBlogById: {},
+    listSpaceflightReports: {},
+    getSpaceflightReportById: {},
+    getSpaceflightInfo: {}
+};
 
 function appendSerializedQueryParams(
     searchParams: URLSearchParams,
@@ -1180,10 +1217,13 @@ function appendSerializedQueryParams(
         (queryParamSerializationByTool as Record<string, Record<string, { style?: string; explode?: boolean }>>)[
             toolName
         ] ?? {};
+    const wireNames: Record<string, string> =
+        (queryParamWireNamesByTool as Record<string, Record<string, string>>)[toolName] ?? {};
     for (const [key, value] of Object.entries(query)) {
         if (value === undefined || value === null) {
             continue;
         }
+        const wireKey = wireNames[key] ?? key;
         if (Array.isArray(value)) {
             const hint = hintsByParam[key];
             const style = hint && hint.style ? hint.style : 'form';
@@ -1209,14 +1249,14 @@ function appendSerializedQueryParams(
             }
             if (explode) {
                 for (const p of parts) {
-                    searchParams.append(key, p);
+                    searchParams.append(wireKey, p);
                 }
             } else {
-                searchParams.set(key, parts.join(','));
+                searchParams.set(wireKey, parts.join(','));
             }
             continue;
         }
-        searchParams.set(key, String(value));
+        searchParams.set(wireKey, String(value));
     }
 }
 

@@ -4,11 +4,11 @@
  */
 import { loggingAdapter } from '../../../src/utils/logging-adapter.js';
 import * as z from 'zod/v4';
-import { checkToolAccessForListAllBookings } from '../../../src/hooks/api2ai/bookings-tools/listAllBookings.js';
-import { checkToolAccessForListBookings } from '../../../src/hooks/api2ai/bookings-tools/listBookings.js';
-import { prepareToolCallForListVacationRentals } from '../../../src/hooks/api2ai/bookings-tools/listVacationRentals.js';
-import { prepareToolCallForListAllBookings } from '../../../src/hooks/api2ai/bookings-tools/listAllBookings.js';
-import { prepareToolCallForListBookings } from '../../../src/hooks/api2ai/bookings-tools/listBookings.js';
+import { checkToolAccessForListAllBookings } from '../../../src/hooks/api2ai/bookings-tools/checkToolAccessForListAllBookings.js';
+import { checkToolAccessForListBookings } from '../../../src/hooks/api2ai/bookings-tools/checkToolAccessForListBookings.js';
+import { prepareToolCallForListVacationRentals } from '../../../src/hooks/api2ai/bookings-tools/prepareToolCallForListVacationRentals.js';
+import { prepareToolCallForListAllBookings } from '../../../src/hooks/api2ai/bookings-tools/prepareToolCallForListAllBookings.js';
+import { prepareToolCallForListBookings } from '../../../src/hooks/api2ai/bookings-tools/prepareToolCallForListBookings.js';
 
 export type GeneratedTool = {
     toolName: string;
@@ -26,7 +26,7 @@ export const generatedTools: GeneratedTool[] = [
         toolName: 'listVacationRentals',
         title: 'List vacation rentals with public availability (limit validated)',
         description:
-            'Intent:\nList Ferienwohnungen (vacation rental units) — public, no login.\n        Returns availability periods per unit (no guest names).\n        Query limit caps how many units are returned (default 10, max 10).\n\nMCP arguments:\npass limit as top-level tool arguments. Do not nest path or query parameters under pathParams or query.\n\nAPI:\nPublic endpoint — no auth. Returns availability periods per unit (no guest identity).\nUse query limit to cap how many units are returned (max 10).\n\nMeta:\noperationId: list-vacation-rentals\n\nParameters:\n- limit (query): Query limit caps how many units are returned (default 10, max 10). (example: 10)\n\nExample:\nShow up to 10 vacation rentals and their free/occupied periods\n\nResponse:\nHTTP 200\nVacation rental units (public view)\nproperties (top-level): limit, units\n\nRuntime: implement prepareToolCallForListVacationRentals in src/hooks/api2ai/bookings-tools/listVacationRentals.ts (types from this tools module; run build:generated for .js).',
+            'Intent:\nList Ferienwohnungen (vacation rental units) — public, no login.\n        Returns availability periods per unit (no guest names).\n        Query limit caps how many units are returned (default 10, max 10).\n\nMCP arguments:\npass limit as top-level tool arguments. Do not nest path or query parameters under pathParams or query.\n\nAPI:\nPublic endpoint — no auth. Returns availability periods per unit (no guest identity).\nUse query limit to cap how many units are returned (max 10).\n\nMeta:\noperationId: list-vacation-rentals\n\nParameters:\n- limit (query): Query limit caps how many units are returned (default 10, max 10). (example: 10)\n\nExample:\nShow up to 10 vacation rentals and their free/occupied periods\n\nResponse:\nHTTP 200\nVacation rental units (public view)\nproperties (top-level): limit, units\n\nRuntime: implement prepareToolCallForListVacationRentals in src/hooks/api2ai/bookings-tools/prepareToolCallForListVacationRentals.ts (types from this tools module; run build:generated for .js).',
         method: 'GET',
         path: '/vacation-rentals',
         access: 'public',
@@ -37,7 +37,7 @@ export const generatedTools: GeneratedTool[] = [
         toolName: 'listAllBookings',
         title: 'List all customer bookings (admin only, limit validated)',
         description:
-            'Intent:\nAdmin only: list bookings across all customers (Bearer JWT role=admin).\n        Query limit caps how many bookings are returned (default 10, max 10).\n        checkToolAccess + prepareToolCall demo — role gate before upstream call, limit in prepare stub.\n\nMCP arguments:\npass limit as top-level tool arguments. Do not nest path or query parameters under pathParams or query.\n\nAPI:\nRequires Bearer JWT with role=admin. Returns bookings from all customers, capped by limit (max 10).\n\nMeta:\noperationId: list-all-bookings\n\nParameters:\n- limit (query)\n\nExample:\nList up to 10 bookings from all customers\n\nResponse:\nHTTP 200\nCross-customer booking list\nproperties (top-level): bookings, limit, role\nDocumented errors:\nHTTP 401 — Missing or invalid token\nHTTP 403 — Admin role required\n\nRuntime: protected — implement checkToolAccessForListAllBookings and prepareToolCallForListAllBookings in src/hooks/api2ai/bookings-tools/listAllBookings.ts; credential sent as header "Authorization" (prefix applied to the secret).',
+            'Intent:\nAdmin only: list bookings across all customers (Bearer JWT role=admin).\n        Query limit caps how many bookings are returned (default 10, max 10).\n        checkToolAccess + prepareToolCall demo — role gate before upstream call, limit in prepare stub.\n\nMCP arguments:\npass limit as top-level tool arguments. Do not nest path or query parameters under pathParams or query.\n\nAPI:\nRequires Bearer JWT with role=admin. Returns bookings from all customers, capped by limit (max 10).\n\nMeta:\noperationId: list-all-bookings\n\nParameters:\n- limit (query)\n\nExample:\nList up to 10 bookings from all customers\n\nResponse:\nHTTP 200\nCross-customer booking list\nproperties (top-level): bookings, limit, role\nDocumented errors:\nHTTP 401 — Missing or invalid token\nHTTP 403 — Admin role required\n\nRuntime: protected — implement checkToolAccessForListAllBookings in src/hooks/api2ai/bookings-tools/checkToolAccessForListAllBookings.ts and prepareToolCallForListAllBookings in src/hooks/api2ai/bookings-tools/prepareToolCallForListAllBookings.ts; credential sent as header "Authorization" (prefix applied to the secret).',
         method: 'GET',
         path: '/bookings',
         access: 'protected',
@@ -48,7 +48,7 @@ export const generatedTools: GeneratedTool[] = [
         toolName: 'listBookings',
         title: 'List customer vacation rental bookings',
         description:
-            'Intent:\nList bookings for the authenticated customer (Bearer JWT).\n        Path customerId is optional: when empty or omitted, filled from JWT claim customerId.\n        Role user: path customerId must match JWT; role admin may list any customerId.\n        Returns bookingId, unitId, checkIn, checkOut for each stay.\n\nMCP arguments:\npass customerId as top-level tool arguments. Do not nest path or query parameters under pathParams or query.\n\nAPI:\nRequires Bearer JWT; role=user path customerId must match JWT claim; admin may read any customer.\n\nMeta:\noperationId: list-customer-bookings\n\nParameters:\n- customerId (path)\n\nExample:\nList my bookings\n\nResponse:\nHTTP 200\nBooking list\nproperties (top-level): bookings, customerId\nDocumented errors:\nHTTP 401 — Missing or invalid token\nHTTP 403 — Token customerId does not match path\n\nRuntime: protected — implement checkToolAccessForListBookings and prepareToolCallForListBookings in src/hooks/api2ai/bookings-tools/listBookings.ts; credential sent as header "Authorization" (prefix applied to the secret).',
+            'Intent:\nList bookings for the authenticated customer (Bearer JWT).\n        Path customerId is optional: when empty or omitted, filled from JWT claim customerId.\n        Role user: path customerId must match JWT; role admin may list any customerId.\n        Returns bookingId, unitId, checkIn, checkOut for each stay.\n\nMCP arguments:\npass customerId as top-level tool arguments. Do not nest path or query parameters under pathParams or query.\n\nAPI:\nRequires Bearer JWT; role=user path customerId must match JWT claim; admin may read any customer.\n\nMeta:\noperationId: list-customer-bookings\n\nParameters:\n- customerId (path)\n\nExample:\nList my bookings\n\nResponse:\nHTTP 200\nBooking list\nproperties (top-level): bookings, customerId\nDocumented errors:\nHTTP 401 — Missing or invalid token\nHTTP 403 — Token customerId does not match path\n\nRuntime: protected — implement checkToolAccessForListBookings in src/hooks/api2ai/bookings-tools/checkToolAccessForListBookings.ts and prepareToolCallForListBookings in src/hooks/api2ai/bookings-tools/prepareToolCallForListBookings.ts; credential sent as header "Authorization" (prefix applied to the secret).',
         method: 'GET',
         path: '/bookings/{customerId}',
         access: 'protected',
@@ -84,7 +84,7 @@ export const authConfig: AuthConfig | undefined = {
 };
 
 export const mcpServerName = 'bookings-tools';
-export const mcpServerVersion = '1.0.0-rc.1';
+export const mcpServerVersion = '1.0.0-rc.2';
 
 const checkToolAccessHooks: Record<string, (credential: string) => void | Promise<void>> = {
     listAllBookings: checkToolAccessForListAllBookings,
@@ -307,6 +307,10 @@ function coerceInvokeBody(toolName: string, body: unknown): unknown {
     return coerceInvokeValueBySchema(body, schema);
 }
 
+function isInvokeQueryBucketValue(value: unknown): value is Record<string, unknown> {
+    return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
 function normalizeInvokeOptions(toolName: string, options: InvokeOptions): InvokeOptions {
     const buckets = (
         invokeParamBucketsByTool as Record<
@@ -322,23 +326,37 @@ function normalizeInvokeOptions(toolName: string, options: InvokeOptions): Invok
     const headerKeys = buckets.headers ?? [];
     const arrayQueryKeys = new Set(buckets.arrayQuery ?? []);
     const knownFlatKeys = new Set([...pathKeys, ...queryKeys, ...headerKeys]);
-    const hasTopLevelFlatParam = Object.keys(options).some(
-        (key) =>
-            key !== 'body' && key !== 'headers' && key !== 'pathParams' && key !== 'query' && knownFlatKeys.has(key)
-    );
+    const hasTopLevelFlatParam = Object.keys(options).some((key) => {
+        if (key === 'body' || key === 'pathParams' || key === 'headers') {
+            return false;
+        }
+        if (key === 'query') {
+            return queryKeys.includes('query') && !isInvokeQueryBucketValue(options.query);
+        }
+        return knownFlatKeys.has(key);
+    });
     if (!hasTopLevelFlatParam) {
         return {
             ...options,
             pathParams: coerceInvokePathBucket(options.pathParams),
-            query: coerceInvokeQueryBucket(toolName, options.query),
+            query: coerceInvokeQueryBucket(
+                toolName,
+                isInvokeQueryBucketValue(options.query) ? options.query : undefined
+            ),
             body: coerceInvokeBody(toolName, options.body)
         };
     }
 
     const pathParams: Record<string, string | number | boolean> = { ...(options.pathParams ?? {}) };
-    const query: Record<string, string | number | boolean | ReadonlyArray<string | number | boolean>> = {
-        ...(options.query ?? {})
-    };
+    const query: Record<string, string | number | boolean | ReadonlyArray<string | number | boolean>> =
+        isInvokeQueryBucketValue(options.query)
+            ? {
+                  ...(options.query as Record<
+                      string,
+                      string | number | boolean | ReadonlyArray<string | number | boolean>
+                  >)
+              }
+            : {};
     const headers: Record<string, string> =
         options.headers && typeof options.headers === 'object' ? { ...options.headers } : {};
 
@@ -346,7 +364,17 @@ function normalizeInvokeOptions(toolName: string, options: InvokeOptions): Invok
         if (value === undefined || value === null) {
             continue;
         }
-        if (key === 'body' || key === 'pathParams' || key === 'query') {
+        if (key === 'body' || key === 'pathParams') {
+            continue;
+        }
+        if (key === 'query') {
+            if (queryKeys.includes('query') && !isInvokeQueryBucketValue(value)) {
+                if (arrayQueryKeys.has(key) && typeof value === 'string') {
+                    query[key] = coerceInvokeQueryArrayValue(value);
+                } else {
+                    query[key] = value as string | number | boolean | ReadonlyArray<string | number | boolean>;
+                }
+            }
             continue;
         }
         if (key === 'headers') {
@@ -390,6 +418,11 @@ const queryParamSerializationByTool = {
     },
     listBookings: {}
 };
+const queryParamWireNamesByTool = {
+    listVacationRentals: {},
+    listAllBookings: {},
+    listBookings: {}
+};
 
 function appendSerializedQueryParams(
     searchParams: URLSearchParams,
@@ -403,10 +436,13 @@ function appendSerializedQueryParams(
         (queryParamSerializationByTool as Record<string, Record<string, { style?: string; explode?: boolean }>>)[
             toolName
         ] ?? {};
+    const wireNames: Record<string, string> =
+        (queryParamWireNamesByTool as Record<string, Record<string, string>>)[toolName] ?? {};
     for (const [key, value] of Object.entries(query)) {
         if (value === undefined || value === null) {
             continue;
         }
+        const wireKey = wireNames[key] ?? key;
         if (Array.isArray(value)) {
             const hint = hintsByParam[key];
             const style = hint && hint.style ? hint.style : 'form';
@@ -432,14 +468,14 @@ function appendSerializedQueryParams(
             }
             if (explode) {
                 for (const p of parts) {
-                    searchParams.append(key, p);
+                    searchParams.append(wireKey, p);
                 }
             } else {
-                searchParams.set(key, parts.join(','));
+                searchParams.set(wireKey, parts.join(','));
             }
             continue;
         }
-        searchParams.set(key, String(value));
+        searchParams.set(wireKey, String(value));
     }
 }
 

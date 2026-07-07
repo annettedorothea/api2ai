@@ -3,6 +3,8 @@ import type { OpenApiOperationDetails, Operation } from 'api-2-ai-dsl-language';
 import {
     buildMcpDescription,
     buildInvokeParamBuckets,
+    buildInvokeParameterDescriptionSection,
+    buildQueryParamWireNamesLookup,
     buildToolInputSchema,
     effectiveResponse,
     flattenLegacyInvokeDescription,
@@ -311,5 +313,94 @@ describe('buildToolInputSchema', () => {
         const schema = buildInvokeBodySchema(details);
         expect(schema?.type).toBe('object');
         expect((schema?.properties as Record<string, unknown>).priority).toEqual({ type: 'integer' });
+    });
+
+    test('buildToolInputSchema uses MCP-safe names for dotted query parameters', () => {
+        const details: OpenApiOperationDetails = {
+            ...sampleDetails,
+            parameters: [
+                {
+                    name: 'vote_average.gte',
+                    in: 'query',
+                    required: false,
+                    schema: { type: 'number' }
+                },
+                {
+                    name: 'page',
+                    in: 'query',
+                    required: false,
+                    schema: { type: 'integer' }
+                }
+            ]
+        };
+        const schema = buildToolInputSchema(details);
+        const props = schema.properties as Record<string, unknown>;
+        expect(props).toHaveProperty('vote_average_gte');
+        expect(props).toHaveProperty('page');
+        expect(props).not.toHaveProperty('vote_average.gte');
+    });
+
+    test('buildInvokeParamBuckets uses MCP-safe query names', () => {
+        const details: OpenApiOperationDetails = {
+            ...sampleDetails,
+            parameters: [
+                {
+                    name: 'primary_release_date.gte',
+                    in: 'query',
+                    required: false,
+                    schema: { type: 'string' }
+                }
+            ]
+        };
+        expect(buildInvokeParamBuckets(details).query).toEqual(['primary_release_date_gte']);
+    });
+
+    test('buildQueryParamWireNamesLookup maps MCP names back to wire names', () => {
+        const details: OpenApiOperationDetails = {
+            ...sampleDetails,
+            parameters: [
+                {
+                    name: 'vote_count.lte',
+                    in: 'query',
+                    required: false,
+                    schema: { type: 'number' }
+                },
+                {
+                    name: 'page',
+                    in: 'query',
+                    required: false,
+                    schema: { type: 'integer' }
+                }
+            ]
+        };
+        expect(buildQueryParamWireNamesLookup(details)).toEqual({
+            vote_count_lte: 'vote_count.lte'
+        });
+    });
+
+    test('buildInvokeParameterDescriptionSection omits wire hints and sanitizes dotted names in prose', () => {
+        const details: OpenApiOperationDetails = {
+            ...sampleDetails,
+            parameters: [
+                {
+                    name: 'vote_average.gte',
+                    in: 'query',
+                    required: false,
+                    schema: { type: 'number' }
+                },
+                {
+                    name: 'certification_country',
+                    in: 'query',
+                    required: false,
+                    description:
+                        'use in conjunction with the `certification`, `certification.gte` and `certification.lte` filters'
+                }
+            ]
+        };
+        const text = buildInvokeParameterDescriptionSection(minimalOperation(), details);
+        expect(text).toContain('- vote_average_gte (query)');
+        expect(text).not.toContain('(wire:');
+        expect(text).not.toContain('certification.gte');
+        expect(text).toContain('certification_gte');
     });
 });

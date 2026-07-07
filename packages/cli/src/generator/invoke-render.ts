@@ -195,6 +195,10 @@ function coerceInvokeBody(toolName: string, body: unknown): unknown {
     return coerceInvokeValueBySchema(body, schema);
 }
 
+function isInvokeQueryBucketValue(value: unknown): value is Record<string, unknown> {
+    return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
 function normalizeInvokeOptions(toolName: string, options: InvokeOptions): InvokeOptions {
     const buckets = (invokeParamBucketsByTool as Record<
         string,
@@ -208,22 +212,32 @@ function normalizeInvokeOptions(toolName: string, options: InvokeOptions): Invok
     const headerKeys = buckets.headers ?? [];
     const arrayQueryKeys = new Set(buckets.arrayQuery ?? []);
     const knownFlatKeys = new Set([...pathKeys, ...queryKeys, ...headerKeys]);
-    const hasTopLevelFlatParam = Object.keys(options).some(
-        (key) => key !== 'body' && key !== 'headers' && key !== 'pathParams' && key !== 'query' && knownFlatKeys.has(key)
-    );
+    const hasTopLevelFlatParam = Object.keys(options).some((key) => {
+        if (key === 'body' || key === 'pathParams' || key === 'headers') {
+            return false;
+        }
+        if (key === 'query') {
+            return queryKeys.includes('query') && !isInvokeQueryBucketValue(options.query);
+        }
+        return knownFlatKeys.has(key);
+    });
     if (!hasTopLevelFlatParam) {
         return {
             ...options,
             pathParams: coerceInvokePathBucket(options.pathParams),
-            query: coerceInvokeQueryBucket(toolName, options.query),
+            query: coerceInvokeQueryBucket(
+                toolName,
+                isInvokeQueryBucketValue(options.query) ? options.query : undefined
+            ),
             body: coerceInvokeBody(toolName, options.body)
         };
     }
 
     const pathParams: Record<string, string | number | boolean> = { ...(options.pathParams ?? {}) };
-    const query: Record<string, string | number | boolean | ReadonlyArray<string | number | boolean>> = {
-        ...(options.query ?? {})
-    };
+    const query: Record<string, string | number | boolean | ReadonlyArray<string | number | boolean>> =
+        isInvokeQueryBucketValue(options.query)
+            ? { ...(options.query as Record<string, string | number | boolean | ReadonlyArray<string | number | boolean>>) }
+            : {};
     const headers: Record<string, string> =
         options.headers && typeof options.headers === 'object' ? { ...options.headers } : {};
 
@@ -231,7 +245,17 @@ function normalizeInvokeOptions(toolName: string, options: InvokeOptions): Invok
         if (value === undefined || value === null) {
             continue;
         }
-        if (key === 'body' || key === 'pathParams' || key === 'query') {
+        if (key === 'body' || key === 'pathParams') {
+            continue;
+        }
+        if (key === 'query') {
+            if (queryKeys.includes('query') && !isInvokeQueryBucketValue(value)) {
+                if (arrayQueryKeys.has(key) && typeof value === 'string') {
+                    query[key] = coerceInvokeQueryArrayValue(value);
+                } else {
+                    query[key] = value as string | number | boolean | ReadonlyArray<string | number | boolean>;
+                }
+            }
             continue;
         }
         if (key === 'headers') {
@@ -262,8 +286,12 @@ function normalizeInvokeOptions(toolName: string, options: InvokeOptions): Invok
 }`;
 }
 
-function renderQuerySerializationHelpers(querySerializationLiteralBody: string): string {
+function renderQuerySerializationHelpers(
+    querySerializationLiteralBody: string,
+    queryParamWireNamesLiteralBody: string
+): string {
     return `const queryParamSerializationByTool = ${querySerializationLiteralBody};
+const queryParamWireNamesByTool = ${queryParamWireNamesLiteralBody};
 
 function appendSerializedQueryParams(
     searchParams: URLSearchParams,
@@ -274,10 +302,12 @@ function appendSerializedQueryParams(
         return;
     }
     const hintsByParam: Record<string, { style?: string; explode?: boolean }> = (queryParamSerializationByTool as Record<string, Record<string, { style?: string; explode?: boolean }>>)[toolName] ?? {};
+    const wireNames: Record<string, string> = (queryParamWireNamesByTool as Record<string, Record<string, string>>)[toolName] ?? {};
     for (const [key, value] of Object.entries(query)) {
         if (value === undefined || value === null) {
             continue;
         }
+        const wireKey = wireNames[key] ?? key;
         if (Array.isArray(value)) {
             const hint = hintsByParam[key];
             const style = hint && hint.style ? hint.style : 'form';
@@ -303,14 +333,14 @@ function appendSerializedQueryParams(
             }
             if (explode) {
                 for (const p of parts) {
-                    searchParams.append(key, p);
+                    searchParams.append(wireKey, p);
                 }
             } else {
-                searchParams.set(key, parts.join(','));
+                searchParams.set(wireKey, parts.join(','));
             }
             continue;
         }
-        searchParams.set(key, String(value));
+        searchParams.set(wireKey, String(value));
     }
 }`;
 }
@@ -485,6 +515,7 @@ ${hostBinding}${authPipeline}${resolveCall}
 
 export function createSharedInvokeBlock(
     querySerializationLiteralBody: string,
+    queryParamWireNamesLiteralBody: string,
     invokeParamBucketsLiteralBody: string,
     invokeBodySchemaByToolLiteralBody: string,
     authKind: 'none' | 'credential',
@@ -493,7 +524,7 @@ export function createSharedInvokeBlock(
     hasVerifyCredential = false
 ): string {
     return `${renderNormalizeInvokeOptions(invokeParamBucketsLiteralBody, invokeBodySchemaByToolLiteralBody)}
-${renderQuerySerializationHelpers(querySerializationLiteralBody)}
+${renderQuerySerializationHelpers(querySerializationLiteralBody, queryParamWireNamesLiteralBody)}
 ${renderAuthHelpers(authKind)}
 ${renderPerformToolHttpRequest()}
 

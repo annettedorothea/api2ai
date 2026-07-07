@@ -66,7 +66,7 @@ export const generatedTools: GeneratedTool[] = [
         toolName: 'discoverTmdbMovies',
         title: 'Discover movies with filters',
         description:
-            'Intent:\n- Discover movies with OpenAPI query filters (genre, year, vote_average, sort_by, etc.).\n        - Use getTmdbMovieGenres first when the user names a genre in natural language.\n        - Prefer searchTmdbMovies for a known title; use this tool for "best sci-fi 2024" style queries.\n        - with_genres: genre id as string (e.g. "878" for sci-fi from getTmdbMovieGenres); comma/pipe for AND/OR.\n        - primary_release_year: number (e.g. 2024), not a string.\n        - Example query: with_genres "878", primary_release_year 2024, sort_by vote_average.desc.\n        - Requires TMDB_ACCESS_TOKEN via MCP host --auth-env.\n\nMCP arguments:\npass certification, certification.gte, certification.lte, certification_country, include_adult, include_video, language, page, primary_release_year, primary_release_date.gte, primary_release_date.lte, region, release_date.gte, release_date.lte, sort_by, vote_average.gte, vote_average.lte, vote_count.gte, vote_count.lte, watch_region, with_cast, with_companies, with_crew, with_genres, with_keywords, with_origin_country, with_original_language, with_people, with_release_type, with_runtime.gte, with_runtime.lte, with_watch_monetization_types, with_watch_providers, without_companies, without_genres, without_keywords, without_watch_providers, year as top-level tool arguments. Do not nest path or query parameters under pathParams or query.\n\nAPI:\nFind movies using over 30 filters and sort options.\n\nMeta:\noperationId: discover-movie\n\nParameters:\n- certification (query): use in conjunction with `region`\n- certification_country (query): use in conjunction with the `certification`, `certification.gte` and `certification.lte` filters\n- certification.gte (query): use in conjunction with `region`\n- certification.lte (query): use in conjunction with `region`\n- include_adult (query)\n- include_video (query)\n- language (query)\n- page (query)\n- primary_release_date.gte (query)\n- primary_release_date.lte (query)\n- primary_release_year (query)\n- region (query)\n- release_date.gte (query)\n- release_date.lte (query)\n- sort_by (query)\n- vote_average.gte (query)\n- vote_average.lte (query)\n- vote_count.gte (query)\n- vote_count.lte (query)\n- watch_region (query): use in conjunction with `with_watch_monetization_types ` or `with_watch_providers `\n- with_cast (query): can be a comma (`AND`) or pipe (`OR`) separated query\n- with_companies (query): can be a comma (`AND`) or pipe (`OR`) separated query\n- with_crew (query): can be a comma (`AND`) or pipe (`OR`) separated query\n- with_genres (query): can be a comma (`AND`) or pipe (`OR`) separated query\n- with_keywords (query): can be a comma (`AND`) or pipe (`OR`) separated query\n- with_origin_country (query)\n- with_original_language (query)\n- with_people (query): can be a comma (`AND`) or pipe (`OR`) separated query\n- with_release_type (query): possible values are: [1, 2, 3, 4, 5, 6] can be a comma (`AND`) or pipe (`OR`) separated query, can be used in conjunction with `region`\n- with_runtime.gte (query)\n- with_runtime.lte (query)\n- with_watch_monetization_types (query): possible values are: [flatrate, free, ads, rent, buy] use in conjunction with `watch_region`, can be a comma (`AND`) or pipe (`OR`) separated query\n- with_watch_providers (query): use in conjunction with `watch_region`, can be a comma (`AND`) or pipe (`OR`) separated query\n- without_companies (query)\n- without_genres (query)\n- without_keywords (query)\n- without_watch_providers (query)\n- year (query)\n\nExample:\nFind highly rated science fiction movies from 2024\n\nResponse:\nHTTP 200\n200\nproperties (top-level): page, results, total_pages, total_results\n\nRuntime: protected — implement src/hooks/api2ai/tmdb-tools/verifyTmdbCredential.ts; credential sent as header "Authorization" (prefix applied to the secret).',
+            'Intent:\n- Discover movies with OpenAPI query filters (genre, year, vote_average, sort_by, etc.).\n        - Use getTmdbMovieGenres first when the user names a genre in natural language.\n        - Prefer searchTmdbMovies for a known title; use this tool for "best sci-fi 2024" style queries.\n        - with_genres: genre id as string (e.g. "878" for sci-fi from getTmdbMovieGenres); comma/pipe for AND/OR.\n        - primary_release_year: number (e.g. 2024), not a string.\n        - Example query: with_genres "878", primary_release_year 2024, sort_by vote_average.desc.\n        - Requires TMDB_ACCESS_TOKEN via MCP host --auth-env.\n\nMCP arguments:\npass certification, certification_gte, certification_lte, certification_country, include_adult, include_video, language, page, primary_release_year, primary_release_date_gte, primary_release_date_lte, region, release_date_gte, release_date_lte, sort_by, vote_average_gte, vote_average_lte, vote_count_gte, vote_count_lte, watch_region, with_cast, with_companies, with_crew, with_genres, with_keywords, with_origin_country, with_original_language, with_people, with_release_type, with_runtime_gte, with_runtime_lte, with_watch_monetization_types, with_watch_providers, without_companies, without_genres, without_keywords, without_watch_providers, year as top-level tool arguments. Do not nest path or query parameters under pathParams or query.\n\nAPI:\nFind movies using over 30 filters and sort options.\n\nMeta:\noperationId: discover-movie\n\nParameters:\n- certification (query): use in conjunction with `region`\n- certification_country (query): use in conjunction with the `certification`, `certification_gte` and `certification_lte` filters\n- certification_gte (query): use in conjunction with `region`\n- certification_lte (query): use in conjunction with `region`\n- include_adult (query)\n- include_video (query)\n- language (query)\n- page (query)\n- primary_release_date_gte (query)\n- primary_release_date_lte (query)\n- primary_release_year (query)\n- region (query)\n- release_date_gte (query)\n- release_date_lte (query)\n- sort_by (query)\n- vote_average_gte (query)\n- vote_average_lte (query)\n- vote_count_gte (query)\n- vote_count_lte (query)\n- watch_region (query): use in conjunction with `with_watch_monetization_types ` or `with_watch_providers `\n- with_cast (query): can be a comma (`AND`) or pipe (`OR`) separated query\n- with_companies (query): can be a comma (`AND`) or pipe (`OR`) separated query\n- with_crew (query): can be a comma (`AND`) or pipe (`OR`) separated query\n- with_genres (query): can be a comma (`AND`) or pipe (`OR`) separated query\n- with_keywords (query): can be a comma (`AND`) or pipe (`OR`) separated query\n- with_origin_country (query)\n- with_original_language (query)\n- with_people (query): can be a comma (`AND`) or pipe (`OR`) separated query\n- with_release_type (query): possible values are: [1, 2, 3, 4, 5, 6] can be a comma (`AND`) or pipe (`OR`) separated query, can be used in conjunction with `region`\n- with_runtime_gte (query)\n- with_runtime_lte (query)\n- with_watch_monetization_types (query): possible values are: [flatrate, free, ads, rent, buy] use in conjunction with `watch_region`, can be a comma (`AND`) or pipe (`OR`) separated query\n- with_watch_providers (query): use in conjunction with `watch_region`, can be a comma (`AND`) or pipe (`OR`) separated query\n- without_companies (query)\n- without_genres (query)\n- without_keywords (query)\n- without_watch_providers (query)\n- year (query)\n\nExample:\nFind highly rated science fiction movies from 2024\n\nResponse:\nHTTP 200\n200\nproperties (top-level): page, results, total_pages, total_results\n\nRuntime: protected — implement src/hooks/api2ai/tmdb-tools/verifyTmdbCredential.ts; credential sent as header "Authorization" (prefix applied to the secret).',
         method: 'GET',
         path: '/3/discover/movie',
         access: 'protected',
@@ -192,7 +192,7 @@ export const authConfig: AuthConfig | undefined = {
 export { verifyCredential } from '../../../src/hooks/api2ai/tmdb-tools/verifyTmdbCredential.js';
 
 export const mcpServerName = 'tmdb-tools';
-export const mcpServerVersion = '1.0.0-rc.1';
+export const mcpServerVersion = '1.0.0-rc.2';
 
 export const inputZodByTool = {
     searchTmdbMovies: z
@@ -256,12 +256,12 @@ export const inputZodByTool = {
     discoverTmdbMovies: z
         .object({
             certification: z.string().describe('use in conjunction with `region`').optional(),
-            'certification.gte': z.string().describe('use in conjunction with `region`').optional(),
-            'certification.lte': z.string().describe('use in conjunction with `region`').optional(),
+            certification_gte: z.string().describe('use in conjunction with `region`').optional(),
+            certification_lte: z.string().describe('use in conjunction with `region`').optional(),
             certification_country: z
                 .string()
                 .describe(
-                    'use in conjunction with the `certification`, `certification.gte` and `certification.lte` filters'
+                    'use in conjunction with the `certification`, `certification_gte` and `certification_lte` filters'
                 )
                 .optional(),
             include_adult: z.union([z.boolean(), z.literal('true'), z.literal('false')]).optional(),
@@ -269,11 +269,11 @@ export const inputZodByTool = {
             language: z.string().optional(),
             page: z.union([z.number().int(), z.string()]).optional(),
             primary_release_year: z.union([z.number().int(), z.string()]).optional(),
-            'primary_release_date.gte': z.string().optional(),
-            'primary_release_date.lte': z.string().optional(),
+            primary_release_date_gte: z.string().optional(),
+            primary_release_date_lte: z.string().optional(),
             region: z.string().optional(),
-            'release_date.gte': z.string().optional(),
-            'release_date.lte': z.string().optional(),
+            release_date_gte: z.string().optional(),
+            release_date_lte: z.string().optional(),
             sort_by: z
                 .union([
                     z.literal('original_title.asc'),
@@ -292,10 +292,10 @@ export const inputZodByTool = {
                     z.literal('vote_count.desc')
                 ])
                 .optional(),
-            'vote_average.gte': z.union([z.number(), z.string()]).optional(),
-            'vote_average.lte': z.union([z.number(), z.string()]).optional(),
-            'vote_count.gte': z.union([z.number(), z.string()]).optional(),
-            'vote_count.lte': z.union([z.number(), z.string()]).optional(),
+            vote_average_gte: z.union([z.number(), z.string()]).optional(),
+            vote_average_lte: z.union([z.number(), z.string()]).optional(),
+            vote_count_gte: z.union([z.number(), z.string()]).optional(),
+            vote_count_lte: z.union([z.number(), z.string()]).optional(),
             watch_region: z
                 .string()
                 .describe('use in conjunction with `with_watch_monetization_types ` or `with_watch_providers `')
@@ -314,8 +314,8 @@ export const inputZodByTool = {
                     'possible values are: [1, 2, 3, 4, 5, 6] can be a comma (`AND`) or pipe (`OR`) separated query, can be used in conjunction with `region`'
                 )
                 .optional(),
-            'with_runtime.gte': z.union([z.number().int(), z.string()]).optional(),
-            'with_runtime.lte': z.union([z.number().int(), z.string()]).optional(),
+            with_runtime_gte: z.union([z.number().int(), z.string()]).optional(),
+            with_runtime_lte: z.union([z.number().int(), z.string()]).optional(),
             with_watch_monetization_types: z
                 .string()
                 .describe(
@@ -471,24 +471,24 @@ const invokeParamBucketsByTool = {
         pathParams: [],
         query: [
             'certification',
-            'certification.gte',
-            'certification.lte',
+            'certification_gte',
+            'certification_lte',
             'certification_country',
             'include_adult',
             'include_video',
             'language',
             'page',
             'primary_release_year',
-            'primary_release_date.gte',
-            'primary_release_date.lte',
+            'primary_release_date_gte',
+            'primary_release_date_lte',
             'region',
-            'release_date.gte',
-            'release_date.lte',
+            'release_date_gte',
+            'release_date_lte',
             'sort_by',
-            'vote_average.gte',
-            'vote_average.lte',
-            'vote_count.gte',
-            'vote_count.lte',
+            'vote_average_gte',
+            'vote_average_lte',
+            'vote_count_gte',
+            'vote_count_lte',
             'watch_region',
             'with_cast',
             'with_companies',
@@ -499,8 +499,8 @@ const invokeParamBucketsByTool = {
             'with_original_language',
             'with_people',
             'with_release_type',
-            'with_runtime.gte',
-            'with_runtime.lte',
+            'with_runtime_gte',
+            'with_runtime_lte',
             'with_watch_monetization_types',
             'with_watch_providers',
             'without_companies',
@@ -709,6 +709,10 @@ function coerceInvokeBody(toolName: string, body: unknown): unknown {
     return coerceInvokeValueBySchema(body, schema);
 }
 
+function isInvokeQueryBucketValue(value: unknown): value is Record<string, unknown> {
+    return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
 function normalizeInvokeOptions(toolName: string, options: InvokeOptions): InvokeOptions {
     const buckets = (
         invokeParamBucketsByTool as Record<
@@ -724,23 +728,37 @@ function normalizeInvokeOptions(toolName: string, options: InvokeOptions): Invok
     const headerKeys = buckets.headers ?? [];
     const arrayQueryKeys = new Set(buckets.arrayQuery ?? []);
     const knownFlatKeys = new Set([...pathKeys, ...queryKeys, ...headerKeys]);
-    const hasTopLevelFlatParam = Object.keys(options).some(
-        (key) =>
-            key !== 'body' && key !== 'headers' && key !== 'pathParams' && key !== 'query' && knownFlatKeys.has(key)
-    );
+    const hasTopLevelFlatParam = Object.keys(options).some((key) => {
+        if (key === 'body' || key === 'pathParams' || key === 'headers') {
+            return false;
+        }
+        if (key === 'query') {
+            return queryKeys.includes('query') && !isInvokeQueryBucketValue(options.query);
+        }
+        return knownFlatKeys.has(key);
+    });
     if (!hasTopLevelFlatParam) {
         return {
             ...options,
             pathParams: coerceInvokePathBucket(options.pathParams),
-            query: coerceInvokeQueryBucket(toolName, options.query),
+            query: coerceInvokeQueryBucket(
+                toolName,
+                isInvokeQueryBucketValue(options.query) ? options.query : undefined
+            ),
             body: coerceInvokeBody(toolName, options.body)
         };
     }
 
     const pathParams: Record<string, string | number | boolean> = { ...(options.pathParams ?? {}) };
-    const query: Record<string, string | number | boolean | ReadonlyArray<string | number | boolean>> = {
-        ...(options.query ?? {})
-    };
+    const query: Record<string, string | number | boolean | ReadonlyArray<string | number | boolean>> =
+        isInvokeQueryBucketValue(options.query)
+            ? {
+                  ...(options.query as Record<
+                      string,
+                      string | number | boolean | ReadonlyArray<string | number | boolean>
+                  >)
+              }
+            : {};
     const headers: Record<string, string> =
         options.headers && typeof options.headers === 'object' ? { ...options.headers } : {};
 
@@ -748,7 +766,17 @@ function normalizeInvokeOptions(toolName: string, options: InvokeOptions): Invok
         if (value === undefined || value === null) {
             continue;
         }
-        if (key === 'body' || key === 'pathParams' || key === 'query') {
+        if (key === 'body' || key === 'pathParams') {
+            continue;
+        }
+        if (key === 'query') {
+            if (queryKeys.includes('query') && !isInvokeQueryBucketValue(value)) {
+                if (arrayQueryKeys.has(key) && typeof value === 'string') {
+                    query[key] = coerceInvokeQueryArrayValue(value);
+                } else {
+                    query[key] = value as string | number | boolean | ReadonlyArray<string | number | boolean>;
+                }
+            }
             continue;
         }
         if (key === 'headers') {
@@ -843,11 +871,11 @@ const queryParamSerializationByTool = {
             style: 'form',
             explode: true
         },
-        'certification.gte': {
+        certification_gte: {
             style: 'form',
             explode: true
         },
-        'certification.lte': {
+        certification_lte: {
             style: 'form',
             explode: true
         },
@@ -875,11 +903,11 @@ const queryParamSerializationByTool = {
             style: 'form',
             explode: true
         },
-        'primary_release_date.gte': {
+        primary_release_date_gte: {
             style: 'form',
             explode: true
         },
-        'primary_release_date.lte': {
+        primary_release_date_lte: {
             style: 'form',
             explode: true
         },
@@ -887,11 +915,11 @@ const queryParamSerializationByTool = {
             style: 'form',
             explode: true
         },
-        'release_date.gte': {
+        release_date_gte: {
             style: 'form',
             explode: true
         },
-        'release_date.lte': {
+        release_date_lte: {
             style: 'form',
             explode: true
         },
@@ -899,19 +927,19 @@ const queryParamSerializationByTool = {
             style: 'form',
             explode: true
         },
-        'vote_average.gte': {
+        vote_average_gte: {
             style: 'form',
             explode: true
         },
-        'vote_average.lte': {
+        vote_average_lte: {
             style: 'form',
             explode: true
         },
-        'vote_count.gte': {
+        vote_count_gte: {
             style: 'form',
             explode: true
         },
-        'vote_count.lte': {
+        vote_count_lte: {
             style: 'form',
             explode: true
         },
@@ -955,11 +983,11 @@ const queryParamSerializationByTool = {
             style: 'form',
             explode: true
         },
-        'with_runtime.gte': {
+        with_runtime_gte: {
             style: 'form',
             explode: true
         },
-        'with_runtime.lte': {
+        with_runtime_lte: {
             style: 'form',
             explode: true
         },
@@ -1060,6 +1088,34 @@ const queryParamSerializationByTool = {
         }
     }
 };
+const queryParamWireNamesByTool = {
+    searchTmdbMovies: {},
+    getPopularTmdbMovies: {},
+    getTmdbMovieDetails: {},
+    getTmdbMovieCredits: {},
+    discoverTmdbMovies: {
+        certification_gte: 'certification.gte',
+        certification_lte: 'certification.lte',
+        primary_release_date_gte: 'primary_release_date.gte',
+        primary_release_date_lte: 'primary_release_date.lte',
+        release_date_gte: 'release_date.gte',
+        release_date_lte: 'release_date.lte',
+        vote_average_gte: 'vote_average.gte',
+        vote_average_lte: 'vote_average.lte',
+        vote_count_gte: 'vote_count.gte',
+        vote_count_lte: 'vote_count.lte',
+        with_runtime_gte: 'with_runtime.gte',
+        with_runtime_lte: 'with_runtime.lte'
+    },
+    getTmdbMovieGenres: {},
+    getTmdbTrendingMovies: {},
+    getTmdbMovieVideos: {},
+    searchTmdbMulti: {},
+    getTmdbMovieReleaseDates: {},
+    getTmdbMovieRecommendations: {},
+    getTmdbMovieSimilar: {},
+    getTmdbMovieReviews: {}
+};
 
 function appendSerializedQueryParams(
     searchParams: URLSearchParams,
@@ -1073,10 +1129,13 @@ function appendSerializedQueryParams(
         (queryParamSerializationByTool as Record<string, Record<string, { style?: string; explode?: boolean }>>)[
             toolName
         ] ?? {};
+    const wireNames: Record<string, string> =
+        (queryParamWireNamesByTool as Record<string, Record<string, string>>)[toolName] ?? {};
     for (const [key, value] of Object.entries(query)) {
         if (value === undefined || value === null) {
             continue;
         }
+        const wireKey = wireNames[key] ?? key;
         if (Array.isArray(value)) {
             const hint = hintsByParam[key];
             const style = hint && hint.style ? hint.style : 'form';
@@ -1102,14 +1161,14 @@ function appendSerializedQueryParams(
             }
             if (explode) {
                 for (const p of parts) {
-                    searchParams.append(key, p);
+                    searchParams.append(wireKey, p);
                 }
             } else {
-                searchParams.set(key, parts.join(','));
+                searchParams.set(wireKey, parts.join(','));
             }
             continue;
         }
-        searchParams.set(key, String(value));
+        searchParams.set(wireKey, String(value));
     }
 }
 

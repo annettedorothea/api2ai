@@ -13,6 +13,12 @@ import {
     parseApiParamSpec
 } from 'api-2-ai-dsl-language';
 import { resolveModuleCredentialNames } from '@toolfactory.dev/core/codegen';
+import {
+    buildParamWireMaps,
+    sanitizeWireParamNamesInText,
+    toMcpParamName,
+    type ParamWireMaps
+} from './mcp-param-names.js';
 
 /** JSON-schema-like dict emitted into generated modules / MCP. */
 export type JsonSchemaDict = Record<string, unknown>;
@@ -296,9 +302,11 @@ export function buildInvokeParameterDescriptionSection(
     for (const p of params) {
         const patch = patches.get(p.name);
         const description = pickEffectiveText(patch?.description, p.description);
-        let line = `- ${p.name} (${p.in})`;
+        const mcpName = toMcpParamName(p.name);
+        let line = `- ${mcpName} (${p.in})`;
         if (description) {
-            line += `: ${flattenLegacyInvokeDescription(description)}`;
+            const { wireToMcp } = invokeParamWireMaps(details);
+            line += `: ${sanitizeWireParamNamesInText(flattenLegacyInvokeDescription(description), wireToMcp)}`;
         }
         const exampleText = patch?.example?.trim();
         if (exampleText && exampleText.length > 0) {
@@ -367,7 +375,9 @@ export function buildMcpDescription(
     const access = getAccessKind(operation);
     const hasCheckToolAccess = isCheckToolAccessEnabled(operation);
     const hasPrepareToolCall = isPrepareToolCallEnabled(operation);
-    const authPath = `src/hooks/${hostProduct}/${mcpModuleName ?? 'mcp'}/${toolFile}.ts`;
+    const hookDir = `src/hooks/${hostProduct}/${mcpModuleName ?? 'mcp'}`;
+    const checkHookPath = `${hookDir}/checkToolAccessFor${capitalize(toolFile)}.ts`;
+    const prepareHookPath = `${hookDir}/prepareToolCallFor${capitalize(toolFile)}.ts`;
     const prefixNote =
         auth && auth.prefix !== undefined && String(auth.prefix).trim().length > 0
             ? ' (prefix applied to the secret)'
@@ -377,19 +387,19 @@ export function buildMcpDescription(
         sections.push('Runtime: public endpoint — no credential required.');
     } else if (access === 'public' && hasPrepareToolCall) {
         sections.push(
-            `Runtime: implement prepareToolCallFor${capitalize(toolFile)} in ${authPath} (types from this tools module; run build:generated for .js).`
+            `Runtime: implement prepareToolCallFor${capitalize(toolFile)} in ${prepareHookPath} (types from this tools module; run build:generated for .js).`
         );
     } else if (access === 'protected' && auth) {
         const implParts: string[] = [];
         if (hasCheckToolAccess) {
-            implParts.push(`checkToolAccessFor${capitalize(toolFile)}`);
+            implParts.push(`checkToolAccessFor${capitalize(toolFile)} in ${checkHookPath}`);
         }
         if (hasPrepareToolCall) {
-            implParts.push(`prepareToolCallFor${capitalize(toolFile)}`);
+            implParts.push(`prepareToolCallFor${capitalize(toolFile)} in ${prepareHookPath}`);
         }
         const implNote =
             implParts.length > 0
-                ? `implement ${implParts.join(' and ')} in ${authPath}; `
+                ? `implement ${implParts.join(' and ')}; `
                 : `implement ${verifyCredentialStubAuthPath(hostProduct, mcpModuleName)}; `;
         sections.push(
             `Runtime: protected — ${implNote}credential sent as ${auth.location} "${auth.name}"${prefixNote}.`
@@ -585,13 +595,13 @@ function openApiSchemaToJsonSchema(schema: OpenApiSchema | undefined, pathStack:
 }
 
 /** Merge OpenAPI Parameter `description` onto the JSON schema for MCP (parameter text wins over inline schema description). */
-function parameterPropertySchema(p: OpenApiParameterDetails): JsonSchemaDict {
+function parameterPropertySchema(p: OpenApiParameterDetails, wireToMcp: Record<string, string>): JsonSchemaDict {
     const inner = openApiSchemaToJsonSchema(p.schema);
     const paramDesc = p.description?.trim();
     if (!paramDesc) {
         return inner;
     }
-    const flatDesc = flattenLegacyInvokeDescription(paramDesc);
+    const flatDesc = sanitizeWireParamNamesInText(flattenLegacyInvokeDescription(paramDesc), wireToMcp);
     if (typeof inner === 'object' && inner !== null && !Array.isArray(inner)) {
         return { ...inner, description: flatDesc };
     }
@@ -641,13 +651,31 @@ export function effectiveQueryParamSerialization(p: OpenApiParameterDetails): { 
 export function buildQueryParamSerializationLookup(
     details: OpenApiOperationDetails
 ): Record<string, { style: string; explode: boolean }> {
+    const { wireToMcp } = invokeParamWireMaps(details);
     const out: Record<string, { style: string; explode: boolean }> = {};
     for (const p of details.parameters) {
         if (p.in === 'query') {
-            out[p.name] = effectiveQueryParamSerialization(p);
+            const mcpKey = wireToMcp[p.name] ?? toMcpParamName(p.name);
+            out[mcpKey] = effectiveQueryParamSerialization(p);
         }
     }
     return out;
+}
+
+function invokeParamWireNames(details: OpenApiOperationDetails): string[] {
+    return details.parameters
+        .filter((p) => p.in === 'path' || p.in === 'query' || p.in === 'header')
+        .map((p) => p.name);
+}
+
+function invokeParamWireMaps(details: OpenApiOperationDetails): ParamWireMaps {
+    return buildParamWireMaps(invokeParamWireNames(details));
+}
+
+/** Per query parameter: MCP name → OpenAPI wire name (only when they differ). */
+export function buildQueryParamWireNamesLookup(details: OpenApiOperationDetails): Record<string, string> {
+    const queryWireNames = details.parameters.filter((p) => p.in === 'query').map((p) => p.name);
+    return buildParamWireMaps(queryWireNames).mcpToWire;
 }
 
 function parametersByLocation(parameters: OpenApiParameterDetails[]): {
@@ -701,13 +729,15 @@ export function applyApiParamPatches(
             .map((parameter) => invokeParamBucket(parameter) && parameter.name)
             .filter((name): name is string => typeof name === 'string')
     );
+    const { wireToMcp } = invokeParamWireMaps(details);
 
     const rootProps = { ...(schema.properties as Record<string, JsonSchemaDict>) };
     for (const entry of entries) {
         if (!knownParamNames.has(entry.key)) {
             continue;
         }
-        const existing = rootProps[entry.key];
+        const mcpKey = wireToMcp[entry.key] ?? entry.key;
+        const existing = rootProps[mcpKey];
         if (!existing || typeof existing !== 'object') {
             continue;
         }
@@ -715,7 +745,13 @@ export function applyApiParamPatches(
         const parsed = parseApiParamSpec(entry.spec);
         let next = { ...existing };
         if (parsed.description !== undefined && parsed.description.trim().length > 0) {
-            next = { ...next, description: flattenLegacyInvokeDescription(parsed.description.trim()) };
+            next = {
+                ...next,
+                description: sanitizeWireParamNamesInText(
+                    flattenLegacyInvokeDescription(parsed.description.trim()),
+                    wireToMcp
+                )
+            };
         }
         if (parsed.example !== undefined && parsed.example.trim().length > 0) {
             const coerced = coerceExampleFromSchemaType(parsed.example, next.type as string | string[] | undefined);
@@ -723,7 +759,7 @@ export function applyApiParamPatches(
                 next = { ...next, examples: [coerced] };
             }
         }
-        rootProps[entry.key] = next;
+        rootProps[mcpKey] = next;
     }
 
     return { ...schema, properties: rootProps };
@@ -740,11 +776,14 @@ export type InvokeParamBuckets = {
 /** OpenAPI parameter names grouped for invokeTool normalization (flat MCP args → nested InvokeOptions). */
 export function buildInvokeParamBuckets(details: OpenApiOperationDetails): InvokeParamBuckets {
     const { path, query, headers } = parametersByLocation(details.parameters);
-    const arrayQuery = query.filter((p) => parameterSchemaKind(p.schema) === 'array').map((p) => p.name);
+    const { wireToMcp } = invokeParamWireMaps(details);
+    const arrayQuery = query
+        .filter((p) => parameterSchemaKind(p.schema) === 'array')
+        .map((p) => wireToMcp[p.name] ?? toMcpParamName(p.name));
     return {
-        pathParams: path.map((p) => p.name),
-        query: query.map((p) => p.name),
-        headers: headers.map((p) => p.name),
+        pathParams: path.map((p) => wireToMcp[p.name] ?? toMcpParamName(p.name)),
+        query: query.map((p) => wireToMcp[p.name] ?? toMcpParamName(p.name)),
+        headers: headers.map((p) => wireToMcp[p.name] ?? toMcpParamName(p.name)),
         arrayQuery
     };
 }
@@ -756,21 +795,22 @@ export function buildToolInputSchema(
     operation?: Operation
 ): JsonSchemaDict {
     const { path, query, headers } = parametersByLocation(details.parameters);
+    const { wireToMcp } = invokeParamWireMaps(details);
     const optional = new Set((optionalParams ?? []).map((p) => p.trim()).filter((p) => p.length > 0));
 
     const pathEntries = path.map((p) => ({
-        name: p.name,
-        schema: parameterPropertySchema(p),
+        name: wireToMcp[p.name] ?? toMcpParamName(p.name),
+        schema: parameterPropertySchema(p, wireToMcp),
         required: !optional.has(p.name)
     }));
     const queryEntries = query.map((p) => ({
-        name: p.name,
-        schema: parameterPropertySchema(p),
+        name: wireToMcp[p.name] ?? toMcpParamName(p.name),
+        schema: parameterPropertySchema(p, wireToMcp),
         required: p.required && !optional.has(p.name)
     }));
     const headerEntries = headers.map((p) => ({
-        name: p.name,
-        schema: parameterPropertySchema(p),
+        name: wireToMcp[p.name] ?? toMcpParamName(p.name),
+        schema: parameterPropertySchema(p, wireToMcp),
         required: p.required && !optional.has(p.name)
     }));
 

@@ -15,7 +15,7 @@ If this is your first time using `api2ai`, start with `open-meteo.api2ai`.
 From the demo workspace root:
 
 ```bash
-npm run start
+npm run start:all
 ```
 
 This command:
@@ -23,10 +23,16 @@ This command:
 - installs missing dependencies
 - generates tool code
 - compiles generated files
-- starts demo backends
-- starts HTTP MCP hosts
+- starts demo backends (background)
+- starts HTTP MCP hosts (foreground — leave this terminal open)
 
-Leave the terminal running while working with the demos.
+For MCP-only restarts after DSL or codegen changes (fixtures already running):
+
+```bash
+npm run start:mcp
+```
+
+(`npm run start` is an alias for `start:mcp`.)
 
 ---
 
@@ -114,7 +120,7 @@ npm run mcp:inspect -- todo --with-deps
 
 Prerequisites:
 
-- `npm run start`
+- `npm run start:all`
 - MCP servers enabled in `.cursor/mcp.json`
 
 The demo workspace includes the skill:

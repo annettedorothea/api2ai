@@ -22,8 +22,9 @@ Hook `.cursor/hooks/before-submit-test-all.sh` prueft bei Kurzformen, ob `.curso
 ## Voraussetzungen
 
 - Demos-Workspace-Root mit `.cursor/mcp.json`
-- `npm run start` (foreground, Mock-APIs inkl. `test-api` + MCP-Hosts)
-- Fuer Automation / freies Terminal: `npm run start:background`
+- `npm run start:all` (foreground, Mock-APIs inkl. `test-api` + MCP-Hosts)
+- Für tägliche MCP-Iteration nach Codegen: `npm run start:mcp` (alias `npm run start`; Fixtures müssen laufen)
+- Fixtures separat im Hintergrund: `npm run start:fixtures`
 - Alle benoetigten MCP-Server in Cursor aktiviert (inkl. **`test`** — stdio, nicht HTTP)
 - Keine `.env`-Dateien lesen oder aendern (siehe `api2ai-env-auth-policy`)
 
@@ -49,7 +50,7 @@ Hook `.cursor/hooks/before-submit-test-all.sh` prueft bei Kurzformen, ob `.curso
 - **todo:** geschuetzte Tools mit Header aus `mcp.json` (`x-api-token`); keine anderen Keys probieren.
 - **bookings / cakes:** Cursor OAuth Sign-in; bei `401`/`403` dokumentieren, nicht umgehen.
 - **github / tmdb:** ohne gueltiges Token in `.env` erwartbar `401` — als Auth-Fehler melden, nicht workarounden.
-- **test:** stdio-Host — `TEST_API_KEY` aus `.env` via `--auth-env`; Mock-API `test-api` muss laufen (`npm run start`). Geschuetzte Tools erwarten denselben Key als MCP-Credential.
+- **test:** stdio-Host — `TEST_API_KEY` aus `.env` via `--auth-env`; Mock-API `test-api` muss laufen (`npm run start:all`). Geschuetzte Tools erwarten denselben Key als MCP-Credential.
 
 ### 3. Aufrufe
 

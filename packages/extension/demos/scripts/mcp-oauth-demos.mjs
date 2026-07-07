@@ -25,7 +25,7 @@ export const OAUTH_HTTP_DEMOS = {
     }
 };
 
-/** OAuth MCP hosts started by `npm run start`. */
+/** OAuth MCP hosts started by `npm run start:mcp` / `start:all`. */
 export const OAUTH_HTTP_START_DEMO_NAMES = ['bookings', 'cakes'];
 
 export const OAUTH_HTTP_DEMO_NAMES = Object.keys(OAUTH_HTTP_DEMOS);
