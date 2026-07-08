@@ -20,6 +20,8 @@ type ApiLikeHostContext = {
 
 type VerifyCredentialFn = (credential: string) => void | Promise<void>;
 
+type TokenExchangeFn = (idpCredential: string) => Promise<string>;
+
 type GeneratedHostModule = {
     generatedTools: Array<{ toolName: string; title?: string; description: string; access?: string }>;
     invokeTool: (toolName: string, args?: Record<string, unknown>, hostContext?: unknown) => Promise<unknown>;
@@ -29,6 +31,7 @@ type GeneratedHostModule = {
     requiresAuth: boolean;
     connectionEnv?: string;
     verifyCredential?: VerifyCredentialFn;
+    tokenExchange?: TokenExchangeFn;
 };
 
 function stripOptionalQuotes(value: string): string {
@@ -138,6 +141,8 @@ function readGeneratedModule(imported: Record<string, unknown>): GeneratedHostMo
     const verifyCredential = imported.verifyCredential;
     const verifyCredentialFn =
         typeof verifyCredential === 'function' ? (verifyCredential as VerifyCredentialFn) : undefined;
+    const tokenExchange = imported.tokenExchange;
+    const tokenExchangeFn = typeof tokenExchange === 'function' ? (tokenExchange as TokenExchangeFn) : undefined;
     return {
         generatedTools: generatedTools as Array<{ toolName: string; title?: string; description: string }>,
         invokeTool: invokeTool as (
@@ -152,7 +157,8 @@ function readGeneratedModule(imported: Record<string, unknown>): GeneratedHostMo
         mcpServerName: typeof mcpServerName === 'string' ? mcpServerName : undefined,
         mcpServerVersion: typeof mcpServerVersion === 'string' ? mcpServerVersion : undefined,
         requiresAuth: imported.requiresAuth === true,
-        verifyCredential: verifyCredentialFn
+        verifyCredential: verifyCredentialFn,
+        tokenExchange: tokenExchangeFn
     };
 }
 

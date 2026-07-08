@@ -18,10 +18,18 @@ import {
 } from './start-shared.mjs';
 import { requireEnvInt } from './generated/require-env.mjs';
 
-/** @typedef {'bookings'|'todo-api'|'cakes-api'|'test-api'|'oauth-idp'|'oauth-idp-oidc'} FixtureName */
+/** @typedef {'bookings'|'todo-api'|'cakes-api'|'banking-api'|'test-api'|'oauth-idp'|'oauth-idp-oidc'} FixtureName */
 
 /** @type {FixtureName[]} */
-export const ALL_FIXTURE_NAMES = ['bookings', 'todo-api', 'cakes-api', 'test-api', 'oauth-idp', 'oauth-idp-oidc'];
+export const ALL_FIXTURE_NAMES = [
+    'bookings',
+    'todo-api',
+    'cakes-api',
+    'banking-api',
+    'test-api',
+    'oauth-idp',
+    'oauth-idp-oidc'
+];
 
 /**
  * @param {string} [logTag]
@@ -80,6 +88,18 @@ export async function startFixtures(logTag = 'start:fixtures', names = ALL_FIXTU
             { detached: true }
         );
         apiWaits.push(['test-api', testApiPort]);
+    }
+
+    if (selected.has('banking-api')) {
+        const bankingPort = requireEnvInt('BANKING_API_PORT');
+        startService(
+            'banking-api',
+            [path.join(demosRoot, 'banking-api', 'server.mjs')],
+            { BANKING_API_PORT: String(bankingPort) },
+            bankingPort,
+            { detached: true }
+        );
+        apiWaits.push(['banking-api', bankingPort]);
     }
 
     let idpPort;

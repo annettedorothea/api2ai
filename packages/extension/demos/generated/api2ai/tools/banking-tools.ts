@@ -1,0 +1,636 @@
+/**
+ * Generated from: banking.api2ai
+ * Referenced OpenAPI: ./openapi/banking.openapi.yaml
+ */
+import { loggingAdapter } from '../../../src/utils/logging-adapter.js';
+import * as z from 'zod/v4';
+import { verifyCredential } from '../../../src/hooks/api2ai/banking-tools/verifyBankingCredential.js';
+import { checkToolAccessForListMyAccounts } from '../../../src/hooks/api2ai/banking-tools/checkToolAccessForListMyAccounts.js';
+import { checkToolAccessForGetAccountBalance } from '../../../src/hooks/api2ai/banking-tools/checkToolAccessForGetAccountBalance.js';
+import { checkToolAccessForListAllAccounts } from '../../../src/hooks/api2ai/banking-tools/checkToolAccessForListAllAccounts.js';
+
+export type GeneratedTool = {
+    toolName: string;
+    title: string;
+    description: string;
+    method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' | 'HEAD' | 'OPTIONS' | 'TRACE';
+    path: string;
+    access: 'public' | 'protected';
+    hasCheckToolAccess: boolean;
+    hasPrepareToolCall: boolean;
+};
+
+export const generatedTools: GeneratedTool[] = [
+    {
+        toolName: 'listMyAccounts',
+        title: 'List my bank accounts',
+        description:
+            'Intent:\nList bank accounts for the authenticated customer (portal JWT after token exchange).\n        Requires banking:read permission in the portal token.\n\nMeta:\noperationId: list-my-accounts\n\nExample:\nList my accounts\n\nResponse:\nHTTP 200 — customerId and accounts array (accountId, label, currency).\n        Documented errors:\n        HTTP 401 — Missing or invalid portal token\n\nRuntime: protected — implement checkToolAccessForListMyAccounts in src/hooks/api2ai/banking-tools/checkToolAccessForListMyAccounts.ts; credential sent as header "Authorization" (prefix applied to the secret).',
+        method: 'GET',
+        path: '/accounts',
+        access: 'protected',
+        hasCheckToolAccess: true,
+        hasPrepareToolCall: false
+    },
+    {
+        toolName: 'getAccountBalance',
+        title: 'Get account balance',
+        description:
+            'Intent:\nFetch balance for one account by accountId (from listMyAccounts).\n        Users may only read their own accounts; admin may read any account.\n\nMCP arguments:\npass accountId as top-level tool arguments. Do not nest path or query parameters under pathParams or query.\n\nMeta:\noperationId: get-account-balance\n\nParameters:\n- accountId (path)\n\nExample:\nBalance for acc-alice-checking\n\nResponse:\nHTTP 200 — accountId, balance, currency.\n        Documented errors:\n        HTTP 401 — Missing or invalid portal token\n        HTTP 403 — Account not accessible\n        HTTP 404 — Unknown account\n\nRuntime: protected — implement checkToolAccessForGetAccountBalance in src/hooks/api2ai/banking-tools/checkToolAccessForGetAccountBalance.ts; credential sent as header "Authorization" (prefix applied to the secret).',
+        method: 'GET',
+        path: '/accounts/{accountId}/balance',
+        access: 'protected',
+        hasCheckToolAccess: true,
+        hasPrepareToolCall: false
+    },
+    {
+        toolName: 'listAllAccounts',
+        title: 'List all accounts (admin)',
+        description:
+            'Intent:\nAdmin only: list all demo accounts with balances.\n\nMeta:\noperationId: list-all-accounts\n\nExample:\nList all customer accounts as admin\n\nResponse:\nHTTP 200 — role and accounts array.\n        Documented errors:\n        HTTP 401 — Missing or invalid portal token\n        HTTP 403 — Admin role required\n\nRuntime: protected — implement checkToolAccessForListAllAccounts in src/hooks/api2ai/banking-tools/checkToolAccessForListAllAccounts.ts; credential sent as header "Authorization" (prefix applied to the secret).',
+        method: 'GET',
+        path: '/accounts/all',
+        access: 'protected',
+        hasCheckToolAccess: true,
+        hasPrepareToolCall: false
+    }
+];
+
+export type InvokeOptions = {
+    /** MCP tool arguments only (host context is supplied by the MCP host in servers/*). */
+    pathParams?: Record<string, string | number | boolean>;
+    query?: Record<string, string | number | boolean | ReadonlyArray<string | number | boolean>>;
+    headers?: Record<string, string>;
+    body?: unknown;
+};
+
+export type ApiHostContext = {
+    baseUrl: string;
+    credential?: string;
+};
+
+type AuthConfig = {
+    location: 'header' | 'query';
+    name: string;
+    prefix?: string;
+};
+
+export const requiresAuth = true;
+export const authConfig: AuthConfig | undefined = {
+    location: 'header',
+    name: 'Authorization',
+    prefix: 'Bearer '
+};
+
+export { verifyCredential } from '../../../src/hooks/api2ai/banking-tools/verifyBankingCredential.js';
+
+export { tokenExchange } from '../../../src/hooks/api2ai/banking-tools/tokenExchangeBankingCredential.js';
+
+export const mcpServerName = 'banking-tools';
+export const mcpServerVersion = '1.0.0-rc.2';
+
+const checkToolAccessHooks: Record<string, (credential: string) => void | Promise<void>> = {
+    listMyAccounts: checkToolAccessForListMyAccounts,
+    getAccountBalance: checkToolAccessForGetAccountBalance,
+    listAllAccounts: checkToolAccessForListAllAccounts
+};
+
+export const inputZodByTool = {
+    listMyAccounts: z
+        .object({
+            headers: z.record(z.string(), z.string()).describe('Optional extra headers.').optional(),
+            body: z
+                .record(z.string(), z.union([z.string(), z.number(), z.boolean()]))
+                .describe('Request body JSON if applicable.')
+                .optional()
+        })
+        .strict()
+        .describe('Arguments for invoking the generated HTTP wrapper.'),
+    getAccountBalance: z
+        .object({
+            accountId: z.string(),
+            headers: z.record(z.string(), z.string()).describe('Optional extra headers.').optional(),
+            body: z
+                .record(z.string(), z.union([z.string(), z.number(), z.boolean()]))
+                .describe('Request body JSON if applicable.')
+                .optional()
+        })
+        .strict()
+        .describe('Arguments for invoking the generated HTTP wrapper.'),
+    listAllAccounts: z
+        .object({
+            headers: z.record(z.string(), z.string()).describe('Optional extra headers.').optional(),
+            body: z
+                .record(z.string(), z.union([z.string(), z.number(), z.boolean()]))
+                .describe('Request body JSON if applicable.')
+                .optional()
+        })
+        .strict()
+        .describe('Arguments for invoking the generated HTTP wrapper.')
+};
+
+const invokeParamBucketsByTool = {
+    listMyAccounts: {
+        pathParams: [],
+        query: [],
+        headers: [],
+        arrayQuery: []
+    },
+    getAccountBalance: {
+        pathParams: ['accountId'],
+        query: [],
+        headers: [],
+        arrayQuery: []
+    },
+    listAllAccounts: {
+        pathParams: [],
+        query: [],
+        headers: [],
+        arrayQuery: []
+    }
+};
+const invokeBodySchemaByTool = {};
+
+function coerceInvokeScalar(value: string | number | boolean): string | number | boolean {
+    if (typeof value === 'string') {
+        const trimmed = value.trim();
+        if (trimmed === 'true') {
+            return true;
+        }
+        if (trimmed === 'false') {
+            return false;
+        }
+        if (/^-?\d+(\.\d+)?([eE][+-]?\d+)?$/.test(trimmed)) {
+            const parsed = Number(trimmed);
+            if (Number.isFinite(parsed)) {
+                return parsed;
+            }
+        }
+    }
+    return value;
+}
+
+function coerceInvokePathBucket(
+    bucket: Record<string, string | number | boolean> | undefined
+): Record<string, string | number | boolean> | undefined {
+    if (!bucket) {
+        return undefined;
+    }
+    const out: Record<string, string | number | boolean> = {};
+    for (const [key, value] of Object.entries(bucket)) {
+        if (value === undefined || value === null) {
+            continue;
+        }
+        out[key] = coerceInvokeScalar(value);
+    }
+    return Object.keys(out).length > 0 ? out : undefined;
+}
+
+function coerceInvokeQueryArrayValue(value: string): ReadonlyArray<string | number | boolean> {
+    return value
+        .split(',')
+        .map((part) => part.trim())
+        .filter((part) => part.length > 0)
+        .map((part) => coerceInvokeScalar(part));
+}
+
+function coerceInvokeQueryBucket(toolName: string, bucket: InvokeOptions['query']): InvokeOptions['query'] {
+    if (!bucket) {
+        return undefined;
+    }
+    const arrayQueryKeys = new Set(
+        (invokeParamBucketsByTool as Record<string, { arrayQuery?: string[] }>)[toolName]?.arrayQuery ?? []
+    );
+    const out: Record<string, string | number | boolean | ReadonlyArray<string | number | boolean>> = {};
+    for (const [key, value] of Object.entries(bucket)) {
+        if (value === undefined || value === null) {
+            continue;
+        }
+        if (Array.isArray(value)) {
+            out[key] = value.map((element) => coerceInvokeScalar(element));
+            continue;
+        }
+        if (arrayQueryKeys.has(key) && typeof value === 'string') {
+            out[key] = coerceInvokeQueryArrayValue(value);
+            continue;
+        }
+        out[key] = coerceInvokeScalar(value as string | number | boolean);
+    }
+    return Object.keys(out).length > 0 ? out : undefined;
+}
+
+function coerceInvokeValueBySchema(value: unknown, schema: Record<string, unknown> | undefined): unknown {
+    if (!schema || value === undefined || value === null) {
+        return value;
+    }
+    const type = schema.type;
+    if (type === 'integer' || type === 'number') {
+        if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
+            return coerceInvokeScalar(value as string | number | boolean);
+        }
+        return value;
+    }
+    if (type === 'boolean') {
+        if (typeof value === 'boolean') {
+            return value;
+        }
+        if (typeof value === 'string') {
+            const trimmed = value.trim();
+            if (trimmed === 'true') {
+                return true;
+            }
+            if (trimmed === 'false') {
+                return false;
+            }
+        }
+        return value;
+    }
+    if (type === 'array') {
+        const items = schema.items as Record<string, unknown> | undefined;
+        if (typeof value === 'string') {
+            return value
+                .split(',')
+                .map((part) => part.trim())
+                .filter((part) => part.length > 0)
+                .map((part) => (items ? coerceInvokeValueBySchema(part, items) : coerceInvokeScalar(part)));
+        }
+        if (Array.isArray(value)) {
+            return value.map((element) =>
+                items
+                    ? coerceInvokeValueBySchema(element, items)
+                    : coerceInvokeScalar(element as string | number | boolean)
+            );
+        }
+        return value;
+    }
+    if (
+        type === 'object' &&
+        schema.properties &&
+        typeof schema.properties === 'object' &&
+        !Array.isArray(schema.properties) &&
+        typeof value === 'object' &&
+        value !== null &&
+        !Array.isArray(value)
+    ) {
+        const props = schema.properties as Record<string, Record<string, unknown>>;
+        const out: Record<string, unknown> = {};
+        for (const [key, element] of Object.entries(value as Record<string, unknown>)) {
+            if (element === undefined || element === null) {
+                continue;
+            }
+            const propSchema = props[key];
+            out[key] = propSchema ? coerceInvokeValueBySchema(element, propSchema) : element;
+        }
+        return out;
+    }
+    return value;
+}
+
+function coerceInvokeBody(toolName: string, body: unknown): unknown {
+    if (body === undefined || body === null) {
+        return body;
+    }
+    const schema = (invokeBodySchemaByTool as Record<string, Record<string, unknown> | undefined>)[toolName];
+    if (!schema) {
+        return body;
+    }
+    return coerceInvokeValueBySchema(body, schema);
+}
+
+function isInvokeQueryBucketValue(value: unknown): value is Record<string, unknown> {
+    return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+function normalizeInvokeOptions(toolName: string, options: InvokeOptions): InvokeOptions {
+    const buckets = (
+        invokeParamBucketsByTool as Record<
+            string,
+            { pathParams?: string[]; query?: string[]; headers?: string[]; arrayQuery?: string[] }
+        >
+    )[toolName];
+    if (!buckets) {
+        return options;
+    }
+    const pathKeys = buckets.pathParams ?? [];
+    const queryKeys = buckets.query ?? [];
+    const headerKeys = buckets.headers ?? [];
+    const arrayQueryKeys = new Set(buckets.arrayQuery ?? []);
+    const knownFlatKeys = new Set([...pathKeys, ...queryKeys, ...headerKeys]);
+    const hasTopLevelFlatParam = Object.keys(options).some((key) => {
+        if (key === 'body' || key === 'pathParams' || key === 'headers') {
+            return false;
+        }
+        if (key === 'query') {
+            return queryKeys.includes('query') && !isInvokeQueryBucketValue(options.query);
+        }
+        return knownFlatKeys.has(key);
+    });
+    if (!hasTopLevelFlatParam) {
+        return {
+            ...options,
+            pathParams: coerceInvokePathBucket(options.pathParams),
+            query: coerceInvokeQueryBucket(
+                toolName,
+                isInvokeQueryBucketValue(options.query) ? options.query : undefined
+            ),
+            body: coerceInvokeBody(toolName, options.body)
+        };
+    }
+
+    const pathParams: Record<string, string | number | boolean> = { ...(options.pathParams ?? {}) };
+    const query: Record<string, string | number | boolean | ReadonlyArray<string | number | boolean>> =
+        isInvokeQueryBucketValue(options.query)
+            ? {
+                  ...(options.query as Record<
+                      string,
+                      string | number | boolean | ReadonlyArray<string | number | boolean>
+                  >)
+              }
+            : {};
+    const headers: Record<string, string> =
+        options.headers && typeof options.headers === 'object' ? { ...options.headers } : {};
+
+    for (const [key, value] of Object.entries(options)) {
+        if (value === undefined || value === null) {
+            continue;
+        }
+        if (key === 'body' || key === 'pathParams') {
+            continue;
+        }
+        if (key === 'query') {
+            if (queryKeys.includes('query') && !isInvokeQueryBucketValue(value)) {
+                if (arrayQueryKeys.has(key) && typeof value === 'string') {
+                    query[key] = coerceInvokeQueryArrayValue(value);
+                } else {
+                    query[key] = value as string | number | boolean | ReadonlyArray<string | number | boolean>;
+                }
+            }
+            continue;
+        }
+        if (key === 'headers') {
+            if (headerKeys.length === 0 && typeof value === 'object' && !Array.isArray(value)) {
+                Object.assign(headers, value as Record<string, string>);
+            }
+            continue;
+        }
+        if (pathKeys.includes(key)) {
+            pathParams[key] = value as string | number | boolean;
+        } else if (queryKeys.includes(key)) {
+            if (arrayQueryKeys.has(key) && typeof value === 'string') {
+                query[key] = coerceInvokeQueryArrayValue(value);
+            } else {
+                query[key] = value as string | number | boolean | ReadonlyArray<string | number | boolean>;
+            }
+        } else if (headerKeys.includes(key)) {
+            headers[key] = String(value);
+        }
+    }
+
+    return {
+        pathParams: coerceInvokePathBucket(pathParams),
+        query: coerceInvokeQueryBucket(toolName, query),
+        headers: Object.keys(headers).length > 0 ? headers : undefined,
+        body: coerceInvokeBody(toolName, options.body)
+    };
+}
+const queryParamSerializationByTool = {
+    listMyAccounts: {},
+    getAccountBalance: {},
+    listAllAccounts: {}
+};
+const queryParamWireNamesByTool = {
+    listMyAccounts: {},
+    getAccountBalance: {},
+    listAllAccounts: {}
+};
+
+function appendSerializedQueryParams(
+    searchParams: URLSearchParams,
+    toolName: string,
+    query: InvokeOptions['query']
+): void {
+    if (!query) {
+        return;
+    }
+    const hintsByParam: Record<string, { style?: string; explode?: boolean }> =
+        (queryParamSerializationByTool as Record<string, Record<string, { style?: string; explode?: boolean }>>)[
+            toolName
+        ] ?? {};
+    const wireNames: Record<string, string> =
+        (queryParamWireNamesByTool as Record<string, Record<string, string>>)[toolName] ?? {};
+    for (const [key, value] of Object.entries(query)) {
+        if (value === undefined || value === null) {
+            continue;
+        }
+        const wireKey = wireNames[key] ?? key;
+        if (Array.isArray(value)) {
+            const hint = hintsByParam[key];
+            const style = hint && hint.style ? hint.style : 'form';
+            const explode = hint && typeof hint.explode === 'boolean' ? hint.explode : true;
+            if (style !== 'form') {
+                throw new Error(
+                    'invokeTool: query array param "' +
+                        key +
+                        '" uses OpenAPI style "' +
+                        style +
+                        '"; only style "form" is supported for arrays.'
+                );
+            }
+            const parts: string[] = [];
+            for (const element of value) {
+                if (element === undefined || element === null) {
+                    continue;
+                }
+                parts.push(String(element));
+            }
+            if (parts.length === 0) {
+                continue;
+            }
+            if (explode) {
+                for (const p of parts) {
+                    searchParams.append(wireKey, p);
+                }
+            } else {
+                searchParams.set(wireKey, parts.join(','));
+            }
+            continue;
+        }
+        searchParams.set(wireKey, String(value));
+    }
+}
+
+function resolveAuthSecret(
+    authConfig: { location: 'header' | 'query'; name: string; prefix?: string },
+    credential: string | undefined
+): string {
+    if (!credential || !String(credential).trim()) {
+        throw new Error(
+            'Missing host credential (stdio: --auth-env; HTTP: auth header; OAuth HTTP: Bearer after MCP login).'
+        );
+    }
+    return (authConfig.prefix ?? '') + String(credential).trim();
+}
+async function performToolHttpRequest(
+    url: URL,
+    init: { method: string; headers: Record<string, string>; body?: string }
+): Promise<Response> {
+    if (init.method !== 'TRACE') {
+        return fetch(url, init as RequestInit);
+    }
+    const client = url.protocol === 'https:' ? await import('node:https') : await import('node:http');
+    return new Promise((resolve, reject) => {
+        const req = client.request(
+            {
+                protocol: url.protocol,
+                hostname: url.hostname,
+                port: url.port || undefined,
+                path: url.pathname + url.search,
+                method: 'TRACE',
+                headers: init.headers
+            },
+            (res) => {
+                const chunks: Buffer[] = [];
+                res.on('data', (chunk: Buffer) => chunks.push(chunk));
+                res.on('end', () => {
+                    const responseHeaders = new Headers();
+                    for (const [name, value] of Object.entries(res.headers)) {
+                        if (value === undefined) {
+                            continue;
+                        }
+                        if (Array.isArray(value)) {
+                            for (const entry of value) {
+                                responseHeaders.append(name, entry);
+                            }
+                        } else {
+                            responseHeaders.set(name, value);
+                        }
+                    }
+                    resolve(
+                        new Response(Buffer.concat(chunks), {
+                            status: res.statusCode ?? 500,
+                            headers: responseHeaders
+                        })
+                    );
+                });
+            }
+        );
+        req.on('error', reject);
+        if (init.body) {
+            req.write(init.body);
+        }
+        req.end();
+    });
+}
+
+export async function invokeTool(
+    toolName: string,
+    options: InvokeOptions = {},
+    hostContext?: ApiHostContext
+): Promise<unknown> {
+    const tool = generatedTools.find((t) => t.toolName === toolName);
+    if (!tool) {
+        throw new Error('Unknown tool: ' + toolName);
+    }
+    loggingAdapter.debug('invokeTool', { toolName, method: tool.method, path: tool.path });
+    const optionsResolved = normalizeInvokeOptions(toolName, options);
+
+    if (hostContext === undefined) {
+        throw new Error('invokeTool requires hostContext from the MCP host (servers/*-mcp-server).');
+    }
+    const host = hostContext as ApiHostContext;
+    const { baseUrl } = host;
+    let credential: string | undefined = host.credential?.trim() ? String(host.credential).trim() : undefined;
+    let authCredential: string | undefined = credential;
+
+    if (tool.access === 'protected') {
+        const inbound = host.credential;
+        if (!inbound || !String(inbound).trim()) {
+            throw new Error(
+                'Missing host credential. stdio: set env for --auth-env on the MCP host; passthrough HTTP: MCP auth header (e.g. x-api-token); OAuth HTTP: complete MCP login (Authorization Bearer from Cursor).'
+            );
+        }
+        credential = String(inbound).trim();
+        await verifyCredential(credential);
+        if (tool.hasCheckToolAccess) {
+            const checkToolAccess = checkToolAccessHooks[toolName];
+            if (typeof checkToolAccess !== 'function') {
+                throw new Error('No checkToolAccess hook for tool: ' + toolName);
+            }
+            await Promise.resolve(checkToolAccess(credential));
+        }
+        authCredential = credential;
+    }
+    const normalizedBaseUrl = baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl;
+    const pathParams = { ...(optionsResolved.pathParams ?? {}) };
+    let resolvedPath = tool.path;
+    for (const [key, value] of Object.entries(pathParams)) {
+        resolvedPath = resolvedPath.split('{' + key + '}').join(encodeURIComponent(String(value)));
+    }
+
+    const url = new URL(normalizedBaseUrl + resolvedPath);
+    appendSerializedQueryParams(url.searchParams, tool.toolName, optionsResolved.query);
+    const requestHeaders: Record<string, string> = {
+        'content-type': 'application/json',
+        ...(optionsResolved.headers ?? {})
+    };
+    if (authConfig && tool.access === 'protected') {
+        const authValue = resolveAuthSecret(authConfig!, authCredential);
+        if (authConfig.location === 'header') {
+            requestHeaders[authConfig.name] = authValue;
+        } else {
+            url.searchParams.set(authConfig.name, authValue);
+        }
+    }
+
+    const requestInit: Record<string, unknown> = {
+        method: tool.method,
+        headers: requestHeaders
+    };
+
+    if (optionsResolved.body !== undefined && tool.method !== 'GET' && tool.method !== 'HEAD') {
+        requestInit.body = JSON.stringify(optionsResolved.body);
+    }
+
+    const response = await performToolHttpRequest(url, {
+        method: tool.method,
+        headers: requestHeaders as Record<string, string>,
+        body: typeof requestInit.body === 'string' ? requestInit.body : undefined
+    });
+    if (!response.ok) {
+        const retryAfter = response.headers.get('retry-after');
+        let bodySnippet = '';
+        try {
+            const t = await response.text();
+            bodySnippet = t.length > 512 ? t.slice(0, 512) + '...' : t;
+        } catch {
+            /* ignore unreadable error body */
+        }
+        let msg = 'HTTP ' + response.status + ' while invoking ' + tool.toolName + '.';
+        if (response.status === 401) {
+            msg += ' Unauthorized.';
+            if (authConfig && tool.access === 'protected') {
+                msg += ' Check MCP host --auth-env (' + authConfig.location + ' ' + authConfig.name + ').';
+            }
+        } else if (response.status === 403) {
+            msg += ' Forbidden: insufficient permission for this request.';
+        } else if (response.status === 429) {
+            msg += ' Too Many Requests (rate limited).';
+            if (retryAfter) {
+                msg += ' Retry-After: ' + retryAfter + ' (seconds or HTTP-date per server).';
+            } else {
+                msg += ' Wait before retrying.';
+            }
+        }
+        if (bodySnippet) {
+            msg += ' Response body: ' + bodySnippet;
+        }
+        loggingAdapter.error(msg, { toolName: tool.toolName, status: response.status });
+        throw new Error(msg);
+    }
+
+    const contentType = response.headers.get('content-type') ?? '';
+    if (contentType.includes('application/json')) {
+        return response.json();
+    }
+    return response.text();
+}

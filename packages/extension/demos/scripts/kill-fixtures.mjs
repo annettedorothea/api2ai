@@ -17,4 +17,6 @@ console.log('[kill-fixtures] stopping todo-api…');
 runNode('./todo-api/kill-server.mjs');
 console.log('[kill-fixtures] stopping test-api…');
 runNode('./test-api/kill-server.mjs');
+console.log('[kill-fixtures] stopping banking-api…');
+runNode('./banking-api/kill-server.mjs');
 console.log('[kill-fixtures] done.');

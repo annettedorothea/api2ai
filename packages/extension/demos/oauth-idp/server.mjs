@@ -5,7 +5,8 @@
  */
 import { createHash, randomBytes, timingSafeEqual } from 'node:crypto';
 import { createServer } from 'node:http';
-import { getJwksDocument, mintCustomerToken } from './jwt.mjs';
+import { getJwksDocument, mintCustomerToken, verifyJwt } from './jwt.mjs';
+import { signJwt } from '../bookings/jwt.mjs';
 import {
     renderAuthorizeConsentPage,
     renderAuthorizeHelpPage,
@@ -84,7 +85,7 @@ const DEMO_USERS = [
     { customerId: 'admin', role: 'admin' }
 ];
 
-/** @type {Map<string, { customerId: string; role: string; redirectUri: string; codeChallenge: string; expiresAt: number }>} */
+/** @type {Map<string, { customerId: string; role: string; redirectUri: string; codeChallenge: string; expiresAt: number; scope: string }>} */
 const pendingCodes = new Map();
 
 function sendJson(res, status, body) {
@@ -230,12 +231,14 @@ function handleAuthorize(req, res, url) {
     }
 
     const code = randomBytes(24).toString('hex');
+    const scope = url.searchParams.get('scope') ?? '';
     pendingCodes.set(code, {
         customerId: user.customerId,
         role: user.role,
         redirectUri,
         codeChallenge,
-        expiresAt: Date.now() + 5 * 60_000
+        expiresAt: Date.now() + 5 * 60_000,
+        scope
     });
 
     const redirect = new URL(redirectUri);
@@ -286,10 +289,96 @@ async function handleToken(req, res) {
     }
     pendingCodes.delete(code);
 
-    const accessToken = mintCustomerToken(pending.customerId, pending.role, 3600, issuerUrl(req));
-    loggingAdapter.info('access token issued', { customerId: pending.customerId, role: pending.role, expiresIn: 3600 });
+    const scope = pending.scope ?? '';
+    const isBanking = scope.split(/\s+/).filter((part) => part.length > 0).includes('banking');
+    const issuer = issuerUrl(req);
+    const accessToken = isBanking
+        ? mintCustomerToken(pending.customerId, pending.role, 3600, issuer, {
+              token_use: 'idp',
+              sub: pending.customerId
+          })
+        : mintCustomerToken(pending.customerId, pending.role, 3600, issuer);
+    loggingAdapter.info('access token issued', {
+        customerId: pending.customerId,
+        role: pending.role,
+        expiresIn: 3600,
+        scope: scope || undefined,
+        tokenUse: isBanking ? 'idp' : 'api'
+    });
     sendJson(res, 200, {
         access_token: accessToken,
+        token_type: 'Bearer',
+        expires_in: 3600
+    });
+}
+
+function portalJwtSecret() {
+    return (
+        process.env.BANKING_API_JWT_SECRET?.trim() ||
+        process.env.BOOKINGS_API_JWT_SECRET?.trim() ||
+        'demo-banking-portal-secret'
+    );
+}
+
+function permissionsForRole(role) {
+    if (role === 'admin') {
+        return ['banking:read', 'banking:admin'];
+    }
+    return ['banking:read'];
+}
+
+function mintPortalToken(customerId, role) {
+    const now = Math.floor(Date.now() / 1000);
+    return signJwt(
+        {
+            customerId: String(customerId),
+            role: String(role),
+            permissions: permissionsForRole(role),
+            token_use: 'portal',
+            iat: now,
+            exp: now + 3600
+        },
+        portalJwtSecret()
+    );
+}
+
+function parseBearer(req) {
+    const h = req.headers.authorization;
+    if (!h || !h.startsWith('Bearer ')) {
+        return undefined;
+    }
+    return h.slice('Bearer '.length).trim();
+}
+
+async function handlePortalTokenExchange(req, res) {
+    const idpToken = parseBearer(req);
+    if (!idpToken) {
+        loggingAdapter.warn('portal token-exchange rejected', { error: 'missing_bearer_token' });
+        sendJson(res, 401, { error: 'missing_bearer_token' });
+        return;
+    }
+    const verified = verifyJwt(idpToken);
+    if (!verified.ok) {
+        loggingAdapter.warn('portal token-exchange rejected', { error: 'invalid_idp_token', reason: verified.error });
+        sendJson(res, 401, { error: 'invalid_idp_token', reason: verified.error });
+        return;
+    }
+    const tokenUse = String(verified.payload?.token_use ?? '').trim();
+    if (tokenUse !== 'idp') {
+        loggingAdapter.warn('portal token-exchange rejected', { error: 'not_idp_token' });
+        sendJson(res, 400, { error: 'not_idp_token' });
+        return;
+    }
+    const customerId = String(verified.payload?.customerId ?? '').trim();
+    const role = String(verified.payload?.role ?? 'user').trim();
+    if (!customerId) {
+        sendJson(res, 400, { error: 'missing_customer_id' });
+        return;
+    }
+    const portalToken = mintPortalToken(customerId, role);
+    loggingAdapter.info('portal access token issued', { customerId, role });
+    sendJson(res, 200, {
+        access_token: portalToken,
         token_type: 'Bearer',
         expires_in: 3600
     });
@@ -324,6 +413,10 @@ const server = createServer(async (req, res) => {
     }
     if (url.pathname === '/token' && req.method === 'POST') {
         await handleToken(req, res);
+        return;
+    }
+    if (url.pathname === '/portal/token-exchange' && req.method === 'POST') {
+        await handlePortalTokenExchange(req, res);
         return;
     }
     if (url.pathname === '/register' && req.method === 'POST') {

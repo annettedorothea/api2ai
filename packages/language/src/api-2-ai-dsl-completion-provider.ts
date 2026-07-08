@@ -25,7 +25,8 @@ const CANONICAL_KEYWORD_SORT: Record<string, string> = {
     name: '0101',
     prefix: '0102',
     hooks: '0102.5',
-    verifyCredential: '0102.6',
+    tokenExchange: '0102.6',
+    verifyCredential: '0102.7',
     toolName: '0200',
     access: '0201',
     checkToolAccess: '0201.25',
@@ -58,7 +59,7 @@ const AUTH_KEYWORD_INSERT: Record<string, string> = {
     in: 'in: $1$0',
     name: 'name: "$1"$0',
     prefix: 'prefix: "$1"$0',
-    hooks: 'hooks: {\n    verifyCredential: true\n}$0'
+    hooks: 'hooks: {\n    tokenExchange: true\n    verifyCredential: true\n}$0'
 };
 const OPERATION_KEYWORD_INSERT: Record<string, string> = {
     toolName: 'toolName: $1$0',

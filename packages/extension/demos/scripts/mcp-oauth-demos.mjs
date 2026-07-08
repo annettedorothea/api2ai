@@ -22,11 +22,17 @@ export const OAUTH_HTTP_DEMOS = {
         oauthIdpUrlEnv: 'BOOKINGS_OAUTH_IDP_URL',
         portEnv: 'CAKES_OAUTH_HTTP_PORT',
         oauthScope: 'cakes-api'
+    },
+    banking: {
+        baseUrlEnv: 'BANKING_API_BASE_URL',
+        oauthIdpUrlEnv: 'BANKING_OAUTH_IDP_URL',
+        portEnv: 'BANKING_OAUTH_HTTP_PORT',
+        oauthScope: 'banking'
     }
 };
 
 /** OAuth MCP hosts started by `npm run start:mcp` / `start:all`. */
-export const OAUTH_HTTP_START_DEMO_NAMES = ['bookings', 'cakes'];
+export const OAUTH_HTTP_START_DEMO_NAMES = ['bookings', 'cakes', 'banking'];
 
 export const OAUTH_HTTP_DEMO_NAMES = Object.keys(OAUTH_HTTP_DEMOS);
 

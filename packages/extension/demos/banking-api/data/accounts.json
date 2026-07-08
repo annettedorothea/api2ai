@@ -1,0 +1,32 @@
+{
+    "accounts": [
+        {
+            "accountId": "acc-alice-checking",
+            "customerId": "alice",
+            "label": "Girokonto",
+            "currency": "EUR",
+            "balance": 1250.5
+        },
+        {
+            "accountId": "acc-alice-savings",
+            "customerId": "alice",
+            "label": "Sparkonto",
+            "currency": "EUR",
+            "balance": 8400
+        },
+        {
+            "accountId": "acc-bob-checking",
+            "customerId": "bob",
+            "label": "Girokonto",
+            "currency": "EUR",
+            "balance": 320.75
+        },
+        {
+            "accountId": "acc-admin-float",
+            "customerId": "admin",
+            "label": "Treasury",
+            "currency": "EUR",
+            "balance": 50000
+        }
+    ]
+}

@@ -6,6 +6,7 @@ import {
     isCheckToolAccessEnabled,
     isPrepareToolCallEnabled,
     isVerifyCredentialEnabled,
+    isTokenExchangeEnabled,
     loadOpenApi,
     makeOperationLookupKey
 } from 'api-2-ai-dsl-language';
@@ -13,9 +14,11 @@ import {
     buildInputZodBlock,
     emitGeneratedZodPreamble,
     ensureVerifyCredentialStubFromSource,
+    ensureTokenExchangeStubFromSource,
     relativeImportToLoggingAdapter,
     renderVerifyCredentialImport,
     renderVerifyCredentialReExport,
+    renderTokenExchangeReExport,
     resolveBootstrapProjectRootFromSource,
     resolveMcpServerIdentityFromDestination,
     type ProjectBootstrapConfig
@@ -307,6 +310,7 @@ function assembleToolsModuleSource(
     projectRoot: string,
     authStubImports: string,
     verifyStubPath: string | undefined,
+    tokenExchangeStubPath: string | undefined,
     hasVerifyCredential: boolean,
     hasZodSchemas: boolean
 ): string {
@@ -326,6 +330,10 @@ export const authConfig: AuthConfig | undefined = ${authConfigLiteral};`
 
     const verifyExportBlock =
         verifyStubPath !== undefined ? `\n${renderVerifyCredentialReExport(destinationTsPath, verifyStubPath)}\n` : '';
+    const tokenExchangeExportBlock =
+        tokenExchangeStubPath !== undefined
+            ? `\n${renderTokenExchangeReExport(destinationTsPath, tokenExchangeStubPath)}\n`
+            : '';
 
     const importPrefix = renderGeneratedImports(
         destinationTsPath,
@@ -368,7 +376,7 @@ export type ApiHostContext = {
 };
 
 ${authDecl}
-${verifyExportBlock}
+${verifyExportBlock}${tokenExchangeExportBlock}
 ${mcpServerIdentityBlock}
 ${toolRuntimeBlock}
     `.appendNewLineIfNotEmpty();
@@ -418,6 +426,7 @@ export async function renderToolsModule(input: RenderToolsModuleInput): Promise<
         prepareToolCallToolNames
     );
     const hasVerifyCredential = isVerifyCredentialEnabled(model.auth);
+    const hasTokenExchange = isTokenExchangeEnabled(model.auth);
     const checkToolAccessImports =
         checkToolAccessToolNames.length > 0
             ? renderCheckToolAccessHookImports(destinationTsPath, stubPaths, checkToolAccessToolNames)
@@ -456,6 +465,9 @@ export async function renderToolsModule(input: RenderToolsModuleInput): Promise<
     const verifyStubPath = hasVerifyCredential
         ? await ensureVerifyCredentialStubFromSource(source, destinationTsPath)
         : undefined;
+    const tokenExchangeStubPath = hasTokenExchange
+        ? await ensureTokenExchangeStubFromSource(source, destinationTsPath)
+        : undefined;
     const projectRoot = resolveBootstrapProjectRootFromSource(source);
     const hasZodSchemas = Object.keys(orderedSchemas).length > 0;
 
@@ -469,6 +481,7 @@ export async function renderToolsModule(input: RenderToolsModuleInput): Promise<
         projectRoot,
         authStubImports,
         verifyStubPath,
+        tokenExchangeStubPath,
         hasVerifyCredential,
         hasZodSchemas
     );

@@ -14,7 +14,10 @@ Auth:
     '}';
 
 AuthHooks:
-    '{' 'verifyCredential' ':' verifyCredential=Boolean '}';
+    '{'
+        ('tokenExchange' ':' tokenExchange=Boolean)?
+        ('verifyCredential' ':' verifyCredential=Boolean)?
+    '}';
 
 Operation:
     method=HttpMethod path=STRING '{'

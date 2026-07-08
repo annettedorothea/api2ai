@@ -48,14 +48,15 @@ export function getJwksDocument() {
     };
 }
 
-export function mintCustomerToken(customerId, role = 'user', ttlSeconds = 3600, issuer) {
+export function mintCustomerToken(customerId, role = 'user', ttlSeconds = 3600, issuer, extraClaims = {}) {
     const now = Math.floor(Date.now() / 1000);
     const payload = {
         customerId: String(customerId),
         role: String(role),
         iat: now,
         exp: now + ttlSeconds,
-        jti: randomBytes(8).toString('hex')
+        jti: randomBytes(8).toString('hex'),
+        ...extraClaims
     };
     if (issuer) {
         payload.iss = issuer;

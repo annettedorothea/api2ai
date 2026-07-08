@@ -16,7 +16,11 @@ export function getAccessKind(operation: Operation): 'public' | 'protected' {
 }
 
 export function isVerifyCredentialEnabled(auth: Auth | undefined): boolean {
-    return auth?.hooks?.verifyCredential === true;
+    return auth?.hooks?.verifyCredential === true || auth?.hooks?.tokenExchange === true;
+}
+
+export function isTokenExchangeEnabled(auth: Auth | undefined): boolean {
+    return auth?.hooks?.tokenExchange === true;
 }
 
 export function isCheckToolAccessEnabled(operation: Operation): boolean {

@@ -1,0 +1,70 @@
+openapi "./openapi/banking.openapi.yaml"
+
+auth {
+    in: header
+    name: "Authorization"
+    prefix: "Bearer "
+    hooks: {
+        tokenExchange: true
+        verifyCredential: true
+    }
+}
+
+GET "/accounts" {
+    toolName: listMyAccounts
+    access: protected
+    hooks: {
+        checkToolAccess: true
+    }
+    intent: '''
+        List bank accounts for the authenticated customer (portal JWT after token exchange).
+        Requires banking:read permission in the portal token.
+    '''
+    summary: "List my bank accounts"
+    example: "List my accounts"
+    response: '''
+        HTTP 200 — customerId and accounts array (accountId, label, currency).
+        Documented errors:
+        HTTP 401 — Missing or invalid portal token
+    '''
+}
+
+GET "/accounts/{accountId}/balance" {
+    toolName: getAccountBalance
+    access: protected
+    hooks: {
+        checkToolAccess: true
+    }
+    intent: '''
+        Fetch balance for one account by accountId (from listMyAccounts).
+        Users may only read their own accounts; admin may read any account.
+    '''
+    summary: "Get account balance"
+    example: "Balance for acc-alice-checking"
+    response: '''
+        HTTP 200 — accountId, balance, currency.
+        Documented errors:
+        HTTP 401 — Missing or invalid portal token
+        HTTP 403 — Account not accessible
+        HTTP 404 — Unknown account
+    '''
+}
+
+GET "/accounts/all" {
+    toolName: listAllAccounts
+    access: protected
+    hooks: {
+        checkToolAccess: true
+    }
+    intent: '''
+        Admin only: list all demo accounts with balances.
+    '''
+    summary: "List all accounts (admin)"
+    example: "List all customer accounts as admin"
+    response: '''
+        HTTP 200 — role and accounts array.
+        Documented errors:
+        HTTP 401 — Missing or invalid portal token
+        HTTP 403 — Admin role required
+    '''
+}

@@ -165,6 +165,18 @@ function printMcpInspectAuthHints(demoName, env = process.env) {
         return;
     }
 
+    if (demoName === 'banking') {
+        const oauthServerUrl = env.BANKING_OAUTH_IDP_URL?.trim() || 'http://127.0.0.1:3860';
+        const { mcpUrl } = buildOAuthHostLaunch(demoName, demosRoot, env);
+        printOAuthBlock({
+            mcpUrl,
+            oauthServerUrl,
+            scope: oauthDemo?.oauthScope ?? 'banking',
+            bearerHint: `Run: node ${path.join(demosRoot, 'banking/get-idp-token.mjs')} alice  (IdP JWT; host exchanges to portal)`
+        });
+        return;
+    }
+
     console.log('  See .cursor/mcp.json and core2ai/docs/testing/mcp-inspector.md');
     console.log('');
 }
@@ -322,6 +334,22 @@ async function startDeps(demoName) {
             BOOKINGS_OAUTH_IDP_PORT: String(idpPort)
         });
         await waitForTcpListen(cakesPort, { label: 'cakes-api' });
+        await waitForTcpListen(idpPort, { label: 'oauth-idp' });
+        return;
+    }
+
+    if (demoName === 'banking') {
+        const bankingPort = requireEnvInt('BANKING_API_PORT');
+        const idpPort = requireEnvInt('BOOKINGS_OAUTH_IDP_PORT');
+        killListenersOnPort(bankingPort, { logPrefix: 'banking-api:kill' });
+        killListenersOnPort(idpPort, { logPrefix: 'oauth-idp:kill' });
+        startBackground('banking-api', [path.join(demosRoot, 'banking-api', 'server.mjs')], {
+            BANKING_API_PORT: String(bankingPort)
+        });
+        startBackground('oauth-idp', [path.join(demosRoot, 'oauth-idp', 'server.mjs')], {
+            BOOKINGS_OAUTH_IDP_PORT: String(idpPort)
+        });
+        await waitForTcpListen(bankingPort, { label: 'banking-api' });
         await waitForTcpListen(idpPort, { label: 'oauth-idp' });
         return;
     }

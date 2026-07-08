@@ -64,6 +64,14 @@ export class Api2AiDslValidator {
                 property: 'name'
             });
         }
+
+        const hooks = auth.hooks;
+        if (hooks?.tokenExchange === true && hooks.verifyCredential !== true) {
+            accept('error', 'auth.hooks.tokenExchange requires auth.hooks.verifyCredential: true.', {
+                node: hooks,
+                property: 'tokenExchange'
+            });
+        }
     }
 
     private checkOperationAccess(model: Model, accept: ValidationAcceptor): void {

@@ -23,6 +23,8 @@ type ApiLikeHostContext = {
 
 type VerifyCredentialFn = (credential: string) => void | Promise<void>;
 
+type TokenExchangeFn = (idpCredential: string) => Promise<string>;
+
 type GeneratedHostModule = {
     generatedTools: Array<{ toolName: string; title?: string; description: string; access?: string }>;
     invokeTool: (toolName: string, args?: Record<string, unknown>, hostContext?: unknown) => Promise<unknown>;
@@ -32,6 +34,7 @@ type GeneratedHostModule = {
     requiresAuth: boolean;
     connectionEnv?: string;
     verifyCredential?: VerifyCredentialFn;
+    tokenExchange?: TokenExchangeFn;
 };
 
 function stripOptionalQuotes(value: string): string {
@@ -134,6 +137,8 @@ function readGeneratedModule(imported: Record<string, unknown>): GeneratedHostMo
     const verifyCredential = imported.verifyCredential;
     const verifyCredentialFn =
         typeof verifyCredential === 'function' ? (verifyCredential as VerifyCredentialFn) : undefined;
+    const tokenExchange = imported.tokenExchange;
+    const tokenExchangeFn = typeof tokenExchange === 'function' ? (tokenExchange as TokenExchangeFn) : undefined;
     return {
         generatedTools: generatedTools as Array<{ toolName: string; title?: string; description: string }>,
         invokeTool: invokeTool as (
@@ -148,7 +153,8 @@ function readGeneratedModule(imported: Record<string, unknown>): GeneratedHostMo
         mcpServerName: typeof mcpServerName === 'string' ? mcpServerName : undefined,
         mcpServerVersion: typeof mcpServerVersion === 'string' ? mcpServerVersion : undefined,
         requiresAuth: imported.requiresAuth === true,
-        verifyCredential: verifyCredentialFn
+        verifyCredential: verifyCredentialFn,
+        tokenExchange: tokenExchangeFn
     };
 }
 
@@ -350,7 +356,9 @@ type OAuthHttpHostRuntimeConfig = {
 type McpOAuthSession = {
     sessionId: string;
     credential?: string;
+    sourceCredential?: string;
     verifiedAt?: number;
+    exchangedAt?: number;
     createdAt: number;
 };
 
@@ -482,6 +490,40 @@ function withDbConnectionHostContext(_generated: GeneratedHostModule, context: A
     return context;
 }
 
+async function resolveOAuthSessionCredential(
+    generated: GeneratedHostModule,
+    inboundIdpToken: string,
+    session: McpOAuthSession | undefined
+): Promise<string> {
+    const inbound = inboundIdpToken.trim();
+    if (session?.exchangedAt && session.credential && session.sourceCredential === inbound) {
+        return session.credential;
+    }
+
+    let credential = inbound;
+    const exchange = generated.tokenExchange;
+    if (typeof exchange === 'function') {
+        credential = String(await exchange(inbound)).trim();
+        if (!credential) {
+            throw new Error('tokenExchange returned an empty credential.');
+        }
+    }
+
+    const verify = generated.verifyCredential;
+    if (typeof verify === 'function') {
+        await verify(credential);
+    }
+
+    if (session) {
+        session.credential = credential;
+        session.sourceCredential = inbound;
+        session.exchangedAt = Date.now();
+        session.verifiedAt = Date.now();
+    }
+
+    return credential;
+}
+
 async function verifyCredentialForGate(generated: GeneratedHostModule, bearer: string | undefined): Promise<boolean> {
     const token = bearer?.trim();
     if (!token) {
@@ -491,11 +533,12 @@ async function verifyCredentialForGate(generated: GeneratedHostModule, bearer: s
         return true;
     }
     const verify = generated.verifyCredential;
-    if (typeof verify !== 'function') {
+    const exchange = generated.tokenExchange;
+    if (typeof verify !== 'function' && typeof exchange !== 'function') {
         return true;
     }
     try {
-        await verify(token);
+        await resolveOAuthSessionCredential(generated, token, undefined);
         return true;
     } catch {
         return false;
@@ -516,7 +559,7 @@ async function resolveHostContextForOAuthSession(
         sessionStore.set(sessionId, session);
     }
 
-    if (session?.verifiedAt && session.credential) {
+    if (session?.exchangedAt && session.credential) {
         return withDbConnectionHostContext(_generated, {
             ...apiFields,
             credential: session.credential
@@ -535,18 +578,11 @@ async function resolveHostContextForOAuthSession(
         return withDbConnectionHostContext(_generated, { ...apiFields });
     }
 
-    const verify = _generated.verifyCredential;
-    if (typeof verify === 'function') {
-        await verify(inbound);
-    }
-    if (session) {
-        session.credential = inbound;
-        session.verifiedAt = Date.now();
-    }
+    const credential = await resolveOAuthSessionCredential(_generated, inbound, session);
 
     return withDbConnectionHostContext(_generated, {
         ...apiFields,
-        credential: inbound
+        credential
     });
 }
 
