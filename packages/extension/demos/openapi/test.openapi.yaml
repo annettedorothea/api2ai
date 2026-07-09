@@ -56,6 +56,26 @@ paths:
                                 properties:
                                     itemId:
                                         type: string
+    /accounts/{account.id}:
+        get:
+            operationId: test-get-account
+            summary: Get account by dotted path param
+            parameters:
+                - name: account.id
+                  in: path
+                  required: true
+                  schema:
+                      type: string
+            responses:
+                '200':
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    accountId:
+                                        type: string
     /items:
         get:
             operationId: test-list-items

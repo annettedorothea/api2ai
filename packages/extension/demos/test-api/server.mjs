@@ -118,6 +118,12 @@ const server = createServer(async (req, res) => {
             return;
         }
 
+        const accountParams = matchPath(pathname, '/accounts/{account.id}');
+        if (method === 'GET' && accountParams) {
+            sendJson(res, 200, { accountId: accountParams['account.id'] });
+            return;
+        }
+
         if (method === 'GET' && pathname === '/items') {
             const tag = url.searchParams.get('tag');
             if (!tag) {

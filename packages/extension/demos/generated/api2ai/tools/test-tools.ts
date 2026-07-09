@@ -55,6 +55,17 @@ export const generatedTools: GeneratedTool[] = [
         hasPrepareToolCall: false
     },
     {
+        toolName: 'testGetAccount',
+        title: 'Get account by dotted path param',
+        description:
+            'Intent:\nHarness dotted path param account.id mapped to account_id\n\nMCP arguments:\npass account_id as top-level tool arguments. Do not nest path or query parameters under pathParams or query.\n\nMeta:\noperationId: test-get-account\n\nParameters:\n- account_id (path)\n\nExample:\nGet account acc-42\n\nResponse:\nHTTP 200\nOK\nproperties (top-level): accountId\n\nRuntime: public endpoint — no credential required.',
+        method: 'GET',
+        path: '/accounts/{account.id}',
+        access: 'public',
+        hasCheckToolAccess: false,
+        hasPrepareToolCall: false
+    },
+    {
         toolName: 'testListItems',
         title: 'List items by tag',
         description:
@@ -263,6 +274,8 @@ export { verifyCredential } from '../../../src/hooks/api2ai/test-tools/verifyTes
 export const mcpServerName = 'test-tools';
 export const mcpServerVersion = '1.0.0-rc.2';
 
+export { mcpBuildGeneratedAt } from '../mcp-build-generated-at.js';
+
 const checkToolAccessHooks: Record<string, (credential: string) => void | Promise<void>> = {
     testGetAdminSecrets: checkToolAccessForTestGetAdminSecrets
 };
@@ -299,6 +312,17 @@ export const inputZodByTool = {
     testGetItem: z
         .object({
             itemId: z.string(),
+            headers: z.record(z.string(), z.string()).describe('Optional extra headers.').optional(),
+            body: z
+                .record(z.string(), z.union([z.string(), z.number(), z.boolean()]))
+                .describe('Request body JSON if applicable.')
+                .optional()
+        })
+        .strict()
+        .describe('Arguments for invoking the generated HTTP wrapper.'),
+    testGetAccount: z
+        .object({
+            account_id: z.string(),
             headers: z.record(z.string(), z.string()).describe('Optional extra headers.').optional(),
             body: z
                 .record(z.string(), z.union([z.string(), z.number(), z.boolean()]))
@@ -485,6 +509,12 @@ const invokeParamBucketsByTool = {
     },
     testGetItem: {
         pathParams: ['itemId'],
+        query: [],
+        headers: [],
+        arrayQuery: []
+    },
+    testGetAccount: {
+        pathParams: ['account_id'],
         query: [],
         headers: [],
         arrayQuery: []
@@ -966,6 +996,7 @@ const queryParamSerializationByTool = {
     testPing: {},
     testProtectedStatus: {},
     testGetItem: {},
+    testGetAccount: {},
     testListItems: {
         status: {
             style: 'form',
@@ -1011,9 +1042,58 @@ const queryParamWireNamesByTool = {
     testPing: {},
     testProtectedStatus: {},
     testGetItem: {},
+    testGetAccount: {},
     testListItems: {},
     testSearchItems: {},
     testGetWithHeader: {},
+    testCreateResource: {},
+    testPutResource: {},
+    testPatchResource: {},
+    testDeleteResource: {},
+    testProbeHead: {},
+    testProbeOptions: {},
+    testTraceRoute: {},
+    testOneOfBody: {},
+    testAnyOfBody: {},
+    testAllOfBody: {},
+    testRefBody: {},
+    testGetAdminSecrets: {},
+    testListPublicPrepared: {}
+};
+const pathParamWireNamesByTool = {
+    testPing: {},
+    testProtectedStatus: {},
+    testGetItem: {},
+    testGetAccount: {
+        account_id: 'account.id'
+    },
+    testListItems: {},
+    testSearchItems: {},
+    testGetWithHeader: {},
+    testCreateResource: {},
+    testPutResource: {},
+    testPatchResource: {},
+    testDeleteResource: {},
+    testProbeHead: {},
+    testProbeOptions: {},
+    testTraceRoute: {},
+    testOneOfBody: {},
+    testAnyOfBody: {},
+    testAllOfBody: {},
+    testRefBody: {},
+    testGetAdminSecrets: {},
+    testListPublicPrepared: {}
+};
+const headerParamWireNamesByTool = {
+    testPing: {},
+    testProtectedStatus: {},
+    testGetItem: {},
+    testGetAccount: {},
+    testListItems: {},
+    testSearchItems: {},
+    testGetWithHeader: {
+        X_Trace_Id: 'X-Trace-Id'
+    },
     testCreateResource: {},
     testPutResource: {},
     testPatchResource: {},
@@ -1201,17 +1281,27 @@ export async function invokeTool(
     }
     const normalizedBaseUrl = baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl;
     const pathParams = { ...(optionsResolved.pathParams ?? {}) };
+    const pathWireNames: Record<string, string> =
+        (pathParamWireNamesByTool as Record<string, Record<string, string>>)[tool.toolName] ?? {};
     let resolvedPath = tool.path;
     for (const [key, value] of Object.entries(pathParams)) {
-        resolvedPath = resolvedPath.split('{' + key + '}').join(encodeURIComponent(String(value)));
+        const wireKey = pathWireNames[key] ?? key;
+        resolvedPath = resolvedPath.split('{' + wireKey + '}').join(encodeURIComponent(String(value)));
     }
 
     const url = new URL(normalizedBaseUrl + resolvedPath);
     appendSerializedQueryParams(url.searchParams, tool.toolName, optionsResolved.query);
+    const headerWireNames: Record<string, string> =
+        (headerParamWireNamesByTool as Record<string, Record<string, string>>)[tool.toolName] ?? {};
     const requestHeaders: Record<string, string> = {
-        'content-type': 'application/json',
-        ...(optionsResolved.headers ?? {})
+        'content-type': 'application/json'
     };
+    if (optionsResolved.headers) {
+        for (const [key, value] of Object.entries(optionsResolved.headers)) {
+            const wireKey = headerWireNames[key] ?? key;
+            requestHeaders[wireKey] = value;
+        }
+    }
     if (authConfig && tool.access === 'protected') {
         const authValue = resolveAuthSecret(authConfig!, authCredential);
         if (authConfig.location === 'header') {

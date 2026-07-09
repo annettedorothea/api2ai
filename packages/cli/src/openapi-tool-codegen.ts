@@ -12,7 +12,7 @@ import {
     isPrepareToolCallEnabled,
     parseApiParamSpec
 } from 'api-2-ai-dsl-language';
-import { resolveModuleCredentialNames } from '@toolfactory.dev/core/codegen';
+import { resolveModuleVerifyCredentialNames } from '@toolfactory.dev/core/codegen';
 import {
     buildParamWireMaps,
     sanitizeWireParamNamesInText,
@@ -35,7 +35,7 @@ function verifyCredentialStubAuthPath(hostProduct: string, mcpModuleName: string
     if (!mcpModuleName) {
         return `src/hooks/${hostProduct}/<module>/verify*Credential.ts`;
     }
-    const names = resolveModuleCredentialNames(`generated/${hostProduct}/tools/${mcpModuleName}.ts`);
+    const names = resolveModuleVerifyCredentialNames(`generated/${hostProduct}/tools/${mcpModuleName}.ts`);
     return `src/hooks/${hostProduct}/${mcpModuleName}/${names.fileBase}.ts`;
 }
 
@@ -322,8 +322,7 @@ export function buildMcpDescription(
     operation: Operation,
     details: OpenApiOperationDetails,
     auth: Auth | undefined,
-    mcpModuleName: string | undefined,
-    hostProduct: 'api2ai' | 'db2ai'
+    mcpModuleName: string | undefined
 ): string {
     const sections: string[] = [];
 
@@ -375,7 +374,7 @@ export function buildMcpDescription(
     const access = getAccessKind(operation);
     const hasCheckToolAccess = isCheckToolAccessEnabled(operation);
     const hasPrepareToolCall = isPrepareToolCallEnabled(operation);
-    const hookDir = `src/hooks/${hostProduct}/${mcpModuleName ?? 'mcp'}`;
+    const hookDir = `src/hooks/api2ai/${mcpModuleName ?? 'mcp'}`;
     const checkHookPath = `${hookDir}/checkToolAccessFor${capitalize(toolFile)}.ts`;
     const prepareHookPath = `${hookDir}/prepareToolCallFor${capitalize(toolFile)}.ts`;
     const prefixNote =
@@ -400,7 +399,7 @@ export function buildMcpDescription(
         const implNote =
             implParts.length > 0
                 ? `implement ${implParts.join(' and ')}; `
-                : `implement ${verifyCredentialStubAuthPath(hostProduct, mcpModuleName)}; `;
+                : `implement ${verifyCredentialStubAuthPath('api2ai', mcpModuleName)}; `;
         sections.push(
             `Runtime: protected — ${implNote}credential sent as ${auth.location} "${auth.name}"${prefixNote}.`
         );
@@ -676,6 +675,18 @@ function invokeParamWireMaps(details: OpenApiOperationDetails): ParamWireMaps {
 export function buildQueryParamWireNamesLookup(details: OpenApiOperationDetails): Record<string, string> {
     const queryWireNames = details.parameters.filter((p) => p.in === 'query').map((p) => p.name);
     return buildParamWireMaps(queryWireNames).mcpToWire;
+}
+
+/** Per path parameter: MCP name → OpenAPI wire name (only when they differ). */
+export function buildPathParamWireNamesLookup(details: OpenApiOperationDetails): Record<string, string> {
+    const pathWireNames = details.parameters.filter((p) => p.in === 'path').map((p) => p.name);
+    return buildParamWireMaps(pathWireNames).mcpToWire;
+}
+
+/** Per header parameter: MCP name → OpenAPI wire name (only when they differ). */
+export function buildHeaderParamWireNamesLookup(details: OpenApiOperationDetails): Record<string, string> {
+    const headerWireNames = details.parameters.filter((p) => p.in === 'header').map((p) => p.name);
+    return buildParamWireMaps(headerWireNames).mcpToWire;
 }
 
 function parametersByLocation(parameters: OpenApiParameterDetails[]): {

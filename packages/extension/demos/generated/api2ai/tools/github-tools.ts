@@ -84,6 +84,8 @@ export { verifyCredential } from '../../../src/hooks/api2ai/github-tools/verifyG
 export const mcpServerName = 'github-tools';
 export const mcpServerVersion = '1.0.0-rc.2';
 
+export { mcpBuildGeneratedAt } from '../mcp-build-generated-at.js';
+
 export const inputZodByTool = {
     getGitHubAuthenticatedUser: z
         .object({
@@ -414,6 +416,16 @@ const queryParamWireNamesByTool = {
     listGitHubUserRepos: {},
     getGitHubRepository: {}
 };
+const pathParamWireNamesByTool = {
+    getGitHubAuthenticatedUser: {},
+    listGitHubUserRepos: {},
+    getGitHubRepository: {}
+};
+const headerParamWireNamesByTool = {
+    getGitHubAuthenticatedUser: {},
+    listGitHubUserRepos: {},
+    getGitHubRepository: {}
+};
 
 function appendSerializedQueryParams(
     searchParams: URLSearchParams,
@@ -565,17 +577,27 @@ export async function invokeTool(
     }
     const normalizedBaseUrl = baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl;
     const pathParams = { ...(optionsResolved.pathParams ?? {}) };
+    const pathWireNames: Record<string, string> =
+        (pathParamWireNamesByTool as Record<string, Record<string, string>>)[tool.toolName] ?? {};
     let resolvedPath = tool.path;
     for (const [key, value] of Object.entries(pathParams)) {
-        resolvedPath = resolvedPath.split('{' + key + '}').join(encodeURIComponent(String(value)));
+        const wireKey = pathWireNames[key] ?? key;
+        resolvedPath = resolvedPath.split('{' + wireKey + '}').join(encodeURIComponent(String(value)));
     }
 
     const url = new URL(normalizedBaseUrl + resolvedPath);
     appendSerializedQueryParams(url.searchParams, tool.toolName, optionsResolved.query);
+    const headerWireNames: Record<string, string> =
+        (headerParamWireNamesByTool as Record<string, Record<string, string>>)[tool.toolName] ?? {};
     const requestHeaders: Record<string, string> = {
-        'content-type': 'application/json',
-        ...(optionsResolved.headers ?? {})
+        'content-type': 'application/json'
     };
+    if (optionsResolved.headers) {
+        for (const [key, value] of Object.entries(optionsResolved.headers)) {
+            const wireKey = headerWireNames[key] ?? key;
+            requestHeaders[wireKey] = value;
+        }
+    }
     if (authConfig && tool.access === 'protected') {
         const authValue = resolveAuthSecret(authConfig!, authCredential);
         if (authConfig.location === 'header') {

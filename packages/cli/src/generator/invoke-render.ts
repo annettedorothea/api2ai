@@ -43,6 +43,7 @@ function renderAuth401Hint(authKind: 'none' | 'credential'): string {
 }
 
 import { renderInvokeAuthPipeline, type AuthPipelineTier, type HookStubMaps } from './render-check-stubs.js';
+import { urlAndHeadersPreambleFragment } from '../codegen/fragments/url-preamble.js';
 
 function renderNormalizeInvokeOptions(
     invokeParamBucketsLiteralBody: string,
@@ -288,10 +289,14 @@ function normalizeInvokeOptions(toolName: string, options: InvokeOptions): Invok
 
 function renderQuerySerializationHelpers(
     querySerializationLiteralBody: string,
-    queryParamWireNamesLiteralBody: string
+    queryParamWireNamesLiteralBody: string,
+    pathParamWireNamesLiteralBody: string,
+    headerParamWireNamesLiteralBody: string
 ): string {
     return `const queryParamSerializationByTool = ${querySerializationLiteralBody};
 const queryParamWireNamesByTool = ${queryParamWireNamesLiteralBody};
+const pathParamWireNamesByTool = ${pathParamWireNamesLiteralBody};
+const headerParamWireNamesByTool = ${headerParamWireNamesLiteralBody};
 
 function appendSerializedQueryParams(
     searchParams: URLSearchParams,
@@ -428,20 +433,7 @@ function renderInvokeToolFunction(
             }`;
     const authPipeline =
         authPipelineTier === 'none'
-            ? `
-    const normalizedBaseUrl = baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl;
-    const pathParams = { ...(optionsResolved.pathParams ?? {}) };
-    let resolvedPath = tool.path;
-    for (const [key, value] of Object.entries(pathParams)) {
-        resolvedPath = resolvedPath.split('{' + key + '}').join(encodeURIComponent(String(value)));
-    }
-
-    const url = new URL(normalizedBaseUrl + resolvedPath);
-    appendSerializedQueryParams(url.searchParams, tool.toolName, optionsResolved.query);
-    const requestHeaders: Record<string, string> = {
-        'content-type': 'application/json',
-        ...(optionsResolved.headers ?? {})
-    };`
+            ? urlAndHeadersPreambleFragment()
             : renderInvokeAuthPipeline(authPipelineTier, hasVerifyCredential, stubMaps, authKind === 'credential');
     const hostBinding = renderHostBinding();
     const optionsResolvedDecl = stubMaps.prepareToolCall
@@ -516,6 +508,8 @@ ${hostBinding}${authPipeline}${resolveCall}
 export function createSharedInvokeBlock(
     querySerializationLiteralBody: string,
     queryParamWireNamesLiteralBody: string,
+    pathParamWireNamesLiteralBody: string,
+    headerParamWireNamesLiteralBody: string,
     invokeParamBucketsLiteralBody: string,
     invokeBodySchemaByToolLiteralBody: string,
     authKind: 'none' | 'credential',
@@ -524,7 +518,12 @@ export function createSharedInvokeBlock(
     hasVerifyCredential = false
 ): string {
     return `${renderNormalizeInvokeOptions(invokeParamBucketsLiteralBody, invokeBodySchemaByToolLiteralBody)}
-${renderQuerySerializationHelpers(querySerializationLiteralBody, queryParamWireNamesLiteralBody)}
+${renderQuerySerializationHelpers(
+    querySerializationLiteralBody,
+    queryParamWireNamesLiteralBody,
+    pathParamWireNamesLiteralBody,
+    headerParamWireNamesLiteralBody
+)}
 ${renderAuthHelpers(authKind)}
 ${renderPerformToolHttpRequest()}
 

@@ -48,6 +48,8 @@ export const requiresAuth = false;
 export const mcpServerName = 'open-meteo-tools';
 export const mcpServerVersion = '1.0.0-rc.2';
 
+export { mcpBuildGeneratedAt } from '../mcp-build-generated-at.js';
+
 export const inputZodByTool = {
     openMeteoForecast: z
         .object({
@@ -463,6 +465,12 @@ const queryParamSerializationByTool = {
 const queryParamWireNamesByTool = {
     openMeteoForecast: {}
 };
+const pathParamWireNamesByTool = {
+    openMeteoForecast: {}
+};
+const headerParamWireNamesByTool = {
+    openMeteoForecast: {}
+};
 
 function appendSerializedQueryParams(
     searchParams: URLSearchParams,
@@ -590,17 +598,27 @@ export async function invokeTool(
     const { baseUrl } = host;
     const normalizedBaseUrl = baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl;
     const pathParams = { ...(optionsResolved.pathParams ?? {}) };
+    const pathWireNames: Record<string, string> =
+        (pathParamWireNamesByTool as Record<string, Record<string, string>>)[tool.toolName] ?? {};
     let resolvedPath = tool.path;
     for (const [key, value] of Object.entries(pathParams)) {
-        resolvedPath = resolvedPath.split('{' + key + '}').join(encodeURIComponent(String(value)));
+        const wireKey = pathWireNames[key] ?? key;
+        resolvedPath = resolvedPath.split('{' + wireKey + '}').join(encodeURIComponent(String(value)));
     }
 
     const url = new URL(normalizedBaseUrl + resolvedPath);
     appendSerializedQueryParams(url.searchParams, tool.toolName, optionsResolved.query);
+    const headerWireNames: Record<string, string> =
+        (headerParamWireNamesByTool as Record<string, Record<string, string>>)[tool.toolName] ?? {};
     const requestHeaders: Record<string, string> = {
-        'content-type': 'application/json',
-        ...(optionsResolved.headers ?? {})
+        'content-type': 'application/json'
     };
+    if (optionsResolved.headers) {
+        for (const [key, value] of Object.entries(optionsResolved.headers)) {
+            const wireKey = headerWireNames[key] ?? key;
+            requestHeaders[wireKey] = value;
+        }
+    }
 
     const requestInit: Record<string, unknown> = {
         method: tool.method,

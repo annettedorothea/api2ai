@@ -17,7 +17,7 @@ type InvokeOptions = {
 type NormalizeInvokeOptions = (toolName: string, options: InvokeOptions) => InvokeOptions;
 
 function compileNormalizeInvokeOptions(invokeParamBucketsLiteralBody: string): NormalizeInvokeOptions {
-    const block = createSharedInvokeBlock('{}', '{}', invokeParamBucketsLiteralBody, '{}', 'none', 'none', {
+    const block = createSharedInvokeBlock('{}', '{}', '{}', '{}', invokeParamBucketsLiteralBody, '{}', 'none', 'none', {
         checkToolAccess: false,
         prepareToolCall: false
     });
@@ -43,7 +43,7 @@ const searchMovieBuckets = JSON.stringify({
 
 describe('invoke-render', () => {
     test('emits TRACE fallback because fetch rejects that method', () => {
-        const block = createSharedInvokeBlock('{}', '{}', '{}', '{}', 'none', 'none', {
+        const block = createSharedInvokeBlock('{}', '{}', '{}', '{}', '{}', '{}', 'none', 'none', {
             checkToolAccess: false,
             prepareToolCall: false
         });
@@ -82,7 +82,7 @@ describe('invoke-render', () => {
                 query: ['vote_average_gte', 'vote_average_lte', 'page']
             }
         });
-        const block = createSharedInvokeBlock('{}', wireNames, buckets, '{}', 'none', 'none', {
+        const block = createSharedInvokeBlock('{}', wireNames, '{}', '{}', buckets, '{}', 'none', 'none', {
             checkToolAccess: false,
             prepareToolCall: false
         });
@@ -114,5 +114,101 @@ exports.appendSerializedQueryParams = appendSerializedQueryParams;`,
         expect(params.get('vote_average.gte')).toBe('7');
         expect(params.get('page')).toBe('1');
         expect(params.has('vote_average_gte')).toBe(false);
+    });
+
+    test('path substitution maps MCP names to dotted OpenAPI wire names', () => {
+        const pathWireNames = JSON.stringify({
+            testGetAccount: {
+                account_id: 'account.id'
+            }
+        });
+        const block = createSharedInvokeBlock('{}', '{}', pathWireNames, '{}', '{}', '{}', 'none', 'none', {
+            checkToolAccess: false,
+            prepareToolCall: false
+        });
+        expect(block).toContain('pathParamWireNamesByTool');
+        expect(block).toContain('pathWireNames[key] ?? key');
+        const helpersBlock = block.slice(
+            block.indexOf('const pathParamWireNamesByTool'),
+            block.indexOf('function appendSerializedQueryParams')
+        );
+        const js = ts.transpileModule(
+            `${helpersBlock}
+function buildUrl(
+    baseUrl: string,
+    toolName: string,
+    toolPath: string,
+    pathParams: Record<string, string | number | boolean>
+): URL {
+    const pathWireNames: Record<string, string> = (pathParamWireNamesByTool as Record<string, Record<string, string>>)[toolName] ?? {};
+    let resolvedPath = toolPath;
+    for (const [key, value] of Object.entries(pathParams)) {
+        const wireKey = pathWireNames[key] ?? key;
+        resolvedPath = resolvedPath.split('{' + wireKey + '}').join(encodeURIComponent(String(value)));
+    }
+    const normalizedBaseUrl = baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl;
+    return new URL(normalizedBaseUrl + resolvedPath);
+}
+exports.buildUrl = buildUrl;`,
+            { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020 } }
+        ).outputText;
+        const mod = {
+            exports: {} as {
+                buildUrl: (
+                    baseUrl: string,
+                    toolName: string,
+                    toolPath: string,
+                    pathParams: Record<string, string | number | boolean>
+                ) => URL;
+            }
+        };
+        new Function('exports', js)(mod.exports);
+        const url = mod.exports.buildUrl('http://127.0.0.1:3857', 'testGetAccount', '/accounts/{account.id}', {
+            account_id: 'acc-42'
+        });
+        expect(url.pathname).toBe('/accounts/acc-42');
+    });
+
+    test('requestHeaders maps MCP header names to OpenAPI wire names', () => {
+        const headerWireNames = JSON.stringify({
+            testGetWithHeader: {
+                X_Trace_Id: 'X-Trace-Id'
+            }
+        });
+        const block = createSharedInvokeBlock('{}', '{}', '{}', headerWireNames, '{}', '{}', 'none', 'none', {
+            checkToolAccess: false,
+            prepareToolCall: false
+        });
+        expect(block).toContain('headerParamWireNamesByTool');
+        expect(block).toContain('headerWireNames[key] ?? key');
+        const helpersBlock = block.slice(
+            block.indexOf('const headerParamWireNamesByTool'),
+            block.indexOf('function appendSerializedQueryParams')
+        );
+        const js = ts.transpileModule(
+            `${helpersBlock}
+function buildHeaders(toolName: string, headers: Record<string, string>): Record<string, string> {
+    const headerWireNames: Record<string, string> = (headerParamWireNamesByTool as Record<string, Record<string, string>>)[toolName] ?? {};
+    const requestHeaders: Record<string, string> = {
+        'content-type': 'application/json'
+    };
+    for (const [key, value] of Object.entries(headers)) {
+        const wireKey = headerWireNames[key] ?? key;
+        requestHeaders[wireKey] = value;
+    }
+    return requestHeaders;
+}
+exports.buildHeaders = buildHeaders;`,
+            { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020 } }
+        ).outputText;
+        const mod = {
+            exports: {} as {
+                buildHeaders: (toolName: string, headers: Record<string, string>) => Record<string, string>;
+            }
+        };
+        new Function('exports', js)(mod.exports);
+        const headers = mod.exports.buildHeaders('testGetWithHeader', { X_Trace_Id: 'trace-99' });
+        expect(headers['X-Trace-Id']).toBe('trace-99');
+        expect(headers['X_Trace_Id']).toBeUndefined();
     });
 });

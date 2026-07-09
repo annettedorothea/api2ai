@@ -36,6 +36,15 @@ GET "/items/{itemId}" {
     example: "Get item item-1"
 }
 
+// Tests: dotted OpenAPI path param → MCP-safe account_id
+GET "/accounts/{account.id}" {
+    toolName: testGetAccount
+    access: public
+    intent: "Harness dotted path param account.id mapped to account_id"
+    summary: "Get account by dotted path param"
+    example: "Get account acc-42"
+}
+
 // Tests: query optional enum + required query; DSL params override
 GET "/items" {
     toolName: testListItems

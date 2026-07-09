@@ -21,6 +21,7 @@ import {
     renderTokenExchangeReExport,
     resolveBootstrapProjectRootFromSource,
     resolveMcpServerIdentityFromDestination,
+    renderMcpBuildGeneratedAtReExport,
     type ProjectBootstrapConfig
 } from '@toolfactory.dev/core/codegen';
 import { expandToNode, toString } from 'langium/generate';
@@ -32,6 +33,8 @@ import {
     buildInvokeBodySchema,
     buildQueryParamSerializationLookup,
     buildQueryParamWireNamesLookup,
+    buildPathParamWireNamesLookup,
+    buildHeaderParamWireNamesLookup,
     buildToolInputSchema,
     type JsonSchemaDict
 } from '../openapi-tool-codegen.js';
@@ -87,12 +90,7 @@ async function loadOpenApiForModel(model: Model, sourcePath: string): Promise<Lo
     return loadOpenApi(model.openapi, baseDir);
 }
 
-function resolveToolsFromLoaded(
-    model: Model,
-    loaded: LoadedOpenApi,
-    mcpModuleName: string,
-    hostProduct: NonNullable<ProjectBootstrapConfig['hostProduct']>
-): ResolvedToolCodegen[] {
+function resolveToolsFromLoaded(model: Model, loaded: LoadedOpenApi, mcpModuleName: string): ResolvedToolCodegen[] {
     return model.operations.map((operation) => {
         const key = makeOperationLookupKey(operation.method, operation.path);
         const details = loaded.operations.get(key);
@@ -104,7 +102,7 @@ function resolveToolsFromLoaded(
         return {
             toolName: requireToolName(operation),
             title: buildMcpTitle(operation, details),
-            description: buildMcpDescription(operation, details, model.auth, mcpModuleName, hostProduct),
+            description: buildMcpDescription(operation, details, model.auth, mcpModuleName),
             method: operation.method,
             path: operation.path,
             access: getAccessKind(operation),
@@ -191,11 +189,45 @@ function buildQueryParamWireNamesFromLoaded(
     return out;
 }
 
+function buildPathParamWireNamesFromLoaded(
+    model: Model,
+    loaded: LoadedOpenApi
+): Record<string, Record<string, string>> {
+    const out: Record<string, Record<string, string>> = {};
+    for (const operation of model.operations) {
+        const key = makeOperationLookupKey(operation.method, operation.path);
+        const details = loaded.operations.get(key);
+        if (!details) {
+            continue;
+        }
+        out[requireToolName(operation)] = buildPathParamWireNamesLookup(details);
+    }
+    return out;
+}
+
+function buildHeaderParamWireNamesFromLoaded(
+    model: Model,
+    loaded: LoadedOpenApi
+): Record<string, Record<string, string>> {
+    const out: Record<string, Record<string, string>> = {};
+    for (const operation of model.operations) {
+        const key = makeOperationLookupKey(operation.method, operation.path);
+        const details = loaded.operations.get(key);
+        if (!details) {
+            continue;
+        }
+        out[requireToolName(operation)] = buildHeaderParamWireNamesLookup(details);
+    }
+    return out;
+}
+
 function mergeParallelToolData(
     toolsMeta: ResolvedToolCodegen[],
     schemas: Record<string, JsonSchemaDict>,
     querySerialization: Record<string, Record<string, { style: string; explode: boolean }>>,
     queryParamWireNames: Record<string, Record<string, string>>,
+    pathParamWireNames: Record<string, Record<string, string>>,
+    headerParamWireNames: Record<string, Record<string, string>>,
     invokeParamBuckets: Record<string, ReturnType<typeof buildInvokeParamBuckets>>,
     invokeBodySchemas: Record<string, JsonSchemaDict | undefined>
 ): {
@@ -203,6 +235,8 @@ function mergeParallelToolData(
     orderedSchemas: Record<string, JsonSchemaDict>;
     querySerializationLiteral: string;
     queryParamWireNamesLiteral: string;
+    pathParamWireNamesLiteral: string;
+    headerParamWireNamesLiteral: string;
     invokeParamBucketsLiteral: string;
     invokeBodySchemaByToolLiteral: string;
 } {
@@ -210,6 +244,8 @@ function mergeParallelToolData(
     const orderedSchemas: Record<string, JsonSchemaDict> = {};
     const orderedQuerySerialization: Record<string, Record<string, { style: string; explode: boolean }>> = {};
     const orderedQueryParamWireNames: Record<string, Record<string, string>> = {};
+    const orderedPathParamWireNames: Record<string, Record<string, string>> = {};
+    const orderedHeaderParamWireNames: Record<string, Record<string, string>> = {};
     const orderedInvokeParamBuckets: Record<string, ReturnType<typeof buildInvokeParamBuckets>> = {};
     const orderedInvokeBodySchemas: Record<string, JsonSchemaDict | undefined> = {};
     for (const t of toolsMeta) {
@@ -223,6 +259,8 @@ function mergeParallelToolData(
             } as JsonSchemaDict);
         orderedQuerySerialization[t.toolName] = querySerialization[t.toolName] ?? {};
         orderedQueryParamWireNames[t.toolName] = queryParamWireNames[t.toolName] ?? {};
+        orderedPathParamWireNames[t.toolName] = pathParamWireNames[t.toolName] ?? {};
+        orderedHeaderParamWireNames[t.toolName] = headerParamWireNames[t.toolName] ?? {};
         orderedInvokeParamBuckets[t.toolName] = invokeParamBuckets[t.toolName] ?? {
             pathParams: [],
             query: [],
@@ -236,6 +274,8 @@ function mergeParallelToolData(
         orderedSchemas,
         querySerializationLiteral: serializeJsonForModule(orderedQuerySerialization),
         queryParamWireNamesLiteral: serializeJsonForModule(orderedQueryParamWireNames),
+        pathParamWireNamesLiteral: serializeJsonForModule(orderedPathParamWireNames),
+        headerParamWireNamesLiteral: serializeJsonForModule(orderedHeaderParamWireNames),
         invokeParamBucketsLiteral: serializeJsonForModule(orderedInvokeParamBuckets),
         invokeBodySchemaByToolLiteral: serializeJsonForModule(orderedInvokeBodySchemas)
     };
@@ -274,6 +314,12 @@ function modelRequiresAuth(model: Model): boolean {
 function renderMcpServerIdentityExports(name: string, version: string): string {
     return `export const mcpServerName = ${JSON.stringify(name)};
 export const mcpServerVersion = ${JSON.stringify(version)};
+`;
+}
+
+function renderMcpServerIdentityBlock(destinationTsPath: string, name: string, version: string): string {
+    return `${renderMcpServerIdentityExports(name, version)}
+${renderMcpBuildGeneratedAtReExport(destinationTsPath)}
 `;
 }
 
@@ -391,11 +437,12 @@ export async function renderToolsModule(input: RenderToolsModuleInput): Promise<
     if (!bootstrapConfig.hostProduct) {
         throw new Error('Codegen: bootstrapConfig.hostProduct is required (api2ai or db2ai).');
     }
-    const hostProduct = bootstrapConfig.hostProduct;
-    const toolsMeta = resolveToolsFromLoaded(model, loaded, mcpModuleName, hostProduct);
+    const toolsMeta = resolveToolsFromLoaded(model, loaded, mcpModuleName);
     const schemas = buildSchemasFromLoaded(model, loaded);
     const querySerialization = buildQuerySerializationFromLoaded(model, loaded);
     const queryParamWireNames = buildQueryParamWireNamesFromLoaded(model, loaded);
+    const pathParamWireNames = buildPathParamWireNamesFromLoaded(model, loaded);
+    const headerParamWireNames = buildHeaderParamWireNamesFromLoaded(model, loaded);
     const invokeParamBuckets = buildInvokeParamBucketsFromLoaded(model, loaded);
     const invokeBodySchemas = buildInvokeBodySchemasFromLoaded(model, loaded);
     const {
@@ -403,6 +450,8 @@ export async function renderToolsModule(input: RenderToolsModuleInput): Promise<
         orderedSchemas,
         querySerializationLiteral,
         queryParamWireNamesLiteral,
+        pathParamWireNamesLiteral,
+        headerParamWireNamesLiteral,
         invokeParamBucketsLiteral,
         invokeBodySchemaByToolLiteral
     } = mergeParallelToolData(
@@ -410,12 +459,18 @@ export async function renderToolsModule(input: RenderToolsModuleInput): Promise<
         schemas,
         querySerialization,
         queryParamWireNames,
+        pathParamWireNames,
+        headerParamWireNames,
         invokeParamBuckets,
         invokeBodySchemas
     );
     const authKind = authRuntimeKind(model);
     const mcpServerIdentity = resolveMcpServerIdentityFromDestination(destinationTsPath, bootstrapConfig);
-    const mcpServerIdentityBlock = renderMcpServerIdentityExports(mcpServerIdentity.name, mcpServerIdentity.version);
+    const mcpServerIdentityBlock = renderMcpServerIdentityBlock(
+        destinationTsPath,
+        mcpServerIdentity.name,
+        mcpServerIdentity.version
+    );
 
     const hasAuthPipeline = modelHasAuthPipeline(model);
     const checkToolAccessToolNames = listCheckToolAccessToolNames(model);
@@ -454,6 +509,8 @@ export async function renderToolsModule(input: RenderToolsModuleInput): Promise<
     const toolRuntimeBlock = `${authRuntimePrefixBlock}${buildInputZodBlock(orderedSchemas)}\n${createSharedInvokeBlock(
         querySerializationLiteral,
         queryParamWireNamesLiteral,
+        pathParamWireNamesLiteral,
+        headerParamWireNamesLiteral,
         invokeParamBucketsLiteral,
         invokeBodySchemaByToolLiteral,
         authKind,

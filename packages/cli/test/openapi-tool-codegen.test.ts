@@ -5,6 +5,8 @@ import {
     buildInvokeParamBuckets,
     buildInvokeParameterDescriptionSection,
     buildQueryParamWireNamesLookup,
+    buildPathParamWireNamesLookup,
+    buildHeaderParamWireNamesLookup,
     buildToolInputSchema,
     effectiveResponse,
     flattenLegacyInvokeDescription,
@@ -94,8 +96,7 @@ describe('buildMcpDescription', () => {
             }),
             sampleDetails,
             undefined,
-            'demo-tools',
-            'api2ai'
+            'demo-tools'
         );
         expect(description).toContain('Request body:\nRequired: title. Optional: status.');
         expect(description).not.toContain('OpenAPI body hint');
@@ -149,8 +150,7 @@ describe('buildMcpDescription', () => {
             } as Partial<Operation>),
             details,
             undefined,
-            'demo-tools',
-            'api2ai'
+            'demo-tools'
         );
         expect(description).toContain('Parameters:\n- todoId (path): Todo id from listTodos. (example: t-1)');
         expect(description).toContain('- status (query)');
@@ -375,6 +375,40 @@ describe('buildToolInputSchema', () => {
         };
         expect(buildQueryParamWireNamesLookup(details)).toEqual({
             vote_count_lte: 'vote_count.lte'
+        });
+    });
+
+    test('buildPathParamWireNamesLookup maps MCP names back to wire names', () => {
+        const details: OpenApiOperationDetails = {
+            ...sampleDetails,
+            parameters: [
+                {
+                    name: 'account.id',
+                    in: 'path',
+                    required: true,
+                    schema: { type: 'string' }
+                }
+            ]
+        };
+        expect(buildPathParamWireNamesLookup(details)).toEqual({
+            account_id: 'account.id'
+        });
+    });
+
+    test('buildHeaderParamWireNamesLookup maps MCP names back to wire names', () => {
+        const details: OpenApiOperationDetails = {
+            ...sampleDetails,
+            parameters: [
+                {
+                    name: 'X-Trace-Id',
+                    in: 'header',
+                    required: true,
+                    schema: { type: 'string' }
+                }
+            ]
+        };
+        expect(buildHeaderParamWireNamesLookup(details)).toEqual({
+            X_Trace_Id: 'X-Trace-Id'
         });
     });
 

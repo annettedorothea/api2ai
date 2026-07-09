@@ -33,4 +33,8 @@ if ! command -v node >/dev/null 2>&1; then
     deny "test-all: node nicht im PATH (fuer stdio-MCPs noetig)."
 fi
 
+if ! node scripts/check-mcp-ready.mjs >&2; then
+    deny "test-all: HTTP-MCP-Ports nicht erreichbar. npm run start:mcp (Fixtures laufen?) oder npm run start:all."
+fi
+
 allow

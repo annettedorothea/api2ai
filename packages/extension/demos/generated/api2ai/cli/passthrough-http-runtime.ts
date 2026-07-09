@@ -31,8 +31,8 @@ type GeneratedHostModule = {
     inputZodByTool?: Record<string, unknown>;
     mcpServerName?: string;
     mcpServerVersion?: string;
+    mcpBuildGeneratedAt?: string;
     requiresAuth: boolean;
-    connectionEnv?: string;
     verifyCredential?: VerifyCredentialFn;
     tokenExchange?: TokenExchangeFn;
 };
@@ -141,13 +141,19 @@ function readGeneratedModule(imported: Record<string, unknown>): GeneratedHostMo
     const inputZodByTool = imported.inputZodByTool;
     const mcpServerName = imported.mcpServerName;
     const mcpServerVersion = imported.mcpServerVersion;
+    const mcpBuildGeneratedAt = imported.mcpBuildGeneratedAt;
     const verifyCredential = imported.verifyCredential;
     const verifyCredentialFn =
         typeof verifyCredential === 'function' ? (verifyCredential as VerifyCredentialFn) : undefined;
     const tokenExchange = imported.tokenExchange;
     const tokenExchangeFn = typeof tokenExchange === 'function' ? (tokenExchange as TokenExchangeFn) : undefined;
     return {
-        generatedTools: generatedTools as Array<{ toolName: string; title?: string; description: string }>,
+        generatedTools: generatedTools as Array<{
+            toolName: string;
+            title?: string;
+            description: string;
+            access?: string;
+        }>,
         invokeTool: invokeTool as (
             toolName: string,
             args?: Record<string, unknown>,
@@ -159,6 +165,7 @@ function readGeneratedModule(imported: Record<string, unknown>): GeneratedHostMo
                 : undefined,
         mcpServerName: typeof mcpServerName === 'string' ? mcpServerName : undefined,
         mcpServerVersion: typeof mcpServerVersion === 'string' ? mcpServerVersion : undefined,
+        mcpBuildGeneratedAt: typeof mcpBuildGeneratedAt === 'string' ? mcpBuildGeneratedAt : undefined,
         requiresAuth: imported.requiresAuth === true,
         verifyCredential: verifyCredentialFn,
         tokenExchange: tokenExchangeFn
@@ -177,6 +184,36 @@ function requireMcpServerIdentity(generated: GeneratedHostModule): { name: strin
     return { name, version };
 }
 
+function formatMcpBuildLine(generated: GeneratedHostModule): string | undefined {
+    const semver = generated.mcpServerVersion?.trim();
+    const buildAt = generated.mcpBuildGeneratedAt?.trim();
+    if (semver && buildAt) {
+        return semver + ' · ' + buildAt;
+    }
+    return semver ?? buildAt;
+}
+
+function formatMcpDisplayVersion(generated: GeneratedHostModule): string {
+    const line = formatMcpBuildLine(generated);
+    if (!line) {
+        throw new Error('Generated module must export "mcpServerVersion". Regenerate tool code.');
+    }
+    return line;
+}
+
+function formatMcpServerVersionFields(generated: GeneratedHostModule): { label: string; value: string }[] {
+    const semver = generated.mcpServerVersion?.trim();
+    const buildAt = generated.mcpBuildGeneratedAt?.trim();
+    const fields: { label: string; value: string }[] = [];
+    if (semver) {
+        fields.push({ label: 'Version:', value: semver });
+    }
+    if (buildAt) {
+        fields.push({ label: 'Build:', value: buildAt });
+    }
+    return fields;
+}
+
 function requireInputZodSchema(inputZodByTool: Record<string, unknown> | undefined, toolName: string): z.ZodTypeAny {
     if (!inputZodByTool) {
         throw new Error('Generated module must export "inputZodByTool". Regenerate tool code.');
@@ -186,6 +223,14 @@ function requireInputZodSchema(inputZodByTool: Record<string, unknown> | undefin
         throw new Error(`Generated module inputZodByTool has no schema for tool "${toolName}". Regenerate tool code.`);
     }
     return schema as z.ZodTypeAny;
+}
+
+function formatMcpToolDescription(generated: GeneratedHostModule, toolDescription: string): string {
+    const buildLine = formatMcpBuildLine(generated);
+    if (!buildLine) {
+        return toolDescription;
+    }
+    return 'MCP build: ' + buildLine + '\n\n---\n\n' + toolDescription;
 }
 
 /** Log when the MCP client requests tools/list (wraps SDK handler set by registerTool). */
@@ -217,7 +262,7 @@ async function registerMcpTools(
             tool.toolName,
             {
                 title: typeof tool.title === 'string' && tool.title.length > 0 ? tool.title : undefined,
-                description: tool.description,
+                description: formatMcpToolDescription(generated, tool.description),
                 inputSchema
             },
             async (args) => {
@@ -281,14 +326,9 @@ function printMcpHostStartupBanner(options: {
 }
 
 function describeUpstreamEnvField(
-    generated: GeneratedHostModule,
+    _generated: GeneratedHostModule,
     hostConfig: { baseUrlEnvKey?: string }
 ): { label: string; value: string } | undefined {
-    if (generated.connectionEnv) {
-        const key = generated.connectionEnv;
-        const set = Boolean(process.env[key]?.trim());
-        return { label: 'Database:', value: key + (set ? '' : ' (unset)') };
-    }
     const key = hostConfig.baseUrlEnvKey?.trim();
     if (!key) {
         return undefined;
@@ -488,6 +528,7 @@ async function resolveHostContextForHttpCall(
 function printHttpMcpStartupBanner(generated: GeneratedHostModule, httpHostConfig: HttpMcpHostRuntimeConfig): void {
     const url = 'http://' + httpHostConfig.listenHost + ':' + httpHostConfig.port + httpHostConfig.mcpPath;
     const fields: { label: string; value: string }[] = [{ label: 'URL:', value: url }];
+    fields.push(...formatMcpServerVersionFields(generated));
     const headerName = readAuthHeaderNameFromEnv();
     const authEnv = httpHostConfig.authEnvKey?.trim();
     if (authEnv) {
@@ -503,11 +544,7 @@ function printHttpMcpStartupBanner(generated: GeneratedHostModule, httpHostConfi
     if (upstream) {
         fields.push(upstream);
     }
-    const note = collectMissingEnvNote([
-        generated.connectionEnv,
-        httpHostConfig.baseUrlEnvKey,
-        httpHostConfig.authEnvKey
-    ]);
+    const note = collectMissingEnvNote([httpHostConfig.baseUrlEnvKey, httpHostConfig.authEnvKey]);
     printMcpHostStartupBanner({
         serverName: requireMcpServerDisplayName(generated),
         transport: 'passthrough-http',
@@ -554,8 +591,8 @@ async function createMcpServerForSession(
     sessionId: string,
     headers: Record<string, string | string[] | undefined>
 ): Promise<SessionEntry> {
-    const { name, version } = requireMcpServerIdentity(generated);
-    const server = new McpServer({ name, version });
+    const { name } = requireMcpServerIdentity(generated);
+    const server = new McpServer({ name, version: formatMcpDisplayVersion(generated) });
     sessionHeaders.set(sessionId, headers);
     await registerMcpTools(server, generated, {
         envDirs: httpHostConfig.envDirs,
