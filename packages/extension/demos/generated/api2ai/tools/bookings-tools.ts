@@ -26,7 +26,7 @@ export const generatedTools: GeneratedTool[] = [
         toolName: 'listVacationRentals',
         title: 'List vacation rentals with public availability (limit validated)',
         description:
-            'Intent:\nList Ferienwohnungen (vacation rental units) — public, no login.\n        Returns availability periods per unit (no guest names).\n        Query limit caps how many units are returned (default 10, max 10).\n\nMCP arguments:\npass limit as top-level tool arguments. Do not nest path or query parameters under pathParams or query.\n\nAPI:\nPublic endpoint — no auth. Returns availability periods per unit (no guest identity).\nUse query limit to cap how many units are returned (max 10).\n\nMeta:\noperationId: list-vacation-rentals\n\nParameters:\n- limit (query): Query limit caps how many units are returned (default 10, max 10). (example: 10)\n\nExample:\nShow up to 10 vacation rentals and their free/occupied periods\n\nResponse:\nHTTP 200\nVacation rental units (public view)\nproperties (top-level): limit, units\n\nRuntime: implement prepareToolCallForListVacationRentals in src/hooks/api2ai/bookings-tools/prepareToolCallForListVacationRentals.ts (types from this tools module; run build:generated for .js).',
+            'Intent:\nList Ferienwohnungen (vacation rental units) — public, no login.\n        Returns availability periods per unit (no guest names).\n        Query limit caps how many units are returned (default 10, max 10).\n\nMCP arguments:\npass limit as top-level tool arguments. Do not nest path or query parameters under pathParams or query.\n\nAPI:\nPublic endpoint — no auth. Returns availability periods per unit (no guest identity).\nUse query limit to cap how many units are returned (max 10).\n\nMeta:\noperationId: list-vacation-rentals\n\nParameters:\n- limit (query): Query limit caps how many units are returned (default 10, max 10). (type: integer) (example: 10)\n\nExample:\nShow up to 10 vacation rentals and their free/occupied periods\n\nResponse:\nHTTP 200\nVacation rental units (public view)\nproperties (top-level): limit, units\n\nRuntime: implement prepareToolCallForListVacationRentals in src/hooks/api2ai/bookings-tools/prepareToolCallForListVacationRentals.ts (types from this tools module; run build:generated for .js).',
         method: 'GET',
         path: '/vacation-rentals',
         access: 'public',
@@ -37,7 +37,7 @@ export const generatedTools: GeneratedTool[] = [
         toolName: 'listAllBookings',
         title: 'List all customer bookings (admin only, limit validated)',
         description:
-            'Intent:\nAdmin only: list bookings across all customers (Bearer JWT role=admin).\n        Query limit caps how many bookings are returned (default 10, max 10).\n        checkToolAccess + prepareToolCall demo — role gate before upstream call, limit in prepare stub.\n\nMCP arguments:\npass limit as top-level tool arguments. Do not nest path or query parameters under pathParams or query.\n\nAPI:\nRequires Bearer JWT with role=admin. Returns bookings from all customers, capped by limit (max 10).\n\nMeta:\noperationId: list-all-bookings\n\nParameters:\n- limit (query)\n\nExample:\nList up to 10 bookings from all customers\n\nResponse:\nHTTP 200\nCross-customer booking list\nproperties (top-level): bookings, limit, role\nDocumented errors:\nHTTP 401 — Missing or invalid token\nHTTP 403 — Admin role required\n\nRuntime: protected — implement checkToolAccessForListAllBookings in src/hooks/api2ai/bookings-tools/checkToolAccessForListAllBookings.ts and prepareToolCallForListAllBookings in src/hooks/api2ai/bookings-tools/prepareToolCallForListAllBookings.ts; credential sent as header "Authorization" (prefix applied to the secret).',
+            'Intent:\nAdmin only: list bookings across all customers (Bearer JWT role=admin).\n        Query limit caps how many bookings are returned (default 10, max 10).\n        checkToolAccess + prepareToolCall demo — role gate before upstream call, limit in prepare stub.\n\nMCP arguments:\npass limit as top-level tool arguments. Do not nest path or query parameters under pathParams or query.\n\nAPI:\nRequires Bearer JWT with role=admin. Returns bookings from all customers, capped by limit (max 10).\n\nMeta:\noperationId: list-all-bookings\n\nParameters:\n- limit (query): (type: integer)\n\nExample:\nList up to 10 bookings from all customers\n\nResponse:\nHTTP 200\nCross-customer booking list\nproperties (top-level): bookings, limit, role\nDocumented errors:\nHTTP 401 — Missing or invalid token\nHTTP 403 — Admin role required\n\nRuntime: protected — implement checkToolAccessForListAllBookings in src/hooks/api2ai/bookings-tools/checkToolAccessForListAllBookings.ts and prepareToolCallForListAllBookings in src/hooks/api2ai/bookings-tools/prepareToolCallForListAllBookings.ts; credential sent as header "Authorization" (prefix applied to the secret).',
         method: 'GET',
         path: '/bookings',
         access: 'protected',
@@ -48,7 +48,7 @@ export const generatedTools: GeneratedTool[] = [
         toolName: 'listBookings',
         title: 'List customer vacation rental bookings',
         description:
-            'Intent:\nList bookings for the authenticated customer (Bearer JWT).\n        Path customerId is optional: when empty or omitted, filled from JWT claim customerId.\n        Role user: path customerId must match JWT; role admin may list any customerId.\n        Returns bookingId, unitId, checkIn, checkOut for each stay.\n\nMCP arguments:\npass customerId as top-level tool arguments. Do not nest path or query parameters under pathParams or query.\n\nAPI:\nRequires Bearer JWT; role=user path customerId must match JWT claim; admin may read any customer.\n\nMeta:\noperationId: list-customer-bookings\n\nParameters:\n- customerId (path)\n\nExample:\nList my bookings\n\nResponse:\nHTTP 200\nBooking list\nproperties (top-level): bookings, customerId\nDocumented errors:\nHTTP 401 — Missing or invalid token\nHTTP 403 — Token customerId does not match path\n\nRuntime: protected — implement checkToolAccessForListBookings in src/hooks/api2ai/bookings-tools/checkToolAccessForListBookings.ts and prepareToolCallForListBookings in src/hooks/api2ai/bookings-tools/prepareToolCallForListBookings.ts; credential sent as header "Authorization" (prefix applied to the secret).',
+            'Intent:\nList bookings for the authenticated customer (Bearer JWT).\n        Path customerId is optional: when empty or omitted, filled from JWT claim customerId.\n        Role user: path customerId must match JWT; role admin may list any customerId.\n        Returns bookingId, unitId, checkIn, checkOut for each stay.\n\nMCP arguments:\npass customerId as top-level tool arguments. Do not nest path or query parameters under pathParams or query.\n\nAPI:\nRequires Bearer JWT; role=user path customerId must match JWT claim; admin may read any customer.\n\nMeta:\noperationId: list-customer-bookings\n\nParameters:\n- customerId (path): (type: string)\n\nExample:\nList my bookings\n\nResponse:\nHTTP 200\nBooking list\nproperties (top-level): bookings, customerId\nDocumented errors:\nHTTP 401 — Missing or invalid token\nHTTP 403 — Token customerId does not match path\n\nRuntime: protected — implement checkToolAccessForListBookings in src/hooks/api2ai/bookings-tools/checkToolAccessForListBookings.ts and prepareToolCallForListBookings in src/hooks/api2ai/bookings-tools/prepareToolCallForListBookings.ts; credential sent as header "Authorization" (prefix applied to the secret).',
         method: 'GET',
         path: '/bookings/{customerId}',
         access: 'protected',
@@ -106,8 +106,11 @@ export const inputZodByTool = {
     listVacationRentals: z
         .object({
             limit: z
-                .union([z.number().int(), z.string()])
-                .describe('Query limit caps how many units are returned (default 10, max 10). (example: 10)')
+                .number()
+                .int()
+                .describe(
+                    'Query limit caps how many units are returned (default 10, max 10). (type: integer) (example: 10)'
+                )
                 .optional(),
             headers: z.record(z.string(), z.string()).describe('Optional extra headers.').optional(),
             body: z
@@ -119,7 +122,7 @@ export const inputZodByTool = {
         .describe('Arguments for invoking the generated HTTP wrapper.'),
     listAllBookings: z
         .object({
-            limit: z.union([z.number().int(), z.string()]).optional(),
+            limit: z.number().int().optional(),
             headers: z.record(z.string(), z.string()).describe('Optional extra headers.').optional(),
             body: z
                 .record(z.string(), z.union([z.string(), z.number(), z.boolean()]))
@@ -161,52 +164,15 @@ const invokeParamBucketsByTool = {
         arrayQuery: []
     }
 };
-const invokeBodySchemaByTool = {};
 
-function coerceInvokeScalar(value: string | number | boolean): string | number | boolean {
-    if (typeof value === 'string') {
-        const trimmed = value.trim();
-        if (trimmed === 'true') {
-            return true;
-        }
-        if (trimmed === 'false') {
-            return false;
-        }
-        if (/^-?\d+(\.\d+)?([eE][+-]?\d+)?$/.test(trimmed)) {
-            const parsed = Number(trimmed);
-            if (Number.isFinite(parsed)) {
-                return parsed;
-            }
-        }
-    }
-    return value;
-}
-
-function coerceInvokePathBucket(
-    bucket: Record<string, string | number | boolean> | undefined
-): Record<string, string | number | boolean> | undefined {
-    if (!bucket) {
-        return undefined;
-    }
-    const out: Record<string, string | number | boolean> = {};
-    for (const [key, value] of Object.entries(bucket)) {
-        if (value === undefined || value === null) {
-            continue;
-        }
-        out[key] = coerceInvokeScalar(value);
-    }
-    return Object.keys(out).length > 0 ? out : undefined;
-}
-
-function coerceInvokeQueryArrayValue(value: string): ReadonlyArray<string | number | boolean> {
+function splitInvokeQueryArrayValue(value: string): ReadonlyArray<string | number | boolean> {
     return value
         .split(',')
         .map((part) => part.trim())
-        .filter((part) => part.length > 0)
-        .map((part) => coerceInvokeScalar(part));
+        .filter((part) => part.length > 0);
 }
 
-function coerceInvokeQueryBucket(toolName: string, bucket: InvokeOptions['query']): InvokeOptions['query'] {
+function prepareQueryBucket(toolName: string, bucket: InvokeOptions['query']): InvokeOptions['query'] {
     if (!bucket) {
         return undefined;
     }
@@ -218,95 +184,29 @@ function coerceInvokeQueryBucket(toolName: string, bucket: InvokeOptions['query'
         if (value === undefined || value === null) {
             continue;
         }
-        if (Array.isArray(value)) {
-            out[key] = value.map((element) => coerceInvokeScalar(element));
-            continue;
-        }
         if (arrayQueryKeys.has(key) && typeof value === 'string') {
-            out[key] = coerceInvokeQueryArrayValue(value);
+            out[key] = splitInvokeQueryArrayValue(value);
             continue;
         }
-        out[key] = coerceInvokeScalar(value as string | number | boolean);
+        out[key] = value as string | number | boolean | ReadonlyArray<string | number | boolean>;
     }
     return Object.keys(out).length > 0 ? out : undefined;
 }
 
-function coerceInvokeValueBySchema(value: unknown, schema: Record<string, unknown> | undefined): unknown {
-    if (!schema || value === undefined || value === null) {
-        return value;
+function omitNullishPathParams(
+    bucket: Record<string, string | number | boolean> | undefined
+): Record<string, string | number | boolean> | undefined {
+    if (!bucket) {
+        return undefined;
     }
-    const type = schema.type;
-    if (type === 'integer' || type === 'number') {
-        if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
-            return coerceInvokeScalar(value as string | number | boolean);
+    const out: Record<string, string | number | boolean> = {};
+    for (const [key, value] of Object.entries(bucket)) {
+        if (value === undefined || value === null) {
+            continue;
         }
-        return value;
+        out[key] = value;
     }
-    if (type === 'boolean') {
-        if (typeof value === 'boolean') {
-            return value;
-        }
-        if (typeof value === 'string') {
-            const trimmed = value.trim();
-            if (trimmed === 'true') {
-                return true;
-            }
-            if (trimmed === 'false') {
-                return false;
-            }
-        }
-        return value;
-    }
-    if (type === 'array') {
-        const items = schema.items as Record<string, unknown> | undefined;
-        if (typeof value === 'string') {
-            return value
-                .split(',')
-                .map((part) => part.trim())
-                .filter((part) => part.length > 0)
-                .map((part) => (items ? coerceInvokeValueBySchema(part, items) : coerceInvokeScalar(part)));
-        }
-        if (Array.isArray(value)) {
-            return value.map((element) =>
-                items
-                    ? coerceInvokeValueBySchema(element, items)
-                    : coerceInvokeScalar(element as string | number | boolean)
-            );
-        }
-        return value;
-    }
-    if (
-        type === 'object' &&
-        schema.properties &&
-        typeof schema.properties === 'object' &&
-        !Array.isArray(schema.properties) &&
-        typeof value === 'object' &&
-        value !== null &&
-        !Array.isArray(value)
-    ) {
-        const props = schema.properties as Record<string, Record<string, unknown>>;
-        const out: Record<string, unknown> = {};
-        for (const [key, element] of Object.entries(value as Record<string, unknown>)) {
-            if (element === undefined || element === null) {
-                continue;
-            }
-            const propSchema = props[key];
-            out[key] = propSchema ? coerceInvokeValueBySchema(element, propSchema) : element;
-        }
-        return out;
-    }
-    return value;
-}
-
-function coerceInvokeBody(toolName: string, body: unknown): unknown {
-    if (body === undefined || body === null) {
-        return body;
-    }
-    const schema = (invokeBodySchemaByTool as Record<string, Record<string, unknown> | undefined>)[toolName];
-    if (!schema) {
-        return body;
-    }
-    return coerceInvokeValueBySchema(body, schema);
+    return Object.keys(out).length > 0 ? out : undefined;
 }
 
 function isInvokeQueryBucketValue(value: unknown): value is Record<string, unknown> {
@@ -340,12 +240,8 @@ function normalizeInvokeOptions(toolName: string, options: InvokeOptions): Invok
     if (!hasTopLevelFlatParam) {
         return {
             ...options,
-            pathParams: coerceInvokePathBucket(options.pathParams),
-            query: coerceInvokeQueryBucket(
-                toolName,
-                isInvokeQueryBucketValue(options.query) ? options.query : undefined
-            ),
-            body: coerceInvokeBody(toolName, options.body)
+            pathParams: omitNullishPathParams(options.pathParams),
+            query: prepareQueryBucket(toolName, isInvokeQueryBucketValue(options.query) ? options.query : undefined)
         };
     }
 
@@ -372,7 +268,7 @@ function normalizeInvokeOptions(toolName: string, options: InvokeOptions): Invok
         if (key === 'query') {
             if (queryKeys.includes('query') && !isInvokeQueryBucketValue(value)) {
                 if (arrayQueryKeys.has(key) && typeof value === 'string') {
-                    query[key] = coerceInvokeQueryArrayValue(value);
+                    query[key] = splitInvokeQueryArrayValue(value);
                 } else {
                     query[key] = value as string | number | boolean | ReadonlyArray<string | number | boolean>;
                 }
@@ -389,7 +285,7 @@ function normalizeInvokeOptions(toolName: string, options: InvokeOptions): Invok
             pathParams[key] = value as string | number | boolean;
         } else if (queryKeys.includes(key)) {
             if (arrayQueryKeys.has(key) && typeof value === 'string') {
-                query[key] = coerceInvokeQueryArrayValue(value);
+                query[key] = splitInvokeQueryArrayValue(value);
             } else {
                 query[key] = value as string | number | boolean | ReadonlyArray<string | number | boolean>;
             }
@@ -399,10 +295,10 @@ function normalizeInvokeOptions(toolName: string, options: InvokeOptions): Invok
     }
 
     return {
-        pathParams: coerceInvokePathBucket(pathParams),
-        query: coerceInvokeQueryBucket(toolName, query),
+        pathParams: omitNullishPathParams(pathParams),
+        query: prepareQueryBucket(toolName, query),
         headers: Object.keys(headers).length > 0 ? headers : undefined,
-        body: coerceInvokeBody(toolName, options.body)
+        body: options.body
     };
 }
 const queryParamSerializationByTool = {

@@ -10,8 +10,7 @@ import {
     buildToolInputSchema,
     effectiveResponse,
     flattenLegacyInvokeDescription,
-    buildFlatCallShapeSection,
-    buildInvokeBodySchema
+    buildFlatCallShapeSection
 } from '../src/openapi-tool-codegen.js';
 
 function minimalOperation(overrides: Partial<Operation> = {}): Operation {
@@ -152,8 +151,10 @@ describe('buildMcpDescription', () => {
             undefined,
             'demo-tools'
         );
-        expect(description).toContain('Parameters:\n- todoId (path): Todo id from listTodos. (example: t-1)');
-        expect(description).toContain('- status (query)');
+        expect(description).toContain(
+            'Parameters:\n- todoId (path): Todo id from listTodos. (type: string) (example: t-1)'
+        );
+        expect(description).toContain('- status (query): (type: string)');
     });
 });
 
@@ -248,7 +249,7 @@ describe('buildToolInputSchema', () => {
             } as Partial<Operation>)
         );
         const props = schema.properties as Record<string, Record<string, unknown>>;
-        expect(props.page.description).toBe('1-based page index for the agent.');
+        expect(props.page.description).toBe('1-based page index for the agent. (type: integer)');
     });
 
     test('applies DSL params example patch using OpenAPI parameter type', () => {
@@ -292,27 +293,6 @@ describe('buildToolInputSchema', () => {
         expect(section).toContain('page');
         expect(section).toContain('top-level tool arguments');
         expect(section).toContain('Do not nest');
-    });
-
-    test('buildInvokeBodySchema returns request body JSON Schema for coercion', () => {
-        const details: OpenApiOperationDetails = {
-            ...sampleDetails,
-            requestBody: {
-                required: true,
-                description: 'Todo payload',
-                schema: {
-                    type: 'object',
-                    properties: {
-                        title: { type: 'string' },
-                        priority: { type: 'integer' }
-                    },
-                    required: ['title']
-                }
-            }
-        };
-        const schema = buildInvokeBodySchema(details);
-        expect(schema?.type).toBe('object');
-        expect((schema?.properties as Record<string, unknown>).priority).toEqual({ type: 'integer' });
     });
 
     test('buildToolInputSchema uses MCP-safe names for dotted query parameters', () => {

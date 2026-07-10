@@ -111,11 +111,11 @@ or:
 api2ai /test-all
 ```
 
-For HTTP transport debugging (tools, auth headers, sessions):
+For HTTP transport debugging (tools, auth headers, sessions) — hosts must already be running (`npm run start:all`):
 
 ```bash
 npm run mcp:inspect -- open-meteo
-npm run mcp:inspect -- todo --with-deps
+npm run mcp:inspect -- todo
 ```
 
 Prerequisites:

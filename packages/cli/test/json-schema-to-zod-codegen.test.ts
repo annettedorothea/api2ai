@@ -24,8 +24,13 @@ describe('json-schema-to-zod-codegen', () => {
         expect(emitZodExpression(schema)).toBe('z.union([z.literal("a"), z.literal("b")])');
     });
 
-    it('emits number fields as union with string for LLM tool callers', () => {
-        expect(emitZodExpression({ type: 'number' })).toBe('z.union([z.number(), z.string()])');
+    it('emits number fields as strict Zod types', () => {
+        expect(emitZodExpression({ type: 'number' })).toBe('z.number()');
+        expect(emitZodExpression({ type: 'integer' })).toBe('z.number().int()');
+    });
+
+    it('emits boolean fields as strict Zod boolean', () => {
+        expect(emitZodExpression({ type: 'boolean' })).toBe('z.boolean()');
     });
 
     it('emits inputZodByTool export', () => {

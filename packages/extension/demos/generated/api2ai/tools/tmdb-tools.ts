@@ -22,7 +22,7 @@ export const generatedTools: GeneratedTool[] = [
         toolName: 'searchTmdbMovies',
         title: 'Search movies by title',
         description:
-            'Intent:\nsearch TMDB movies by title\n\nMCP arguments:\npass query, include_adult, language, primary_release_year, page, region, year as top-level tool arguments. Do not nest path or query parameters under pathParams or query.\n\nAPI:\nSearch for movies by their original, translated and alternative titles.\n\nMeta:\noperationId: search-movie\n\nParameters:\n- include_adult (query)\n- language (query)\n- page (query)\n- primary_release_year (query)\n- query (query)\n- region (query)\n- year (query)\n\nExample:\nFind movies named Dune\n\nResponse:\nHTTP 200\n200\nproperties (top-level): page, results, total_pages, total_results\n\nRuntime: protected — implement src/hooks/api2ai/tmdb-tools/verifyTmdbCredential.ts; credential sent as header "Authorization" (prefix applied to the secret).',
+            'Intent:\nsearch TMDB movies by title\n\nMCP arguments:\npass query, include_adult, language, primary_release_year, page, region, year as top-level tool arguments. Do not nest path or query parameters under pathParams or query.\n\nAPI:\nSearch for movies by their original, translated and alternative titles.\n\nMeta:\noperationId: search-movie\n\nParameters:\n- include_adult (query): (type: boolean)\n- language (query): (type: string)\n- page (query): (type: integer)\n- primary_release_year (query): (type: string)\n- query (query): (type: string)\n- region (query): (type: string)\n- year (query): (type: string)\n\nExample:\nFind movies named Dune\n\nResponse:\nHTTP 200\n200\nproperties (top-level): page, results, total_pages, total_results\n\nRuntime: protected — implement src/hooks/api2ai/tmdb-tools/verifyTmdbCredential.ts; credential sent as header "Authorization" (prefix applied to the secret).',
         method: 'GET',
         path: '/3/search/movie',
         access: 'protected',
@@ -33,7 +33,7 @@ export const generatedTools: GeneratedTool[] = [
         toolName: 'getPopularTmdbMovies',
         title: 'Popular movies',
         description:
-            'Intent:\nretrieve currently popular TMDB movies\n\nMCP arguments:\npass language, page, region as top-level tool arguments. Do not nest path or query parameters under pathParams or query.\n\nAPI:\nGet a list of movies ordered by popularity.\n\nMeta:\noperationId: movie-popular-list\n\nParameters:\n- language (query)\n- page (query)\n- region (query): ISO-3166-1 code\n\nExample:\nShow popular movies\n\nResponse:\nHTTP 200\n200\nproperties (top-level): page, results, total_pages, total_results\n\nRuntime: protected — implement src/hooks/api2ai/tmdb-tools/verifyTmdbCredential.ts; credential sent as header "Authorization" (prefix applied to the secret).',
+            'Intent:\nretrieve currently popular TMDB movies\n\nMCP arguments:\npass language, page, region as top-level tool arguments. Do not nest path or query parameters under pathParams or query.\n\nAPI:\nGet a list of movies ordered by popularity.\n\nMeta:\noperationId: movie-popular-list\n\nParameters:\n- language (query): (type: string)\n- page (query): (type: integer)\n- region (query): ISO-3166-1 code (type: string)\n\nExample:\nShow popular movies\n\nResponse:\nHTTP 200\n200\nproperties (top-level): page, results, total_pages, total_results\n\nRuntime: protected — implement src/hooks/api2ai/tmdb-tools/verifyTmdbCredential.ts; credential sent as header "Authorization" (prefix applied to the secret).',
         method: 'GET',
         path: '/3/movie/popular',
         access: 'protected',
@@ -44,7 +44,7 @@ export const generatedTools: GeneratedTool[] = [
         toolName: 'getTmdbMovieDetails',
         title: 'Movie details by ID',
         description:
-            'Intent:\nretrieve details for a TMDB movie by id\n\nMCP arguments:\npass movie_id, append_to_response, language as top-level tool arguments. Do not nest path or query parameters under pathParams or query.\n\nAPI:\nGet the top level details of a movie by ID.\n\nMeta:\noperationId: movie-details\n\nParameters:\n- movie_id (path)\n- append_to_response (query): comma separated list of endpoints within this namespace, 20 items max\n- language (query)\n\nExample:\nGet details for movie id 693134\n\nResponse:\nHTTP 200\n200\nproperties (top-level): adult, backdrop_path, belongs_to_collection, budget, genres, homepage, id, imdb_id, origin_country, original_language, original_title, overview, popularity, poster_path, production_companies, production_countries, release_date, revenue, runtime, spoken_languages, status, tagline, title, video, vote_average, vote_count\n\nRuntime: protected — implement src/hooks/api2ai/tmdb-tools/verifyTmdbCredential.ts; credential sent as header "Authorization" (prefix applied to the secret).',
+            'Intent:\nretrieve details for a TMDB movie by id\n\nMCP arguments:\npass movie_id, append_to_response, language as top-level tool arguments. Do not nest path or query parameters under pathParams or query.\n\nAPI:\nGet the top level details of a movie by ID.\n\nMeta:\noperationId: movie-details\n\nParameters:\n- movie_id (path): (type: integer)\n- append_to_response (query): comma separated list of endpoints within this namespace, 20 items max (type: string)\n- language (query): (type: string)\n\nExample:\nGet details for movie id 693134\n\nResponse:\nHTTP 200\n200\nproperties (top-level): adult, backdrop_path, belongs_to_collection, budget, genres, homepage, id, imdb_id, origin_country, original_language, original_title, overview, popularity, poster_path, production_companies, production_countries, release_date, revenue, runtime, spoken_languages, status, tagline, title, video, vote_average, vote_count\n\nRuntime: protected — implement src/hooks/api2ai/tmdb-tools/verifyTmdbCredential.ts; credential sent as header "Authorization" (prefix applied to the secret).',
         method: 'GET',
         path: '/3/movie/{movie_id}',
         access: 'protected',
@@ -55,7 +55,7 @@ export const generatedTools: GeneratedTool[] = [
         toolName: 'getTmdbMovieCredits',
         title: 'Movie cast and crew',
         description:
-            'Intent:\nretrieve cast and crew credits for a TMDB movie\n\nMCP arguments:\npass movie_id, language as top-level tool arguments. Do not nest path or query parameters under pathParams or query.\n\nMeta:\noperationId: movie-credits\n\nParameters:\n- movie_id (path)\n- language (query)\n\nExample:\nWho played in movie id 693134?\n\nResponse:\nHTTP 200\n200\nproperties (top-level): cast, crew, id\n\nRuntime: protected — implement src/hooks/api2ai/tmdb-tools/verifyTmdbCredential.ts; credential sent as header "Authorization" (prefix applied to the secret).',
+            'Intent:\nretrieve cast and crew credits for a TMDB movie\n\nMCP arguments:\npass movie_id, language as top-level tool arguments. Do not nest path or query parameters under pathParams or query.\n\nMeta:\noperationId: movie-credits\n\nParameters:\n- movie_id (path): (type: integer)\n- language (query): (type: string)\n\nExample:\nWho played in movie id 693134?\n\nResponse:\nHTTP 200\n200\nproperties (top-level): cast, crew, id\n\nRuntime: protected — implement src/hooks/api2ai/tmdb-tools/verifyTmdbCredential.ts; credential sent as header "Authorization" (prefix applied to the secret).',
         method: 'GET',
         path: '/3/movie/{movie_id}/credits',
         access: 'protected',
@@ -66,7 +66,7 @@ export const generatedTools: GeneratedTool[] = [
         toolName: 'discoverTmdbMovies',
         title: 'Discover movies with filters',
         description:
-            'Intent:\n- Discover movies with OpenAPI query filters (genre, year, vote_average, sort_by, etc.).\n        - Use getTmdbMovieGenres first when the user names a genre in natural language.\n        - Prefer searchTmdbMovies for a known title; use this tool for "best sci-fi 2024" style queries.\n        - with_genres: genre id as string (e.g. "878" for sci-fi from getTmdbMovieGenres); comma/pipe for AND/OR.\n        - primary_release_year: number (e.g. 2024), not a string.\n        - Example query: with_genres "878", primary_release_year 2024, sort_by vote_average.desc.\n        - Requires TMDB_ACCESS_TOKEN via MCP host --auth-env.\n\nMCP arguments:\npass certification, certification_gte, certification_lte, certification_country, include_adult, include_video, language, page, primary_release_year, primary_release_date_gte, primary_release_date_lte, region, release_date_gte, release_date_lte, sort_by, vote_average_gte, vote_average_lte, vote_count_gte, vote_count_lte, watch_region, with_cast, with_companies, with_crew, with_genres, with_keywords, with_origin_country, with_original_language, with_people, with_release_type, with_runtime_gte, with_runtime_lte, with_watch_monetization_types, with_watch_providers, without_companies, without_genres, without_keywords, without_watch_providers, year as top-level tool arguments. Do not nest path or query parameters under pathParams or query.\n\nAPI:\nFind movies using over 30 filters and sort options.\n\nMeta:\noperationId: discover-movie\n\nParameters:\n- certification (query): use in conjunction with `region`\n- certification_country (query): use in conjunction with the `certification`, `certification_gte` and `certification_lte` filters\n- certification_gte (query): use in conjunction with `region`\n- certification_lte (query): use in conjunction with `region`\n- include_adult (query)\n- include_video (query)\n- language (query)\n- page (query)\n- primary_release_date_gte (query)\n- primary_release_date_lte (query)\n- primary_release_year (query)\n- region (query)\n- release_date_gte (query)\n- release_date_lte (query)\n- sort_by (query)\n- vote_average_gte (query)\n- vote_average_lte (query)\n- vote_count_gte (query)\n- vote_count_lte (query)\n- watch_region (query): use in conjunction with `with_watch_monetization_types ` or `with_watch_providers `\n- with_cast (query): can be a comma (`AND`) or pipe (`OR`) separated query\n- with_companies (query): can be a comma (`AND`) or pipe (`OR`) separated query\n- with_crew (query): can be a comma (`AND`) or pipe (`OR`) separated query\n- with_genres (query): can be a comma (`AND`) or pipe (`OR`) separated query\n- with_keywords (query): can be a comma (`AND`) or pipe (`OR`) separated query\n- with_origin_country (query)\n- with_original_language (query)\n- with_people (query): can be a comma (`AND`) or pipe (`OR`) separated query\n- with_release_type (query): possible values are: [1, 2, 3, 4, 5, 6] can be a comma (`AND`) or pipe (`OR`) separated query, can be used in conjunction with `region`\n- with_runtime_gte (query)\n- with_runtime_lte (query)\n- with_watch_monetization_types (query): possible values are: [flatrate, free, ads, rent, buy] use in conjunction with `watch_region`, can be a comma (`AND`) or pipe (`OR`) separated query\n- with_watch_providers (query): use in conjunction with `watch_region`, can be a comma (`AND`) or pipe (`OR`) separated query\n- without_companies (query)\n- without_genres (query)\n- without_keywords (query)\n- without_watch_providers (query)\n- year (query)\n\nExample:\nFind highly rated science fiction movies from 2024\n\nResponse:\nHTTP 200\n200\nproperties (top-level): page, results, total_pages, total_results\n\nRuntime: protected — implement src/hooks/api2ai/tmdb-tools/verifyTmdbCredential.ts; credential sent as header "Authorization" (prefix applied to the secret).',
+            'Intent:\n- Discover movies with OpenAPI query filters (genre, year, vote_average, sort_by, etc.).\n        - Use getTmdbMovieGenres first when the user names a genre in natural language.\n        - Prefer searchTmdbMovies for a known title; use this tool for "best sci-fi 2024" style queries.\n        - with_genres: genre id as string (e.g. "878" for sci-fi from getTmdbMovieGenres); comma/pipe for AND/OR.\n        - primary_release_year: number (e.g. 2024), not a string.\n        - Example query: with_genres "878", primary_release_year 2024, sort_by vote_average.desc.\n        - Requires TMDB_ACCESS_TOKEN via MCP host --auth-env.\n\nMCP arguments:\npass certification, certification_gte, certification_lte, certification_country, include_adult, include_video, language, page, primary_release_year, primary_release_date_gte, primary_release_date_lte, region, release_date_gte, release_date_lte, sort_by, vote_average_gte, vote_average_lte, vote_count_gte, vote_count_lte, watch_region, with_cast, with_companies, with_crew, with_genres, with_keywords, with_origin_country, with_original_language, with_people, with_release_type, with_runtime_gte, with_runtime_lte, with_watch_monetization_types, with_watch_providers, without_companies, without_genres, without_keywords, without_watch_providers, year as top-level tool arguments. Do not nest path or query parameters under pathParams or query.\n\nAPI:\nFind movies using over 30 filters and sort options.\n\nMeta:\noperationId: discover-movie\n\nParameters:\n- certification (query): use in conjunction with `region` (type: string)\n- certification_country (query): use in conjunction with the `certification`, `certification_gte` and `certification_lte` filters (type: string)\n- certification_gte (query): use in conjunction with `region` (type: string)\n- certification_lte (query): use in conjunction with `region` (type: string)\n- include_adult (query): (type: boolean)\n- include_video (query): (type: boolean)\n- language (query): (type: string)\n- page (query): (type: integer)\n- primary_release_date_gte (query): (type: string)\n- primary_release_date_lte (query): (type: string)\n- primary_release_year (query): (type: integer)\n- region (query): (type: string)\n- release_date_gte (query): (type: string)\n- release_date_lte (query): (type: string)\n- sort_by (query): (type: string)\n- vote_average_gte (query): (type: number)\n- vote_average_lte (query): (type: number)\n- vote_count_gte (query): (type: number)\n- vote_count_lte (query): (type: number)\n- watch_region (query): use in conjunction with `with_watch_monetization_types ` or `with_watch_providers ` (type: string)\n- with_cast (query): can be a comma (`AND`) or pipe (`OR`) separated query (type: string)\n- with_companies (query): can be a comma (`AND`) or pipe (`OR`) separated query (type: string)\n- with_crew (query): can be a comma (`AND`) or pipe (`OR`) separated query (type: string)\n- with_genres (query): can be a comma (`AND`) or pipe (`OR`) separated query (type: string)\n- with_keywords (query): can be a comma (`AND`) or pipe (`OR`) separated query (type: string)\n- with_origin_country (query): (type: string)\n- with_original_language (query): (type: string)\n- with_people (query): can be a comma (`AND`) or pipe (`OR`) separated query (type: string)\n- with_release_type (query): possible values are: [1, 2, 3, 4, 5, 6] can be a comma (`AND`) or pipe (`OR`) separated query, can be used in conjunction with `region` (type: integer)\n- with_runtime_gte (query): (type: integer)\n- with_runtime_lte (query): (type: integer)\n- with_watch_monetization_types (query): possible values are: [flatrate, free, ads, rent, buy] use in conjunction with `watch_region`, can be a comma (`AND`) or pipe (`OR`) separated query (type: string)\n- with_watch_providers (query): use in conjunction with `watch_region`, can be a comma (`AND`) or pipe (`OR`) separated query (type: string)\n- without_companies (query): (type: string)\n- without_genres (query): (type: string)\n- without_keywords (query): (type: string)\n- without_watch_providers (query): (type: string)\n- year (query): (type: integer)\n\nExample:\nFind highly rated science fiction movies from 2024\n\nResponse:\nHTTP 200\n200\nproperties (top-level): page, results, total_pages, total_results\n\nRuntime: protected — implement src/hooks/api2ai/tmdb-tools/verifyTmdbCredential.ts; credential sent as header "Authorization" (prefix applied to the secret).',
         method: 'GET',
         path: '/3/discover/movie',
         access: 'protected',
@@ -77,7 +77,7 @@ export const generatedTools: GeneratedTool[] = [
         toolName: 'getTmdbMovieGenres',
         title: 'Movie genre list',
         description:
-            'Intent:\nretrieve TMDB movie genres for filtering and lookup\n\nMCP arguments:\npass language as top-level tool arguments. Do not nest path or query parameters under pathParams or query.\n\nAPI:\nGet the list of official genres for movies.\n\nMeta:\noperationId: genre-movie-list\n\nParameters:\n- language (query)\n\nExample:\nList available movie genres\n\nResponse:\nHTTP 200\n200\nproperties (top-level): genres\n\nRuntime: protected — implement src/hooks/api2ai/tmdb-tools/verifyTmdbCredential.ts; credential sent as header "Authorization" (prefix applied to the secret).',
+            'Intent:\nretrieve TMDB movie genres for filtering and lookup\n\nMCP arguments:\npass language as top-level tool arguments. Do not nest path or query parameters under pathParams or query.\n\nAPI:\nGet the list of official genres for movies.\n\nMeta:\noperationId: genre-movie-list\n\nParameters:\n- language (query): (type: string)\n\nExample:\nList available movie genres\n\nResponse:\nHTTP 200\n200\nproperties (top-level): genres\n\nRuntime: protected — implement src/hooks/api2ai/tmdb-tools/verifyTmdbCredential.ts; credential sent as header "Authorization" (prefix applied to the secret).',
         method: 'GET',
         path: '/3/genre/movie/list',
         access: 'protected',
@@ -88,7 +88,7 @@ export const generatedTools: GeneratedTool[] = [
         toolName: 'getTmdbTrendingMovies',
         title: 'Trending movies',
         description:
-            'Intent:\n- Trending TMDB movies for a time window; time_window required: "day" or "week".\n        - Not the same as getPopularTmdbMovies — do not pass page here (trending has no page filter in this tool).\n        - Optional language only (ISO code).\n\nMCP arguments:\npass time_window, language as top-level tool arguments. Do not nest path or query parameters under pathParams or query.\n\nAPI:\nGet the trending movies on TMDB.\n\nMeta:\noperationId: trending-movies\n\nParameters:\n- time_window (path)\n- language (query): `ISO-639-1`-`ISO-3166-1` code\n\nExample:\nTrending movies this week → time_window week\n\nResponse:\nHTTP 200\n200\nproperties (top-level): page, results, total_pages, total_results\n\nRuntime: protected — implement src/hooks/api2ai/tmdb-tools/verifyTmdbCredential.ts; credential sent as header "Authorization" (prefix applied to the secret).',
+            'Intent:\n- Trending TMDB movies for a time window; time_window required: "day" or "week".\n        - Not the same as getPopularTmdbMovies — do not pass page here (trending has no page filter in this tool).\n        - Optional language only (ISO code).\n\nMCP arguments:\npass time_window, language as top-level tool arguments. Do not nest path or query parameters under pathParams or query.\n\nAPI:\nGet the trending movies on TMDB.\n\nMeta:\noperationId: trending-movies\n\nParameters:\n- time_window (path): (type: string)\n- language (query): `ISO-639-1`-`ISO-3166-1` code (type: string)\n\nExample:\nTrending movies this week → time_window week\n\nResponse:\nHTTP 200\n200\nproperties (top-level): page, results, total_pages, total_results\n\nRuntime: protected — implement src/hooks/api2ai/tmdb-tools/verifyTmdbCredential.ts; credential sent as header "Authorization" (prefix applied to the secret).',
         method: 'GET',
         path: '/3/trending/movie/{time_window}',
         access: 'protected',
@@ -99,7 +99,7 @@ export const generatedTools: GeneratedTool[] = [
         toolName: 'getTmdbMovieVideos',
         title: 'Movie videos and trailers',
         description:
-            'Intent:\nretrieve videos such as trailers for a TMDB movie\n\nMCP arguments:\npass movie_id, language as top-level tool arguments. Do not nest path or query parameters under pathParams or query.\n\nMeta:\noperationId: movie-videos\n\nParameters:\n- movie_id (path)\n- language (query)\n\nExample:\nShow trailers for movie id 693134\n\nResponse:\nHTTP 200\n200\nproperties (top-level): id, results\n\nRuntime: protected — implement src/hooks/api2ai/tmdb-tools/verifyTmdbCredential.ts; credential sent as header "Authorization" (prefix applied to the secret).',
+            'Intent:\nretrieve videos such as trailers for a TMDB movie\n\nMCP arguments:\npass movie_id, language as top-level tool arguments. Do not nest path or query parameters under pathParams or query.\n\nMeta:\noperationId: movie-videos\n\nParameters:\n- movie_id (path): (type: integer)\n- language (query): (type: string)\n\nExample:\nShow trailers for movie id 693134\n\nResponse:\nHTTP 200\n200\nproperties (top-level): id, results\n\nRuntime: protected — implement src/hooks/api2ai/tmdb-tools/verifyTmdbCredential.ts; credential sent as header "Authorization" (prefix applied to the secret).',
         method: 'GET',
         path: '/3/movie/{movie_id}/videos',
         access: 'protected',
@@ -110,7 +110,7 @@ export const generatedTools: GeneratedTool[] = [
         toolName: 'searchTmdbMulti',
         title: 'Multi search (movies, TV, people)',
         description:
-            'Intent:\nsearch TMDB across movies, tv shows, and people\n\nMCP arguments:\npass query, include_adult, language, page as top-level tool arguments. Do not nest path or query parameters under pathParams or query.\n\nAPI:\nUse multi search when you want to search for movies, TV shows and people in a single request.\n\nMeta:\noperationId: search-multi\n\nParameters:\n- include_adult (query)\n- language (query)\n- page (query)\n- query (query)\n\nExample:\nSearch TMDB for Dune across all media types\n\nResponse:\nHTTP 200\n200\nproperties (top-level): page, results, total_pages, total_results\n\nRuntime: protected — implement src/hooks/api2ai/tmdb-tools/verifyTmdbCredential.ts; credential sent as header "Authorization" (prefix applied to the secret).',
+            'Intent:\nsearch TMDB across movies, tv shows, and people\n\nMCP arguments:\npass query, include_adult, language, page as top-level tool arguments. Do not nest path or query parameters under pathParams or query.\n\nAPI:\nUse multi search when you want to search for movies, TV shows and people in a single request.\n\nMeta:\noperationId: search-multi\n\nParameters:\n- include_adult (query): (type: boolean)\n- language (query): (type: string)\n- page (query): (type: integer)\n- query (query): (type: string)\n\nExample:\nSearch TMDB for Dune across all media types\n\nResponse:\nHTTP 200\n200\nproperties (top-level): page, results, total_pages, total_results\n\nRuntime: protected — implement src/hooks/api2ai/tmdb-tools/verifyTmdbCredential.ts; credential sent as header "Authorization" (prefix applied to the secret).',
         method: 'GET',
         path: '/3/search/multi',
         access: 'protected',
@@ -121,7 +121,7 @@ export const generatedTools: GeneratedTool[] = [
         toolName: 'getTmdbMovieReleaseDates',
         title: 'Movie release dates',
         description:
-            'Intent:\nretrieve release dates for a TMDB movie\n\nMCP arguments:\npass movie_id as top-level tool arguments. Do not nest path or query parameters under pathParams or query.\n\nAPI:\nGet the release dates and certifications for a movie.\n\nMeta:\noperationId: movie-release-dates\n\nParameters:\n- movie_id (path)\n\nExample:\nWhen was movie id 693134 released?\n\nResponse:\nHTTP 200\n200\nproperties (top-level): id, results\n\nRuntime: protected — implement src/hooks/api2ai/tmdb-tools/verifyTmdbCredential.ts; credential sent as header "Authorization" (prefix applied to the secret).',
+            'Intent:\nretrieve release dates for a TMDB movie\n\nMCP arguments:\npass movie_id as top-level tool arguments. Do not nest path or query parameters under pathParams or query.\n\nAPI:\nGet the release dates and certifications for a movie.\n\nMeta:\noperationId: movie-release-dates\n\nParameters:\n- movie_id (path): (type: integer)\n\nExample:\nWhen was movie id 693134 released?\n\nResponse:\nHTTP 200\n200\nproperties (top-level): id, results\n\nRuntime: protected — implement src/hooks/api2ai/tmdb-tools/verifyTmdbCredential.ts; credential sent as header "Authorization" (prefix applied to the secret).',
         method: 'GET',
         path: '/3/movie/{movie_id}/release_dates',
         access: 'protected',
@@ -132,7 +132,7 @@ export const generatedTools: GeneratedTool[] = [
         toolName: 'getTmdbMovieRecommendations',
         title: 'Movie recommendations',
         description:
-            'Intent:\nretrieve recommendations for a TMDB movie\n\nMCP arguments:\npass movie_id, language, page as top-level tool arguments. Do not nest path or query parameters under pathParams or query.\n\nMeta:\noperationId: movie-recommendations\n\nParameters:\n- movie_id (path)\n- language (query)\n- page (query)\n\nExample:\nRecommendations for movie id 693134\n\nResponse:\nHTTP 200\n200\ntype: object (no inlined properties)\n\nRuntime: protected — implement src/hooks/api2ai/tmdb-tools/verifyTmdbCredential.ts; credential sent as header "Authorization" (prefix applied to the secret).',
+            'Intent:\nretrieve recommendations for a TMDB movie\n\nMCP arguments:\npass movie_id, language, page as top-level tool arguments. Do not nest path or query parameters under pathParams or query.\n\nMeta:\noperationId: movie-recommendations\n\nParameters:\n- movie_id (path): (type: integer)\n- language (query): (type: string)\n- page (query): (type: integer)\n\nExample:\nRecommendations for movie id 693134\n\nResponse:\nHTTP 200\n200\ntype: object (no inlined properties)\n\nRuntime: protected — implement src/hooks/api2ai/tmdb-tools/verifyTmdbCredential.ts; credential sent as header "Authorization" (prefix applied to the secret).',
         method: 'GET',
         path: '/3/movie/{movie_id}/recommendations',
         access: 'protected',
@@ -143,7 +143,7 @@ export const generatedTools: GeneratedTool[] = [
         toolName: 'getTmdbMovieSimilar',
         title: 'Retrieve similar movies',
         description:
-            'Intent:\nretrieve similar movies for a TMDB movie\n\nMCP arguments:\npass movie_id, language, page as top-level tool arguments. Do not nest path or query parameters under pathParams or query.\n\nAPI:\nGet the similar movies based on genres and keywords.\n\nMeta:\noperationId: movie-similar\n\nParameters:\n- movie_id (path)\n- language (query)\n- page (query)\n\nExample:\nFind similar movies to 693134\n\nResponse:\nHTTP 200\n200\nproperties (top-level): page, results, total_pages, total_results\n\nRuntime: protected — implement src/hooks/api2ai/tmdb-tools/verifyTmdbCredential.ts; credential sent as header "Authorization" (prefix applied to the secret).',
+            'Intent:\nretrieve similar movies for a TMDB movie\n\nMCP arguments:\npass movie_id, language, page as top-level tool arguments. Do not nest path or query parameters under pathParams or query.\n\nAPI:\nGet the similar movies based on genres and keywords.\n\nMeta:\noperationId: movie-similar\n\nParameters:\n- movie_id (path): (type: integer)\n- language (query): (type: string)\n- page (query): (type: integer)\n\nExample:\nFind similar movies to 693134\n\nResponse:\nHTTP 200\n200\nproperties (top-level): page, results, total_pages, total_results\n\nRuntime: protected — implement src/hooks/api2ai/tmdb-tools/verifyTmdbCredential.ts; credential sent as header "Authorization" (prefix applied to the secret).',
         method: 'GET',
         path: '/3/movie/{movie_id}/similar',
         access: 'protected',
@@ -154,7 +154,7 @@ export const generatedTools: GeneratedTool[] = [
         toolName: 'getTmdbMovieReviews',
         title: 'Retrieve movie reviews',
         description:
-            'Intent:\nretrieve reviews for a TMDB movie\n\nMCP arguments:\npass movie_id, language, page as top-level tool arguments. Do not nest path or query parameters under pathParams or query.\n\nAPI:\nGet the user reviews for a movie.\n\nMeta:\noperationId: movie-reviews\n\nParameters:\n- movie_id (path)\n- language (query)\n- page (query)\n\nExample:\nReviews for movie id 693134\n\nResponse:\nHTTP 200\n200\nproperties (top-level): id, page, results, total_pages, total_results\n\nRuntime: protected — implement src/hooks/api2ai/tmdb-tools/verifyTmdbCredential.ts; credential sent as header "Authorization" (prefix applied to the secret).',
+            'Intent:\nretrieve reviews for a TMDB movie\n\nMCP arguments:\npass movie_id, language, page as top-level tool arguments. Do not nest path or query parameters under pathParams or query.\n\nAPI:\nGet the user reviews for a movie.\n\nMeta:\noperationId: movie-reviews\n\nParameters:\n- movie_id (path): (type: integer)\n- language (query): (type: string)\n- page (query): (type: integer)\n\nExample:\nReviews for movie id 693134\n\nResponse:\nHTTP 200\n200\nproperties (top-level): id, page, results, total_pages, total_results\n\nRuntime: protected — implement src/hooks/api2ai/tmdb-tools/verifyTmdbCredential.ts; credential sent as header "Authorization" (prefix applied to the secret).',
         method: 'GET',
         path: '/3/movie/{movie_id}/reviews',
         access: 'protected',
@@ -200,10 +200,10 @@ export const inputZodByTool = {
     searchTmdbMovies: z
         .object({
             query: z.string(),
-            include_adult: z.union([z.boolean(), z.literal('true'), z.literal('false')]).optional(),
+            include_adult: z.boolean().optional(),
             language: z.string().optional(),
             primary_release_year: z.string().optional(),
-            page: z.union([z.number().int(), z.string()]).optional(),
+            page: z.number().int().optional(),
             region: z.string().optional(),
             year: z.string().optional(),
             headers: z.record(z.string(), z.string()).describe('Optional extra headers.').optional(),
@@ -217,8 +217,8 @@ export const inputZodByTool = {
     getPopularTmdbMovies: z
         .object({
             language: z.string().optional(),
-            page: z.union([z.number().int(), z.string()]).optional(),
-            region: z.string().describe('ISO-3166-1 code').optional(),
+            page: z.number().int().optional(),
+            region: z.string().describe('ISO-3166-1 code (type: string)').optional(),
             headers: z.record(z.string(), z.string()).describe('Optional extra headers.').optional(),
             body: z
                 .record(z.string(), z.union([z.string(), z.number(), z.boolean()]))
@@ -229,10 +229,10 @@ export const inputZodByTool = {
         .describe('Arguments for invoking the generated HTTP wrapper.'),
     getTmdbMovieDetails: z
         .object({
-            movie_id: z.union([z.number().int(), z.string()]),
+            movie_id: z.number().int(),
             append_to_response: z
                 .string()
-                .describe('comma separated list of endpoints within this namespace, 20 items max')
+                .describe('comma separated list of endpoints within this namespace, 20 items max (type: string)')
                 .optional(),
             language: z.string().optional(),
             headers: z.record(z.string(), z.string()).describe('Optional extra headers.').optional(),
@@ -245,7 +245,7 @@ export const inputZodByTool = {
         .describe('Arguments for invoking the generated HTTP wrapper.'),
     getTmdbMovieCredits: z
         .object({
-            movie_id: z.union([z.number().int(), z.string()]),
+            movie_id: z.number().int(),
             language: z.string().optional(),
             headers: z.record(z.string(), z.string()).describe('Optional extra headers.').optional(),
             body: z
@@ -257,20 +257,20 @@ export const inputZodByTool = {
         .describe('Arguments for invoking the generated HTTP wrapper.'),
     discoverTmdbMovies: z
         .object({
-            certification: z.string().describe('use in conjunction with `region`').optional(),
-            certification_gte: z.string().describe('use in conjunction with `region`').optional(),
-            certification_lte: z.string().describe('use in conjunction with `region`').optional(),
+            certification: z.string().describe('use in conjunction with `region` (type: string)').optional(),
+            certification_gte: z.string().describe('use in conjunction with `region` (type: string)').optional(),
+            certification_lte: z.string().describe('use in conjunction with `region` (type: string)').optional(),
             certification_country: z
                 .string()
                 .describe(
-                    'use in conjunction with the `certification`, `certification_gte` and `certification_lte` filters'
+                    'use in conjunction with the `certification`, `certification_gte` and `certification_lte` filters (type: string)'
                 )
                 .optional(),
-            include_adult: z.union([z.boolean(), z.literal('true'), z.literal('false')]).optional(),
-            include_video: z.union([z.boolean(), z.literal('true'), z.literal('false')]).optional(),
+            include_adult: z.boolean().optional(),
+            include_video: z.boolean().optional(),
             language: z.string().optional(),
-            page: z.union([z.number().int(), z.string()]).optional(),
-            primary_release_year: z.union([z.number().int(), z.string()]).optional(),
+            page: z.number().int().optional(),
+            primary_release_year: z.number().int().optional(),
             primary_release_date_gte: z.string().optional(),
             primary_release_date_lte: z.string().optional(),
             region: z.string().optional(),
@@ -294,47 +294,68 @@ export const inputZodByTool = {
                     z.literal('vote_count.desc')
                 ])
                 .optional(),
-            vote_average_gte: z.union([z.number(), z.string()]).optional(),
-            vote_average_lte: z.union([z.number(), z.string()]).optional(),
-            vote_count_gte: z.union([z.number(), z.string()]).optional(),
-            vote_count_lte: z.union([z.number(), z.string()]).optional(),
+            vote_average_gte: z.number().optional(),
+            vote_average_lte: z.number().optional(),
+            vote_count_gte: z.number().optional(),
+            vote_count_lte: z.number().optional(),
             watch_region: z
                 .string()
-                .describe('use in conjunction with `with_watch_monetization_types ` or `with_watch_providers `')
-                .optional(),
-            with_cast: z.string().describe('can be a comma (`AND`) or pipe (`OR`) separated query').optional(),
-            with_companies: z.string().describe('can be a comma (`AND`) or pipe (`OR`) separated query').optional(),
-            with_crew: z.string().describe('can be a comma (`AND`) or pipe (`OR`) separated query').optional(),
-            with_genres: z.string().describe('can be a comma (`AND`) or pipe (`OR`) separated query').optional(),
-            with_keywords: z.string().describe('can be a comma (`AND`) or pipe (`OR`) separated query').optional(),
-            with_origin_country: z.string().optional(),
-            with_original_language: z.string().optional(),
-            with_people: z.string().describe('can be a comma (`AND`) or pipe (`OR`) separated query').optional(),
-            with_release_type: z
-                .union([z.number().int(), z.string()])
                 .describe(
-                    'possible values are: [1, 2, 3, 4, 5, 6] can be a comma (`AND`) or pipe (`OR`) separated query, can be used in conjunction with `region`'
+                    'use in conjunction with `with_watch_monetization_types ` or `with_watch_providers ` (type: string)'
                 )
                 .optional(),
-            with_runtime_gte: z.union([z.number().int(), z.string()]).optional(),
-            with_runtime_lte: z.union([z.number().int(), z.string()]).optional(),
+            with_cast: z
+                .string()
+                .describe('can be a comma (`AND`) or pipe (`OR`) separated query (type: string)')
+                .optional(),
+            with_companies: z
+                .string()
+                .describe('can be a comma (`AND`) or pipe (`OR`) separated query (type: string)')
+                .optional(),
+            with_crew: z
+                .string()
+                .describe('can be a comma (`AND`) or pipe (`OR`) separated query (type: string)')
+                .optional(),
+            with_genres: z
+                .string()
+                .describe('can be a comma (`AND`) or pipe (`OR`) separated query (type: string)')
+                .optional(),
+            with_keywords: z
+                .string()
+                .describe('can be a comma (`AND`) or pipe (`OR`) separated query (type: string)')
+                .optional(),
+            with_origin_country: z.string().optional(),
+            with_original_language: z.string().optional(),
+            with_people: z
+                .string()
+                .describe('can be a comma (`AND`) or pipe (`OR`) separated query (type: string)')
+                .optional(),
+            with_release_type: z
+                .number()
+                .int()
+                .describe(
+                    'possible values are: [1, 2, 3, 4, 5, 6] can be a comma (`AND`) or pipe (`OR`) separated query, can be used in conjunction with `region` (type: integer)'
+                )
+                .optional(),
+            with_runtime_gte: z.number().int().optional(),
+            with_runtime_lte: z.number().int().optional(),
             with_watch_monetization_types: z
                 .string()
                 .describe(
-                    'possible values are: [flatrate, free, ads, rent, buy] use in conjunction with `watch_region`, can be a comma (`AND`) or pipe (`OR`) separated query'
+                    'possible values are: [flatrate, free, ads, rent, buy] use in conjunction with `watch_region`, can be a comma (`AND`) or pipe (`OR`) separated query (type: string)'
                 )
                 .optional(),
             with_watch_providers: z
                 .string()
                 .describe(
-                    'use in conjunction with `watch_region`, can be a comma (`AND`) or pipe (`OR`) separated query'
+                    'use in conjunction with `watch_region`, can be a comma (`AND`) or pipe (`OR`) separated query (type: string)'
                 )
                 .optional(),
             without_companies: z.string().optional(),
             without_genres: z.string().optional(),
             without_keywords: z.string().optional(),
             without_watch_providers: z.string().optional(),
-            year: z.union([z.number().int(), z.string()]).optional(),
+            year: z.number().int().optional(),
             headers: z.record(z.string(), z.string()).describe('Optional extra headers.').optional(),
             body: z
                 .record(z.string(), z.union([z.string(), z.number(), z.boolean()]))
@@ -357,7 +378,7 @@ export const inputZodByTool = {
     getTmdbTrendingMovies: z
         .object({
             time_window: z.union([z.literal('day'), z.literal('week')]),
-            language: z.string().describe('`ISO-639-1`-`ISO-3166-1` code').optional(),
+            language: z.string().describe('`ISO-639-1`-`ISO-3166-1` code (type: string)').optional(),
             headers: z.record(z.string(), z.string()).describe('Optional extra headers.').optional(),
             body: z
                 .record(z.string(), z.union([z.string(), z.number(), z.boolean()]))
@@ -368,7 +389,7 @@ export const inputZodByTool = {
         .describe('Arguments for invoking the generated HTTP wrapper.'),
     getTmdbMovieVideos: z
         .object({
-            movie_id: z.union([z.number().int(), z.string()]),
+            movie_id: z.number().int(),
             language: z.string().optional(),
             headers: z.record(z.string(), z.string()).describe('Optional extra headers.').optional(),
             body: z
@@ -381,9 +402,9 @@ export const inputZodByTool = {
     searchTmdbMulti: z
         .object({
             query: z.string(),
-            include_adult: z.union([z.boolean(), z.literal('true'), z.literal('false')]).optional(),
+            include_adult: z.boolean().optional(),
             language: z.string().optional(),
-            page: z.union([z.number().int(), z.string()]).optional(),
+            page: z.number().int().optional(),
             headers: z.record(z.string(), z.string()).describe('Optional extra headers.').optional(),
             body: z
                 .record(z.string(), z.union([z.string(), z.number(), z.boolean()]))
@@ -394,7 +415,7 @@ export const inputZodByTool = {
         .describe('Arguments for invoking the generated HTTP wrapper.'),
     getTmdbMovieReleaseDates: z
         .object({
-            movie_id: z.union([z.number().int(), z.string()]),
+            movie_id: z.number().int(),
             headers: z.record(z.string(), z.string()).describe('Optional extra headers.').optional(),
             body: z
                 .record(z.string(), z.union([z.string(), z.number(), z.boolean()]))
@@ -405,9 +426,9 @@ export const inputZodByTool = {
         .describe('Arguments for invoking the generated HTTP wrapper.'),
     getTmdbMovieRecommendations: z
         .object({
-            movie_id: z.union([z.number().int(), z.string()]),
+            movie_id: z.number().int(),
             language: z.string().optional(),
-            page: z.union([z.number().int(), z.string()]).optional(),
+            page: z.number().int().optional(),
             headers: z.record(z.string(), z.string()).describe('Optional extra headers.').optional(),
             body: z
                 .record(z.string(), z.union([z.string(), z.number(), z.boolean()]))
@@ -418,9 +439,9 @@ export const inputZodByTool = {
         .describe('Arguments for invoking the generated HTTP wrapper.'),
     getTmdbMovieSimilar: z
         .object({
-            movie_id: z.union([z.number().int(), z.string()]),
+            movie_id: z.number().int(),
             language: z.string().optional(),
-            page: z.union([z.number().int(), z.string()]).optional(),
+            page: z.number().int().optional(),
             headers: z.record(z.string(), z.string()).describe('Optional extra headers.').optional(),
             body: z
                 .record(z.string(), z.union([z.string(), z.number(), z.boolean()]))
@@ -431,9 +452,9 @@ export const inputZodByTool = {
         .describe('Arguments for invoking the generated HTTP wrapper.'),
     getTmdbMovieReviews: z
         .object({
-            movie_id: z.union([z.number().int(), z.string()]),
+            movie_id: z.number().int(),
             language: z.string().optional(),
-            page: z.union([z.number().int(), z.string()]).optional(),
+            page: z.number().int().optional(),
             headers: z.record(z.string(), z.string()).describe('Optional extra headers.').optional(),
             body: z
                 .record(z.string(), z.union([z.string(), z.number(), z.boolean()]))
@@ -563,52 +584,15 @@ const invokeParamBucketsByTool = {
         arrayQuery: []
     }
 };
-const invokeBodySchemaByTool = {};
 
-function coerceInvokeScalar(value: string | number | boolean): string | number | boolean {
-    if (typeof value === 'string') {
-        const trimmed = value.trim();
-        if (trimmed === 'true') {
-            return true;
-        }
-        if (trimmed === 'false') {
-            return false;
-        }
-        if (/^-?\d+(\.\d+)?([eE][+-]?\d+)?$/.test(trimmed)) {
-            const parsed = Number(trimmed);
-            if (Number.isFinite(parsed)) {
-                return parsed;
-            }
-        }
-    }
-    return value;
-}
-
-function coerceInvokePathBucket(
-    bucket: Record<string, string | number | boolean> | undefined
-): Record<string, string | number | boolean> | undefined {
-    if (!bucket) {
-        return undefined;
-    }
-    const out: Record<string, string | number | boolean> = {};
-    for (const [key, value] of Object.entries(bucket)) {
-        if (value === undefined || value === null) {
-            continue;
-        }
-        out[key] = coerceInvokeScalar(value);
-    }
-    return Object.keys(out).length > 0 ? out : undefined;
-}
-
-function coerceInvokeQueryArrayValue(value: string): ReadonlyArray<string | number | boolean> {
+function splitInvokeQueryArrayValue(value: string): ReadonlyArray<string | number | boolean> {
     return value
         .split(',')
         .map((part) => part.trim())
-        .filter((part) => part.length > 0)
-        .map((part) => coerceInvokeScalar(part));
+        .filter((part) => part.length > 0);
 }
 
-function coerceInvokeQueryBucket(toolName: string, bucket: InvokeOptions['query']): InvokeOptions['query'] {
+function prepareQueryBucket(toolName: string, bucket: InvokeOptions['query']): InvokeOptions['query'] {
     if (!bucket) {
         return undefined;
     }
@@ -620,95 +604,29 @@ function coerceInvokeQueryBucket(toolName: string, bucket: InvokeOptions['query'
         if (value === undefined || value === null) {
             continue;
         }
-        if (Array.isArray(value)) {
-            out[key] = value.map((element) => coerceInvokeScalar(element));
-            continue;
-        }
         if (arrayQueryKeys.has(key) && typeof value === 'string') {
-            out[key] = coerceInvokeQueryArrayValue(value);
+            out[key] = splitInvokeQueryArrayValue(value);
             continue;
         }
-        out[key] = coerceInvokeScalar(value as string | number | boolean);
+        out[key] = value as string | number | boolean | ReadonlyArray<string | number | boolean>;
     }
     return Object.keys(out).length > 0 ? out : undefined;
 }
 
-function coerceInvokeValueBySchema(value: unknown, schema: Record<string, unknown> | undefined): unknown {
-    if (!schema || value === undefined || value === null) {
-        return value;
+function omitNullishPathParams(
+    bucket: Record<string, string | number | boolean> | undefined
+): Record<string, string | number | boolean> | undefined {
+    if (!bucket) {
+        return undefined;
     }
-    const type = schema.type;
-    if (type === 'integer' || type === 'number') {
-        if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
-            return coerceInvokeScalar(value as string | number | boolean);
+    const out: Record<string, string | number | boolean> = {};
+    for (const [key, value] of Object.entries(bucket)) {
+        if (value === undefined || value === null) {
+            continue;
         }
-        return value;
+        out[key] = value;
     }
-    if (type === 'boolean') {
-        if (typeof value === 'boolean') {
-            return value;
-        }
-        if (typeof value === 'string') {
-            const trimmed = value.trim();
-            if (trimmed === 'true') {
-                return true;
-            }
-            if (trimmed === 'false') {
-                return false;
-            }
-        }
-        return value;
-    }
-    if (type === 'array') {
-        const items = schema.items as Record<string, unknown> | undefined;
-        if (typeof value === 'string') {
-            return value
-                .split(',')
-                .map((part) => part.trim())
-                .filter((part) => part.length > 0)
-                .map((part) => (items ? coerceInvokeValueBySchema(part, items) : coerceInvokeScalar(part)));
-        }
-        if (Array.isArray(value)) {
-            return value.map((element) =>
-                items
-                    ? coerceInvokeValueBySchema(element, items)
-                    : coerceInvokeScalar(element as string | number | boolean)
-            );
-        }
-        return value;
-    }
-    if (
-        type === 'object' &&
-        schema.properties &&
-        typeof schema.properties === 'object' &&
-        !Array.isArray(schema.properties) &&
-        typeof value === 'object' &&
-        value !== null &&
-        !Array.isArray(value)
-    ) {
-        const props = schema.properties as Record<string, Record<string, unknown>>;
-        const out: Record<string, unknown> = {};
-        for (const [key, element] of Object.entries(value as Record<string, unknown>)) {
-            if (element === undefined || element === null) {
-                continue;
-            }
-            const propSchema = props[key];
-            out[key] = propSchema ? coerceInvokeValueBySchema(element, propSchema) : element;
-        }
-        return out;
-    }
-    return value;
-}
-
-function coerceInvokeBody(toolName: string, body: unknown): unknown {
-    if (body === undefined || body === null) {
-        return body;
-    }
-    const schema = (invokeBodySchemaByTool as Record<string, Record<string, unknown> | undefined>)[toolName];
-    if (!schema) {
-        return body;
-    }
-    return coerceInvokeValueBySchema(body, schema);
+    return Object.keys(out).length > 0 ? out : undefined;
 }
 
 function isInvokeQueryBucketValue(value: unknown): value is Record<string, unknown> {
@@ -742,12 +660,8 @@ function normalizeInvokeOptions(toolName: string, options: InvokeOptions): Invok
     if (!hasTopLevelFlatParam) {
         return {
             ...options,
-            pathParams: coerceInvokePathBucket(options.pathParams),
-            query: coerceInvokeQueryBucket(
-                toolName,
-                isInvokeQueryBucketValue(options.query) ? options.query : undefined
-            ),
-            body: coerceInvokeBody(toolName, options.body)
+            pathParams: omitNullishPathParams(options.pathParams),
+            query: prepareQueryBucket(toolName, isInvokeQueryBucketValue(options.query) ? options.query : undefined)
         };
     }
 
@@ -774,7 +688,7 @@ function normalizeInvokeOptions(toolName: string, options: InvokeOptions): Invok
         if (key === 'query') {
             if (queryKeys.includes('query') && !isInvokeQueryBucketValue(value)) {
                 if (arrayQueryKeys.has(key) && typeof value === 'string') {
-                    query[key] = coerceInvokeQueryArrayValue(value);
+                    query[key] = splitInvokeQueryArrayValue(value);
                 } else {
                     query[key] = value as string | number | boolean | ReadonlyArray<string | number | boolean>;
                 }
@@ -791,7 +705,7 @@ function normalizeInvokeOptions(toolName: string, options: InvokeOptions): Invok
             pathParams[key] = value as string | number | boolean;
         } else if (queryKeys.includes(key)) {
             if (arrayQueryKeys.has(key) && typeof value === 'string') {
-                query[key] = coerceInvokeQueryArrayValue(value);
+                query[key] = splitInvokeQueryArrayValue(value);
             } else {
                 query[key] = value as string | number | boolean | ReadonlyArray<string | number | boolean>;
             }
@@ -801,10 +715,10 @@ function normalizeInvokeOptions(toolName: string, options: InvokeOptions): Invok
     }
 
     return {
-        pathParams: coerceInvokePathBucket(pathParams),
-        query: coerceInvokeQueryBucket(toolName, query),
+        pathParams: omitNullishPathParams(pathParams),
+        query: prepareQueryBucket(toolName, query),
         headers: Object.keys(headers).length > 0 ? headers : undefined,
-        body: coerceInvokeBody(toolName, options.body)
+        body: options.body
     };
 }
 const queryParamSerializationByTool = {

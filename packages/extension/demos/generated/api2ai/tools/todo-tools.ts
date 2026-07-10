@@ -33,7 +33,7 @@ export const generatedTools: GeneratedTool[] = [
         toolName: 'listTodos',
         title: 'List todos',
         description:
-            'Intent:\nList todos. Optional query filters: status (open|done), categoryId (work|home|errands).\n        Use todos[].id (e.g. t-1) as todoId for getTodo, updateTodo, deleteTodo.\n        Call shape: query optional only — e.g. { "status": "open" } or {} for all todos.\n\nMCP arguments:\npass status, categoryId as top-level tool arguments. Do not nest path or query parameters under pathParams or query.\n\nMeta:\noperationId: list-todos\n\nParameters:\n- categoryId (query): Optional query filter by category id — from listCategories categories[].id (work, home, errands). (example: work)\n- status (query): Optional query filter: open or done only. Omit to return all statuses. (example: open)\n\nExample:\nList all todos\n\nResponse:\nHTTP 200 — top-level todos array. Each todo: id, title, status (open|done), categoryId, dueDate.\n        Documented errors:\n        HTTP 401 — Missing or invalid API key\n\nRuntime: protected — implement src/hooks/api2ai/todo-tools/verifyTodoCredential.ts; credential sent as header "x-api-key".',
+            'Intent:\nList todos. Optional query filters: status (open|done), categoryId (work|home|errands).\n        Use todos[].id (e.g. t-1) as todoId for getTodo, updateTodo, deleteTodo.\n        Call shape: query optional only — e.g. { "status": "open" } or {} for all todos.\n\nMCP arguments:\npass status, categoryId as top-level tool arguments. Do not nest path or query parameters under pathParams or query.\n\nMeta:\noperationId: list-todos\n\nParameters:\n- categoryId (query): Optional query filter by category id — from listCategories categories[].id (work, home, errands). (type: string) (example: work)\n- status (query): Optional query filter: open or done only. Omit to return all statuses. (type: string) (example: open)\n\nExample:\nList all todos\n\nResponse:\nHTTP 200 — top-level todos array. Each todo: id, title, status (open|done), categoryId, dueDate.\n        Documented errors:\n        HTTP 401 — Missing or invalid API key\n\nRuntime: protected — implement src/hooks/api2ai/todo-tools/verifyTodoCredential.ts; credential sent as header "x-api-key".',
         method: 'GET',
         path: '/todos',
         access: 'protected',
@@ -44,7 +44,7 @@ export const generatedTools: GeneratedTool[] = [
         toolName: 'listTodosByCategory',
         title: 'List todos by category',
         description:
-            'Intent:\nList todos in one category. categoryId is a path param (work, home, or errands).\n        Optional status: open or done.\n        Call shape: categoryId required; status optional.\n\nMCP arguments:\npass categoryId, status as top-level tool arguments. Do not nest path or query parameters under pathParams or query.\n\nMeta:\noperationId: list-todos-by-category\n\nParameters:\n- categoryId (path): Category id (path param categoryId). Values: work, home, errands — from listCategories.\n                Do NOT use id or category. (example: work)\n- status (query): Optional query filter: open or done only. (example: open)\n\nExample:\nList open todos in category work\n\nResponse:\nHTTP 200 — top-level categoryId and todos array (same todo shape as listTodos).\n        Documented errors:\n        HTTP 401 — Missing or invalid API key\n        HTTP 404 — Unknown category (invalid categoryId)\n\nRuntime: protected — implement src/hooks/api2ai/todo-tools/verifyTodoCredential.ts; credential sent as header "x-api-key".',
+            'Intent:\nList todos in one category. categoryId is a path param (work, home, or errands).\n        Optional status: open or done.\n        Call shape: categoryId required; status optional.\n\nMCP arguments:\npass categoryId, status as top-level tool arguments. Do not nest path or query parameters under pathParams or query.\n\nMeta:\noperationId: list-todos-by-category\n\nParameters:\n- categoryId (path): Category id (path param categoryId). Values: work, home, errands — from listCategories.\n                Do NOT use id or category. (type: string) (example: work)\n- status (query): Optional query filter: open or done only. (type: string) (example: open)\n\nExample:\nList open todos in category work\n\nResponse:\nHTTP 200 — top-level categoryId and todos array (same todo shape as listTodos).\n        Documented errors:\n        HTTP 401 — Missing or invalid API key\n        HTTP 404 — Unknown category (invalid categoryId)\n\nRuntime: protected — implement src/hooks/api2ai/todo-tools/verifyTodoCredential.ts; credential sent as header "x-api-key".',
         method: 'GET',
         path: '/categories/{categoryId}/todos',
         access: 'protected',
@@ -55,7 +55,7 @@ export const generatedTools: GeneratedTool[] = [
         toolName: 'getTodo',
         title: 'Get todo by id',
         description:
-            'Intent:\nFetch one todo by id. Get todoId from listTodos todos[].id or createTodo todo.id.\n        Call shape: todoId required — e.g. { "todoId": "t-1" }.\n        Do NOT use id.\n\nMCP arguments:\npass todoId as top-level tool arguments. Do not nest path or query parameters under pathParams or query.\n\nMeta:\noperationId: get-todo\n\nParameters:\n- todoId (path): Todo id as todoId (NOT id). From listTodos todos[].id or createTodo todo.id. (example: t-1)\n\nExample:\nGet todo t-1\n\nResponse:\nHTTP 200 — top-level property todo (id, title, status, categoryId, dueDate).\n        Documented errors:\n        HTTP 401 — Missing or invalid API key\n        HTTP 404 — Todo not found\n\nRuntime: protected — implement src/hooks/api2ai/todo-tools/verifyTodoCredential.ts; credential sent as header "x-api-key".',
+            'Intent:\nFetch one todo by id. Get todoId from listTodos todos[].id or createTodo todo.id.\n        Call shape: todoId required — e.g. { "todoId": "t-1" }.\n        Do NOT use id.\n\nMCP arguments:\npass todoId as top-level tool arguments. Do not nest path or query parameters under pathParams or query.\n\nMeta:\noperationId: get-todo\n\nParameters:\n- todoId (path): Todo id as todoId (NOT id). From listTodos todos[].id or createTodo todo.id. (type: string) (example: t-1)\n\nExample:\nGet todo t-1\n\nResponse:\nHTTP 200 — top-level property todo (id, title, status, categoryId, dueDate).\n        Documented errors:\n        HTTP 401 — Missing or invalid API key\n        HTTP 404 — Todo not found\n\nRuntime: protected — implement src/hooks/api2ai/todo-tools/verifyTodoCredential.ts; credential sent as header "x-api-key".',
         method: 'GET',
         path: '/todos/{todoId}',
         access: 'protected',
@@ -77,7 +77,7 @@ export const generatedTools: GeneratedTool[] = [
         toolName: 'updateTodo',
         title: 'Update todo',
         description:
-            'Intent:\nUpdate a todo. Requires todoId from listTodos todos[].id (e.g. t-1) and body with at least one field.\n        Do NOT use id — the path key is todoId.\n        Example — mark done: { "todoId": "t-1" }, body: { "status": "done" }.\n        Example — rename: { "todoId": "t-2" }, body: { "title": "Buy organic milk" }.\n\nMCP arguments:\npass todoId as top-level tool arguments; send the request payload in the `body` property. Do not nest path or query parameters under pathParams or query.\n\nMeta:\noperationId: update-todo\n\nParameters:\n- todoId (path): Todo id as todoId (NOT id). From listTodos todos[].id or createTodo todo.id. (example: t-1)\n\nRequest body:\nJSON body object (required). Send only fields to change; at least one required.\n        Fields: status (open|done), title (string), categoryId (work|home|errands), dueDate (YYYY-MM-DD).\n        Do not send id in body.\n        Example mark done: { "status": "done" }\n        Example reopen: { "status": "open" }\n\nExample:\nMark todo t-1 as done\n\nResponse:\nHTTP 200 — top-level property todo with updated fields.\n        Documented errors:\n        HTTP 400 — Invalid input\n        HTTP 401 — Missing or invalid API key\n        HTTP 404 — Todo or category not found\n\nRuntime: protected — implement src/hooks/api2ai/todo-tools/verifyTodoCredential.ts; credential sent as header "x-api-key".',
+            'Intent:\nUpdate a todo. Requires todoId from listTodos todos[].id (e.g. t-1) and body with at least one field.\n        Do NOT use id — the path key is todoId.\n        Example — mark done: { "todoId": "t-1" }, body: { "status": "done" }.\n        Example — rename: { "todoId": "t-2" }, body: { "title": "Buy organic milk" }.\n\nMCP arguments:\npass todoId as top-level tool arguments; send the request payload in the `body` property. Do not nest path or query parameters under pathParams or query.\n\nMeta:\noperationId: update-todo\n\nParameters:\n- todoId (path): Todo id as todoId (NOT id). From listTodos todos[].id or createTodo todo.id. (type: string) (example: t-1)\n\nRequest body:\nJSON body object (required). Send only fields to change; at least one required.\n        Fields: status (open|done), title (string), categoryId (work|home|errands), dueDate (YYYY-MM-DD).\n        Do not send id in body.\n        Example mark done: { "status": "done" }\n        Example reopen: { "status": "open" }\n\nExample:\nMark todo t-1 as done\n\nResponse:\nHTTP 200 — top-level property todo with updated fields.\n        Documented errors:\n        HTTP 400 — Invalid input\n        HTTP 401 — Missing or invalid API key\n        HTTP 404 — Todo or category not found\n\nRuntime: protected — implement src/hooks/api2ai/todo-tools/verifyTodoCredential.ts; credential sent as header "x-api-key".',
         method: 'PATCH',
         path: '/todos/{todoId}',
         access: 'protected',
@@ -88,7 +88,7 @@ export const generatedTools: GeneratedTool[] = [
         toolName: 'deleteTodo',
         title: 'Delete todo',
         description:
-            'Intent:\nDelete a todo permanently. Requires todoId from listTodos todos[].id.\n        Do NOT use id.\n        Call shape: { "todoId": "t-2" } — no body required.\n\nMCP arguments:\npass todoId as top-level tool arguments. Do not nest path or query parameters under pathParams or query.\n\nMeta:\noperationId: delete-todo\n\nParameters:\n- todoId (path): Todo id as todoId (NOT id). From listTodos todos[].id or createTodo todo.id. (example: t-2)\n\nExample:\nDelete todo t-2\n\nResponse:\nHTTP 200 — top-level todoId and deleted: true.\n        Documented errors:\n        HTTP 401 — Missing or invalid API key\n        HTTP 404 — Todo not found\n\nRuntime: protected — implement src/hooks/api2ai/todo-tools/verifyTodoCredential.ts; credential sent as header "x-api-key".',
+            'Intent:\nDelete a todo permanently. Requires todoId from listTodos todos[].id.\n        Do NOT use id.\n        Call shape: { "todoId": "t-2" } — no body required.\n\nMCP arguments:\npass todoId as top-level tool arguments. Do not nest path or query parameters under pathParams or query.\n\nMeta:\noperationId: delete-todo\n\nParameters:\n- todoId (path): Todo id as todoId (NOT id). From listTodos todos[].id or createTodo todo.id. (type: string) (example: t-2)\n\nExample:\nDelete todo t-2\n\nResponse:\nHTTP 200 — top-level todoId and deleted: true.\n        Documented errors:\n        HTTP 401 — Missing or invalid API key\n        HTTP 404 — Todo not found\n\nRuntime: protected — implement src/hooks/api2ai/todo-tools/verifyTodoCredential.ts; credential sent as header "x-api-key".',
         method: 'DELETE',
         path: '/todos/{todoId}',
         access: 'protected',
@@ -145,12 +145,14 @@ export const inputZodByTool = {
         .object({
             status: z
                 .union([z.literal('open'), z.literal('done')])
-                .describe('Optional query filter: open or done only. Omit to return all statuses. (example: open)')
+                .describe(
+                    'Optional query filter: open or done only. Omit to return all statuses. (type: string) (example: open)'
+                )
                 .optional(),
             categoryId: z
                 .string()
                 .describe(
-                    'Optional query filter by category id — from listCategories categories[].id (work, home, errands). (example: work)'
+                    'Optional query filter by category id — from listCategories categories[].id (work, home, errands). (type: string) (example: work)'
                 )
                 .optional(),
             headers: z.record(z.string(), z.string()).describe('Optional extra headers.').optional(),
@@ -166,11 +168,11 @@ export const inputZodByTool = {
             categoryId: z
                 .string()
                 .describe(
-                    'Category id (path param categoryId). Values: work, home, errands — from listCategories.\n                Do NOT use id or category. (example: work)'
+                    'Category id (path param categoryId). Values: work, home, errands — from listCategories.\n                Do NOT use id or category. (type: string) (example: work)'
                 ),
             status: z
                 .union([z.literal('open'), z.literal('done')])
-                .describe('Optional query filter: open or done only. (example: open)')
+                .describe('Optional query filter: open or done only. (type: string) (example: open)')
                 .optional(),
             headers: z.record(z.string(), z.string()).describe('Optional extra headers.').optional(),
             body: z
@@ -185,7 +187,7 @@ export const inputZodByTool = {
             todoId: z
                 .string()
                 .describe(
-                    'Todo id as todoId (NOT id). From listTodos todos[].id or createTodo todo.id. (example: t-1)'
+                    'Todo id as todoId (NOT id). From listTodos todos[].id or createTodo todo.id. (type: string) (example: t-1)'
                 ),
             headers: z.record(z.string(), z.string()).describe('Optional extra headers.').optional(),
             body: z
@@ -217,7 +219,7 @@ export const inputZodByTool = {
             todoId: z
                 .string()
                 .describe(
-                    'Todo id as todoId (NOT id). From listTodos todos[].id or createTodo todo.id. (example: t-1)'
+                    'Todo id as todoId (NOT id). From listTodos todos[].id or createTodo todo.id. (type: string) (example: t-1)'
                 ),
             headers: z.record(z.string(), z.string()).describe('Optional extra headers.').optional(),
             body: z
@@ -239,7 +241,7 @@ export const inputZodByTool = {
             todoId: z
                 .string()
                 .describe(
-                    'Todo id as todoId (NOT id). From listTodos todos[].id or createTodo todo.id. (example: t-2)'
+                    'Todo id as todoId (NOT id). From listTodos todos[].id or createTodo todo.id. (type: string) (example: t-2)'
                 ),
             headers: z.record(z.string(), z.string()).describe('Optional extra headers.').optional(),
             body: z
@@ -295,93 +297,15 @@ const invokeParamBucketsByTool = {
         arrayQuery: []
     }
 };
-const invokeBodySchemaByTool = {
-    createTodo: {
-        type: 'object',
-        properties: {
-            title: {
-                type: 'string'
-            },
-            categoryId: {
-                type: 'string'
-            },
-            status: {
-                enum: ['open', 'done'],
-                type: 'string'
-            },
-            dueDate: {
-                type: 'string'
-            }
-        },
-        required: ['title', 'categoryId'],
-        additionalProperties: false
-    },
-    updateTodo: {
-        type: 'object',
-        properties: {
-            title: {
-                type: 'string'
-            },
-            status: {
-                enum: ['open', 'done'],
-                type: 'string'
-            },
-            categoryId: {
-                type: 'string'
-            },
-            dueDate: {
-                type: 'string'
-            }
-        },
-        required: [],
-        additionalProperties: false
-    }
-};
 
-function coerceInvokeScalar(value: string | number | boolean): string | number | boolean {
-    if (typeof value === 'string') {
-        const trimmed = value.trim();
-        if (trimmed === 'true') {
-            return true;
-        }
-        if (trimmed === 'false') {
-            return false;
-        }
-        if (/^-?\d+(\.\d+)?([eE][+-]?\d+)?$/.test(trimmed)) {
-            const parsed = Number(trimmed);
-            if (Number.isFinite(parsed)) {
-                return parsed;
-            }
-        }
-    }
-    return value;
-}
-
-function coerceInvokePathBucket(
-    bucket: Record<string, string | number | boolean> | undefined
-): Record<string, string | number | boolean> | undefined {
-    if (!bucket) {
-        return undefined;
-    }
-    const out: Record<string, string | number | boolean> = {};
-    for (const [key, value] of Object.entries(bucket)) {
-        if (value === undefined || value === null) {
-            continue;
-        }
-        out[key] = coerceInvokeScalar(value);
-    }
-    return Object.keys(out).length > 0 ? out : undefined;
-}
-
-function coerceInvokeQueryArrayValue(value: string): ReadonlyArray<string | number | boolean> {
+function splitInvokeQueryArrayValue(value: string): ReadonlyArray<string | number | boolean> {
     return value
         .split(',')
         .map((part) => part.trim())
-        .filter((part) => part.length > 0)
-        .map((part) => coerceInvokeScalar(part));
+        .filter((part) => part.length > 0);
 }
 
-function coerceInvokeQueryBucket(toolName: string, bucket: InvokeOptions['query']): InvokeOptions['query'] {
+function prepareQueryBucket(toolName: string, bucket: InvokeOptions['query']): InvokeOptions['query'] {
     if (!bucket) {
         return undefined;
     }
@@ -393,95 +317,29 @@ function coerceInvokeQueryBucket(toolName: string, bucket: InvokeOptions['query'
         if (value === undefined || value === null) {
             continue;
         }
-        if (Array.isArray(value)) {
-            out[key] = value.map((element) => coerceInvokeScalar(element));
-            continue;
-        }
         if (arrayQueryKeys.has(key) && typeof value === 'string') {
-            out[key] = coerceInvokeQueryArrayValue(value);
+            out[key] = splitInvokeQueryArrayValue(value);
             continue;
         }
-        out[key] = coerceInvokeScalar(value as string | number | boolean);
+        out[key] = value as string | number | boolean | ReadonlyArray<string | number | boolean>;
     }
     return Object.keys(out).length > 0 ? out : undefined;
 }
 
-function coerceInvokeValueBySchema(value: unknown, schema: Record<string, unknown> | undefined): unknown {
-    if (!schema || value === undefined || value === null) {
-        return value;
+function omitNullishPathParams(
+    bucket: Record<string, string | number | boolean> | undefined
+): Record<string, string | number | boolean> | undefined {
+    if (!bucket) {
+        return undefined;
     }
-    const type = schema.type;
-    if (type === 'integer' || type === 'number') {
-        if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
-            return coerceInvokeScalar(value as string | number | boolean);
+    const out: Record<string, string | number | boolean> = {};
+    for (const [key, value] of Object.entries(bucket)) {
+        if (value === undefined || value === null) {
+            continue;
         }
-        return value;
+        out[key] = value;
     }
-    if (type === 'boolean') {
-        if (typeof value === 'boolean') {
-            return value;
-        }
-        if (typeof value === 'string') {
-            const trimmed = value.trim();
-            if (trimmed === 'true') {
-                return true;
-            }
-            if (trimmed === 'false') {
-                return false;
-            }
-        }
-        return value;
-    }
-    if (type === 'array') {
-        const items = schema.items as Record<string, unknown> | undefined;
-        if (typeof value === 'string') {
-            return value
-                .split(',')
-                .map((part) => part.trim())
-                .filter((part) => part.length > 0)
-                .map((part) => (items ? coerceInvokeValueBySchema(part, items) : coerceInvokeScalar(part)));
-        }
-        if (Array.isArray(value)) {
-            return value.map((element) =>
-                items
-                    ? coerceInvokeValueBySchema(element, items)
-                    : coerceInvokeScalar(element as string | number | boolean)
-            );
-        }
-        return value;
-    }
-    if (
-        type === 'object' &&
-        schema.properties &&
-        typeof schema.properties === 'object' &&
-        !Array.isArray(schema.properties) &&
-        typeof value === 'object' &&
-        value !== null &&
-        !Array.isArray(value)
-    ) {
-        const props = schema.properties as Record<string, Record<string, unknown>>;
-        const out: Record<string, unknown> = {};
-        for (const [key, element] of Object.entries(value as Record<string, unknown>)) {
-            if (element === undefined || element === null) {
-                continue;
-            }
-            const propSchema = props[key];
-            out[key] = propSchema ? coerceInvokeValueBySchema(element, propSchema) : element;
-        }
-        return out;
-    }
-    return value;
-}
-
-function coerceInvokeBody(toolName: string, body: unknown): unknown {
-    if (body === undefined || body === null) {
-        return body;
-    }
-    const schema = (invokeBodySchemaByTool as Record<string, Record<string, unknown> | undefined>)[toolName];
-    if (!schema) {
-        return body;
-    }
-    return coerceInvokeValueBySchema(body, schema);
+    return Object.keys(out).length > 0 ? out : undefined;
 }
 
 function isInvokeQueryBucketValue(value: unknown): value is Record<string, unknown> {
@@ -515,12 +373,8 @@ function normalizeInvokeOptions(toolName: string, options: InvokeOptions): Invok
     if (!hasTopLevelFlatParam) {
         return {
             ...options,
-            pathParams: coerceInvokePathBucket(options.pathParams),
-            query: coerceInvokeQueryBucket(
-                toolName,
-                isInvokeQueryBucketValue(options.query) ? options.query : undefined
-            ),
-            body: coerceInvokeBody(toolName, options.body)
+            pathParams: omitNullishPathParams(options.pathParams),
+            query: prepareQueryBucket(toolName, isInvokeQueryBucketValue(options.query) ? options.query : undefined)
         };
     }
 
@@ -547,7 +401,7 @@ function normalizeInvokeOptions(toolName: string, options: InvokeOptions): Invok
         if (key === 'query') {
             if (queryKeys.includes('query') && !isInvokeQueryBucketValue(value)) {
                 if (arrayQueryKeys.has(key) && typeof value === 'string') {
-                    query[key] = coerceInvokeQueryArrayValue(value);
+                    query[key] = splitInvokeQueryArrayValue(value);
                 } else {
                     query[key] = value as string | number | boolean | ReadonlyArray<string | number | boolean>;
                 }
@@ -564,7 +418,7 @@ function normalizeInvokeOptions(toolName: string, options: InvokeOptions): Invok
             pathParams[key] = value as string | number | boolean;
         } else if (queryKeys.includes(key)) {
             if (arrayQueryKeys.has(key) && typeof value === 'string') {
-                query[key] = coerceInvokeQueryArrayValue(value);
+                query[key] = splitInvokeQueryArrayValue(value);
             } else {
                 query[key] = value as string | number | boolean | ReadonlyArray<string | number | boolean>;
             }
@@ -574,10 +428,10 @@ function normalizeInvokeOptions(toolName: string, options: InvokeOptions): Invok
     }
 
     return {
-        pathParams: coerceInvokePathBucket(pathParams),
-        query: coerceInvokeQueryBucket(toolName, query),
+        pathParams: omitNullishPathParams(pathParams),
+        query: prepareQueryBucket(toolName, query),
         headers: Object.keys(headers).length > 0 ? headers : undefined,
-        body: coerceInvokeBody(toolName, options.body)
+        body: options.body
     };
 }
 const queryParamSerializationByTool = {

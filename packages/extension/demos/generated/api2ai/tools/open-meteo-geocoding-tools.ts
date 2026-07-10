@@ -21,7 +21,7 @@ export const generatedTools: GeneratedTool[] = [
         toolName: 'openMeteoGeocodeSearch',
         title: 'Resolve location names to coordinates',
         description:
-            'Intent:\n- Resolve a place name to WGS84 latitude and longitude (query: name, required).\n        - Optional: countryCode (e.g. DE), language (e.g. de), count to limit matches.\n        - Use before openMeteoForecast when the user gives a city or region, not coordinates.\n        - Pick the result that matches the intended admin region (e.g. Baden-Württemberg vs. Hessen for "Ortenberg").\n\nMCP arguments:\npass name, count, language, countryCode as top-level tool arguments. Do not nest path or query parameters under pathParams or query.\n\nMeta:\noperationId: searchLocationByName\n\nParameters:\n- count (query): Number of matches to return.\n- countryCode (query): ISO country code filter, e.g. AT.\n- language (query): Language code for result names, e.g. de or en.\n- name (query): City/place search text, e.g. Bernstein.\n\nExample:\nFind coordinates for Bernstein, Burgenland, Austria\n\nResponse:\nHTTP 200\nOK\n\nRuntime: public endpoint — no credential required.',
+            'Intent:\n- Resolve a place name to WGS84 latitude and longitude (query: name, required).\n        - Optional: countryCode (e.g. DE), language (e.g. de), count to limit matches.\n        - Use before openMeteoForecast when the user gives a city or region, not coordinates.\n        - Pick the result that matches the intended admin region (e.g. Baden-Württemberg vs. Hessen for "Ortenberg").\n\nMCP arguments:\npass name, count, language, countryCode as top-level tool arguments. Do not nest path or query parameters under pathParams or query.\n\nMeta:\noperationId: searchLocationByName\n\nParameters:\n- count (query): Number of matches to return. (type: integer)\n- countryCode (query): ISO country code filter, e.g. AT. (type: string)\n- language (query): Language code for result names, e.g. de or en. (type: string)\n- name (query): City/place search text, e.g. Bernstein. (type: string)\n\nExample:\nFind coordinates for Bernstein, Burgenland, Austria\n\nResponse:\nHTTP 200\nOK\n\nRuntime: public endpoint — no credential required.',
         method: 'GET',
         path: '/v1/search',
         access: 'public',
@@ -53,10 +53,10 @@ export { mcpBuildGeneratedAt } from '../mcp-build-generated-at.js';
 export const inputZodByTool = {
     openMeteoGeocodeSearch: z
         .object({
-            name: z.string().describe('City/place search text, e.g. Bernstein.'),
-            count: z.union([z.number().int(), z.string()]).describe('Number of matches to return.').optional(),
-            language: z.string().describe('Language code for result names, e.g. de or en.').optional(),
-            countryCode: z.string().describe('ISO country code filter, e.g. AT.').optional(),
+            name: z.string().describe('City/place search text, e.g. Bernstein. (type: string)'),
+            count: z.number().int().describe('Number of matches to return. (type: integer)').optional(),
+            language: z.string().describe('Language code for result names, e.g. de or en. (type: string)').optional(),
+            countryCode: z.string().describe('ISO country code filter, e.g. AT. (type: string)').optional(),
             headers: z.record(z.string(), z.string()).describe('Optional extra headers.').optional(),
             body: z
                 .record(z.string(), z.union([z.string(), z.number(), z.boolean()]))
@@ -75,52 +75,15 @@ const invokeParamBucketsByTool = {
         arrayQuery: []
     }
 };
-const invokeBodySchemaByTool = {};
 
-function coerceInvokeScalar(value: string | number | boolean): string | number | boolean {
-    if (typeof value === 'string') {
-        const trimmed = value.trim();
-        if (trimmed === 'true') {
-            return true;
-        }
-        if (trimmed === 'false') {
-            return false;
-        }
-        if (/^-?\d+(\.\d+)?([eE][+-]?\d+)?$/.test(trimmed)) {
-            const parsed = Number(trimmed);
-            if (Number.isFinite(parsed)) {
-                return parsed;
-            }
-        }
-    }
-    return value;
-}
-
-function coerceInvokePathBucket(
-    bucket: Record<string, string | number | boolean> | undefined
-): Record<string, string | number | boolean> | undefined {
-    if (!bucket) {
-        return undefined;
-    }
-    const out: Record<string, string | number | boolean> = {};
-    for (const [key, value] of Object.entries(bucket)) {
-        if (value === undefined || value === null) {
-            continue;
-        }
-        out[key] = coerceInvokeScalar(value);
-    }
-    return Object.keys(out).length > 0 ? out : undefined;
-}
-
-function coerceInvokeQueryArrayValue(value: string): ReadonlyArray<string | number | boolean> {
+function splitInvokeQueryArrayValue(value: string): ReadonlyArray<string | number | boolean> {
     return value
         .split(',')
         .map((part) => part.trim())
-        .filter((part) => part.length > 0)
-        .map((part) => coerceInvokeScalar(part));
+        .filter((part) => part.length > 0);
 }
 
-function coerceInvokeQueryBucket(toolName: string, bucket: InvokeOptions['query']): InvokeOptions['query'] {
+function prepareQueryBucket(toolName: string, bucket: InvokeOptions['query']): InvokeOptions['query'] {
     if (!bucket) {
         return undefined;
     }
@@ -132,95 +95,29 @@ function coerceInvokeQueryBucket(toolName: string, bucket: InvokeOptions['query'
         if (value === undefined || value === null) {
             continue;
         }
-        if (Array.isArray(value)) {
-            out[key] = value.map((element) => coerceInvokeScalar(element));
-            continue;
-        }
         if (arrayQueryKeys.has(key) && typeof value === 'string') {
-            out[key] = coerceInvokeQueryArrayValue(value);
+            out[key] = splitInvokeQueryArrayValue(value);
             continue;
         }
-        out[key] = coerceInvokeScalar(value as string | number | boolean);
+        out[key] = value as string | number | boolean | ReadonlyArray<string | number | boolean>;
     }
     return Object.keys(out).length > 0 ? out : undefined;
 }
 
-function coerceInvokeValueBySchema(value: unknown, schema: Record<string, unknown> | undefined): unknown {
-    if (!schema || value === undefined || value === null) {
-        return value;
+function omitNullishPathParams(
+    bucket: Record<string, string | number | boolean> | undefined
+): Record<string, string | number | boolean> | undefined {
+    if (!bucket) {
+        return undefined;
     }
-    const type = schema.type;
-    if (type === 'integer' || type === 'number') {
-        if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
-            return coerceInvokeScalar(value as string | number | boolean);
+    const out: Record<string, string | number | boolean> = {};
+    for (const [key, value] of Object.entries(bucket)) {
+        if (value === undefined || value === null) {
+            continue;
         }
-        return value;
+        out[key] = value;
     }
-    if (type === 'boolean') {
-        if (typeof value === 'boolean') {
-            return value;
-        }
-        if (typeof value === 'string') {
-            const trimmed = value.trim();
-            if (trimmed === 'true') {
-                return true;
-            }
-            if (trimmed === 'false') {
-                return false;
-            }
-        }
-        return value;
-    }
-    if (type === 'array') {
-        const items = schema.items as Record<string, unknown> | undefined;
-        if (typeof value === 'string') {
-            return value
-                .split(',')
-                .map((part) => part.trim())
-                .filter((part) => part.length > 0)
-                .map((part) => (items ? coerceInvokeValueBySchema(part, items) : coerceInvokeScalar(part)));
-        }
-        if (Array.isArray(value)) {
-            return value.map((element) =>
-                items
-                    ? coerceInvokeValueBySchema(element, items)
-                    : coerceInvokeScalar(element as string | number | boolean)
-            );
-        }
-        return value;
-    }
-    if (
-        type === 'object' &&
-        schema.properties &&
-        typeof schema.properties === 'object' &&
-        !Array.isArray(schema.properties) &&
-        typeof value === 'object' &&
-        value !== null &&
-        !Array.isArray(value)
-    ) {
-        const props = schema.properties as Record<string, Record<string, unknown>>;
-        const out: Record<string, unknown> = {};
-        for (const [key, element] of Object.entries(value as Record<string, unknown>)) {
-            if (element === undefined || element === null) {
-                continue;
-            }
-            const propSchema = props[key];
-            out[key] = propSchema ? coerceInvokeValueBySchema(element, propSchema) : element;
-        }
-        return out;
-    }
-    return value;
-}
-
-function coerceInvokeBody(toolName: string, body: unknown): unknown {
-    if (body === undefined || body === null) {
-        return body;
-    }
-    const schema = (invokeBodySchemaByTool as Record<string, Record<string, unknown> | undefined>)[toolName];
-    if (!schema) {
-        return body;
-    }
-    return coerceInvokeValueBySchema(body, schema);
+    return Object.keys(out).length > 0 ? out : undefined;
 }
 
 function isInvokeQueryBucketValue(value: unknown): value is Record<string, unknown> {
@@ -254,12 +151,8 @@ function normalizeInvokeOptions(toolName: string, options: InvokeOptions): Invok
     if (!hasTopLevelFlatParam) {
         return {
             ...options,
-            pathParams: coerceInvokePathBucket(options.pathParams),
-            query: coerceInvokeQueryBucket(
-                toolName,
-                isInvokeQueryBucketValue(options.query) ? options.query : undefined
-            ),
-            body: coerceInvokeBody(toolName, options.body)
+            pathParams: omitNullishPathParams(options.pathParams),
+            query: prepareQueryBucket(toolName, isInvokeQueryBucketValue(options.query) ? options.query : undefined)
         };
     }
 
@@ -286,7 +179,7 @@ function normalizeInvokeOptions(toolName: string, options: InvokeOptions): Invok
         if (key === 'query') {
             if (queryKeys.includes('query') && !isInvokeQueryBucketValue(value)) {
                 if (arrayQueryKeys.has(key) && typeof value === 'string') {
-                    query[key] = coerceInvokeQueryArrayValue(value);
+                    query[key] = splitInvokeQueryArrayValue(value);
                 } else {
                     query[key] = value as string | number | boolean | ReadonlyArray<string | number | boolean>;
                 }
@@ -303,7 +196,7 @@ function normalizeInvokeOptions(toolName: string, options: InvokeOptions): Invok
             pathParams[key] = value as string | number | boolean;
         } else if (queryKeys.includes(key)) {
             if (arrayQueryKeys.has(key) && typeof value === 'string') {
-                query[key] = coerceInvokeQueryArrayValue(value);
+                query[key] = splitInvokeQueryArrayValue(value);
             } else {
                 query[key] = value as string | number | boolean | ReadonlyArray<string | number | boolean>;
             }
@@ -313,10 +206,10 @@ function normalizeInvokeOptions(toolName: string, options: InvokeOptions): Invok
     }
 
     return {
-        pathParams: coerceInvokePathBucket(pathParams),
-        query: coerceInvokeQueryBucket(toolName, query),
+        pathParams: omitNullishPathParams(pathParams),
+        query: prepareQueryBucket(toolName, query),
         headers: Object.keys(headers).length > 0 ? headers : undefined,
-        body: coerceInvokeBody(toolName, options.body)
+        body: options.body
     };
 }
 const queryParamSerializationByTool = {

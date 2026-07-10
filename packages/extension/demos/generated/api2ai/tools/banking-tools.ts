@@ -36,7 +36,7 @@ export const generatedTools: GeneratedTool[] = [
         toolName: 'getAccountBalance',
         title: 'Get account balance',
         description:
-            'Intent:\nFetch balance for one account by accountId (from listMyAccounts).\n        Users may only read their own accounts; admin may read any account.\n\nMCP arguments:\npass accountId as top-level tool arguments. Do not nest path or query parameters under pathParams or query.\n\nMeta:\noperationId: get-account-balance\n\nParameters:\n- accountId (path)\n\nExample:\nBalance for acc-alice-checking\n\nResponse:\nHTTP 200 — accountId, balance, currency.\n        Documented errors:\n        HTTP 401 — Missing or invalid portal token\n        HTTP 403 — Account not accessible\n        HTTP 404 — Unknown account\n\nRuntime: protected — implement checkToolAccessForGetAccountBalance in src/hooks/api2ai/banking-tools/checkToolAccessForGetAccountBalance.ts; credential sent as header "Authorization" (prefix applied to the secret).',
+            'Intent:\nFetch balance for one account by accountId (from listMyAccounts).\n        Users may only read their own accounts; admin may read any account.\n\nMCP arguments:\npass accountId as top-level tool arguments. Do not nest path or query parameters under pathParams or query.\n\nMeta:\noperationId: get-account-balance\n\nParameters:\n- accountId (path): (type: string)\n\nExample:\nBalance for acc-alice-checking\n\nResponse:\nHTTP 200 — accountId, balance, currency.\n        Documented errors:\n        HTTP 401 — Missing or invalid portal token\n        HTTP 403 — Account not accessible\n        HTTP 404 — Unknown account\n\nRuntime: protected — implement checkToolAccessForGetAccountBalance in src/hooks/api2ai/banking-tools/checkToolAccessForGetAccountBalance.ts; credential sent as header "Authorization" (prefix applied to the secret).',
         method: 'GET',
         path: '/accounts/{accountId}/balance',
         access: 'protected',
@@ -151,52 +151,15 @@ const invokeParamBucketsByTool = {
         arrayQuery: []
     }
 };
-const invokeBodySchemaByTool = {};
 
-function coerceInvokeScalar(value: string | number | boolean): string | number | boolean {
-    if (typeof value === 'string') {
-        const trimmed = value.trim();
-        if (trimmed === 'true') {
-            return true;
-        }
-        if (trimmed === 'false') {
-            return false;
-        }
-        if (/^-?\d+(\.\d+)?([eE][+-]?\d+)?$/.test(trimmed)) {
-            const parsed = Number(trimmed);
-            if (Number.isFinite(parsed)) {
-                return parsed;
-            }
-        }
-    }
-    return value;
-}
-
-function coerceInvokePathBucket(
-    bucket: Record<string, string | number | boolean> | undefined
-): Record<string, string | number | boolean> | undefined {
-    if (!bucket) {
-        return undefined;
-    }
-    const out: Record<string, string | number | boolean> = {};
-    for (const [key, value] of Object.entries(bucket)) {
-        if (value === undefined || value === null) {
-            continue;
-        }
-        out[key] = coerceInvokeScalar(value);
-    }
-    return Object.keys(out).length > 0 ? out : undefined;
-}
-
-function coerceInvokeQueryArrayValue(value: string): ReadonlyArray<string | number | boolean> {
+function splitInvokeQueryArrayValue(value: string): ReadonlyArray<string | number | boolean> {
     return value
         .split(',')
         .map((part) => part.trim())
-        .filter((part) => part.length > 0)
-        .map((part) => coerceInvokeScalar(part));
+        .filter((part) => part.length > 0);
 }
 
-function coerceInvokeQueryBucket(toolName: string, bucket: InvokeOptions['query']): InvokeOptions['query'] {
+function prepareQueryBucket(toolName: string, bucket: InvokeOptions['query']): InvokeOptions['query'] {
     if (!bucket) {
         return undefined;
     }
@@ -208,95 +171,29 @@ function coerceInvokeQueryBucket(toolName: string, bucket: InvokeOptions['query'
         if (value === undefined || value === null) {
             continue;
         }
-        if (Array.isArray(value)) {
-            out[key] = value.map((element) => coerceInvokeScalar(element));
-            continue;
-        }
         if (arrayQueryKeys.has(key) && typeof value === 'string') {
-            out[key] = coerceInvokeQueryArrayValue(value);
+            out[key] = splitInvokeQueryArrayValue(value);
             continue;
         }
-        out[key] = coerceInvokeScalar(value as string | number | boolean);
+        out[key] = value as string | number | boolean | ReadonlyArray<string | number | boolean>;
     }
     return Object.keys(out).length > 0 ? out : undefined;
 }
 
-function coerceInvokeValueBySchema(value: unknown, schema: Record<string, unknown> | undefined): unknown {
-    if (!schema || value === undefined || value === null) {
-        return value;
+function omitNullishPathParams(
+    bucket: Record<string, string | number | boolean> | undefined
+): Record<string, string | number | boolean> | undefined {
+    if (!bucket) {
+        return undefined;
     }
-    const type = schema.type;
-    if (type === 'integer' || type === 'number') {
-        if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
-            return coerceInvokeScalar(value as string | number | boolean);
+    const out: Record<string, string | number | boolean> = {};
+    for (const [key, value] of Object.entries(bucket)) {
+        if (value === undefined || value === null) {
+            continue;
         }
-        return value;
+        out[key] = value;
     }
-    if (type === 'boolean') {
-        if (typeof value === 'boolean') {
-            return value;
-        }
-        if (typeof value === 'string') {
-            const trimmed = value.trim();
-            if (trimmed === 'true') {
-                return true;
-            }
-            if (trimmed === 'false') {
-                return false;
-            }
-        }
-        return value;
-    }
-    if (type === 'array') {
-        const items = schema.items as Record<string, unknown> | undefined;
-        if (typeof value === 'string') {
-            return value
-                .split(',')
-                .map((part) => part.trim())
-                .filter((part) => part.length > 0)
-                .map((part) => (items ? coerceInvokeValueBySchema(part, items) : coerceInvokeScalar(part)));
-        }
-        if (Array.isArray(value)) {
-            return value.map((element) =>
-                items
-                    ? coerceInvokeValueBySchema(element, items)
-                    : coerceInvokeScalar(element as string | number | boolean)
-            );
-        }
-        return value;
-    }
-    if (
-        type === 'object' &&
-        schema.properties &&
-        typeof schema.properties === 'object' &&
-        !Array.isArray(schema.properties) &&
-        typeof value === 'object' &&
-        value !== null &&
-        !Array.isArray(value)
-    ) {
-        const props = schema.properties as Record<string, Record<string, unknown>>;
-        const out: Record<string, unknown> = {};
-        for (const [key, element] of Object.entries(value as Record<string, unknown>)) {
-            if (element === undefined || element === null) {
-                continue;
-            }
-            const propSchema = props[key];
-            out[key] = propSchema ? coerceInvokeValueBySchema(element, propSchema) : element;
-        }
-        return out;
-    }
-    return value;
-}
-
-function coerceInvokeBody(toolName: string, body: unknown): unknown {
-    if (body === undefined || body === null) {
-        return body;
-    }
-    const schema = (invokeBodySchemaByTool as Record<string, Record<string, unknown> | undefined>)[toolName];
-    if (!schema) {
-        return body;
-    }
-    return coerceInvokeValueBySchema(body, schema);
+    return Object.keys(out).length > 0 ? out : undefined;
 }
 
 function isInvokeQueryBucketValue(value: unknown): value is Record<string, unknown> {
@@ -330,12 +227,8 @@ function normalizeInvokeOptions(toolName: string, options: InvokeOptions): Invok
     if (!hasTopLevelFlatParam) {
         return {
             ...options,
-            pathParams: coerceInvokePathBucket(options.pathParams),
-            query: coerceInvokeQueryBucket(
-                toolName,
-                isInvokeQueryBucketValue(options.query) ? options.query : undefined
-            ),
-            body: coerceInvokeBody(toolName, options.body)
+            pathParams: omitNullishPathParams(options.pathParams),
+            query: prepareQueryBucket(toolName, isInvokeQueryBucketValue(options.query) ? options.query : undefined)
         };
     }
 
@@ -362,7 +255,7 @@ function normalizeInvokeOptions(toolName: string, options: InvokeOptions): Invok
         if (key === 'query') {
             if (queryKeys.includes('query') && !isInvokeQueryBucketValue(value)) {
                 if (arrayQueryKeys.has(key) && typeof value === 'string') {
-                    query[key] = coerceInvokeQueryArrayValue(value);
+                    query[key] = splitInvokeQueryArrayValue(value);
                 } else {
                     query[key] = value as string | number | boolean | ReadonlyArray<string | number | boolean>;
                 }
@@ -379,7 +272,7 @@ function normalizeInvokeOptions(toolName: string, options: InvokeOptions): Invok
             pathParams[key] = value as string | number | boolean;
         } else if (queryKeys.includes(key)) {
             if (arrayQueryKeys.has(key) && typeof value === 'string') {
-                query[key] = coerceInvokeQueryArrayValue(value);
+                query[key] = splitInvokeQueryArrayValue(value);
             } else {
                 query[key] = value as string | number | boolean | ReadonlyArray<string | number | boolean>;
             }
@@ -389,10 +282,10 @@ function normalizeInvokeOptions(toolName: string, options: InvokeOptions): Invok
     }
 
     return {
-        pathParams: coerceInvokePathBucket(pathParams),
-        query: coerceInvokeQueryBucket(toolName, query),
+        pathParams: omitNullishPathParams(pathParams),
+        query: prepareQueryBucket(toolName, query),
         headers: Object.keys(headers).length > 0 ? headers : undefined,
-        body: coerceInvokeBody(toolName, options.body)
+        body: options.body
     };
 }
 const queryParamSerializationByTool = {

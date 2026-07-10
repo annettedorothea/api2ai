@@ -47,7 +47,7 @@ export const generatedTools: GeneratedTool[] = [
         toolName: 'testGetItem',
         title: 'Get item by id',
         description:
-            'Intent:\nHarness path param itemId\n\nMCP arguments:\npass itemId as top-level tool arguments. Do not nest path or query parameters under pathParams or query.\n\nMeta:\noperationId: test-get-item\n\nParameters:\n- itemId (path)\n\nExample:\nGet item item-1\n\nResponse:\nHTTP 200\nOK\nproperties (top-level): itemId\n\nRuntime: public endpoint — no credential required.',
+            'Intent:\nHarness path param itemId\n\nMCP arguments:\npass itemId as top-level tool arguments. Do not nest path or query parameters under pathParams or query.\n\nMeta:\noperationId: test-get-item\n\nParameters:\n- itemId (path): (type: string)\n\nExample:\nGet item item-1\n\nResponse:\nHTTP 200\nOK\nproperties (top-level): itemId\n\nRuntime: public endpoint — no credential required.',
         method: 'GET',
         path: '/items/{itemId}',
         access: 'public',
@@ -58,7 +58,7 @@ export const generatedTools: GeneratedTool[] = [
         toolName: 'testGetAccount',
         title: 'Get account by dotted path param',
         description:
-            'Intent:\nHarness dotted path param account.id mapped to account_id\n\nMCP arguments:\npass account_id as top-level tool arguments. Do not nest path or query parameters under pathParams or query.\n\nMeta:\noperationId: test-get-account\n\nParameters:\n- account_id (path)\n\nExample:\nGet account acc-42\n\nResponse:\nHTTP 200\nOK\nproperties (top-level): accountId\n\nRuntime: public endpoint — no credential required.',
+            'Intent:\nHarness dotted path param account.id mapped to account_id\n\nMCP arguments:\npass account_id as top-level tool arguments. Do not nest path or query parameters under pathParams or query.\n\nMeta:\noperationId: test-get-account\n\nParameters:\n- account_id (path): (type: string)\n\nExample:\nGet account acc-42\n\nResponse:\nHTTP 200\nOK\nproperties (top-level): accountId\n\nRuntime: public endpoint — no credential required.',
         method: 'GET',
         path: '/accounts/{account.id}',
         access: 'public',
@@ -69,7 +69,7 @@ export const generatedTools: GeneratedTool[] = [
         toolName: 'testListItems',
         title: 'List items by tag',
         description:
-            'Intent:\nHarness query params status (optional enum) and tag (required)\n\nMCP arguments:\npass status, tag as top-level tool arguments. Do not nest path or query parameters under pathParams or query.\n\nMeta:\noperationId: test-list-items\n\nParameters:\n- status (query): Optional filter open or done (example: open)\n- tag (query): Required category tag for the listing (example: harness)\n\nExample:\nList open items for tag harness\n\nResponse:\nHTTP 200\nOK\nproperties (top-level): items\n\nRuntime: public endpoint — no credential required.',
+            'Intent:\nHarness query params status (optional enum) and tag (required)\n\nMCP arguments:\npass status, tag as top-level tool arguments. Do not nest path or query parameters under pathParams or query.\n\nMeta:\noperationId: test-list-items\n\nParameters:\n- status (query): Optional filter open or done (type: string) (example: open)\n- tag (query): Required category tag for the listing (type: string) (example: harness)\n\nExample:\nList open items for tag harness\n\nResponse:\nHTTP 200\nOK\nproperties (top-level): items\n\nRuntime: public endpoint — no credential required.',
         method: 'GET',
         path: '/items',
         access: 'public',
@@ -80,7 +80,7 @@ export const generatedTools: GeneratedTool[] = [
         toolName: 'testSearchItems',
         title: 'Search items by tags',
         description:
-            'Intent:\nHarness query array tags\n\nMCP arguments:\npass tags as top-level tool arguments. Do not nest path or query parameters under pathParams or query.\n\nMeta:\noperationId: test-search-items\n\nParameters:\n- tags (query)\n\nExample:\nSearch tags alpha and beta\n\nResponse:\nHTTP 200\nOK\nproperties (top-level): tags\n\nRuntime: public endpoint — no credential required.',
+            'Intent:\nHarness query array tags\n\nMCP arguments:\npass tags as top-level tool arguments. Do not nest path or query parameters under pathParams or query.\n\nMeta:\noperationId: test-search-items\n\nParameters:\n- tags (query): (type: array of string)\n\nExample:\nSearch tags alpha and beta\n\nResponse:\nHTTP 200\nOK\nproperties (top-level): tags\n\nRuntime: public endpoint — no credential required.',
         method: 'GET',
         path: '/items/search',
         access: 'public',
@@ -91,7 +91,7 @@ export const generatedTools: GeneratedTool[] = [
         toolName: 'testGetWithHeader',
         title: 'Get item with trace header',
         description:
-            'Intent:\nHarness required header X-Trace-Id on upstream request\n\nMCP arguments:\npass X_Trace_Id as top-level tool arguments. Do not nest path or query parameters under pathParams or query.\n\nMeta:\noperationId: test-get-with-header\n\nParameters:\n- X_Trace_Id (header)\n\nExample:\nCall with trace id trace-1\n\nResponse:\nHTTP 200\nOK\nproperties (top-level): traceId\n\nRuntime: public endpoint — no credential required.',
+            'Intent:\nHarness required header X-Trace-Id on upstream request\n\nMCP arguments:\npass X_Trace_Id as top-level tool arguments. Do not nest path or query parameters under pathParams or query.\n\nMeta:\noperationId: test-get-with-header\n\nParameters:\n- X_Trace_Id (header): (type: string)\n\nExample:\nCall with trace id trace-1\n\nResponse:\nHTTP 200\nOK\nproperties (top-level): traceId\n\nRuntime: public endpoint — no credential required.',
         method: 'GET',
         path: '/items/with-header',
         access: 'public',
@@ -113,7 +113,7 @@ export const generatedTools: GeneratedTool[] = [
         toolName: 'testPutResource',
         title: 'Replace resource',
         description:
-            'Intent:\nHarness PUT with $ref body ResourceUpdate\n\nMCP arguments:\npass resourceId as top-level tool arguments; send the request payload in the `body` property. Do not nest path or query parameters under pathParams or query.\n\nMeta:\noperationId: test-put-resource\n\nParameters:\n- resourceId (path)\n\nExample:\nPut resource res-1 name MCPTEST-updated\n\nResponse:\nHTTP 200\nOK\nproperties (top-level): name, resourceId\n\nRuntime: public endpoint — no credential required.',
+            'Intent:\nHarness PUT with $ref body ResourceUpdate\n\nMCP arguments:\npass resourceId as top-level tool arguments; send the request payload in the `body` property. Do not nest path or query parameters under pathParams or query.\n\nMeta:\noperationId: test-put-resource\n\nParameters:\n- resourceId (path): (type: string)\n\nExample:\nPut resource res-1 name MCPTEST-updated\n\nResponse:\nHTTP 200\nOK\nproperties (top-level): name, resourceId\n\nRuntime: public endpoint — no credential required.',
         method: 'PUT',
         path: '/resources/{resourceId}',
         access: 'public',
@@ -124,7 +124,7 @@ export const generatedTools: GeneratedTool[] = [
         toolName: 'testPatchResource',
         title: 'Patch resource note',
         description:
-            'Intent:\nHarness PATCH with $ref body ResourcePatch\n\nMCP arguments:\npass resourceId as top-level tool arguments; send the request payload in the `body` property. Do not nest path or query parameters under pathParams or query.\n\nMeta:\noperationId: test-patch-resource\n\nParameters:\n- resourceId (path)\n\nExample:\nPatch resource res-1 note MCPTEST-note\n\nResponse:\nHTTP 200\nOK\n\nRuntime: public endpoint — no credential required.',
+            'Intent:\nHarness PATCH with $ref body ResourcePatch\n\nMCP arguments:\npass resourceId as top-level tool arguments; send the request payload in the `body` property. Do not nest path or query parameters under pathParams or query.\n\nMeta:\noperationId: test-patch-resource\n\nParameters:\n- resourceId (path): (type: string)\n\nExample:\nPatch resource res-1 note MCPTEST-note\n\nResponse:\nHTTP 200\nOK\n\nRuntime: public endpoint — no credential required.',
         method: 'PATCH',
         path: '/resources/{resourceId}',
         access: 'public',
@@ -135,7 +135,7 @@ export const generatedTools: GeneratedTool[] = [
         toolName: 'testDeleteResource',
         title: 'Delete resource',
         description:
-            'Intent:\nHarness DELETE without body\n\nMCP arguments:\npass resourceId as top-level tool arguments. Do not nest path or query parameters under pathParams or query.\n\nMeta:\noperationId: test-delete-resource\n\nParameters:\n- resourceId (path)\n\nExample:\nDelete resource res-1\n\nResponse:\nHTTP 204\nNo content\n\nRuntime: public endpoint — no credential required.',
+            'Intent:\nHarness DELETE without body\n\nMCP arguments:\npass resourceId as top-level tool arguments. Do not nest path or query parameters under pathParams or query.\n\nMeta:\noperationId: test-delete-resource\n\nParameters:\n- resourceId (path): (type: string)\n\nExample:\nDelete resource res-1\n\nResponse:\nHTTP 204\nNo content\n\nRuntime: public endpoint — no credential required.',
         method: 'DELETE',
         path: '/resources/{resourceId}',
         access: 'public',
@@ -223,7 +223,7 @@ export const generatedTools: GeneratedTool[] = [
         toolName: 'testGetAdminSecrets',
         title: 'List admin secrets',
         description:
-            'Intent:\nHarness authorize and prepare on protected tool\n\nMCP arguments:\npass limit as top-level tool arguments. Do not nest path or query parameters under pathParams or query.\n\nMeta:\noperationId: test-admin-secrets\n\nParameters:\n- limit (query)\n\nExample:\nList secrets limit 5\n\nResponse:\nHTTP 200\nOK\nproperties (top-level): secrets\nDocumented errors:\nHTTP 403 — Forbidden\n\nRuntime: protected — implement checkToolAccessForTestGetAdminSecrets in src/hooks/api2ai/test-tools/checkToolAccessForTestGetAdminSecrets.ts and prepareToolCallForTestGetAdminSecrets in src/hooks/api2ai/test-tools/prepareToolCallForTestGetAdminSecrets.ts; credential sent as query "api_key".',
+            'Intent:\nHarness authorize and prepare on protected tool\n\nMCP arguments:\npass limit as top-level tool arguments. Do not nest path or query parameters under pathParams or query.\n\nMeta:\noperationId: test-admin-secrets\n\nParameters:\n- limit (query): (type: integer)\n\nExample:\nList secrets limit 5\n\nResponse:\nHTTP 200\nOK\nproperties (top-level): secrets\nDocumented errors:\nHTTP 403 — Forbidden\n\nRuntime: protected — implement checkToolAccessForTestGetAdminSecrets in src/hooks/api2ai/test-tools/checkToolAccessForTestGetAdminSecrets.ts and prepareToolCallForTestGetAdminSecrets in src/hooks/api2ai/test-tools/prepareToolCallForTestGetAdminSecrets.ts; credential sent as query "api_key".',
         method: 'GET',
         path: '/admin/secrets',
         access: 'protected',
@@ -234,7 +234,7 @@ export const generatedTools: GeneratedTool[] = [
         toolName: 'testListPublicPrepared',
         title: 'List public prepared items',
         description:
-            'Intent:\nHarness public tool with prepare hook\n\nMCP arguments:\npass limit as top-level tool arguments. Do not nest path or query parameters under pathParams or query.\n\nMeta:\noperationId: test-public-prepared\n\nParameters:\n- limit (query)\n\nExample:\nList prepared items limit 3\n\nResponse:\nHTTP 200\nOK\nproperties (top-level): items\n\nRuntime: implement prepareToolCallForTestListPublicPrepared in src/hooks/api2ai/test-tools/prepareToolCallForTestListPublicPrepared.ts (types from this tools module; run build:generated for .js).',
+            'Intent:\nHarness public tool with prepare hook\n\nMCP arguments:\npass limit as top-level tool arguments. Do not nest path or query parameters under pathParams or query.\n\nMeta:\noperationId: test-public-prepared\n\nParameters:\n- limit (query): (type: integer)\n\nExample:\nList prepared items limit 3\n\nResponse:\nHTTP 200\nOK\nproperties (top-level): items\n\nRuntime: implement prepareToolCallForTestListPublicPrepared in src/hooks/api2ai/test-tools/prepareToolCallForTestListPublicPrepared.ts (types from this tools module; run build:generated for .js).',
         method: 'GET',
         path: '/prepared/public',
         access: 'public',
@@ -335,9 +335,9 @@ export const inputZodByTool = {
         .object({
             status: z
                 .union([z.literal('open'), z.literal('done')])
-                .describe('Optional filter open or done (example: open)')
+                .describe('Optional filter open or done (type: string) (example: open)')
                 .optional(),
-            tag: z.string().describe('Required category tag for the listing (example: harness)'),
+            tag: z.string().describe('Required category tag for the listing (type: string) (example: harness)'),
             headers: z.record(z.string(), z.string()).describe('Optional extra headers.').optional(),
             body: z
                 .record(z.string(), z.union([z.string(), z.number(), z.boolean()]))
@@ -439,7 +439,7 @@ export const inputZodByTool = {
             headers: z.record(z.string(), z.string()).describe('Optional extra headers.').optional(),
             body: z.union([
                 z.object({ kind: z.literal('a'), valueA: z.string() }).strict(),
-                z.object({ kind: z.literal('b'), valueB: z.union([z.number().int(), z.string()]) }).strict()
+                z.object({ kind: z.literal('b'), valueB: z.number().int() }).strict()
             ])
         })
         .strict()
@@ -449,9 +449,7 @@ export const inputZodByTool = {
             headers: z.record(z.string(), z.string()).describe('Optional extra headers.').optional(),
             body: z.union([
                 z.object({ mode: z.literal('text'), text: z.string().optional() }).strict(),
-                z
-                    .object({ mode: z.literal('count'), count: z.union([z.number().int(), z.string()]).optional() })
-                    .strict()
+                z.object({ mode: z.literal('count'), count: z.number().int().optional() }).strict()
             ])
         })
         .strict()
@@ -472,7 +470,7 @@ export const inputZodByTool = {
         .describe('Arguments for invoking the generated HTTP wrapper.'),
     testGetAdminSecrets: z
         .object({
-            limit: z.union([z.number().int(), z.string()]).optional(),
+            limit: z.number().int().optional(),
             headers: z.record(z.string(), z.string()).describe('Optional extra headers.').optional(),
             body: z
                 .record(z.string(), z.union([z.string(), z.number(), z.boolean()]))
@@ -483,7 +481,7 @@ export const inputZodByTool = {
         .describe('Arguments for invoking the generated HTTP wrapper.'),
     testListPublicPrepared: z
         .object({
-            limit: z.union([z.number().int(), z.string()]).optional(),
+            limit: z.number().int().optional(),
             headers: z.record(z.string(), z.string()).describe('Optional extra headers.').optional(),
             body: z
                 .record(z.string(), z.union([z.string(), z.number(), z.boolean()]))
@@ -616,184 +614,15 @@ const invokeParamBucketsByTool = {
         arrayQuery: []
     }
 };
-const invokeBodySchemaByTool = {
-    testCreateResource: {
-        type: 'object',
-        properties: {
-            name: {
-                type: 'string'
-            },
-            note: {
-                type: 'string'
-            }
-        },
-        required: ['name'],
-        additionalProperties: false
-    },
-    testPutResource: {
-        type: 'object',
-        properties: {
-            name: {
-                type: 'string'
-            }
-        },
-        required: ['name'],
-        additionalProperties: false
-    },
-    testPatchResource: {
-        type: 'object',
-        properties: {
-            note: {
-                type: 'string'
-            }
-        },
-        required: [],
-        additionalProperties: false
-    },
-    testOneOfBody: {
-        oneOf: [
-            {
-                type: 'object',
-                properties: {
-                    kind: {
-                        enum: ['a'],
-                        type: 'string'
-                    },
-                    valueA: {
-                        type: 'string'
-                    }
-                },
-                required: ['kind', 'valueA'],
-                additionalProperties: false
-            },
-            {
-                type: 'object',
-                properties: {
-                    kind: {
-                        enum: ['b'],
-                        type: 'string'
-                    },
-                    valueB: {
-                        type: 'integer'
-                    }
-                },
-                required: ['kind', 'valueB'],
-                additionalProperties: false
-            }
-        ]
-    },
-    testAnyOfBody: {
-        anyOf: [
-            {
-                type: 'object',
-                properties: {
-                    mode: {
-                        enum: ['text'],
-                        type: 'string'
-                    },
-                    text: {
-                        type: 'string'
-                    }
-                },
-                required: ['mode'],
-                additionalProperties: false
-            },
-            {
-                type: 'object',
-                properties: {
-                    mode: {
-                        enum: ['count'],
-                        type: 'string'
-                    },
-                    count: {
-                        type: 'integer'
-                    }
-                },
-                required: ['mode'],
-                additionalProperties: false
-            }
-        ]
-    },
-    testAllOfBody: {
-        allOf: [
-            {
-                type: 'object',
-                properties: {
-                    base: {
-                        type: 'string'
-                    }
-                },
-                required: [],
-                additionalProperties: false
-            },
-            {
-                type: 'object',
-                properties: {
-                    extra: {
-                        type: 'string'
-                    }
-                },
-                required: [],
-                additionalProperties: false
-            }
-        ]
-    },
-    testRefBody: {
-        type: 'object',
-        properties: {
-            payload: {
-                type: 'string'
-            }
-        },
-        required: ['payload'],
-        additionalProperties: false
-    }
-};
 
-function coerceInvokeScalar(value: string | number | boolean): string | number | boolean {
-    if (typeof value === 'string') {
-        const trimmed = value.trim();
-        if (trimmed === 'true') {
-            return true;
-        }
-        if (trimmed === 'false') {
-            return false;
-        }
-        if (/^-?\d+(\.\d+)?([eE][+-]?\d+)?$/.test(trimmed)) {
-            const parsed = Number(trimmed);
-            if (Number.isFinite(parsed)) {
-                return parsed;
-            }
-        }
-    }
-    return value;
-}
-
-function coerceInvokePathBucket(
-    bucket: Record<string, string | number | boolean> | undefined
-): Record<string, string | number | boolean> | undefined {
-    if (!bucket) {
-        return undefined;
-    }
-    const out: Record<string, string | number | boolean> = {};
-    for (const [key, value] of Object.entries(bucket)) {
-        if (value === undefined || value === null) {
-            continue;
-        }
-        out[key] = coerceInvokeScalar(value);
-    }
-    return Object.keys(out).length > 0 ? out : undefined;
-}
-
-function coerceInvokeQueryArrayValue(value: string): ReadonlyArray<string | number | boolean> {
+function splitInvokeQueryArrayValue(value: string): ReadonlyArray<string | number | boolean> {
     return value
         .split(',')
         .map((part) => part.trim())
-        .filter((part) => part.length > 0)
-        .map((part) => coerceInvokeScalar(part));
+        .filter((part) => part.length > 0);
 }
 
-function coerceInvokeQueryBucket(toolName: string, bucket: InvokeOptions['query']): InvokeOptions['query'] {
+function prepareQueryBucket(toolName: string, bucket: InvokeOptions['query']): InvokeOptions['query'] {
     if (!bucket) {
         return undefined;
     }
@@ -805,95 +634,29 @@ function coerceInvokeQueryBucket(toolName: string, bucket: InvokeOptions['query'
         if (value === undefined || value === null) {
             continue;
         }
-        if (Array.isArray(value)) {
-            out[key] = value.map((element) => coerceInvokeScalar(element));
-            continue;
-        }
         if (arrayQueryKeys.has(key) && typeof value === 'string') {
-            out[key] = coerceInvokeQueryArrayValue(value);
+            out[key] = splitInvokeQueryArrayValue(value);
             continue;
         }
-        out[key] = coerceInvokeScalar(value as string | number | boolean);
+        out[key] = value as string | number | boolean | ReadonlyArray<string | number | boolean>;
     }
     return Object.keys(out).length > 0 ? out : undefined;
 }
 
-function coerceInvokeValueBySchema(value: unknown, schema: Record<string, unknown> | undefined): unknown {
-    if (!schema || value === undefined || value === null) {
-        return value;
+function omitNullishPathParams(
+    bucket: Record<string, string | number | boolean> | undefined
+): Record<string, string | number | boolean> | undefined {
+    if (!bucket) {
+        return undefined;
     }
-    const type = schema.type;
-    if (type === 'integer' || type === 'number') {
-        if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
-            return coerceInvokeScalar(value as string | number | boolean);
+    const out: Record<string, string | number | boolean> = {};
+    for (const [key, value] of Object.entries(bucket)) {
+        if (value === undefined || value === null) {
+            continue;
         }
-        return value;
+        out[key] = value;
     }
-    if (type === 'boolean') {
-        if (typeof value === 'boolean') {
-            return value;
-        }
-        if (typeof value === 'string') {
-            const trimmed = value.trim();
-            if (trimmed === 'true') {
-                return true;
-            }
-            if (trimmed === 'false') {
-                return false;
-            }
-        }
-        return value;
-    }
-    if (type === 'array') {
-        const items = schema.items as Record<string, unknown> | undefined;
-        if (typeof value === 'string') {
-            return value
-                .split(',')
-                .map((part) => part.trim())
-                .filter((part) => part.length > 0)
-                .map((part) => (items ? coerceInvokeValueBySchema(part, items) : coerceInvokeScalar(part)));
-        }
-        if (Array.isArray(value)) {
-            return value.map((element) =>
-                items
-                    ? coerceInvokeValueBySchema(element, items)
-                    : coerceInvokeScalar(element as string | number | boolean)
-            );
-        }
-        return value;
-    }
-    if (
-        type === 'object' &&
-        schema.properties &&
-        typeof schema.properties === 'object' &&
-        !Array.isArray(schema.properties) &&
-        typeof value === 'object' &&
-        value !== null &&
-        !Array.isArray(value)
-    ) {
-        const props = schema.properties as Record<string, Record<string, unknown>>;
-        const out: Record<string, unknown> = {};
-        for (const [key, element] of Object.entries(value as Record<string, unknown>)) {
-            if (element === undefined || element === null) {
-                continue;
-            }
-            const propSchema = props[key];
-            out[key] = propSchema ? coerceInvokeValueBySchema(element, propSchema) : element;
-        }
-        return out;
-    }
-    return value;
-}
-
-function coerceInvokeBody(toolName: string, body: unknown): unknown {
-    if (body === undefined || body === null) {
-        return body;
-    }
-    const schema = (invokeBodySchemaByTool as Record<string, Record<string, unknown> | undefined>)[toolName];
-    if (!schema) {
-        return body;
-    }
-    return coerceInvokeValueBySchema(body, schema);
+    return Object.keys(out).length > 0 ? out : undefined;
 }
 
 function isInvokeQueryBucketValue(value: unknown): value is Record<string, unknown> {
@@ -927,12 +690,8 @@ function normalizeInvokeOptions(toolName: string, options: InvokeOptions): Invok
     if (!hasTopLevelFlatParam) {
         return {
             ...options,
-            pathParams: coerceInvokePathBucket(options.pathParams),
-            query: coerceInvokeQueryBucket(
-                toolName,
-                isInvokeQueryBucketValue(options.query) ? options.query : undefined
-            ),
-            body: coerceInvokeBody(toolName, options.body)
+            pathParams: omitNullishPathParams(options.pathParams),
+            query: prepareQueryBucket(toolName, isInvokeQueryBucketValue(options.query) ? options.query : undefined)
         };
     }
 
@@ -959,7 +718,7 @@ function normalizeInvokeOptions(toolName: string, options: InvokeOptions): Invok
         if (key === 'query') {
             if (queryKeys.includes('query') && !isInvokeQueryBucketValue(value)) {
                 if (arrayQueryKeys.has(key) && typeof value === 'string') {
-                    query[key] = coerceInvokeQueryArrayValue(value);
+                    query[key] = splitInvokeQueryArrayValue(value);
                 } else {
                     query[key] = value as string | number | boolean | ReadonlyArray<string | number | boolean>;
                 }
@@ -976,7 +735,7 @@ function normalizeInvokeOptions(toolName: string, options: InvokeOptions): Invok
             pathParams[key] = value as string | number | boolean;
         } else if (queryKeys.includes(key)) {
             if (arrayQueryKeys.has(key) && typeof value === 'string') {
-                query[key] = coerceInvokeQueryArrayValue(value);
+                query[key] = splitInvokeQueryArrayValue(value);
             } else {
                 query[key] = value as string | number | boolean | ReadonlyArray<string | number | boolean>;
             }
@@ -986,10 +745,10 @@ function normalizeInvokeOptions(toolName: string, options: InvokeOptions): Invok
     }
 
     return {
-        pathParams: coerceInvokePathBucket(pathParams),
-        query: coerceInvokeQueryBucket(toolName, query),
+        pathParams: omitNullishPathParams(pathParams),
+        query: prepareQueryBucket(toolName, query),
         headers: Object.keys(headers).length > 0 ? headers : undefined,
-        body: coerceInvokeBody(toolName, options.body)
+        body: options.body
     };
 }
 const queryParamSerializationByTool = {

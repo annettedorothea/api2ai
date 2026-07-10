@@ -17,7 +17,7 @@ type InvokeOptions = {
 type NormalizeInvokeOptions = (toolName: string, options: InvokeOptions) => InvokeOptions;
 
 function compileNormalizeInvokeOptions(invokeParamBucketsLiteralBody: string): NormalizeInvokeOptions {
-    const block = createSharedInvokeBlock('{}', '{}', '{}', '{}', invokeParamBucketsLiteralBody, '{}', 'none', 'none', {
+    const block = createSharedInvokeBlock('{}', '{}', '{}', '{}', invokeParamBucketsLiteralBody, 'none', 'none', {
         checkToolAccess: false,
         prepareToolCall: false
     });
@@ -43,13 +43,59 @@ const searchMovieBuckets = JSON.stringify({
 
 describe('invoke-render', () => {
     test('emits TRACE fallback because fetch rejects that method', () => {
-        const block = createSharedInvokeBlock('{}', '{}', '{}', '{}', '{}', '{}', 'none', 'none', {
+        const block = createSharedInvokeBlock('{}', '{}', '{}', '{}', '{}', 'none', 'none', {
             checkToolAccess: false,
             prepareToolCall: false
         });
         expect(block).toContain('performToolHttpRequest');
         expect(block).toContain("init.method !== 'TRACE'");
         expect(block).toContain('await performToolHttpRequest(url');
+        expect(block).not.toContain('coerceInvokeScalar');
+        expect(block).not.toContain('invokeBodySchemaByTool');
+    });
+
+    test('normalizeInvokeOptions preserves string query values with leading zeros', () => {
+        const buckets = JSON.stringify({
+            getAccount: {
+                pathParams: [],
+                query: ['accountNumber'],
+                headers: [],
+                arrayQuery: []
+            }
+        });
+        const normalizeInvokeOptions = compileNormalizeInvokeOptions(buckets);
+        expect(normalizeInvokeOptions('getAccount', { accountNumber: '0815' })).toEqual({
+            query: { accountNumber: '0815' }
+        });
+    });
+
+    test('normalizeInvokeOptions passes body through unchanged', () => {
+        const buckets = JSON.stringify({
+            createItem: {
+                pathParams: [],
+                query: [],
+                headers: [],
+                arrayQuery: []
+            }
+        });
+        const normalizeInvokeOptions = compileNormalizeInvokeOptions(buckets);
+        const body = { accountNumber: '0815', title: 'Test' };
+        expect(normalizeInvokeOptions('createItem', { body })).toEqual({ body });
+    });
+
+    test('normalizeInvokeOptions splits array query strings without coercing elements', () => {
+        const buckets = JSON.stringify({
+            listTags: {
+                pathParams: [],
+                query: ['tags'],
+                headers: [],
+                arrayQuery: ['tags']
+            }
+        });
+        const normalizeInvokeOptions = compileNormalizeInvokeOptions(buckets);
+        expect(normalizeInvokeOptions('listTags', { tags: '0815,0042' })).toEqual({
+            query: { tags: ['0815', '0042'] }
+        });
     });
 
     test('normalizeInvokeOptions treats scalar query as API param when bucket name collides', () => {
@@ -82,7 +128,7 @@ describe('invoke-render', () => {
                 query: ['vote_average_gte', 'vote_average_lte', 'page']
             }
         });
-        const block = createSharedInvokeBlock('{}', wireNames, '{}', '{}', buckets, '{}', 'none', 'none', {
+        const block = createSharedInvokeBlock('{}', wireNames, '{}', '{}', buckets, 'none', 'none', {
             checkToolAccess: false,
             prepareToolCall: false
         });
@@ -122,7 +168,7 @@ exports.appendSerializedQueryParams = appendSerializedQueryParams;`,
                 account_id: 'account.id'
             }
         });
-        const block = createSharedInvokeBlock('{}', '{}', pathWireNames, '{}', '{}', '{}', 'none', 'none', {
+        const block = createSharedInvokeBlock('{}', '{}', pathWireNames, '{}', '{}', 'none', 'none', {
             checkToolAccess: false,
             prepareToolCall: false
         });
@@ -175,7 +221,7 @@ exports.buildUrl = buildUrl;`,
                 X_Trace_Id: 'X-Trace-Id'
             }
         });
-        const block = createSharedInvokeBlock('{}', '{}', '{}', headerWireNames, '{}', '{}', 'none', 'none', {
+        const block = createSharedInvokeBlock('{}', '{}', '{}', headerWireNames, '{}', 'none', 'none', {
             checkToolAccess: false,
             prepareToolCall: false
         });

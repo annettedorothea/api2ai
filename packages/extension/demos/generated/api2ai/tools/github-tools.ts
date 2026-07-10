@@ -33,7 +33,7 @@ export const generatedTools: GeneratedTool[] = [
         toolName: 'listGitHubUserRepos',
         title: 'List repositories for the authenticated user',
         description:
-            'Intent:\n- List repositories the authenticated PAT can access (pagination via query page, per_page).\n        - Use to discover owner/repo names before getGitHubRepository.\n        - Helpful when GET /repos/{owner}/{repo} returns 404 (wrong owner, private repo, or missing scope).\n        - Requires a PAT with repo read access; token comes from MCP host --auth-env.\n\nMCP arguments:\npass type, per_page, page as top-level tool arguments. Do not nest path or query parameters under pathParams or query.\n\nAPI:\nLists repositories the authenticated user has **direct** access to (your own repos, collaborations, org repos the token can see).\n\n**Classic PAT:** use scope `repo` if you need private repositories; without it, private repos may be omitted or single-repo `GET /repos/{owner}/{repo}` can return **404** (GitHub hides existence of private repos you cannot read).\n\n**Fine-grained PAT:** grant **Repository permissions** (e.g. Metadata read) on each repository or via organization/team rules; missing scope often surfaces as **404** on `GET /repos/{owner}/{repo}`, not 403.\n\nPrefer this endpoint to discover `owner`/`repo` names before calling `GET /repos/{owner}/{repo}`.\n\nMeta:\noperationId: list-repositories-for-the-authenticated-user\n\nParameters:\n- page (query): Page number of results.\n- per_page (query): Results per page (max 100).\n- type (query): `all` (default), `owner` (repos owned by user), or `member` (repos user is member of but does not own).\n\nExample:\nFirst page, 10 per page: query per_page=10 page=1\n\nResponse:\nHTTP 200\nOK — array of repository objects\ntype: array of object\nDocumented errors:\nHTTP 401 — Unauthorized\nHTTP 403 — Forbidden (rate limit or insufficient token)\n\nRuntime: protected — implement src/hooks/api2ai/github-tools/verifyGithubCredential.ts; credential sent as header "Authorization" (prefix applied to the secret).',
+            'Intent:\n- List repositories the authenticated PAT can access (pagination via query page, per_page).\n        - Use to discover owner/repo names before getGitHubRepository.\n        - Helpful when GET /repos/{owner}/{repo} returns 404 (wrong owner, private repo, or missing scope).\n        - Requires a PAT with repo read access; token comes from MCP host --auth-env.\n\nMCP arguments:\npass type, per_page, page as top-level tool arguments. Do not nest path or query parameters under pathParams or query.\n\nAPI:\nLists repositories the authenticated user has **direct** access to (your own repos, collaborations, org repos the token can see).\n\n**Classic PAT:** use scope `repo` if you need private repositories; without it, private repos may be omitted or single-repo `GET /repos/{owner}/{repo}` can return **404** (GitHub hides existence of private repos you cannot read).\n\n**Fine-grained PAT:** grant **Repository permissions** (e.g. Metadata read) on each repository or via organization/team rules; missing scope often surfaces as **404** on `GET /repos/{owner}/{repo}`, not 403.\n\nPrefer this endpoint to discover `owner`/`repo` names before calling `GET /repos/{owner}/{repo}`.\n\nMeta:\noperationId: list-repositories-for-the-authenticated-user\n\nParameters:\n- page (query): Page number of results. (type: integer)\n- per_page (query): Results per page (max 100). (type: integer)\n- type (query): `all` (default), `owner` (repos owned by user), or `member` (repos user is member of but does not own). (type: string)\n\nExample:\nFirst page, 10 per page: query per_page=10 page=1\n\nResponse:\nHTTP 200\nOK — array of repository objects\ntype: array of object\nDocumented errors:\nHTTP 401 — Unauthorized\nHTTP 403 — Forbidden (rate limit or insufficient token)\n\nRuntime: protected — implement src/hooks/api2ai/github-tools/verifyGithubCredential.ts; credential sent as header "Authorization" (prefix applied to the secret).',
         method: 'GET',
         path: '/user/repos',
         access: 'protected',
@@ -44,7 +44,7 @@ export const generatedTools: GeneratedTool[] = [
         toolName: 'getGitHubRepository',
         title: 'Get a repository',
         description:
-            'Intent:\nfetch GitHub repository metadata when the PAT can read the repo\n\nMCP arguments:\npass owner, repo as top-level tool arguments. Do not nest path or query parameters under pathParams or query.\n\nAPI:\nReturns metadata for one repository.\n\n**404 on private repos:** GitHub often returns **404 Not Found** (not 403) when the repo is private and the token **cannot** read it, or when `owner`/`repo` is wrong — this avoids leaking whether a private repo exists.\n\nIf you are sure the PAT should have access: verify the token in the MCP host (`--auth-env` / `GITHUB_TOKEN`), PAT type (classic `repo` vs fine-grained repo access), exact `owner`/`repo` spelling, and try `GET /user/repos` to confirm the repo appears in the list for this token.\n\nMeta:\noperationId: get-a-repository\n\nParameters:\n- owner (path)\n- repo (path)\n\nExample:\nGet public repo octocat/Hello-World\n\nResponse:\nHTTP 200\nOK\ntype: object (no inlined properties)\nDocumented errors:\nHTTP 404 — Not Found (e.g. private repo or no access)\n\nRuntime: protected — implement src/hooks/api2ai/github-tools/verifyGithubCredential.ts; credential sent as header "Authorization" (prefix applied to the secret).',
+            'Intent:\nfetch GitHub repository metadata when the PAT can read the repo\n\nMCP arguments:\npass owner, repo as top-level tool arguments. Do not nest path or query parameters under pathParams or query.\n\nAPI:\nReturns metadata for one repository.\n\n**404 on private repos:** GitHub often returns **404 Not Found** (not 403) when the repo is private and the token **cannot** read it, or when `owner`/`repo` is wrong — this avoids leaking whether a private repo exists.\n\nIf you are sure the PAT should have access: verify the token in the MCP host (`--auth-env` / `GITHUB_TOKEN`), PAT type (classic `repo` vs fine-grained repo access), exact `owner`/`repo` spelling, and try `GET /user/repos` to confirm the repo appears in the list for this token.\n\nMeta:\noperationId: get-a-repository\n\nParameters:\n- owner (path): (type: string)\n- repo (path): (type: string)\n\nExample:\nGet public repo octocat/Hello-World\n\nResponse:\nHTTP 200\nOK\ntype: object (no inlined properties)\nDocumented errors:\nHTTP 404 — Not Found (e.g. private repo or no access)\n\nRuntime: protected — implement src/hooks/api2ai/github-tools/verifyGithubCredential.ts; credential sent as header "Authorization" (prefix applied to the secret).',
         method: 'GET',
         path: '/repos/{owner}/{repo}',
         access: 'protected',
@@ -102,11 +102,11 @@ export const inputZodByTool = {
             type: z
                 .union([z.literal('all'), z.literal('owner'), z.literal('member')])
                 .describe(
-                    '`all` (default), `owner` (repos owned by user), or `member` (repos user is member of but does not own).'
+                    '`all` (default), `owner` (repos owned by user), or `member` (repos user is member of but does not own). (type: string)'
                 )
                 .optional(),
-            per_page: z.union([z.number().int(), z.string()]).describe('Results per page (max 100).').optional(),
-            page: z.union([z.number().int(), z.string()]).describe('Page number of results.').optional(),
+            per_page: z.number().int().describe('Results per page (max 100). (type: integer)').optional(),
+            page: z.number().int().describe('Page number of results. (type: integer)').optional(),
             headers: z.record(z.string(), z.string()).describe('Optional extra headers.').optional(),
             body: z
                 .record(z.string(), z.union([z.string(), z.number(), z.boolean()]))
@@ -149,52 +149,15 @@ const invokeParamBucketsByTool = {
         arrayQuery: []
     }
 };
-const invokeBodySchemaByTool = {};
 
-function coerceInvokeScalar(value: string | number | boolean): string | number | boolean {
-    if (typeof value === 'string') {
-        const trimmed = value.trim();
-        if (trimmed === 'true') {
-            return true;
-        }
-        if (trimmed === 'false') {
-            return false;
-        }
-        if (/^-?\d+(\.\d+)?([eE][+-]?\d+)?$/.test(trimmed)) {
-            const parsed = Number(trimmed);
-            if (Number.isFinite(parsed)) {
-                return parsed;
-            }
-        }
-    }
-    return value;
-}
-
-function coerceInvokePathBucket(
-    bucket: Record<string, string | number | boolean> | undefined
-): Record<string, string | number | boolean> | undefined {
-    if (!bucket) {
-        return undefined;
-    }
-    const out: Record<string, string | number | boolean> = {};
-    for (const [key, value] of Object.entries(bucket)) {
-        if (value === undefined || value === null) {
-            continue;
-        }
-        out[key] = coerceInvokeScalar(value);
-    }
-    return Object.keys(out).length > 0 ? out : undefined;
-}
-
-function coerceInvokeQueryArrayValue(value: string): ReadonlyArray<string | number | boolean> {
+function splitInvokeQueryArrayValue(value: string): ReadonlyArray<string | number | boolean> {
     return value
         .split(',')
         .map((part) => part.trim())
-        .filter((part) => part.length > 0)
-        .map((part) => coerceInvokeScalar(part));
+        .filter((part) => part.length > 0);
 }
 
-function coerceInvokeQueryBucket(toolName: string, bucket: InvokeOptions['query']): InvokeOptions['query'] {
+function prepareQueryBucket(toolName: string, bucket: InvokeOptions['query']): InvokeOptions['query'] {
     if (!bucket) {
         return undefined;
     }
@@ -206,95 +169,29 @@ function coerceInvokeQueryBucket(toolName: string, bucket: InvokeOptions['query'
         if (value === undefined || value === null) {
             continue;
         }
-        if (Array.isArray(value)) {
-            out[key] = value.map((element) => coerceInvokeScalar(element));
-            continue;
-        }
         if (arrayQueryKeys.has(key) && typeof value === 'string') {
-            out[key] = coerceInvokeQueryArrayValue(value);
+            out[key] = splitInvokeQueryArrayValue(value);
             continue;
         }
-        out[key] = coerceInvokeScalar(value as string | number | boolean);
+        out[key] = value as string | number | boolean | ReadonlyArray<string | number | boolean>;
     }
     return Object.keys(out).length > 0 ? out : undefined;
 }
 
-function coerceInvokeValueBySchema(value: unknown, schema: Record<string, unknown> | undefined): unknown {
-    if (!schema || value === undefined || value === null) {
-        return value;
+function omitNullishPathParams(
+    bucket: Record<string, string | number | boolean> | undefined
+): Record<string, string | number | boolean> | undefined {
+    if (!bucket) {
+        return undefined;
     }
-    const type = schema.type;
-    if (type === 'integer' || type === 'number') {
-        if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
-            return coerceInvokeScalar(value as string | number | boolean);
+    const out: Record<string, string | number | boolean> = {};
+    for (const [key, value] of Object.entries(bucket)) {
+        if (value === undefined || value === null) {
+            continue;
         }
-        return value;
+        out[key] = value;
     }
-    if (type === 'boolean') {
-        if (typeof value === 'boolean') {
-            return value;
-        }
-        if (typeof value === 'string') {
-            const trimmed = value.trim();
-            if (trimmed === 'true') {
-                return true;
-            }
-            if (trimmed === 'false') {
-                return false;
-            }
-        }
-        return value;
-    }
-    if (type === 'array') {
-        const items = schema.items as Record<string, unknown> | undefined;
-        if (typeof value === 'string') {
-            return value
-                .split(',')
-                .map((part) => part.trim())
-                .filter((part) => part.length > 0)
-                .map((part) => (items ? coerceInvokeValueBySchema(part, items) : coerceInvokeScalar(part)));
-        }
-        if (Array.isArray(value)) {
-            return value.map((element) =>
-                items
-                    ? coerceInvokeValueBySchema(element, items)
-                    : coerceInvokeScalar(element as string | number | boolean)
-            );
-        }
-        return value;
-    }
-    if (
-        type === 'object' &&
-        schema.properties &&
-        typeof schema.properties === 'object' &&
-        !Array.isArray(schema.properties) &&
-        typeof value === 'object' &&
-        value !== null &&
-        !Array.isArray(value)
-    ) {
-        const props = schema.properties as Record<string, Record<string, unknown>>;
-        const out: Record<string, unknown> = {};
-        for (const [key, element] of Object.entries(value as Record<string, unknown>)) {
-            if (element === undefined || element === null) {
-                continue;
-            }
-            const propSchema = props[key];
-            out[key] = propSchema ? coerceInvokeValueBySchema(element, propSchema) : element;
-        }
-        return out;
-    }
-    return value;
-}
-
-function coerceInvokeBody(toolName: string, body: unknown): unknown {
-    if (body === undefined || body === null) {
-        return body;
-    }
-    const schema = (invokeBodySchemaByTool as Record<string, Record<string, unknown> | undefined>)[toolName];
-    if (!schema) {
-        return body;
-    }
-    return coerceInvokeValueBySchema(body, schema);
+    return Object.keys(out).length > 0 ? out : undefined;
 }
 
 function isInvokeQueryBucketValue(value: unknown): value is Record<string, unknown> {
@@ -328,12 +225,8 @@ function normalizeInvokeOptions(toolName: string, options: InvokeOptions): Invok
     if (!hasTopLevelFlatParam) {
         return {
             ...options,
-            pathParams: coerceInvokePathBucket(options.pathParams),
-            query: coerceInvokeQueryBucket(
-                toolName,
-                isInvokeQueryBucketValue(options.query) ? options.query : undefined
-            ),
-            body: coerceInvokeBody(toolName, options.body)
+            pathParams: omitNullishPathParams(options.pathParams),
+            query: prepareQueryBucket(toolName, isInvokeQueryBucketValue(options.query) ? options.query : undefined)
         };
     }
 
@@ -360,7 +253,7 @@ function normalizeInvokeOptions(toolName: string, options: InvokeOptions): Invok
         if (key === 'query') {
             if (queryKeys.includes('query') && !isInvokeQueryBucketValue(value)) {
                 if (arrayQueryKeys.has(key) && typeof value === 'string') {
-                    query[key] = coerceInvokeQueryArrayValue(value);
+                    query[key] = splitInvokeQueryArrayValue(value);
                 } else {
                     query[key] = value as string | number | boolean | ReadonlyArray<string | number | boolean>;
                 }
@@ -377,7 +270,7 @@ function normalizeInvokeOptions(toolName: string, options: InvokeOptions): Invok
             pathParams[key] = value as string | number | boolean;
         } else if (queryKeys.includes(key)) {
             if (arrayQueryKeys.has(key) && typeof value === 'string') {
-                query[key] = coerceInvokeQueryArrayValue(value);
+                query[key] = splitInvokeQueryArrayValue(value);
             } else {
                 query[key] = value as string | number | boolean | ReadonlyArray<string | number | boolean>;
             }
@@ -387,10 +280,10 @@ function normalizeInvokeOptions(toolName: string, options: InvokeOptions): Invok
     }
 
     return {
-        pathParams: coerceInvokePathBucket(pathParams),
-        query: coerceInvokeQueryBucket(toolName, query),
+        pathParams: omitNullishPathParams(pathParams),
+        query: prepareQueryBucket(toolName, query),
         headers: Object.keys(headers).length > 0 ? headers : undefined,
-        body: coerceInvokeBody(toolName, options.body)
+        body: options.body
     };
 }
 const queryParamSerializationByTool = {

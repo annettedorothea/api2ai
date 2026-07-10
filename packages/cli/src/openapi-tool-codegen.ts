@@ -12,7 +12,11 @@ import {
     isPrepareToolCallEnabled,
     parseApiParamSpec
 } from 'api-2-ai-dsl-language';
-import { resolveModuleVerifyCredentialNames } from '@toolfactory.dev/core/codegen';
+import {
+    enrichJsonSchemaPropertyDescription,
+    formatMcpParameterDescriptionLine,
+    resolveModuleVerifyCredentialNames
+} from '@toolfactory.dev/core/codegen';
 import {
     buildParamWireMaps,
     sanitizeWireParamNamesInText,
@@ -277,14 +281,6 @@ export function buildFlatCallShapeSection(_operation: Operation, details: OpenAp
     return `${parts.join('; ')}. Do not nest path or query parameters under pathParams or query.`;
 }
 
-/** OpenAPI request-body JSON Schema for invokeTool body coercion (LLM string → typed JSON). */
-export function buildInvokeBodySchema(details: OpenApiOperationDetails): JsonSchemaDict | undefined {
-    if (!details.requestBody?.schema) {
-        return undefined;
-    }
-    return openApiSchemaToJsonSchema(details.requestBody.schema);
-}
-
 /** Flat parameter list for MCP tool description (path / query / header); matches flat MCP inputSchema properties. */
 export function buildInvokeParameterDescriptionSection(
     operation: Operation,
@@ -299,18 +295,34 @@ export function buildInvokeParameterDescriptionSection(
     }
 
     const lines: string[] = [];
+    const { wireToMcp } = invokeParamWireMaps(details);
     for (const p of params) {
         const patch = patches.get(p.name);
+        const propSchema = parameterPropertySchema(p, wireToMcp);
+        let schemaForEnrich: JsonSchemaDict = { ...propSchema };
         const description = pickEffectiveText(patch?.description, p.description);
-        const mcpName = toMcpParamName(p.name);
-        let line = `- ${mcpName} (${p.in})`;
         if (description) {
-            const { wireToMcp } = invokeParamWireMaps(details);
-            line += `: ${sanitizeWireParamNamesInText(flattenLegacyInvokeDescription(description), wireToMcp)}`;
+            schemaForEnrich = {
+                ...schemaForEnrich,
+                description: sanitizeWireParamNamesInText(flattenLegacyInvokeDescription(description), wireToMcp)
+            };
         }
         const exampleText = patch?.example?.trim();
         if (exampleText && exampleText.length > 0) {
-            line += ` (example: ${exampleText})`;
+            const coerced = coerceExampleFromSchemaType(exampleText, propSchema.type as string | string[] | undefined);
+            schemaForEnrich = {
+                ...schemaForEnrich,
+                examples: [coerced ?? exampleText]
+            };
+        }
+        const mcpName = wireToMcp[p.name] ?? toMcpParamName(p.name);
+        const enriched = formatMcpParameterDescriptionLine(
+            typeof schemaForEnrich.description === 'string' ? schemaForEnrich.description : undefined,
+            schemaForEnrich
+        );
+        let line = `- ${mcpName} (${p.in})`;
+        if (enriched) {
+            line += `: ${enriched}`;
         }
         lines.push(line);
     }
@@ -799,6 +811,31 @@ export function buildInvokeParamBuckets(details: OpenApiOperationDetails): Invok
     };
 }
 
+/** Enrich flat OpenAPI param descriptions with `(type: …)` and `(example: …)` for MCP tool callers. */
+function enrichFlatParamPropertyDescriptions(schema: JsonSchemaDict): JsonSchemaDict {
+    const properties = schema.properties;
+    if (!properties || typeof properties !== 'object' || Array.isArray(properties)) {
+        return schema;
+    }
+    const rootProps = { ...(properties as Record<string, JsonSchemaDict>) };
+    for (const [key, prop] of Object.entries(rootProps)) {
+        if (key === 'body' || key === 'headers') {
+            continue;
+        }
+        if (!prop || typeof prop !== 'object' || Array.isArray(prop)) {
+            continue;
+        }
+        const enriched = enrichJsonSchemaPropertyDescription(
+            typeof prop.description === 'string' ? prop.description : undefined,
+            prop
+        );
+        if (enriched) {
+            rootProps[key] = { ...prop, description: enriched };
+        }
+    }
+    return { ...schema, properties: rootProps };
+}
+
 /** Flat MCP tool input: OpenAPI path/query/header params at root; optional body and extra headers. */
 export function buildToolInputSchema(
     details: OpenApiOperationDetails,
@@ -870,5 +907,6 @@ export function buildToolInputSchema(
         additionalProperties: false,
         description: 'Arguments for invoking the generated HTTP wrapper.'
     } satisfies JsonSchemaDict;
-    return operation ? applyApiParamPatches(built, operation, details) : built;
+    const patched = operation ? applyApiParamPatches(built, operation, details) : built;
+    return enrichFlatParamPropertyDescriptions(patched);
 }

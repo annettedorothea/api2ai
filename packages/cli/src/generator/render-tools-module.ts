@@ -30,7 +30,6 @@ import {
     buildMcpDescription,
     buildMcpTitle,
     buildInvokeParamBuckets,
-    buildInvokeBodySchema,
     buildQueryParamSerializationLookup,
     buildQueryParamWireNamesLookup,
     buildPathParamWireNamesLookup,
@@ -141,22 +140,6 @@ function buildInvokeParamBucketsFromLoaded(
     return out;
 }
 
-function buildInvokeBodySchemasFromLoaded(
-    model: Model,
-    loaded: LoadedOpenApi
-): Record<string, JsonSchemaDict | undefined> {
-    const out: Record<string, JsonSchemaDict | undefined> = {};
-    for (const operation of model.operations) {
-        const key = makeOperationLookupKey(operation.method, operation.path);
-        const details = loaded.operations.get(key);
-        if (!details) {
-            continue;
-        }
-        out[requireToolName(operation)] = buildInvokeBodySchema(details);
-    }
-    return out;
-}
-
 function buildQuerySerializationFromLoaded(
     model: Model,
     loaded: LoadedOpenApi
@@ -228,8 +211,7 @@ function mergeParallelToolData(
     queryParamWireNames: Record<string, Record<string, string>>,
     pathParamWireNames: Record<string, Record<string, string>>,
     headerParamWireNames: Record<string, Record<string, string>>,
-    invokeParamBuckets: Record<string, ReturnType<typeof buildInvokeParamBuckets>>,
-    invokeBodySchemas: Record<string, JsonSchemaDict | undefined>
+    invokeParamBuckets: Record<string, ReturnType<typeof buildInvokeParamBuckets>>
 ): {
     toolsLiteral: string;
     orderedSchemas: Record<string, JsonSchemaDict>;
@@ -238,7 +220,6 @@ function mergeParallelToolData(
     pathParamWireNamesLiteral: string;
     headerParamWireNamesLiteral: string;
     invokeParamBucketsLiteral: string;
-    invokeBodySchemaByToolLiteral: string;
 } {
     const toolsLiteral = serializeJsonForModule(toolsMeta);
     const orderedSchemas: Record<string, JsonSchemaDict> = {};
@@ -247,7 +228,6 @@ function mergeParallelToolData(
     const orderedPathParamWireNames: Record<string, Record<string, string>> = {};
     const orderedHeaderParamWireNames: Record<string, Record<string, string>> = {};
     const orderedInvokeParamBuckets: Record<string, ReturnType<typeof buildInvokeParamBuckets>> = {};
-    const orderedInvokeBodySchemas: Record<string, JsonSchemaDict | undefined> = {};
     for (const t of toolsMeta) {
         orderedSchemas[t.toolName] =
             schemas[t.toolName] ??
@@ -267,7 +247,6 @@ function mergeParallelToolData(
             headers: [],
             arrayQuery: []
         };
-        orderedInvokeBodySchemas[t.toolName] = invokeBodySchemas[t.toolName];
     }
     return {
         toolsLiteral,
@@ -276,8 +255,7 @@ function mergeParallelToolData(
         queryParamWireNamesLiteral: serializeJsonForModule(orderedQueryParamWireNames),
         pathParamWireNamesLiteral: serializeJsonForModule(orderedPathParamWireNames),
         headerParamWireNamesLiteral: serializeJsonForModule(orderedHeaderParamWireNames),
-        invokeParamBucketsLiteral: serializeJsonForModule(orderedInvokeParamBuckets),
-        invokeBodySchemaByToolLiteral: serializeJsonForModule(orderedInvokeBodySchemas)
+        invokeParamBucketsLiteral: serializeJsonForModule(orderedInvokeParamBuckets)
     };
 }
 
@@ -444,7 +422,6 @@ export async function renderToolsModule(input: RenderToolsModuleInput): Promise<
     const pathParamWireNames = buildPathParamWireNamesFromLoaded(model, loaded);
     const headerParamWireNames = buildHeaderParamWireNamesFromLoaded(model, loaded);
     const invokeParamBuckets = buildInvokeParamBucketsFromLoaded(model, loaded);
-    const invokeBodySchemas = buildInvokeBodySchemasFromLoaded(model, loaded);
     const {
         toolsLiteral,
         orderedSchemas,
@@ -452,8 +429,7 @@ export async function renderToolsModule(input: RenderToolsModuleInput): Promise<
         queryParamWireNamesLiteral,
         pathParamWireNamesLiteral,
         headerParamWireNamesLiteral,
-        invokeParamBucketsLiteral,
-        invokeBodySchemaByToolLiteral
+        invokeParamBucketsLiteral
     } = mergeParallelToolData(
         toolsMeta,
         schemas,
@@ -461,8 +437,7 @@ export async function renderToolsModule(input: RenderToolsModuleInput): Promise<
         queryParamWireNames,
         pathParamWireNames,
         headerParamWireNames,
-        invokeParamBuckets,
-        invokeBodySchemas
+        invokeParamBuckets
     );
     const authKind = authRuntimeKind(model);
     const mcpServerIdentity = resolveMcpServerIdentityFromDestination(destinationTsPath, bootstrapConfig);
@@ -512,7 +487,6 @@ export async function renderToolsModule(input: RenderToolsModuleInput): Promise<
         pathParamWireNamesLiteral,
         headerParamWireNamesLiteral,
         invokeParamBucketsLiteral,
-        invokeBodySchemaByToolLiteral,
         authKind,
         authPipelineTier,
         stubMaps,

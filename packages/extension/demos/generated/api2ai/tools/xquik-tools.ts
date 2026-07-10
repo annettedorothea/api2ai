@@ -23,7 +23,7 @@ export const generatedTools: GeneratedTool[] = [
         toolName: 'searchXquikTweets',
         title: 'Search X posts',
         description:
-            'Intent:\nSearch X posts by keyword, Tweet ID, status URL, account, or date window.\n        Use queryType Latest for timeline-style checks and Top for engagement-ranked research.\n        Use next_cursor from a previous response as cursor for pagination.\n\nMCP arguments:\npass q, queryType, cursor, sinceTime, untilTime, limit, fromUser as top-level tool arguments. Do not nest path or query parameters under pathParams or query.\n\nMeta:\noperationId: search-tweets\n\nParameters:\n- cursor (query): Pagination cursor from the previous response.\n- fromUser (query): Optional username filter without @. (example: xquik)\n- limit (query): Maximum posts to return. Keep this small for agent workflows. (example: 20)\n- q (query): Required query string, Tweet ID, or X status URL. (example: open source agents)\n- queryType (query): Sort order for keyword search.\n- sinceTime (query): ISO 8601 timestamp. Return tweets after this time.\n- untilTime (query): ISO 8601 timestamp. Return tweets before this time.\n\nExample:\nFind recent posts about open source agents\n\nResponse:\nHTTP 200 returns tweets plus has_next_page and next_cursor.\n        Each tweet includes id, text, createdAt, metrics, and author fields.\n        Documented errors: HTTP 400 invalid query, HTTP 401 missing API key, HTTP 402 payment required, HTTP 429 rate limit exceeded.\n\nRuntime: protected — implement prepareToolCallForSearchXquikTweets in src/hooks/api2ai/xquik-tools/prepareToolCallForSearchXquikTweets.ts; credential sent as header "x-api-key".',
+            'Intent:\nSearch X posts by keyword, Tweet ID, status URL, account, or date window.\n        Use queryType Latest for timeline-style checks and Top for engagement-ranked research.\n        Use next_cursor from a previous response as cursor for pagination.\n\nMCP arguments:\npass q, queryType, cursor, sinceTime, untilTime, limit, fromUser as top-level tool arguments. Do not nest path or query parameters under pathParams or query.\n\nMeta:\noperationId: search-tweets\n\nParameters:\n- cursor (query): Pagination cursor from the previous response. (type: string)\n- fromUser (query): Optional username filter without @. (type: string) (example: xquik)\n- limit (query): Maximum posts to return. Keep this small for agent workflows. (type: integer) (example: 20)\n- q (query): Required query string, Tweet ID, or X status URL. (type: string) (example: open source agents)\n- queryType (query): Sort order for keyword search. (type: string)\n- sinceTime (query): ISO 8601 timestamp. Return tweets after this time. (type: string)\n- untilTime (query): ISO 8601 timestamp. Return tweets before this time. (type: string)\n\nExample:\nFind recent posts about open source agents\n\nResponse:\nHTTP 200 returns tweets plus has_next_page and next_cursor.\n        Each tweet includes id, text, createdAt, metrics, and author fields.\n        Documented errors: HTTP 400 invalid query, HTTP 401 missing API key, HTTP 402 payment required, HTTP 429 rate limit exceeded.\n\nRuntime: protected — implement prepareToolCallForSearchXquikTweets in src/hooks/api2ai/xquik-tools/prepareToolCallForSearchXquikTweets.ts; credential sent as header "x-api-key".',
         method: 'GET',
         path: '/api/v1/x/tweets/search',
         access: 'protected',
@@ -34,7 +34,7 @@ export const generatedTools: GeneratedTool[] = [
         toolName: 'searchXquikUsers',
         title: 'Search X users',
         description:
-            'Intent:\nSearch X users by name or username.\n        Use this before user-scoped timeline tools when the user only provides a handle-like name.\n        Use next_cursor from a previous response as cursor for pagination.\n\nMCP arguments:\npass q, cursor as top-level tool arguments. Do not nest path or query parameters under pathParams or query.\n\nMeta:\noperationId: search-users\n\nParameters:\n- cursor (query): Pagination cursor from the previous response.\n- q (query): User search query.\n\nExample:\nFind accounts named Xquik\n\nResponse:\nHTTP 200 returns users plus has_next_page and next_cursor.\n        Each user can include id, username, name, verified, followers, and following.\n        Documented errors: HTTP 400 invalid query, HTTP 401 missing API key, HTTP 402 payment required, HTTP 429 rate limit exceeded.\n\nRuntime: protected — implement src/hooks/api2ai/xquik-tools/verifyXquikCredential.ts; credential sent as header "x-api-key".',
+            'Intent:\nSearch X users by name or username.\n        Use this before user-scoped timeline tools when the user only provides a handle-like name.\n        Use next_cursor from a previous response as cursor for pagination.\n\nMCP arguments:\npass q, cursor as top-level tool arguments. Do not nest path or query parameters under pathParams or query.\n\nMeta:\noperationId: search-users\n\nParameters:\n- cursor (query): Pagination cursor from the previous response. (type: string)\n- q (query): User search query. (type: string)\n\nExample:\nFind accounts named Xquik\n\nResponse:\nHTTP 200 returns users plus has_next_page and next_cursor.\n        Each user can include id, username, name, verified, followers, and following.\n        Documented errors: HTTP 400 invalid query, HTTP 401 missing API key, HTTP 402 payment required, HTTP 429 rate limit exceeded.\n\nRuntime: protected — implement src/hooks/api2ai/xquik-tools/verifyXquikCredential.ts; credential sent as header "x-api-key".',
         method: 'GET',
         path: '/api/v1/x/users/search',
         access: 'protected',
@@ -45,7 +45,7 @@ export const generatedTools: GeneratedTool[] = [
         toolName: 'lookupXquikTweet',
         title: 'Get X post by ID',
         description:
-            'Intent:\nLook up one X post by Tweet ID.\n        Use ids returned by searchXquikTweets, or parse the numeric id from an X status URL first.\n\nMCP arguments:\npass id as top-level tool arguments. Do not nest path or query parameters under pathParams or query.\n\nMeta:\noperationId: lookup-tweet\n\nParameters:\n- id (path): Tweet ID from search results or an X status URL. (example: 1234567890)\n\nExample:\nGet Tweet ID 1234567890\n\nResponse:\nHTTP 200 returns tweet and author objects.\n        Documented errors: HTTP 400 invalid id, HTTP 401 missing API key, HTTP 402 payment required, HTTP 404 not found, HTTP 429 rate limit exceeded.\n\nRuntime: protected — implement src/hooks/api2ai/xquik-tools/verifyXquikCredential.ts; credential sent as header "x-api-key".',
+            'Intent:\nLook up one X post by Tweet ID.\n        Use ids returned by searchXquikTweets, or parse the numeric id from an X status URL first.\n\nMCP arguments:\npass id as top-level tool arguments. Do not nest path or query parameters under pathParams or query.\n\nMeta:\noperationId: lookup-tweet\n\nParameters:\n- id (path): Tweet ID from search results or an X status URL. (type: string) (example: 1234567890)\n\nExample:\nGet Tweet ID 1234567890\n\nResponse:\nHTTP 200 returns tweet and author objects.\n        Documented errors: HTTP 400 invalid id, HTTP 401 missing API key, HTTP 402 payment required, HTTP 404 not found, HTTP 429 rate limit exceeded.\n\nRuntime: protected — implement src/hooks/api2ai/xquik-tools/verifyXquikCredential.ts; credential sent as header "x-api-key".',
         method: 'GET',
         path: '/api/v1/x/tweets/{id}',
         access: 'protected',
@@ -97,19 +97,33 @@ const prepareToolCallHooks: Record<
 export const inputZodByTool = {
     searchXquikTweets: z
         .object({
-            q: z.string().describe('Required query string, Tweet ID, or X status URL. (example: open source agents)'),
+            q: z
+                .string()
+                .describe(
+                    'Required query string, Tweet ID, or X status URL. (type: string) (example: open source agents)'
+                ),
             queryType: z
                 .union([z.literal('Latest'), z.literal('Top')])
-                .describe('Sort order for keyword search.')
+                .describe('Sort order for keyword search. (type: string)')
                 .optional(),
-            cursor: z.string().describe('Pagination cursor from the previous response.').optional(),
-            sinceTime: z.string().describe('ISO 8601 timestamp. Return tweets after this time.').optional(),
-            untilTime: z.string().describe('ISO 8601 timestamp. Return tweets before this time.').optional(),
+            cursor: z.string().describe('Pagination cursor from the previous response. (type: string)').optional(),
+            sinceTime: z
+                .string()
+                .describe('ISO 8601 timestamp. Return tweets after this time. (type: string)')
+                .optional(),
+            untilTime: z
+                .string()
+                .describe('ISO 8601 timestamp. Return tweets before this time. (type: string)')
+                .optional(),
             limit: z
-                .union([z.number().int(), z.string()])
-                .describe('Maximum posts to return. Keep this small for agent workflows. (example: 20)')
+                .number()
+                .int()
+                .describe('Maximum posts to return. Keep this small for agent workflows. (type: integer) (example: 20)')
                 .optional(),
-            fromUser: z.string().describe('Optional username filter without @. (example: xquik)').optional(),
+            fromUser: z
+                .string()
+                .describe('Optional username filter without @. (type: string) (example: xquik)')
+                .optional(),
             headers: z.record(z.string(), z.string()).describe('Optional extra headers.').optional(),
             body: z
                 .record(z.string(), z.union([z.string(), z.number(), z.boolean()]))
@@ -120,8 +134,8 @@ export const inputZodByTool = {
         .describe('Arguments for invoking the generated HTTP wrapper.'),
     searchXquikUsers: z
         .object({
-            q: z.string().describe('User search query.'),
-            cursor: z.string().describe('Pagination cursor from the previous response.').optional(),
+            q: z.string().describe('User search query. (type: string)'),
+            cursor: z.string().describe('Pagination cursor from the previous response. (type: string)').optional(),
             headers: z.record(z.string(), z.string()).describe('Optional extra headers.').optional(),
             body: z
                 .record(z.string(), z.union([z.string(), z.number(), z.boolean()]))
@@ -132,7 +146,9 @@ export const inputZodByTool = {
         .describe('Arguments for invoking the generated HTTP wrapper.'),
     lookupXquikTweet: z
         .object({
-            id: z.string().describe('Tweet ID from search results or an X status URL. (example: 1234567890)'),
+            id: z
+                .string()
+                .describe('Tweet ID from search results or an X status URL. (type: string) (example: 1234567890)'),
             headers: z.record(z.string(), z.string()).describe('Optional extra headers.').optional(),
             body: z
                 .record(z.string(), z.union([z.string(), z.number(), z.boolean()]))
@@ -163,52 +179,15 @@ const invokeParamBucketsByTool = {
         arrayQuery: []
     }
 };
-const invokeBodySchemaByTool = {};
 
-function coerceInvokeScalar(value: string | number | boolean): string | number | boolean {
-    if (typeof value === 'string') {
-        const trimmed = value.trim();
-        if (trimmed === 'true') {
-            return true;
-        }
-        if (trimmed === 'false') {
-            return false;
-        }
-        if (/^-?\d+(\.\d+)?([eE][+-]?\d+)?$/.test(trimmed)) {
-            const parsed = Number(trimmed);
-            if (Number.isFinite(parsed)) {
-                return parsed;
-            }
-        }
-    }
-    return value;
-}
-
-function coerceInvokePathBucket(
-    bucket: Record<string, string | number | boolean> | undefined
-): Record<string, string | number | boolean> | undefined {
-    if (!bucket) {
-        return undefined;
-    }
-    const out: Record<string, string | number | boolean> = {};
-    for (const [key, value] of Object.entries(bucket)) {
-        if (value === undefined || value === null) {
-            continue;
-        }
-        out[key] = coerceInvokeScalar(value);
-    }
-    return Object.keys(out).length > 0 ? out : undefined;
-}
-
-function coerceInvokeQueryArrayValue(value: string): ReadonlyArray<string | number | boolean> {
+function splitInvokeQueryArrayValue(value: string): ReadonlyArray<string | number | boolean> {
     return value
         .split(',')
         .map((part) => part.trim())
-        .filter((part) => part.length > 0)
-        .map((part) => coerceInvokeScalar(part));
+        .filter((part) => part.length > 0);
 }
 
-function coerceInvokeQueryBucket(toolName: string, bucket: InvokeOptions['query']): InvokeOptions['query'] {
+function prepareQueryBucket(toolName: string, bucket: InvokeOptions['query']): InvokeOptions['query'] {
     if (!bucket) {
         return undefined;
     }
@@ -220,95 +199,29 @@ function coerceInvokeQueryBucket(toolName: string, bucket: InvokeOptions['query'
         if (value === undefined || value === null) {
             continue;
         }
-        if (Array.isArray(value)) {
-            out[key] = value.map((element) => coerceInvokeScalar(element));
-            continue;
-        }
         if (arrayQueryKeys.has(key) && typeof value === 'string') {
-            out[key] = coerceInvokeQueryArrayValue(value);
+            out[key] = splitInvokeQueryArrayValue(value);
             continue;
         }
-        out[key] = coerceInvokeScalar(value as string | number | boolean);
+        out[key] = value as string | number | boolean | ReadonlyArray<string | number | boolean>;
     }
     return Object.keys(out).length > 0 ? out : undefined;
 }
 
-function coerceInvokeValueBySchema(value: unknown, schema: Record<string, unknown> | undefined): unknown {
-    if (!schema || value === undefined || value === null) {
-        return value;
+function omitNullishPathParams(
+    bucket: Record<string, string | number | boolean> | undefined
+): Record<string, string | number | boolean> | undefined {
+    if (!bucket) {
+        return undefined;
     }
-    const type = schema.type;
-    if (type === 'integer' || type === 'number') {
-        if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
-            return coerceInvokeScalar(value as string | number | boolean);
+    const out: Record<string, string | number | boolean> = {};
+    for (const [key, value] of Object.entries(bucket)) {
+        if (value === undefined || value === null) {
+            continue;
         }
-        return value;
+        out[key] = value;
     }
-    if (type === 'boolean') {
-        if (typeof value === 'boolean') {
-            return value;
-        }
-        if (typeof value === 'string') {
-            const trimmed = value.trim();
-            if (trimmed === 'true') {
-                return true;
-            }
-            if (trimmed === 'false') {
-                return false;
-            }
-        }
-        return value;
-    }
-    if (type === 'array') {
-        const items = schema.items as Record<string, unknown> | undefined;
-        if (typeof value === 'string') {
-            return value
-                .split(',')
-                .map((part) => part.trim())
-                .filter((part) => part.length > 0)
-                .map((part) => (items ? coerceInvokeValueBySchema(part, items) : coerceInvokeScalar(part)));
-        }
-        if (Array.isArray(value)) {
-            return value.map((element) =>
-                items
-                    ? coerceInvokeValueBySchema(element, items)
-                    : coerceInvokeScalar(element as string | number | boolean)
-            );
-        }
-        return value;
-    }
-    if (
-        type === 'object' &&
-        schema.properties &&
-        typeof schema.properties === 'object' &&
-        !Array.isArray(schema.properties) &&
-        typeof value === 'object' &&
-        value !== null &&
-        !Array.isArray(value)
-    ) {
-        const props = schema.properties as Record<string, Record<string, unknown>>;
-        const out: Record<string, unknown> = {};
-        for (const [key, element] of Object.entries(value as Record<string, unknown>)) {
-            if (element === undefined || element === null) {
-                continue;
-            }
-            const propSchema = props[key];
-            out[key] = propSchema ? coerceInvokeValueBySchema(element, propSchema) : element;
-        }
-        return out;
-    }
-    return value;
-}
-
-function coerceInvokeBody(toolName: string, body: unknown): unknown {
-    if (body === undefined || body === null) {
-        return body;
-    }
-    const schema = (invokeBodySchemaByTool as Record<string, Record<string, unknown> | undefined>)[toolName];
-    if (!schema) {
-        return body;
-    }
-    return coerceInvokeValueBySchema(body, schema);
+    return Object.keys(out).length > 0 ? out : undefined;
 }
 
 function isInvokeQueryBucketValue(value: unknown): value is Record<string, unknown> {
@@ -342,12 +255,8 @@ function normalizeInvokeOptions(toolName: string, options: InvokeOptions): Invok
     if (!hasTopLevelFlatParam) {
         return {
             ...options,
-            pathParams: coerceInvokePathBucket(options.pathParams),
-            query: coerceInvokeQueryBucket(
-                toolName,
-                isInvokeQueryBucketValue(options.query) ? options.query : undefined
-            ),
-            body: coerceInvokeBody(toolName, options.body)
+            pathParams: omitNullishPathParams(options.pathParams),
+            query: prepareQueryBucket(toolName, isInvokeQueryBucketValue(options.query) ? options.query : undefined)
         };
     }
 
@@ -374,7 +283,7 @@ function normalizeInvokeOptions(toolName: string, options: InvokeOptions): Invok
         if (key === 'query') {
             if (queryKeys.includes('query') && !isInvokeQueryBucketValue(value)) {
                 if (arrayQueryKeys.has(key) && typeof value === 'string') {
-                    query[key] = coerceInvokeQueryArrayValue(value);
+                    query[key] = splitInvokeQueryArrayValue(value);
                 } else {
                     query[key] = value as string | number | boolean | ReadonlyArray<string | number | boolean>;
                 }
@@ -391,7 +300,7 @@ function normalizeInvokeOptions(toolName: string, options: InvokeOptions): Invok
             pathParams[key] = value as string | number | boolean;
         } else if (queryKeys.includes(key)) {
             if (arrayQueryKeys.has(key) && typeof value === 'string') {
-                query[key] = coerceInvokeQueryArrayValue(value);
+                query[key] = splitInvokeQueryArrayValue(value);
             } else {
                 query[key] = value as string | number | boolean | ReadonlyArray<string | number | boolean>;
             }
@@ -401,10 +310,10 @@ function normalizeInvokeOptions(toolName: string, options: InvokeOptions): Invok
     }
 
     return {
-        pathParams: coerceInvokePathBucket(pathParams),
-        query: coerceInvokeQueryBucket(toolName, query),
+        pathParams: omitNullishPathParams(pathParams),
+        query: prepareQueryBucket(toolName, query),
         headers: Object.keys(headers).length > 0 ? headers : undefined,
-        body: coerceInvokeBody(toolName, options.body)
+        body: options.body
     };
 }
 const queryParamSerializationByTool = {
