@@ -12,6 +12,23 @@ Policy: [core2ai docs/development/changelog-policy.md](https://github.com/annett
 
 ---
 
+## [1.0.0-rc.4] - 2026-07-10
+
+Strict MCP arg validation, LLM-facing type hints in tool descriptions, inspector-only `mcp:inspect`. Pins `@toolfactory.dev/core` **1.0.0-rc.8** from npmjs.
+
+### Changed
+
+- **Invoke:** pass MCP path/query/body args through without runtime coercion (preserves string values such as leading zeros)
+- **Codegen:** `(type: …)` and `(example: …)` in OpenAPI parameter descriptions and tool `Parameters:` sections
+- **`mcp:inspect`:** opens MCP Inspector only — prerequisite `npm run start:all` (removed `--with-deps` / host startup)
+
+### Upgrade notes
+
+- Regenerate after pin refresh: `generate:all` + `build:generated`; restart MCP servers in Cursor
+- Strict Zod at MCP boundary: numeric/boolean args must match schema types (no `"42"` for integer fields)
+
+---
+
 ## [1.0.0-rc.3] - 2026-07-09
 
 Composed MCP codegen, build-stamp fingerprint, slimmer `/test-all` trust model, banking demo hooks, tag-only CI quality gate. Pins `@toolfactory.dev/core` **1.0.0-rc.6** from npmjs.

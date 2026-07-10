@@ -83,7 +83,7 @@ export const authConfig: AuthConfig | undefined = {
 export { verifyCredential } from '../../../src/hooks/api2ai/xquik-tools/verifyXquikCredential.js';
 
 export const mcpServerName = 'xquik-tools';
-export const mcpServerVersion = '1.0.0-rc.3';
+export const mcpServerVersion = '1.0.0-rc.4';
 
 export { mcpBuildGeneratedAt } from '../mcp-build-generated-at.js';
 
