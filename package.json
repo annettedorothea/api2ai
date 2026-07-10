@@ -10,7 +10,7 @@
         "postinstall": "husky",
         "install:demos": "npm install --prefix packages/extension/demos",
         "watch": "tsc -b tsconfig.build.json --watch",
-        "build": "tsc -b tsconfig.build.json && npm run build --workspaces",
+        "build": "node packages/extension/demos/scripts/ensure-mcp-build-stamp.mjs && tsc -b tsconfig.build.json && npm run build --workspaces",
         "build:clean": "npm run clean && npm run build",
         "vsix:version": "node scripts/bump-version.mjs",
         "sync:core2ai-pin": "node scripts/sync-core2ai-pin.mjs",
