@@ -12,7 +12,28 @@ Policy: [core2ai docs/development/changelog-policy.md](https://github.com/annett
 
 ---
 
-## [1.0.0-rc.2] - 2026-07-07
+## [1.0.0-rc.3] - 2026-07-09
+
+Composed MCP codegen, build-stamp fingerprint, slimmer `/test-all` trust model, banking demo hooks, tag-only CI quality gate. Pins `@toolfactory.dev/core` **1.0.0-rc.6** from npmjs.
+
+### Added
+
+- **Banking demo:** OpenAPI fixture, OAuth/token-exchange hooks, MCP servers in demos
+- **Build stamp:** central `mcp-build-generated-at.ts`; MCP banner and tool descriptions show build fingerprint
+- **Token exchange:** hook authoring for banking credential flow
+
+### Changed
+
+- **Codegen:** consumer `compose` templates/fragments; slimmer check-stub renderer
+- **`/test-all`:** trust terminal `start:all` banner (no per-tool version column); MCP required in Cursor
+- **CI:** quality gate on tag `v*` only; `vsix:release` uses `vX.Y.Z` Git tag
+- **Release skill:** CP5 commit → CP6 tag → CP7 after CI green
+
+### Upgrade notes
+
+- After install: `generate:all` + `build:generated`; restart MCP servers in Cursor
+
+---
 
 Hook stubs per export name, demo start script split, invoke codegen fixes (query bucket, MCP dot params), core **1.0.0-rc.4**. Pins `@toolfactory.dev/core` **1.0.0-rc.4** from npmjs.
 

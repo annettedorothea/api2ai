@@ -2,10 +2,9 @@
 /**
  * Stop mock API backends and OAuth IdPs (MCP hosts are left running).
  */
-import { runNode } from './start-shared.mjs';
-import { loadProjectEnvLocal } from './generated/load-env-local.mjs';
+import { prepareWorkspaceEnv, runNode } from './start-shared.mjs';
 
-loadProjectEnvLocal();
+prepareWorkspaceEnv();
 console.log('[kill-fixtures] stopping OAuth IDP…');
 runNode('./oauth-idp/kill-server.mjs');
 runNode('./oauth-idp/kill-server-oidc.mjs');
