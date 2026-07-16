@@ -16,7 +16,7 @@ import {
     waitForHttpOk,
     waitForTcpListen
 } from './start-shared.mjs';
-import { requireEnvInt } from './generated/require-env.mjs';
+import { requireEnvInt } from '../generated/api2ai/scripts/require-env.mjs';
 
 /** @typedef {'bookings'|'todo-api'|'cakes-api'|'banking-api'|'test-api'|'oauth-idp'|'oauth-idp-oidc'} FixtureName */
 

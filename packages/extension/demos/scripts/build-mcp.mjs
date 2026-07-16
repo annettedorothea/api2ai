@@ -4,15 +4,12 @@
  */
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { readFileSync } from 'node:fs';
 import { HTTP_DEMOS } from './mcp-http-demos.mjs';
 import { OAUTH_HTTP_DEMOS } from './mcp-oauth-demos.mjs';
-import { buildMcpPackage } from './generated/build-mcp-lib.mjs';
+import { buildMcpPackage } from '../generated/api2ai/scripts/build-mcp-lib.mjs';
+import { productName } from '../generated/api2ai/scripts/project-meta.mjs';
 
 const demosRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const productName = JSON.parse(
-    readFileSync(path.join(demosRoot, 'project-generate.config.json'), 'utf-8')
-).productName;
 
 const argv = process.argv.slice(2);
 let hostKind;

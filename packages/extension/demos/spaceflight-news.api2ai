@@ -4,9 +4,7 @@ GET "/v4/articles/" {
     toolName: listSpaceflightArticles
     access: public
     hooks: {
-        prepareToolCall: {
-            clientMayOmit: [limit]
-        }
+        prepareToolCall: true
     }
     intent: '''
         - List recent spaceflight news articles (pagination: limit, offset, ordering).
@@ -37,9 +35,7 @@ GET "/v4/blogs/" {
     toolName: listSpaceflightBlogs
     access: public
     hooks: {
-        prepareToolCall: {
-            clientMayOmit: [limit]
-        }
+        prepareToolCall: true
     }
     intent: '''
         - List recent spaceflight blog posts (pagination: limit, offset, ordering).
@@ -70,9 +66,7 @@ GET "/v4/reports/" {
     toolName: listSpaceflightReports
     access: public
     hooks: {
-        prepareToolCall: {
-            clientMayOmit: [limit]
-        }
+        prepareToolCall: true
     }
     intent: '''
         - List recent spaceflight reports (pagination: limit, offset, ordering).

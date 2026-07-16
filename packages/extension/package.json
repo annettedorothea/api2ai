@@ -1,10 +1,28 @@
 {
     "name": "vscode-api2ai",
     "displayName": "api2ai",
-    "description": "Language support and code generation for the .api2ai DSL (OpenAPI → MCP tools).",
+    "description": "Tool Factory — language support and code generation for the .api2ai DSL (OpenAPI → MCP tools).",
     "version": "1.0.0-rc.4",
-    "publisher": "api2ai",
+    "publisher": "toolfactory-dev",
     "license": "MIT",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/annettedorothea/api2ai.git"
+    },
+    "homepage": "https://toolfactory.dev",
+    "bugs": "https://github.com/annettedorothea/api2ai/issues",
+    "keywords": [
+        "mcp",
+        "openapi",
+        "cursor",
+        "tool factory",
+        "code generation",
+        "langium"
+    ],
+    "galleryBanner": {
+        "color": "#1e1e2e",
+        "theme": "dark"
+    },
     "icon": "icon.png",
     "author": {
         "name": "Annette Pohl"

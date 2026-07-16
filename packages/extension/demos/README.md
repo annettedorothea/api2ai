@@ -111,7 +111,7 @@ or:
 api2ai /test-all
 ```
 
-For HTTP transport debugging (tools, auth headers, sessions) — hosts must already be running (`npm run start:all`):
+For HTTP transport debugging (tools, auth headers, sessions) — hosts must already be running (`npm run start:all`). Prefer this as the **manual verify** for generated HTTP MCP tools:
 
 ```bash
 npm run mcp:inspect -- open-meteo
@@ -212,7 +212,7 @@ Cursor • ChatGPT • Claude • MCP Inspector
 
 ## Feedback
 
-**1.0.0-rc** — share onboarding and integration feedback in [GitHub Discussions](https://github.com/annettedorothea/api2ai/discussions/3). For bugs, open an [Issue](https://github.com/annettedorothea/api2ai/issues).
+Share onboarding and integration feedback in [GitHub Discussions](https://github.com/annettedorothea/api2ai/discussions/3). For bugs, open an [Issue](https://github.com/annettedorothea/api2ai/issues).
 
 ---
 

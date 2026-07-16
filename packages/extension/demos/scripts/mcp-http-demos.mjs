@@ -2,13 +2,8 @@
  * Relay HTTP MCP demo hosts (api2ai) — keys match .cursor/mcp.json server names.
  */
 import path from 'node:path';
-import { readFileSync } from 'node:fs';
-import { requireEnv, requireEnvInt, warnEnvIfMissing } from './generated/require-env.mjs';
-
-function loadProductName(demosRoot) {
-    const config = JSON.parse(readFileSync(path.join(demosRoot, 'project-generate.config.json'), 'utf-8'));
-    return config.productName;
-}
+import { requireEnv, requireEnvInt, warnEnvIfMissing } from '../generated/api2ai/scripts/require-env.mjs';
+import { productName } from '../generated/api2ai/scripts/project-meta.mjs';
 
 /**
  * @param {string} demoName
@@ -100,7 +95,7 @@ export function buildHostLaunch(name, demosRoot, env) {
     }
     requireEnv(demo.baseUrlEnv, env);
     const port = requireEnvInt(demo.portEnv, env);
-    const product = loadProductName(demosRoot);
+    const product = productName;
     const serverJs = path.join(
         demosRoot,
         'generated',

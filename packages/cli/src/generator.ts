@@ -110,8 +110,8 @@ export async function generateOutput(model: Model, source: string, destination: 
     const moduleMcpServerPaths = writeMcpServers(tsPath);
     renderBootstrap(projectRoot, bootstrapConfig);
     ensureLoggingAdapterStubFromSource(source);
+    writeGeneratedScripts(projectRoot, 'api2ai');
     writeGeneratedDemosTestSupport(projectRoot);
-    writeGeneratedScripts(projectRoot);
 
     return {
         tsPath,
