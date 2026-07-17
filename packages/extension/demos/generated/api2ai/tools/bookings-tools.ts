@@ -84,7 +84,7 @@ export const authConfig: AuthConfig | undefined = {
 };
 
 export const mcpServerName = 'bookings-tools';
-export const mcpServerVersion = '1.0.0';
+export const mcpServerVersion = '1.0.1';
 
 export { mcpBuildGeneratedAt } from '../mcp-build-generated-at.js';
 

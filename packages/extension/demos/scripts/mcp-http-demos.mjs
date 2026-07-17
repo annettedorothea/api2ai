@@ -13,6 +13,15 @@ function moduleServerFile(demoName, hostKind) {
     return `${demoName}-${hostKind}-mcp-server.js`;
 }
 
+/** @param {string[]} args @param {string} demosRoot @param {string | undefined} iconRel */
+function appendIconArg(args, demosRoot, iconRel) {
+    const rel = iconRel?.trim();
+    if (!rel) {
+        return;
+    }
+    args.push('--icon', path.resolve(demosRoot, rel));
+}
+
 export const HTTP_DEMOS = {
     'open-meteo': {
         hostKind: 'public-http',
@@ -47,7 +56,8 @@ export const HTTP_DEMOS = {
     'spaceflight-news': {
         hostKind: 'public-http',
         baseUrlEnv: 'SPACEFLIGHT_NEWS_BASE_URL',
-        portEnv: 'SPACEFLIGHT_NEWS_HTTP_PORT'
+        portEnv: 'SPACEFLIGHT_NEWS_HTTP_PORT',
+        icon: 'icons/spaceflight-news.png'
     },
     todo: {
         hostKind: 'passthrough-http',
@@ -107,6 +117,7 @@ export function buildHostLaunch(name, demosRoot, env) {
     if (demo.authEnv) {
         args.push('--auth-env', demo.authEnv);
     }
+    appendIconArg(args, demosRoot, demo.icon);
     const mcpUrl = `http://127.0.0.1:${port}/mcp`;
     const mcpAuthHeader = demo.mcpAuthHeaderEnv ? resolveMcpAuthHeader(demo, env) : undefined;
     const hostEnv = mcpAuthHeader ? { MCP_AUTH_HEADER: mcpAuthHeader } : {};

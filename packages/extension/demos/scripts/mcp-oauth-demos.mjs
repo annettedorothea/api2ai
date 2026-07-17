@@ -5,6 +5,15 @@ import path from 'node:path';
 import { requireEnv, requireEnvInt } from '../generated/api2ai/scripts/require-env.mjs';
 import { productName } from '../generated/api2ai/scripts/project-meta.mjs';
 
+/** @param {string[]} args @param {string} demosRoot @param {string | undefined} iconRel */
+function appendIconArg(args, demosRoot, iconRel) {
+    const rel = iconRel?.trim();
+    if (!rel) {
+        return;
+    }
+    args.push('--icon', path.resolve(demosRoot, rel));
+}
+
 export const OAUTH_HTTP_DEMOS = {
     bookings: {
         baseUrlEnv: 'BOOKINGS_API_BASE_URL',
@@ -16,13 +25,15 @@ export const OAUTH_HTTP_DEMOS = {
         baseUrlEnv: 'CAKES_API_BASE_URL',
         oauthIdpUrlEnv: 'BOOKINGS_OAUTH_IDP_URL',
         portEnv: 'CAKES_OAUTH_HTTP_PORT',
-        oauthScope: 'cakes-api'
+        oauthScope: 'cakes-api',
+        icon: 'icons/cakes.png'
     },
     banking: {
         baseUrlEnv: 'BANKING_API_BASE_URL',
         oauthIdpUrlEnv: 'BANKING_OAUTH_IDP_URL',
         portEnv: 'BANKING_OAUTH_HTTP_PORT',
-        oauthScope: 'banking'
+        oauthScope: 'banking',
+        icon: 'icons/banking.png'
     }
 };
 
@@ -60,6 +71,7 @@ export function buildOAuthHostLaunch(name, demosRoot, env) {
         '--path',
         '/mcp'
     ];
+    appendIconArg(args, demosRoot, demo.icon);
     const mcpUrl = `http://127.0.0.1:${port}/mcp`;
     return { demo, port, args, mcpUrl };
 }
