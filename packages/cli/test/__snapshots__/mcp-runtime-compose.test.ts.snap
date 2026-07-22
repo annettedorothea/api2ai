@@ -1166,7 +1166,7 @@ function loadLocalEnvFiles(startDirs: string[], options?: { refresh?: boolean })
 
 
 
-function resolveRelayHostCredential(
+function normalizeHostCredential(
     rawCredential: string | undefined
 ): { credential?: string } {
     if (!rawCredential?.trim()) {
@@ -1644,7 +1644,7 @@ async function resolveHostContextForHttpCall(
     if (!credential?.trim()) {
         credential = readCredentialFromEnv(httpHostConfig.authEnvKey);
     }
-    const { credential: c } = resolveRelayHostCredential(credential);
+    const { credential: c } = normalizeHostCredential(credential);
     
     const baseUrlKey = httpHostConfig.baseUrlEnvKey?.trim();
     const baseUrl = baseUrlKey ? process.env[baseUrlKey]?.trim() : undefined;
@@ -1970,7 +1970,7 @@ function loadLocalEnvFiles(startDirs: string[], options?: { refresh?: boolean })
 
 
 
-function resolveRelayHostCredential(
+function normalizeHostCredential(
     rawCredential: string | undefined
 ): { credential?: string } {
     if (!rawCredential?.trim()) {
@@ -2418,7 +2418,7 @@ async function resolveHostContextForHttpCall(
     _incomingHeaders: Record<string, string | string[] | undefined>
 ): Promise<ApiLikeHostContext> {
     const credential = undefined;
-    const { credential: c } = resolveRelayHostCredential(credential);
+    const { credential: c } = normalizeHostCredential(credential);
     
     const baseUrlKey = httpHostConfig.baseUrlEnvKey?.trim();
     const baseUrl = baseUrlKey ? process.env[baseUrlKey]?.trim() : undefined;
