@@ -1,4 +1,4 @@
-import { loggingAdapter } from '../../../utils/logging-adapter.js';
+import { loggingAdapter } from '@toolfactory.dev/core/logging';
 /** OAuth IdP JWT → portal JWT via demo IdP token-exchange endpoint. */
 export async function tokenExchangeBankingCredential(idpCredential) {
     const url = process.env.BANKING_TOKEN_EXCHANGE_URL?.trim() || 'http://127.0.0.1:3860/portal/token-exchange';

@@ -2,7 +2,7 @@
  * Generated from: open-meteo.api2ai
  * Referenced OpenAPI: ./openapi/open-meteo.openapi.yaml
  */
-import { loggingAdapter } from '../../../src/utils/logging-adapter.js';
+import { loggingAdapter } from '@toolfactory.dev/core/logging';
 import * as z from 'zod/v4';
 
 export type GeneratedTool = {

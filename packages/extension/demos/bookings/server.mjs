@@ -4,7 +4,7 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import { verifyJwt } from './jwt.mjs';
-import { loggingAdapter } from '../src/utils/logging-adapter.js';
+import { loggingAdapter } from '@toolfactory.dev/core/logging';
 
 const PORT = Number(process.env.BOOKINGS_API_PORT) || 3847;
 const __dirname = path.dirname(fileURLToPath(import.meta.url));

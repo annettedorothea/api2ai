@@ -2,7 +2,7 @@
  * Generated from: xquik.api2ai
  * Referenced OpenAPI: ./openapi/xquik.openapi.yaml
  */
-import { loggingAdapter } from '../../../src/utils/logging-adapter.js';
+import { loggingAdapter } from '@toolfactory.dev/core/logging';
 import * as z from 'zod/v4';
 import { verifyCredential } from '../../../src/hooks/api2ai/xquik-tools/verifyXquikCredential.js';
 import { prepareToolCallForSearchXquikTweets } from '../../../src/hooks/api2ai/xquik-tools/prepareToolCallForSearchXquikTweets.js';

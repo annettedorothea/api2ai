@@ -2,7 +2,7 @@
  * Generated from: banking.api2ai
  * Referenced OpenAPI: ./openapi/banking.openapi.yaml
  */
-import { loggingAdapter } from '../../../src/utils/logging-adapter.js';
+import { loggingAdapter } from '@toolfactory.dev/core/logging';
 import * as z from 'zod/v4';
 import { verifyCredential } from '../../../src/hooks/api2ai/banking-tools/verifyBankingCredential.js';
 import { checkToolAccessForListMyAccounts } from '../../../src/hooks/api2ai/banking-tools/checkToolAccessForListMyAccounts.js';

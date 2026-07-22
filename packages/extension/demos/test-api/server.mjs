@@ -2,7 +2,7 @@
 import { createServer } from 'node:http';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
-import { loggingAdapter } from '../src/utils/logging-adapter.js';
+import { loggingAdapter } from '@toolfactory.dev/core/logging';
 
 const PORT = Number(process.env.TEST_API_PORT) || 3857;
 const DEMO_API_KEY = process.env.TEST_API_KEY?.trim() || 'demo-test-api-key';

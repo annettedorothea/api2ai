@@ -2,7 +2,7 @@
  * Generated from: spaceflight-news.api2ai
  * Referenced OpenAPI: ./openapi/spaceflight-news.openapi.yaml
  */
-import { loggingAdapter } from '../../../src/utils/logging-adapter.js';
+import { loggingAdapter } from '@toolfactory.dev/core/logging';
 import * as z from 'zod/v4';
 import { prepareToolCallForListSpaceflightArticles } from '../../../src/hooks/api2ai/spaceflight-news-tools/prepareToolCallForListSpaceflightArticles.js';
 import { prepareToolCallForListSpaceflightBlogs } from '../../../src/hooks/api2ai/spaceflight-news-tools/prepareToolCallForListSpaceflightBlogs.js';

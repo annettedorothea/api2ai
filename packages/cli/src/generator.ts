@@ -1,7 +1,6 @@
 import type { Model } from 'api-2-ai-dsl-language';
 import {
     assertGeneratedToolsDestinationMatchesHostProduct,
-    ensureLoggingAdapterStubFromSource,
     ensureParentDir,
     resolveBootstrapProjectRootFromSource,
     resolveGeneratedCliDir,
@@ -64,10 +63,11 @@ function createBootstrapConfig(): ProjectBootstrapConfig {
         generatorImplementationDir: __generatorDirname,
         embedHomeEnv: 'API2AI_EMBED_HOME',
         fallbackProjectName: 'api2ai-project',
-        requiredRuntimeDeps: ['@modelcontextprotocol/sdk', 'zod'],
+        requiredRuntimeDeps: ['@modelcontextprotocol/sdk', 'zod', '@toolfactory.dev/core'],
         dependencyVersionFallbacks: {
             '@modelcontextprotocol/sdk': '^1.29.0',
-            zod: '^4.4.3'
+            zod: '^4.4.3',
+            '@toolfactory.dev/core': '^1.0.1'
         },
         resolvePackageRoot(dir) {
             const oneUp = path.resolve(dir, '..');
@@ -109,7 +109,6 @@ export async function generateOutput(model: Model, source: string, destination: 
     const mcpRuntimePaths = writeMcpRuntimes(cliDir, projectRoot);
     const moduleMcpServerPaths = writeMcpServers(tsPath);
     renderBootstrap(projectRoot, bootstrapConfig);
-    ensureLoggingAdapterStubFromSource(source);
     writeGeneratedScripts(projectRoot, 'api2ai');
     writeGeneratedDemosTestSupport(projectRoot);
 

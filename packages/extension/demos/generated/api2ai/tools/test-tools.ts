@@ -2,7 +2,7 @@
  * Generated from: test.api2ai
  * Referenced OpenAPI: ./openapi/test.openapi.yaml
  */
-import { loggingAdapter } from '../../../src/utils/logging-adapter.js';
+import { loggingAdapter } from '@toolfactory.dev/core/logging';
 import * as z from 'zod/v4';
 import { verifyCredential } from '../../../src/hooks/api2ai/test-tools/verifyTestCredential.js';
 import { checkToolAccessForTestGetAdminSecrets } from '../../../src/hooks/api2ai/test-tools/checkToolAccessForTestGetAdminSecrets.js';

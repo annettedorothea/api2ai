@@ -2,7 +2,7 @@
  * Generated from: bookings.api2ai
  * Referenced OpenAPI: ./openapi/bookings.openapi.yaml
  */
-import { loggingAdapter } from '../../../src/utils/logging-adapter.js';
+import { loggingAdapter } from '@toolfactory.dev/core/logging';
 import * as z from 'zod/v4';
 import { checkToolAccessForListAllBookings } from '../../../src/hooks/api2ai/bookings-tools/checkToolAccessForListAllBookings.js';
 import { checkToolAccessForListBookings } from '../../../src/hooks/api2ai/bookings-tools/checkToolAccessForListBookings.js';

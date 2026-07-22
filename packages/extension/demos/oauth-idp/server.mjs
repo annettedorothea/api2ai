@@ -12,7 +12,7 @@ import {
     renderAuthorizeHelpPage,
     sendHtml
 } from './idp-pages.mjs';
-import { loggingAdapter } from '../src/utils/logging-adapter.js';
+import { loggingAdapter } from '@toolfactory.dev/core/logging';
 
 const PORT = Number(process.env.BOOKINGS_OAUTH_IDP_PORT) || 3860;
 const CLIENT_ID = 'mcp-demo-local';

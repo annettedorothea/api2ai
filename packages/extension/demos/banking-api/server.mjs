@@ -4,7 +4,7 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import { verifyPortalJwt } from './jwt.mjs';
-import { loggingAdapter } from '../src/utils/logging-adapter.js';
+import { loggingAdapter } from '@toolfactory.dev/core/logging';
 
 const PORT = Number(process.env.BANKING_API_PORT) || 3858;
 const __dirname = path.dirname(fileURLToPath(import.meta.url));

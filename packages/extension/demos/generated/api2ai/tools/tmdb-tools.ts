@@ -2,7 +2,7 @@
  * Generated from: tmdb.api2ai
  * Referenced OpenAPI: ./openapi/tmdb.openapi.json
  */
-import { loggingAdapter } from '../../../src/utils/logging-adapter.js';
+import { loggingAdapter } from '@toolfactory.dev/core/logging';
 import * as z from 'zod/v4';
 import { verifyCredential } from '../../../src/hooks/api2ai/tmdb-tools/verifyTmdbCredential.js';
 

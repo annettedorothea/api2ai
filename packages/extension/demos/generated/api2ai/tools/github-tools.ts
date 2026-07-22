@@ -2,7 +2,7 @@
  * Generated from: github.api2ai
  * Referenced OpenAPI: ./openapi/github-user-min.openapi.yaml
  */
-import { loggingAdapter } from '../../../src/utils/logging-adapter.js';
+import { loggingAdapter } from '@toolfactory.dev/core/logging';
 import * as z from 'zod/v4';
 import { verifyCredential } from '../../../src/hooks/api2ai/github-tools/verifyGithubCredential.js';
 

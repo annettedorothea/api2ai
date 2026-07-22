@@ -2,7 +2,7 @@
  * Generated from: cakes.api2ai
  * Referenced OpenAPI: ./openapi/cakes-api.openapi.yaml
  */
-import { loggingAdapter } from '../../../src/utils/logging-adapter.js';
+import { loggingAdapter } from '@toolfactory.dev/core/logging';
 import * as z from 'zod/v4';
 
 export type GeneratedTool = {
