@@ -26,7 +26,7 @@ async function resolveHostContextForCall(
     _generated: GeneratedHostModule
 ): Promise<ApiLikeHostContext> {
     const credential = readCredentialFromEnv(hostConfig.authEnvKey);
-    const { credential: c } = resolveRelayHostCredential(credential);
+    const { credential: c } = normalizeHostCredential(credential);
     
     const baseUrlKey = hostConfig.baseUrlEnvKey?.trim();
     const baseUrl = baseUrlKey ? process.env[baseUrlKey]?.trim() : undefined;
@@ -66,7 +66,7 @@ async function resolveHostContextForHttpCall(
     _incomingHeaders: Record<string, string | string[] | undefined>
 ): Promise<ApiLikeHostContext> {
     const credential = undefined;
-    const { credential: c } = resolveRelayHostCredential(credential);
+    const { credential: c } = normalizeHostCredential(credential);
     
     const baseUrlKey = httpHostConfig.baseUrlEnvKey?.trim();
     const baseUrl = baseUrlKey ? process.env[baseUrlKey]?.trim() : undefined;
@@ -91,7 +91,7 @@ async function resolveHostContextForHttpCall(
     if (!credential?.trim()) {
         credential = readCredentialFromEnv(httpHostConfig.authEnvKey);
     }
-    const { credential: c } = resolveRelayHostCredential(credential);
+    const { credential: c } = normalizeHostCredential(credential);
     
     const baseUrlKey = httpHostConfig.baseUrlEnvKey?.trim();
     const baseUrl = baseUrlKey ? process.env[baseUrlKey]?.trim() : undefined;
