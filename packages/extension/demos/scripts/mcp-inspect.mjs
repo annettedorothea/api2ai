@@ -83,6 +83,8 @@ function printMcpInspectAuthHints(demoName, env = process.env) {
             scope: oauthDemo?.oauthScope ?? 'bookings',
             bearerHint: `Run: node ${path.join(demosRoot, 'bookings/get-token.mjs')} alice`
         });
+        console.log('  Note: do not use JWT secrets (e.g. BOOKINGS_API_JWT_SECRET) as Client ID.');
+        console.log('');
         return;
     }
 
