@@ -53,11 +53,9 @@ Generated files are written to:
 generated/api2ai/
 ```
 
-API credentials and runtime configuration belong in:
+Put API base URLs and secrets in the workspace `.env` (the env names from your DSL / host flags). Configure Cursor MCP in `.cursor/mcp.json`: **stdio** entries typically use `envFile` pointing at that `.env`; **HTTP** entries point at a running host URL (credentials stay with the host / `.env`, not in `mcp.json`).
 
-```text
-.cursor/mcp.json
-```
+Details: [Cursor integration](https://github.com/annettedorothea/core2ai/blob/main/docs/integrations/cursor.md).
 
 You can also trigger generation manually:
 
