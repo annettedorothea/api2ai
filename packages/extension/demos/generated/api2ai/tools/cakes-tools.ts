@@ -68,7 +68,7 @@ export const authConfig: AuthConfig | undefined = {
 };
 
 export const mcpServerName = 'cakes-tools';
-export const mcpServerVersion = '1.0.1';
+export const mcpServerVersion = '1.0.2';
 
 export { mcpBuildGeneratedAt } from '../mcp-build-generated-at.js';
 

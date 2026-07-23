@@ -10,9 +10,23 @@ Policy: [core2ai docs/development/changelog-policy.md](https://github.com/annett
 
 ## [Unreleased]
 
+---
+
+## [1.0.2] - 2026-07-22
+
+Pins `@toolfactory.dev/core` **1.0.2** from npmjs.
+
 ### Changed
 
 - **`vsix:release`:** GitHub releases are stable (no longer `--prerelease`)
+- **Bookings demo:** JWT inspect hint stays in demos `mcp-inspect.mjs` (not shared core templates)
+- **Demos pin sync:** `sync:core2ai-pin` restores demos semver and reinstalls so MCP runtime picks up the linked core
+- **Demos hygiene:** stop tracking `build:generated` emit under `src/hooks` and `src/db` (`.js` / `.js.map` gitignored)
+
+### Upgrade notes
+
+- Pin refresh: `npm run sync:core2ai-pin:npm` (core **1.0.2**)
+- After clone: `npm run build:generated --prefix packages/extension/demos` so hooks/db stubs emit locally
 
 ---
 
