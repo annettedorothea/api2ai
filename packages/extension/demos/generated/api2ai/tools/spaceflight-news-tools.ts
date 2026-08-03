@@ -115,7 +115,7 @@ export type ApiHostContext = {
 export const requiresAuth = false;
 
 export const mcpServerName = 'spaceflight-news-tools';
-export const mcpServerVersion = '1.0.2';
+export const mcpServerVersion = '1.0.3';
 
 export { mcpBuildGeneratedAt } from '../mcp-build-generated-at.js';
 

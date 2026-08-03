@@ -87,7 +87,7 @@ export { verifyCredential } from '../../../src/hooks/api2ai/banking-tools/verify
 export { tokenExchange } from '../../../src/hooks/api2ai/banking-tools/tokenExchangeBankingCredential.js';
 
 export const mcpServerName = 'banking-tools';
-export const mcpServerVersion = '1.0.2';
+export const mcpServerVersion = '1.0.3';
 
 export { mcpBuildGeneratedAt } from '../mcp-build-generated-at.js';
 

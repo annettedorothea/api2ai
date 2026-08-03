@@ -5,4 +5,4 @@ export const productName = "api2ai";
 export const dslExtension = ".api2ai";
 export const embedHomeEnvVar = "API2AI_EMBED_HOME";
 export const embedDirName = "embed-api2ai";
-export const extensionIdPrefix = "toolfactory-dev.vscode-api2ai-";
+export const extensionIdPrefix = "toolfactorydev.vscode-api2ai-";

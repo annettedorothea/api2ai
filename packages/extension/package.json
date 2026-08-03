@@ -2,8 +2,8 @@
     "name": "vscode-api2ai",
     "displayName": "api2ai",
     "description": "Tool Factory — language support and code generation for the .api2ai DSL (OpenAPI → MCP tools).",
-    "version": "1.0.2",
-    "publisher": "toolfactory-dev",
+    "version": "1.0.3",
+    "publisher": "toolfactorydev",
     "license": "MIT",
     "repository": {
         "type": "git",
