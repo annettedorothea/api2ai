@@ -1,0 +1,96 @@
+{
+    "servers": {
+        "open-meteo": {
+            "type": "stdio",
+            "command": "node",
+            "args": [
+                "${workspaceFolder}/generated/api2ai/servers/open-meteo-stdio-mcp-server.js",
+                "--base-url-env",
+                "OPEN_METEO_BASE_URL"
+            ],
+            "envFile": "${workspaceFolder}/.env"
+        },
+        "open-meteo-geocoding": {
+            "type": "stdio",
+            "command": "node",
+            "args": [
+                "${workspaceFolder}/generated/api2ai/servers/open-meteo-geocoding-stdio-mcp-server.js",
+                "--base-url-env",
+                "OPEN_METEO_GEOCODING_BASE_URL"
+            ],
+            "envFile": "${workspaceFolder}/.env"
+        },
+        "github": {
+            "type": "stdio",
+            "command": "node",
+            "args": [
+                "${workspaceFolder}/generated/api2ai/servers/github-stdio-mcp-server.js",
+                "--base-url-env",
+                "GITHUB_BASE_URL",
+                "--auth-env",
+                "GITHUB_TOKEN"
+            ],
+            "envFile": "${workspaceFolder}/.env"
+        },
+        "tmdb": {
+            "type": "stdio",
+            "command": "node",
+            "args": [
+                "${workspaceFolder}/generated/api2ai/servers/tmdb-stdio-mcp-server.js",
+                "--base-url-env",
+                "TMDB_BASE_URL",
+                "--auth-env",
+                "TMDB_ACCESS_TOKEN"
+            ],
+            "envFile": "${workspaceFolder}/.env"
+        },
+        "xquik": {
+            "type": "stdio",
+            "command": "node",
+            "args": [
+                "${workspaceFolder}/generated/api2ai/servers/xquik-stdio-mcp-server.js",
+                "--base-url-env",
+                "XQUIK_BASE_URL",
+                "--auth-env",
+                "XQUIK_API_KEY"
+            ],
+            "envFile": "${workspaceFolder}/.env"
+        },
+        "spaceflight-news": {
+            "type": "stdio",
+            "command": "node",
+            "args": [
+                "${workspaceFolder}/generated/api2ai/servers/spaceflight-news-stdio-mcp-server.js",
+                "--base-url-env",
+                "SPACEFLIGHT_NEWS_BASE_URL",
+                "--icon",
+                "${workspaceFolder}/icons/spaceflight-news.png"
+            ],
+            "envFile": "${workspaceFolder}/.env"
+        },
+        "todo": {
+            "type": "stdio",
+            "command": "node",
+            "args": [
+                "${workspaceFolder}/generated/api2ai/servers/todo-stdio-mcp-server.js",
+                "--base-url-env",
+                "TODO_API_BASE_URL",
+                "--auth-env",
+                "TODO_API_KEY"
+            ],
+            "envFile": "${workspaceFolder}/.env"
+        },
+        "test": {
+            "type": "stdio",
+            "command": "node",
+            "args": [
+                "${workspaceFolder}/generated/api2ai/servers/test-stdio-mcp-server.js",
+                "--base-url-env",
+                "TEST_API_BASE_URL",
+                "--auth-env",
+                "TEST_API_KEY"
+            ],
+            "envFile": "${workspaceFolder}/.env"
+        }
+    }
+}

@@ -1,5 +1,6 @@
 [
     ".cursor/mcp.json",
+    ".vscode/mcp.json",
     ".env.example",
     "README.md",
     "bookings.api2ai",
@@ -62,6 +63,7 @@
     "scripts/mcp-oauth-demos.mjs",
     "scripts/mcp-inspect.mjs",
     "scripts/start-all.mjs",
+    "scripts/start-all-vscode.mjs",
     "scripts/start-fixtures.mjs",
     "scripts/start-mcp-hosts.mjs",
     "scripts/start-mcp.mjs",

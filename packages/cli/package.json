@@ -1,7 +1,7 @@
 {
     "name": "api-2-ai-dsl-cli",
     "description": "The cli specific package",
-    "version": "1.0.3",
+    "version": "1.0.4",
     "type": "module",
     "engines": {
         "node": ">=20.10.0",

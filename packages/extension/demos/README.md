@@ -12,7 +12,11 @@ If this is your first time using `api2ai`, start with `open-meteo.api2ai`.
 
 ### 1. Start the demo environment
 
-From the demo workspace root:
+From the demo workspace root, pick one path:
+
+#### Cursor
+
+HTTP MCP hosts (leave the terminal open):
 
 ```bash
 npm run start:all
@@ -33,6 +37,23 @@ npm run start:mcp
 ```
 
 (`npm run start` is an alias for `start:mcp`.)
+
+#### VS Code
+
+stdio MCP only (see [`.vscode/mcp.json`](.vscode/mcp.json); no HTTP hosts):
+
+```bash
+npm run start:all:vscode
+```
+
+This command:
+
+- installs missing dependencies
+- generates tool code
+- compiles generated files
+- starts demo backends (background)
+
+It does **not** start HTTP MCP hosts. VS Code / Copilot spawns stdio servers from `.vscode/mcp.json`. OAuth demos (`bookings`, `cakes`, `banking`) are omitted there. Do not use the HTTP entries from [`.cursor/mcp.json`](.cursor/mcp.json) for Copilot.
 
 ---
 
@@ -58,7 +79,9 @@ api2ai Will I need an umbrella in London this weekend?
 api2ai Compare today's temperature in Paris and Rome.
 ```
 
-Using the `api2ai` prefix helps Cursor focus on generated MCP tools and avoid unrelated built-in tools.
+Using the `api2ai` prefix helps the assistant focus on generated MCP tools and avoid unrelated built-in tools.
+
+In VS Code, use **Agent** mode in Copilot Chat and enable the stdio servers listed in `.vscode/mcp.json`.
 
 ---
 
@@ -99,58 +122,35 @@ Authoring documentation: [Documentation index](https://github.com/annettedorothe
 
 ## Testing
 
-Before release, run:
+### Test-All Skill in Cursor
+
+To exercise every configured MCP tool once in Cursor (after `npm run start:all` and with servers enabled in `.cursor/mcp.json`):
 
 ```text
 /test-all
 ```
 
-or:
+### MCP Inspector
 
-```text
-api2ai /test-all
-```
-
-For HTTP transport debugging (tools, auth headers, sessions) — hosts must already be running (`npm run start:all`). Prefer this as the **manual verify** for generated HTTP MCP tools:
+For **HTTP** MCP hosts only (not stdio). After `npm run start:all`, you can inspect any server from `.cursor/mcp.json`, e.g.:
 
 ```bash
 npm run mcp:inspect -- open-meteo
 npm run mcp:inspect -- todo
 ```
 
-Prerequisites:
-
-- `npm run start:all`
-- MCP servers enabled in `.cursor/mcp.json`
-
-The demo workspace includes the skill:
-
-```text
-api2ai-test-all-mcp
-```
-
 ---
 
 ## Bundling an MCP Server
 
-Generated MCP hosts can be bundled into standalone deployment packages.
-
-Example (`spaceflight-news` — public HTTP, no API key):
+Build a standalone package for a generated host, e.g. (`spaceflight-news` — public HTTP):
 
 ```bash
 npm run build:generated
 npm run build:mcp -- --host public-http spaceflight-news
 ```
 
-This creates a distributable MCP bundle in:
-
-```text
-dist/mcp/spaceflight-news-public-http/
-```
-
-Depending on the selected host type, configure environment variables before starting the server.
-
-From the bundle directory:
+Output: `dist/mcp/spaceflight-news-public-http/` (runtime, tools, `package.json`, `.env.example`, `mcp.json.example`).
 
 ```bash
 cd dist/mcp/spaceflight-news-public-http
@@ -159,25 +159,9 @@ cp .env.example .env
 npm start
 ```
 
-`npm start` runs `server.mjs` with the demo flags from `build:mcp` (for api2ai HTTP hosts: `--base-url-env …`, `--port`, `--path`). Values come from `.env`; the env **variable name** is fixed in the bundle `package.json` script.
+`npm start` runs `server.mjs` with the flags from `build:mcp` (HTTP hosts: `--base-url-env`, `--port`, `--path`). Values come from `.env`.
 
-Edit `.env` if you need to change upstream URLs, ports, or credentials.
-
-The bundle contains:
-
-- the MCP server runtime
-- generated tools
-- a minimal `package.json`
-- `.env.example`
-- `mcp.json.example`
-
-Supported host types:
-
-- `public-http`
-- `passthrough-http`
-- `oauth-http`
-
-This feature is still evolving and may change before the final `1.0` release.
+Host types: `public-http`, `passthrough-http`, `oauth-http`.
 
 ---
 
