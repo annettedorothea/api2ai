@@ -199,7 +199,8 @@ describe('buildToolInputSchema', () => {
             pathParams: ['todoId'],
             query: ['status'],
             headers: [],
-            arrayQuery: []
+            arrayQuery: [],
+            hookParams: []
         });
     });
 
@@ -219,6 +220,38 @@ describe('buildToolInputSchema', () => {
             ]
         };
         expect(buildInvokeParamBuckets(details).arrayQuery).toEqual(['hourly']);
+    });
+
+    test('buildToolInputSchema merges optional flat hookParams and buckets list them', () => {
+        const operation = minimalOperation({
+            hookParams: {
+                $type: 'HookParamMap',
+                entries: [
+                    {
+                        $type: 'HookParamEntry',
+                        key: 'titleContains',
+                        spec: {
+                            $type: 'HookParamSpec',
+                            fields: [
+                                { $type: 'HookParamSpecField', paramType: 'string' },
+                                {
+                                    $type: 'HookParamSpecField',
+                                    description: 'Client-side title filter.'
+                                },
+                                { $type: 'HookParamSpecField', example: 'milk' }
+                            ]
+                        }
+                    }
+                ]
+            }
+        } as Partial<Operation>);
+        const schema = buildToolInputSchema(sampleDetails, [], operation);
+        const props = schema.properties as Record<string, Record<string, unknown>>;
+        expect(props.titleContains.type).toBe('string');
+        expect(String(props.titleContains.description)).toContain('Client-side title filter.');
+        expect(props.titleContains.examples).toEqual(['milk']);
+        expect(schema.required).not.toContain('titleContains');
+        expect(buildInvokeParamBuckets(sampleDetails, ['titleContains']).hookParams).toEqual(['titleContains']);
     });
 
     test('applies DSL params description patch to flat query property schema', () => {

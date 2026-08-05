@@ -45,7 +45,7 @@ Hook `.cursor/hooks/before-submit-test-all.sh` prueft bei Kurzformen, ob `.curso
 - **Nur konfigurierte Server:** Eintraege in `.cursor/mcp.json` (`open-meteo`, `open-meteo-geocoding`, `github`, `tmdb`, `xquik`, `spaceflight-news`, `todo`, `bookings`, `cakes`, `banking`, `test`).
 - **Kein Workaround bei Fehlern:** Kein CLI, kein direkter HTTP, kein Retry mit anderen Credentials.
 - **Kein Ersatz-Transport:** Wenn MCP-Tool-Aufrufe in dieser Session nicht verfuegbar sind → **sofort abbrechen** (Schritt 0). Nicht HTTP/curl/WebFetch zu URLs aus `mcp.json`, nicht `scripts/mcp-inspect.mjs`, nicht `generated/**`.
-- **Ausnahme zu „ein Aufruf“:** Bei diesem Skill genau **ein Aufruf pro Tool** — insgesamt alle Tools aller Server. Fehler pro Tool dokumentieren, mit naechstem Tool fortfahren (Server komplett down: Rest des Servers ueberspringen, Fehler melden).
+- **Ausnahme zu „ein Aufruf“:** Bei diesem Skill genau **ein Aufruf pro Tool** — insgesamt alle Tools aller Server. **Zusaetzlich** bei Tools mit DSL `hookParams` (aktuell **todo** `listTodos`): **zweiter** Aufruf mit gesetztem hookParam (siehe Parameter → todo). Fehler pro Aufruf dokumentieren, mit naechstem Tool fortfahren (Server komplett down: Rest des Servers ueberspringen, Fehler melden).
 - **Kein Terminal-Hunt:** Nicht nach `start:all`/`start:all:demos`-Terminals suchen, wenn sie nicht offensichtlich in dieser Session liegen. Sofort mit Tool-Tests starten.
 - **Stale Cursor-Cache (nicht DSL-Bug):** Wenn die **Live**-Antwort (Zod/Validierung, fehlendes Pflichtfeld, unerwartetes Schema) ein Feld verlangt oder ablehnt, das im `mcps/.../tools/*.json`-Descriptor **fehlt bzw. anders** ist → **veralteter Cursor-Tool-Cache**. In Auffaelligkeiten + Audit so melden. **Nicht** DSL/OpenAPI aendern, **nicht** `generated/**` hand-editen, **nicht** Parameter „erraten“ aus dem Repo. Nutzer: MCP-Server togglen/reloaden (ggf. Hosts neu starten), dann `/test-all` erneut.
 
@@ -93,13 +93,15 @@ Monorepo `start:all:demos` laeuft oft woanders — **nicht** danach suchen.
 - **Read-Tools zuerst** (parallel pro Server moeglich).
 - **Write-Tools:** create → update (ID aus Response) → delete (gleiche ID). Praefix `MCPTEST` in Namen/Text.
 - **todo:** geschuetzte Tools mit Header aus `mcp.json` (`x-api-token`); keine anderen Keys probieren.
+  - **`listTodos` (hookParams):** **zwei** Aufrufe — (1) ohne `titleContains` (volle/API-gefilterte Liste OK); (2) mit `titleContains` aus Schema-Beispiel oder `"milk"` / kurzer Substring aus einer Titelzeile von Aufruf 1. Erwartung Aufruf 2: Ergebnis enthaelt nur Todos, deren `title` den Substring case-insensitive enthaelt (oder leere `todos`-Liste). Query-Params (`status` / `categoryId`) nur wenn Schema-Beispiele klar sind; **nicht** `titleContains` als HTTP-Query erfinden.
+  - Uebrige todo-Tools: weiterhin **ein** Aufruf (inkl. `exportTodosPdf` wenn vorhanden).
 - **bookings / cakes:** Cursor OAuth Sign-in; bei `401`/`403` dokumentieren, nicht umgehen.
 - **github / tmdb:** ohne gueltiges Token in `.env` erwartbar `401` — als Auth-Fehler melden, nicht workarounden.
 - **test:** stdio-Host — `TEST_API_KEY` aus `.env` via `--auth-env`; Mock-API `test-api` muss laufen. **`testGetAccount`:** `account_id: acc-42` — normaler Tool-Lauf.
 
 ### 4. Aufrufe
 
-- Pro Tool: **ein live MCP-Aufruf**; Ergebnis in **Zusammenfassung** (Abschnitt 5) und **kompaktem Audit** (Abschnitt 6).
+- Pro Tool: **ein live MCP-Aufruf**; Ergebnis in **Zusammenfassung** (Abschnitt 5) und **kompaktem Audit** (Abschnitt 6). Ausnahme: Tools mit `hookParams` — siehe Parameter → todo (`listTodos` zweimal).
 - **Kein** voller Audit mit `###`-Block und Roh-JSON pro Tool.
 - Schema-Mismatch Descriptor vs. Live-Fehler → Regel **Stale Cursor-Cache** (nicht als Generator-/DSL-Fehler verkaufen).
 
@@ -132,6 +134,8 @@ Eine Zeile **pro MCP-Aufruf**:
 
 | Server | Tool | Status | Notiz |
 |--------|------|--------|-------|
+| todo | listTodos | ✅ | ohne titleContains |
+| todo | listTodos | ✅ | titleContains=milk; N Treffer |
 | test | testPing | ✅ | ok: true |
 | open-meteo | openMeteoForecast | ✅ | HTTP 200 |
 | github | searchRepos | ❌ | 401 |
@@ -153,6 +157,7 @@ Eine Zeile **pro MCP-Aufruf**:
 - [ ] mcp.json gelesen
 - [ ] Tool-Schemas gelesen (nur Parameter, kurz)
 - [ ] Read-Tools aller Server aufgerufen (live MCP)
+- [ ] todo `listTodos`: ohne und mit `titleContains` (hookParams)
 - [ ] Write-Tools (create/update/delete) getestet
 - [ ] Schema-Mismatch Live vs. Descriptor → stale Cache gemeldet (kein DSL-Fix)
 - [ ] Zusammenfassungstabelle + kompakter Audit

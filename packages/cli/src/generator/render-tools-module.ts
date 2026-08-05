@@ -8,6 +8,7 @@ import {
     isPrepareToolCallEnabled,
     isVerifyCredentialEnabled,
     isTokenExchangeEnabled,
+    listHookParamEntries,
     loadOpenApi,
     makeOperationLookupKey
 } from 'api-2-ai-dsl-language';
@@ -142,7 +143,10 @@ function buildInvokeParamBucketsFromLoaded(
         if (!details) {
             continue;
         }
-        out[requireToolName(operation)] = buildInvokeParamBuckets(details);
+        out[requireToolName(operation)] = buildInvokeParamBuckets(
+            details,
+            listHookParamEntries(operation).map((e) => e.name)
+        );
     }
     return out;
 }
@@ -400,6 +404,8 @@ export type InvokeOptions = {
     query?: Record<string, string | number | boolean | ReadonlyArray<string | number | boolean>>;
     headers?: Record<string, string>;
     body?: unknown;
+    /** MCP-only args from DSL hookParams — never sent on the HTTP request. */
+    hookParams?: Record<string, unknown>;
 };
 
 export type ApiHostContext = {

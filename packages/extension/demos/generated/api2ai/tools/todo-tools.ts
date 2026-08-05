@@ -5,6 +5,7 @@
 import { loggingAdapter } from '../../../src/utils/logging-adapter.js';
 import * as z from 'zod/v4';
 import { verifyCredential } from '../../../src/hooks/api2ai/todo-tools/verifyTodoCredential.js';
+import { afterToolCallForListTodos } from '../../../src/hooks/api2ai/todo-tools/afterToolCallForListTodos.js';
 import { afterToolCallForExportTodosPdf } from '../../../src/hooks/api2ai/todo-tools/afterToolCallForExportTodosPdf.js';
 
 export type GeneratedTool = {
@@ -36,13 +37,13 @@ export const generatedTools: GeneratedTool[] = [
         toolName: 'listTodos',
         title: 'List todos',
         description:
-            'Intent:\nList todos. Optional query filters: status (open|done), categoryId (work|home|errands).\n        Use todos[].id (e.g. t-1) as todoId for getTodo, updateTodo, deleteTodo.\n        Call shape: query optional only — e.g. { "status": "open" } or {} for all todos.\n\nMCP arguments:\npass status, categoryId as top-level tool arguments. Do not nest path or query parameters under pathParams or query.\n\nMeta:\noperationId: list-todos\n\nExample:\nList all todos\n\nResponse:\nHTTP 200 — top-level todos array. Each todo: id, title, status (open|done), categoryId, dueDate.\n        Documented errors:\n        HTTP 401 — Missing or invalid API key\n\nRuntime: protected — implement src/hooks/api2ai/todo-tools/verifyTodoCredential.ts; credential sent as header "x-api-key".',
+            'Intent:\nList todos. Optional API query filters: status (open|done), categoryId (work|home|errands).\n        Optional MCP-only titleContains (hookParams) filters titles client-side after the HTTP response — not sent to the API.\n        Use todos[].id (e.g. t-1) as todoId for getTodo, updateTodo, deleteTodo.\n        Call shape: query optional; titleContains optional top-level MCP arg.\n\nMCP arguments:\npass status, categoryId, titleContains as top-level tool arguments; hookParams (titleContains) are MCP-only and are not sent on the HTTP request. Do not nest path or query parameters under pathParams or query.\n\nMeta:\noperationId: list-todos\n\nExample:\nList todos whose title contains milk\n\nResponse:\nHTTP 200 — top-level todos array. Each todo: id, title, status (open|done), categoryId, dueDate.\n        When titleContains is set, afterToolCall returns only matching todos.\n        Documented errors:\n        HTTP 401 — Missing or invalid API key\n\nRuntime: protected — implement afterToolCallForListTodos in src/hooks/api2ai/todo-tools/afterToolCallForListTodos.ts; credential sent as header "x-api-key".',
         method: 'GET',
         path: '/todos',
         access: 'protected',
         hasCheckToolAccess: false,
         hasPrepareToolCall: false,
-        hasAfterToolCall: false
+        hasAfterToolCall: true
     },
     {
         toolName: 'listTodosByCategory',
@@ -124,6 +125,8 @@ export type InvokeOptions = {
     query?: Record<string, string | number | boolean | ReadonlyArray<string | number | boolean>>;
     headers?: Record<string, string>;
     body?: unknown;
+    /** MCP-only args from DSL hookParams — never sent on the HTTP request. */
+    hookParams?: Record<string, unknown>;
 };
 
 export type ApiHostContext = {
@@ -147,12 +150,16 @@ export const authConfig: AuthConfig | undefined = {
 export { verifyCredential } from '../../../src/hooks/api2ai/todo-tools/verifyTodoCredential.js';
 
 export const mcpServerName = 'todo-tools';
-export const mcpServerVersion = '1.1.0';
+export const mcpServerVersion = '1.2.0';
 
 export { mcpBuildGeneratedAt } from '../mcp-build-generated-at.js';
 
-const afterToolCallHooks: Record<string, (result: unknown, credential?: string) => unknown | Promise<unknown>> = {
-    exportTodosPdf: (result, credential) => afterToolCallForExportTodosPdf(result, credential!)
+const afterToolCallHooks: Record<
+    string,
+    (result: unknown, options: InvokeOptions, credential?: string) => unknown | Promise<unknown>
+> = {
+    listTodos: (result, options, credential) => afterToolCallForListTodos(result, options, credential!),
+    exportTodosPdf: (result, options, credential) => afterToolCallForExportTodosPdf(result, options, credential!)
 };
 
 export const inputZodByTool = {
@@ -184,6 +191,12 @@ export const inputZodByTool = {
             body: z
                 .record(z.string(), z.union([z.string(), z.number(), z.boolean()]))
                 .describe('Request body JSON if applicable.')
+                .optional(),
+            titleContains: z
+                .string()
+                .describe(
+                    'Optional client-side title substring filter (case-insensitive). Not an OpenAPI/API query param. (type: string) (example: Buy)'
+                )
                 .optional()
         })
         .strict()
@@ -305,49 +318,57 @@ const invokeParamBucketsByTool = {
         pathParams: [],
         query: [],
         headers: [],
-        arrayQuery: []
+        arrayQuery: [],
+        hookParams: []
     },
     listTodos: {
         pathParams: [],
         query: ['status', 'categoryId'],
         headers: [],
-        arrayQuery: []
+        arrayQuery: [],
+        hookParams: ['titleContains']
     },
     listTodosByCategory: {
         pathParams: ['categoryId'],
         query: ['status'],
         headers: [],
-        arrayQuery: []
+        arrayQuery: [],
+        hookParams: []
     },
     getTodo: {
         pathParams: ['todoId'],
         query: [],
         headers: [],
-        arrayQuery: []
+        arrayQuery: [],
+        hookParams: []
     },
     createTodo: {
         pathParams: [],
         query: [],
         headers: [],
-        arrayQuery: []
+        arrayQuery: [],
+        hookParams: []
     },
     updateTodo: {
         pathParams: ['todoId'],
         query: [],
         headers: [],
-        arrayQuery: []
+        arrayQuery: [],
+        hookParams: []
     },
     deleteTodo: {
         pathParams: ['todoId'],
         query: [],
         headers: [],
-        arrayQuery: []
+        arrayQuery: [],
+        hookParams: []
     },
     exportTodosPdf: {
         pathParams: [],
         query: ['status', 'categoryId'],
         headers: [],
-        arrayQuery: []
+        arrayQuery: [],
+        hookParams: []
     }
 };
 
@@ -403,7 +424,13 @@ function normalizeInvokeOptions(toolName: string, options: InvokeOptions): Invok
     const buckets = (
         invokeParamBucketsByTool as Record<
             string,
-            { pathParams?: string[]; query?: string[]; headers?: string[]; arrayQuery?: string[] }
+            {
+                pathParams?: string[];
+                query?: string[];
+                headers?: string[];
+                arrayQuery?: string[];
+                hookParams?: string[];
+            }
         >
     )[toolName];
     if (!buckets) {
@@ -412,10 +439,24 @@ function normalizeInvokeOptions(toolName: string, options: InvokeOptions): Invok
     const pathKeys = buckets.pathParams ?? [];
     const queryKeys = buckets.query ?? [];
     const headerKeys = buckets.headers ?? [];
+    const hookKeys = buckets.hookParams ?? [];
     const arrayQueryKeys = new Set(buckets.arrayQuery ?? []);
-    const knownFlatKeys = new Set([...pathKeys, ...queryKeys, ...headerKeys]);
+    const hookKeySet = new Set(hookKeys);
+    const knownFlatKeys = new Set([...pathKeys, ...queryKeys, ...headerKeys, ...hookKeys]);
+    const collectHookParams = (): Record<string, unknown> | undefined => {
+        const fromBag: Record<string, unknown> =
+            options.hookParams && typeof options.hookParams === 'object' && !Array.isArray(options.hookParams)
+                ? { ...options.hookParams }
+                : {};
+        for (const key of hookKeys) {
+            if (Object.prototype.hasOwnProperty.call(options, key) && options[key as keyof InvokeOptions] != null) {
+                fromBag[key] = (options as Record<string, unknown>)[key];
+            }
+        }
+        return Object.keys(fromBag).length > 0 ? fromBag : undefined;
+    };
     const hasTopLevelFlatParam = Object.keys(options).some((key) => {
-        if (key === 'body' || key === 'pathParams' || key === 'headers') {
+        if (key === 'body' || key === 'pathParams' || key === 'headers' || key === 'hookParams') {
             return false;
         }
         if (key === 'query') {
@@ -424,10 +465,12 @@ function normalizeInvokeOptions(toolName: string, options: InvokeOptions): Invok
         return knownFlatKeys.has(key);
     });
     if (!hasTopLevelFlatParam) {
+        const hookBag = collectHookParams();
         return {
             ...options,
             pathParams: omitNullishPathParams(options.pathParams),
-            query: prepareQueryBucket(toolName, isInvokeQueryBucketValue(options.query) ? options.query : undefined)
+            query: prepareQueryBucket(toolName, isInvokeQueryBucketValue(options.query) ? options.query : undefined),
+            ...(hookBag ? { hookParams: hookBag } : {})
         };
     }
 
@@ -443,12 +486,16 @@ function normalizeInvokeOptions(toolName: string, options: InvokeOptions): Invok
             : {};
     const headers: Record<string, string> =
         options.headers && typeof options.headers === 'object' ? { ...options.headers } : {};
+    const hookParams: Record<string, unknown> =
+        options.hookParams && typeof options.hookParams === 'object' && !Array.isArray(options.hookParams)
+            ? { ...options.hookParams }
+            : {};
 
     for (const [key, value] of Object.entries(options)) {
         if (value === undefined || value === null) {
             continue;
         }
-        if (key === 'body' || key === 'pathParams') {
+        if (key === 'body' || key === 'pathParams' || key === 'hookParams') {
             continue;
         }
         if (key === 'query') {
@@ -465,6 +512,10 @@ function normalizeInvokeOptions(toolName: string, options: InvokeOptions): Invok
             if (headerKeys.length === 0 && typeof value === 'object' && !Array.isArray(value)) {
                 Object.assign(headers, value as Record<string, string>);
             }
+            continue;
+        }
+        if (hookKeySet.has(key)) {
+            hookParams[key] = value;
             continue;
         }
         if (pathKeys.includes(key)) {
@@ -484,7 +535,8 @@ function normalizeInvokeOptions(toolName: string, options: InvokeOptions): Invok
         pathParams: omitNullishPathParams(pathParams),
         query: prepareQueryBucket(toolName, query),
         headers: Object.keys(headers).length > 0 ? headers : undefined,
-        body: options.body
+        body: options.body,
+        ...(Object.keys(hookParams).length > 0 ? { hookParams } : {})
     };
 }
 const queryParamSerializationByTool = {
@@ -922,9 +974,9 @@ export async function invokeTool(
             if (credential === undefined) {
                 throw new Error('afterToolCall requires credential for protected tools.');
             }
-            result = await Promise.resolve(afterToolCall(result, credential));
+            result = await Promise.resolve(afterToolCall(result, optionsResolved, credential));
         } else {
-            result = await Promise.resolve(afterToolCall(result));
+            result = await Promise.resolve(afterToolCall(result, optionsResolved));
         }
     }
     return result;

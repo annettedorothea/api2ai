@@ -1,6 +1,7 @@
 import * as fs from 'node:fs';
 import * as os from 'node:os';
 import * as path from 'node:path';
+import type { InvokeOptions } from '../../../../generated/api2ai/tools/todo-tools.js';
 
 type BinaryEnvelope = {
     kind: 'binary';
@@ -28,7 +29,8 @@ function isBinaryEnvelope(value: unknown): value is BinaryEnvelope {
 /**
  * afterToolCall for exportTodosPdf — write PDF bytes to OS temp and return path metadata (no Base64).
  */
-export function afterToolCallForExportTodosPdf(result: unknown, credential: string): unknown {
+export function afterToolCallForExportTodosPdf(result: unknown, options: InvokeOptions, credential: string): unknown {
+    void options;
     void credential;
     if (!isBinaryEnvelope(result)) {
         throw new Error(

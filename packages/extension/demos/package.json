@@ -26,7 +26,7 @@
     },
     "dependencies": {
         "@modelcontextprotocol/sdk": "^1.29.0",
-        "@toolfactory.dev/core": "^1.1.0",
+        "@toolfactory.dev/core": "^1.2.0",
         "jose": "^6.2.3",
         "zod": "^4.4.3"
     },

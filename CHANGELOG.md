@@ -12,6 +12,24 @@ Policy: [core2ai docs/development/changelog-policy.md](https://github.com/annett
 
 ---
 
+## [1.2.0] - 2026-08-05
+
+### Added
+
+- **`hookParams`:** DSL block for MCP-only args (flat in schema, never on HTTP); live under `options.hookParams` for prepare/after
+- **Demo `todo` `listTodos`:** `hookParams.titleContains` + `afterToolCall` client-side title filter
+
+### Changed
+
+- **`afterToolCall` stubs:** receive `options` (from `@toolfactory.dev/core` pipeline)
+- **`@toolfactory.dev/core`:** pin **1.2.0**
+
+### Upgrade notes
+
+- Regenerate after upgrade. Update `afterToolCallFor*` stubs for `(result, options[, credential])`. Requires `@toolfactory.dev/core` **1.2.0**.
+
+---
+
 ## [1.1.0] - 2026-08-05
 
 ### Added

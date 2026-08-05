@@ -28,13 +28,17 @@ GET "/categories" {
 GET "/todos" {
     toolName: listTodos
     access: protected
+    hooks: {
+        afterToolCall: true
+    }
     intent: '''
-        List todos. Optional query filters: status (open|done), categoryId (work|home|errands).
+        List todos. Optional API query filters: status (open|done), categoryId (work|home|errands).
+        Optional MCP-only titleContains (hookParams) filters titles client-side after the HTTP response — not sent to the API.
         Use todos[].id (e.g. t-1) as pathParams.todoId for getTodo, updateTodo, deleteTodo.
-        Call shape: query optional only — e.g. query: { "status": "open" } or {} for all todos.
+        Call shape: query optional; titleContains optional top-level MCP arg.
     '''
     summary: "List todos"
-    example: "List all todos"
+    example: "List todos whose title contains milk"
     params: {
         status: {
             description: '''
@@ -49,8 +53,18 @@ GET "/todos" {
             example: "work"
         }
     }
+    hookParams: {
+        titleContains: {
+            type: string
+            description: '''
+                Optional client-side title substring filter (case-insensitive). Not an OpenAPI/API query param.
+            '''
+            example: "Buy"
+        }
+    }
     response: '''
         HTTP 200 — top-level todos array. Each todo: id, title, status (open|done), categoryId, dueDate.
+        When titleContains is set, afterToolCall returns only matching todos.
         Documented errors:
         HTTP 401 — Missing or invalid API key
     '''

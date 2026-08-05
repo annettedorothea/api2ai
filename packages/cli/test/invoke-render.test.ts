@@ -56,6 +56,23 @@ describe('invoke-render', () => {
         expect(block).not.toContain('invokeBodySchemaByTool');
     });
 
+    test('normalizeInvokeOptions moves flat hookParams into options.hookParams only', () => {
+        const buckets = JSON.stringify({
+            listTodos: {
+                pathParams: [],
+                query: ['status'],
+                headers: [],
+                arrayQuery: [],
+                hookParams: ['titleContains']
+            }
+        });
+        const normalizeInvokeOptions = compileNormalizeInvokeOptions(buckets);
+        expect(normalizeInvokeOptions('listTodos', { status: 'open', titleContains: 'milk' })).toEqual({
+            query: { status: 'open' },
+            hookParams: { titleContains: 'milk' }
+        });
+    });
+
     test('normalizeInvokeOptions preserves string query values with leading zeros', () => {
         const buckets = JSON.stringify({
             getAccount: {

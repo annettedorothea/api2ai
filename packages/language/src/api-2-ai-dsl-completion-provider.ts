@@ -9,14 +9,19 @@ import { loadOpenApi, pathsForHttpMethod } from './openapi.js';
 import {
     isApiParamEntry,
     isApiParamSpec,
+    isHookParamEntry,
+    isHookParamSpec,
     isModel,
     isOperation,
     type ApiParamEntry,
     type ApiParamSpec,
+    type HookParamEntry,
+    type HookParamSpec,
     type HttpMethod,
     type Operation
 } from './generated/ast.js';
 import { usedApiParamSpecFieldKinds } from './api-param-spec.js';
+import { usedHookParamSpecFieldKinds } from './hook-param-spec.js';
 
 const HTTP_METHOD_LEAVES = new Set<HttpMethod>(['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'HEAD', 'OPTIONS', 'TRACE']);
 const HTTP_METHODS = [...HTTP_METHOD_LEAVES];
@@ -37,6 +42,7 @@ const CANONICAL_KEYWORD_SORT: Record<string, string> = {
     description: '0204',
     example: '0205',
     params: '0206',
+    hookParams: '0206.5',
     body: '0207',
     response: '0208',
     clientMayOmit: '0300',
@@ -71,6 +77,8 @@ const OPERATION_KEYWORD_INSERT: Record<string, string> = {
     description: 'description: "$1"$0',
     example: 'example: "$1"$0',
     params: 'params: {\n    status: {\n        description: "$1"\n        example: "$2"\n    }\n}$0',
+    hookParams:
+        'hookParams: {\n    titleContains: {\n        type: string\n        description: "$1"\n        example: "$2"\n    }\n}$0',
     body: 'body: "$1"$0',
     response: 'response: "$1"$0'
 };
@@ -85,6 +93,20 @@ const API_PARAM_SPEC_INSERT: Record<ApiParamSpecKey, string> = {
     description: 'description: "$1"$0',
     example: 'example: "$1"$0'
 };
+
+const HOOK_PARAM_SPEC_KEYS = ['type', 'description', 'example'] as const;
+type HookParamSpecKey = (typeof HOOK_PARAM_SPEC_KEYS)[number];
+const HOOK_PARAM_SPEC_SORT: Record<HookParamSpecKey, string> = {
+    type: '0200',
+    description: '0201',
+    example: '0202'
+};
+const HOOK_PARAM_SPEC_INSERT: Record<HookParamSpecKey, string> = {
+    type: 'type: string$0',
+    description: 'description: "$1"$0',
+    example: 'example: "$1"$0'
+};
+const HOOK_PARAM_TYPES = ['string', 'integer', 'number', 'boolean', 'array'] as const;
 
 function debugCompletion(message: string, data?: unknown): void {
     if (process.env.API2AI_DSL_DEBUG_COMPLETION === '1') {
@@ -184,6 +206,15 @@ function nextApiParamSpecKey(used: Set<string>): ApiParamSpecKey | undefined {
     return undefined;
 }
 
+function nextHookParamSpecKey(used: Set<string>): HookParamSpecKey | undefined {
+    for (const key of HOOK_PARAM_SPEC_KEYS) {
+        if (!used.has(key)) {
+            return key;
+        }
+    }
+    return undefined;
+}
+
 function findApiParamEntryAtOffset(operation: Operation, root: CstNode, offset: number): ApiParamEntry | undefined {
     for (const entry of operation.params?.entries ?? []) {
         if (offsetInsideCstBlock(entry.spec?.$cstNode, offset)) {
@@ -271,6 +302,113 @@ function buildApiParamSpecCompletionItems(
             sortText: API_PARAM_SPEC_SORT[nextKey],
             insertText: API_PARAM_SPEC_INSERT[nextKey],
             textEdit: TextEdit.insert(textDoc.positionAt(offset), API_PARAM_SPEC_INSERT[nextKey])
+        }
+    ];
+}
+
+function findHookParamEntryAtOffset(operation: Operation, root: CstNode, offset: number): HookParamEntry | undefined {
+    for (const entry of operation.hookParams?.entries ?? []) {
+        if (offsetInsideCstBlock(entry.spec?.$cstNode, offset)) {
+            return entry;
+        }
+    }
+    const leaf = CstUtils.findLeafNodeAtOffset(root, offset) ?? CstUtils.findLeafNodeBeforeOffset(root, offset);
+    if (leaf) {
+        const spec = AstUtils.getContainerOfType(leaf.astNode as AstNode, isHookParamSpec);
+        if (spec && isHookParamSpec(spec)) {
+            const parent = spec.$container;
+            if (isHookParamEntry(parent)) {
+                return parent;
+            }
+        }
+    }
+    return undefined;
+}
+
+function buildHookParamSpecCompletionItems(
+    spec: HookParamSpec,
+    root: CstNode,
+    offset: number,
+    textDoc: LangiumDocument['textDocument']
+): CompletionItem[] {
+    const text = textDoc.getText();
+    const { line } = currentLineUntilOffset(text, offset);
+    const typeMatch = /^\s*type\s*:\s*(\w*)$/.exec(line);
+    if (typeMatch) {
+        const typedPrefix = typeMatch[1] ?? '';
+        const { range } = currentWordRange(text, offset, textDoc);
+        return HOOK_PARAM_TYPES.filter((t) => t.startsWith(typedPrefix)).map((t) => ({
+            label: t,
+            kind: CompletionItemKind.EnumMember,
+            detail: 'hookParams type',
+            insertTextFormat: InsertTextFormat.PlainText,
+            insertText: t,
+            textEdit: TextEdit.replace(range, t)
+        }));
+    }
+
+    const used = usedHookParamSpecFieldKinds(spec);
+    const nextKey = nextHookParamSpecKey(used);
+    if (!nextKey) {
+        return [];
+    }
+    const specCst = spec.$cstNode;
+    const leaf = CstUtils.findLeafNodeAtOffset(root, offset) ?? CstUtils.findLeafNodeBeforeOffset(root, offset);
+    if (leaf && isLeafCstNode(leaf) && (leaf.text.startsWith('"') || leaf.text.startsWith("'"))) {
+        const specOpen = openingBraceLeaf(specCst);
+        if (specOpen && leaf.offset > specOpen.offset) {
+            return [];
+        }
+    }
+    const keywordLeaf =
+        specCst &&
+        ((): LeafCstNode | undefined => {
+            const at =
+                CstUtils.findLeafNodeAtOffset(specCst, offset) ?? CstUtils.findLeafNodeBeforeOffset(specCst, offset);
+            if (!at || !isLeafCstNode(at)) {
+                return undefined;
+            }
+            if (HOOK_PARAM_SPEC_KEYS.includes(at.text as HookParamSpecKey)) {
+                return at;
+            }
+            if (matchesBlockKeywordPrefix(at.text, HOOK_PARAM_SPEC_KEYS)) {
+                return at;
+            }
+            return undefined;
+        })();
+    if (keywordLeaf) {
+        const prefixEnd = Math.min(offset, keywordLeaf.offset + keywordLeaf.text.length);
+        const typedPrefix = textDoc.getText({
+            start: textDoc.positionAt(keywordLeaf.offset),
+            end: textDoc.positionAt(prefixEnd)
+        });
+        const candidates = HOOK_PARAM_SPEC_KEYS.filter((key) => key.startsWith(typedPrefix) && !used.has(key));
+        if (candidates.length === 0) {
+            return [];
+        }
+        const keysToOffer = candidates.includes(nextKey) ? [nextKey] : [candidates[0]!];
+        return keysToOffer.map((key) => ({
+            label: key,
+            kind: CompletionItemKind.Keyword,
+            detail: 'hookParams property',
+            insertTextFormat: InsertTextFormat.Snippet,
+            sortText: HOOK_PARAM_SPEC_SORT[key],
+            insertText: HOOK_PARAM_SPEC_INSERT[key],
+            textEdit: TextEdit.replace(keywordLeaf.range, HOOK_PARAM_SPEC_INSERT[key])
+        }));
+    }
+    if (!offsetInsideCstBlock(specCst, offset)) {
+        return [];
+    }
+    return [
+        {
+            label: nextKey,
+            kind: CompletionItemKind.Keyword,
+            detail: 'hookParams property',
+            insertTextFormat: InsertTextFormat.Snippet,
+            sortText: HOOK_PARAM_SPEC_SORT[nextKey],
+            insertText: HOOK_PARAM_SPEC_INSERT[nextKey],
+            textEdit: TextEdit.insert(textDoc.positionAt(offset), HOOK_PARAM_SPEC_INSERT[nextKey])
         }
     ];
 }
@@ -463,6 +601,10 @@ export class Api2AiDslCompletionProvider extends DefaultCompletionProvider {
         debugCompletion('getCompletion apiParamPatchItems count', apiParamPatchItems.length);
         if (apiParamPatchItems.length > 0) {
             return CompletionList.create(this.deduplicateItems(apiParamPatchItems), false);
+        }
+        const hookParamItems = this.buildHookParamCompletionItems(document, params.position);
+        if (hookParamItems.length > 0) {
+            return CompletionList.create(this.deduplicateItems(hookParamItems), false);
         }
         const keywordItems = this.buildIncompleteBlockKeywordCompletionItems(document, params.position);
         debugCompletion('getCompletion keywordItems count', keywordItems.length);
@@ -1041,5 +1183,27 @@ export class Api2AiDslCompletionProvider extends DefaultCompletionProvider {
             insertText: `${p.name}: {\n    description: "$1"\n}$0`,
             textEdit: TextEdit.replace(range, `${p.name}: {\n    description: "$1"\n}$0`)
         }));
+    }
+
+    private buildHookParamCompletionItems(document: LangiumDocument, position: Position): CompletionItem[] {
+        const root = document.parseResult.value?.$cstNode;
+        if (!root) {
+            return [];
+        }
+        const textDoc = document.textDocument;
+        const offset = textDoc.offsetAt(position);
+        const leafAt = CstUtils.findLeafNodeAtOffset(root, offset) ?? CstUtils.findLeafNodeBeforeOffset(root, offset);
+        if (!leafAt || !isLeafCstNode(leafAt)) {
+            return [];
+        }
+        const operation = AstUtils.getContainerOfType(leafAt.astNode as AstNode, isOperation);
+        if (!operation?.hookParams) {
+            return [];
+        }
+        const paramEntry = findHookParamEntryAtOffset(operation, root, offset);
+        if (paramEntry?.spec && offsetInsideCstBlock(paramEntry.spec.$cstNode, offset)) {
+            return buildHookParamSpecCompletionItems(paramEntry.spec, root, offset, textDoc);
+        }
+        return [];
     }
 }

@@ -101,7 +101,13 @@ function isInvokeQueryBucketValue(value: unknown): value is Record<string, unkno
 function normalizeInvokeOptions(toolName: string, options: InvokeOptions): InvokeOptions {
     const buckets = (invokeParamBucketsByTool as Record<
         string,
-        { pathParams?: string[]; query?: string[]; headers?: string[]; arrayQuery?: string[] }
+        {
+            pathParams?: string[];
+            query?: string[];
+            headers?: string[];
+            arrayQuery?: string[];
+            hookParams?: string[];
+        }
     >)[toolName];
     if (!buckets) {
         return options;
@@ -109,10 +115,24 @@ function normalizeInvokeOptions(toolName: string, options: InvokeOptions): Invok
     const pathKeys = buckets.pathParams ?? [];
     const queryKeys = buckets.query ?? [];
     const headerKeys = buckets.headers ?? [];
+    const hookKeys = buckets.hookParams ?? [];
     const arrayQueryKeys = new Set(buckets.arrayQuery ?? []);
-    const knownFlatKeys = new Set([...pathKeys, ...queryKeys, ...headerKeys]);
+    const hookKeySet = new Set(hookKeys);
+    const knownFlatKeys = new Set([...pathKeys, ...queryKeys, ...headerKeys, ...hookKeys]);
+    const collectHookParams = (): Record<string, unknown> | undefined => {
+        const fromBag: Record<string, unknown> =
+            options.hookParams && typeof options.hookParams === 'object' && !Array.isArray(options.hookParams)
+                ? { ...options.hookParams }
+                : {};
+        for (const key of hookKeys) {
+            if (Object.prototype.hasOwnProperty.call(options, key) && options[key as keyof InvokeOptions] != null) {
+                fromBag[key] = (options as Record<string, unknown>)[key];
+            }
+        }
+        return Object.keys(fromBag).length > 0 ? fromBag : undefined;
+    };
     const hasTopLevelFlatParam = Object.keys(options).some((key) => {
-        if (key === 'body' || key === 'pathParams' || key === 'headers') {
+        if (key === 'body' || key === 'pathParams' || key === 'headers' || key === 'hookParams') {
             return false;
         }
         if (key === 'query') {
@@ -121,13 +141,15 @@ function normalizeInvokeOptions(toolName: string, options: InvokeOptions): Invok
         return knownFlatKeys.has(key);
     });
     if (!hasTopLevelFlatParam) {
+        const hookBag = collectHookParams();
         return {
             ...options,
             pathParams: omitNullishPathParams(options.pathParams),
             query: prepareQueryBucket(
                 toolName,
                 isInvokeQueryBucketValue(options.query) ? options.query : undefined
-            )
+            ),
+            ...(hookBag ? { hookParams: hookBag } : {})
         };
     }
 
@@ -138,12 +160,16 @@ function normalizeInvokeOptions(toolName: string, options: InvokeOptions): Invok
             : {};
     const headers: Record<string, string> =
         options.headers && typeof options.headers === 'object' ? { ...options.headers } : {};
+    const hookParams: Record<string, unknown> =
+        options.hookParams && typeof options.hookParams === 'object' && !Array.isArray(options.hookParams)
+            ? { ...options.hookParams }
+            : {};
 
     for (const [key, value] of Object.entries(options)) {
         if (value === undefined || value === null) {
             continue;
         }
-        if (key === 'body' || key === 'pathParams') {
+        if (key === 'body' || key === 'pathParams' || key === 'hookParams') {
             continue;
         }
         if (key === 'query') {
@@ -160,6 +186,10 @@ function normalizeInvokeOptions(toolName: string, options: InvokeOptions): Invok
             if (headerKeys.length === 0 && typeof value === 'object' && !Array.isArray(value)) {
                 Object.assign(headers, value as Record<string, string>);
             }
+            continue;
+        }
+        if (hookKeySet.has(key)) {
+            hookParams[key] = value;
             continue;
         }
         if (pathKeys.includes(key)) {
@@ -179,7 +209,8 @@ function normalizeInvokeOptions(toolName: string, options: InvokeOptions): Invok
         pathParams: omitNullishPathParams(pathParams),
         query: prepareQueryBucket(toolName, query),
         headers: Object.keys(headers).length > 0 ? headers : undefined,
-        body: options.body
+        body: options.body,
+        ...(Object.keys(hookParams).length > 0 ? { hookParams } : {})
     };
 }`;
 }

@@ -13,9 +13,11 @@ import {
     getUnsupportedSerializationMessages,
     findOpenApiInvokeParameter,
     loadOpenApi,
-    makeOperationLookupKey
+    makeOperationLookupKey,
+    openApiInvokeParameterNames
 } from './openapi.js';
 import { parseExampleAgainstSchemaType, parseApiParamSpec } from './api-param-spec.js';
+import { listHookParamEntryNodes, parseHookParamSpec, RESERVED_HOOK_PARAM_NAMES } from './hook-param-spec.js';
 
 /**
  * Register custom validation checks.
@@ -287,6 +289,56 @@ export class Api2AiDslValidator {
                         node: entry.spec,
                         property: 'fields'
                     });
+                }
+            }
+
+            const openApiParamNames = openApiInvokeParameterNames(openApiOperation);
+            const seenHookNames = new Set<string>();
+            for (const entry of listHookParamEntryNodes(operation)) {
+                const name = entry.key.trim();
+                const parsed = parseHookParamSpec(entry.spec);
+                if (!parsed.paramType) {
+                    accept(
+                        'error',
+                        `hookParams entry "${name}" requires type (string | integer | number | boolean | array).`,
+                        {
+                            node: entry.spec ?? entry,
+                            property: 'fields'
+                        }
+                    );
+                } else if (parsed.example !== undefined) {
+                    const exampleWarning = parseExampleAgainstSchemaType(parsed.example, parsed.paramType);
+                    if (exampleWarning) {
+                        accept('warning', exampleWarning, {
+                            node: entry.spec,
+                            property: 'fields'
+                        });
+                    }
+                }
+                if (name.length === 0) {
+                    continue;
+                }
+                if (RESERVED_HOOK_PARAM_NAMES.has(name)) {
+                    accept('error', `hookParams entry "${name}" conflicts with a reserved invoke option name.`, {
+                        node: entry,
+                        property: 'key'
+                    });
+                } else if (openApiParamNames.has(name)) {
+                    accept(
+                        'error',
+                        `hookParams entry "${name}" collides with an OpenAPI path/query/header parameter on ${operation.method} ${operation.path}.`,
+                        {
+                            node: entry,
+                            property: 'key'
+                        }
+                    );
+                } else if (seenHookNames.has(name)) {
+                    accept('error', `Duplicate hookParams entry "${name}".`, {
+                        node: entry,
+                        property: 'key'
+                    });
+                } else {
+                    seenHookNames.add(name);
                 }
             }
         });

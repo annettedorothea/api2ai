@@ -29,6 +29,7 @@ Operation:
         ('description' ':' description=DslText)?
         ('example' ':' example=DslText)?
         ('params' ':' params=ApiParamMap)?
+        ('hookParams' ':' hookParams=HookParamMap)?
         ('body' ':' body=DslText)?
         ('response' ':' response=DslText)?
     '}';
@@ -61,6 +62,23 @@ ApiParamSpec:
 ApiParamSpecField:
     'description' ':' description=DslText |
     'example' ':' example=DslText;
+
+HookParamMap:
+    '{' (entries += HookParamEntry)* '}';
+
+HookParamEntry:
+    key=ID ':' spec=HookParamSpec;
+
+HookParamSpec:
+    '{' (fields += HookParamSpecField)* '}';
+
+HookParamSpecField:
+    'description' ':' description=DslText |
+    'example' ':' example=DslText |
+    'type' ':' paramType=HookParamType;
+
+HookParamType returns string:
+    'string' | 'integer' | 'number' | 'boolean' | 'array';
 
 AccessKind:
     PublicAccess | ProtectedAccess;

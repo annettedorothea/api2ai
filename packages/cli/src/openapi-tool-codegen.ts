@@ -11,6 +11,7 @@ import {
     isAfterToolCallEnabled,
     isCheckToolAccessEnabled,
     isPrepareToolCallEnabled,
+    listHookParamEntries,
     parseApiParamSpec
 } from 'api-2-ai-dsl-language';
 import {
@@ -285,9 +286,10 @@ export function flattenLegacyInvokeDescription(text: string): string {
 }
 
 /** Hint for LLM callers: OpenAPI params are flat tool args, not pathParams/query buckets. */
-export function buildFlatCallShapeSection(_operation: Operation, details: OpenApiOperationDetails): string | undefined {
-    const buckets = buildInvokeParamBuckets(details);
-    const flatArgs = [...buckets.pathParams, ...buckets.query, ...buckets.headers];
+export function buildFlatCallShapeSection(operation: Operation, details: OpenApiOperationDetails): string | undefined {
+    const hookNames = listHookParamEntries(operation).map((e) => e.name);
+    const buckets = buildInvokeParamBuckets(details, hookNames);
+    const flatArgs = [...buckets.pathParams, ...buckets.query, ...buckets.headers, ...buckets.hookParams];
     const hasBody = Boolean(details.requestBody?.schema);
     if (flatArgs.length === 0 && !hasBody) {
         return undefined;
@@ -295,6 +297,9 @@ export function buildFlatCallShapeSection(_operation: Operation, details: OpenAp
     const parts: string[] = [];
     if (flatArgs.length > 0) {
         parts.push(`pass ${flatArgs.join(', ')} as top-level tool arguments`);
+    }
+    if (buckets.hookParams.length > 0) {
+        parts.push(`hookParams (${buckets.hookParams.join(', ')}) are MCP-only and are not sent on the HTTP request`);
     }
     if (hasBody) {
         parts.push('send the request payload in the `body` property');
@@ -822,10 +827,15 @@ export type InvokeParamBuckets = {
     headers: string[];
     /** Query parameter names with OpenAPI `array` schema (LLM may pass a single string). */
     arrayQuery: string[];
+    /** MCP-only hook param names (never sent on HTTP). */
+    hookParams: string[];
 };
 
 /** OpenAPI parameter names grouped for invokeTool normalization (flat MCP args → nested InvokeOptions). */
-export function buildInvokeParamBuckets(details: OpenApiOperationDetails): InvokeParamBuckets {
+export function buildInvokeParamBuckets(
+    details: OpenApiOperationDetails,
+    hookParamNames: readonly string[] = []
+): InvokeParamBuckets {
     const { path, query, headers } = parametersByLocation(details.parameters);
     const { wireToMcp } = invokeParamWireMaps(details);
     const arrayQuery = query
@@ -835,8 +845,55 @@ export function buildInvokeParamBuckets(details: OpenApiOperationDetails): Invok
         pathParams: path.map((p) => wireToMcp[p.name] ?? toMcpParamName(p.name)),
         query: query.map((p) => wireToMcp[p.name] ?? toMcpParamName(p.name)),
         headers: headers.map((p) => wireToMcp[p.name] ?? toMcpParamName(p.name)),
-        arrayQuery
+        arrayQuery,
+        hookParams: [...hookParamNames]
     };
+}
+
+function hookParamTypeToJsonSchema(paramType: string): JsonSchemaDict {
+    switch (paramType) {
+        case 'integer':
+            return { type: 'integer' };
+        case 'number':
+            return { type: 'number' };
+        case 'boolean':
+            return { type: 'boolean' };
+        case 'array':
+            return { type: 'array', items: { type: 'string' } };
+        default:
+            return { type: 'string' };
+    }
+}
+
+function mergeHookParamsIntoSchema(schema: JsonSchemaDict, operation: Operation | undefined): JsonSchemaDict {
+    const entries = operation ? listHookParamEntries(operation) : [];
+    if (entries.length === 0) {
+        return schema;
+    }
+    const properties = schema.properties;
+    if (!properties || typeof properties !== 'object' || Array.isArray(properties)) {
+        return schema;
+    }
+    const rootProps = { ...(properties as Record<string, JsonSchemaDict>) };
+    for (const entry of entries) {
+        if (rootProps[entry.name]) {
+            throw new Error(
+                `hookParams entry "${entry.name}" collides with an existing MCP input property (OpenAPI or reserved).`
+            );
+        }
+        let prop: JsonSchemaDict = hookParamTypeToJsonSchema(entry.paramType);
+        if (entry.description?.trim()) {
+            prop = { ...prop, description: entry.description.trim() };
+        }
+        if (entry.example?.trim()) {
+            const coerced = coerceExampleFromSchemaType(entry.example, entry.paramType);
+            if (coerced !== undefined) {
+                prop = { ...prop, examples: [coerced] };
+            }
+        }
+        rootProps[entry.name] = prop;
+    }
+    return { ...schema, properties: rootProps };
 }
 
 /** Enrich flat OpenAPI param descriptions with `(type: …)` and `(example: …)` for MCP tool callers. */
@@ -936,5 +993,6 @@ export function buildToolInputSchema(
         description: 'Arguments for invoking the generated HTTP wrapper.'
     } satisfies JsonSchemaDict;
     const patched = operation ? applyApiParamPatches(built, operation, details) : built;
-    return enrichFlatParamPropertyDescriptions(patched);
+    const withHooks = mergeHookParamsIntoSchema(patched, operation);
+    return enrichFlatParamPropertyDescriptions(withHooks);
 }
