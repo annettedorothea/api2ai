@@ -35,6 +35,10 @@ export function isPrepareToolCallEnabled(operation: Operation): boolean {
     return isPrepareToolCallTrue(spec) || isPrepareToolCallBody(spec);
 }
 
+export function isAfterToolCallEnabled(operation: Operation): boolean {
+    return operation.hooks?.afterToolCall === true;
+}
+
 export function getClientMayOmit(operation: Operation): readonly string[] {
     const spec = operation.hooks?.prepareToolCall;
     if (isPrepareToolCallBody(spec) && spec.clientMayOmit) {

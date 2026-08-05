@@ -19,6 +19,7 @@ export type GeneratedTool = {
     access: 'public' | 'protected';
     hasCheckToolAccess: boolean;
     hasPrepareToolCall: boolean;
+    hasAfterToolCall: boolean;
 };
 
 export const generatedTools: GeneratedTool[] = [
@@ -26,34 +27,37 @@ export const generatedTools: GeneratedTool[] = [
         toolName: 'listVacationRentals',
         title: 'List vacation rentals with public availability (limit validated)',
         description:
-            'Intent:\nList Ferienwohnungen (vacation rental units) — public, no login.\n        Returns availability periods per unit (no guest names).\n        Query limit caps how many units are returned (default 10, max 10).\n\nMCP arguments:\npass limit as top-level tool arguments. Do not nest path or query parameters under pathParams or query.\n\nAPI:\nPublic endpoint — no auth. Returns availability periods per unit (no guest identity).\nUse query limit to cap how many units are returned (max 10).\n\nMeta:\noperationId: list-vacation-rentals\n\nParameters:\n- limit (query): Query limit caps how many units are returned (default 10, max 10). (type: integer) (example: 10)\n\nExample:\nShow up to 10 vacation rentals and their free/occupied periods\n\nResponse:\nHTTP 200\nVacation rental units (public view)\nproperties (top-level): limit, units\n\nRuntime: implement prepareToolCallForListVacationRentals in src/hooks/api2ai/bookings-tools/prepareToolCallForListVacationRentals.ts (types from this tools module; run build:generated for .js).',
+            'Intent:\nList Ferienwohnungen (vacation rental units) — public, no login.\n        Returns availability periods per unit (no guest names).\n        Query limit caps how many units are returned (default 10, max 10).\n\nMCP arguments:\npass limit as top-level tool arguments. Do not nest path or query parameters under pathParams or query.\n\nAPI:\nPublic endpoint — no auth. Returns availability periods per unit (no guest identity).\nUse query limit to cap how many units are returned (max 10).\n\nMeta:\noperationId: list-vacation-rentals\n\nExample:\nShow up to 10 vacation rentals and their free/occupied periods\n\nResponse:\nHTTP 200\nVacation rental units (public view)\ncontent-type: application/json\nproperties (top-level): limit, units\n\nRuntime: implement prepareToolCallForListVacationRentals in src/hooks/api2ai/bookings-tools/prepareToolCallForListVacationRentals.ts (types from this tools module; run build:generated for .js).',
         method: 'GET',
         path: '/vacation-rentals',
         access: 'public',
         hasCheckToolAccess: false,
-        hasPrepareToolCall: true
+        hasPrepareToolCall: true,
+        hasAfterToolCall: false
     },
     {
         toolName: 'listAllBookings',
         title: 'List all customer bookings (admin only, limit validated)',
         description:
-            'Intent:\nAdmin only: list bookings across all customers (Bearer JWT role=admin).\n        Query limit caps how many bookings are returned (default 10, max 10).\n        checkToolAccess + prepareToolCall demo — role gate before upstream call, limit in prepare stub.\n\nMCP arguments:\npass limit as top-level tool arguments. Do not nest path or query parameters under pathParams or query.\n\nAPI:\nRequires Bearer JWT with role=admin. Returns bookings from all customers, capped by limit (max 10).\n\nMeta:\noperationId: list-all-bookings\n\nParameters:\n- limit (query): (type: integer)\n\nExample:\nList up to 10 bookings from all customers\n\nResponse:\nHTTP 200\nCross-customer booking list\nproperties (top-level): bookings, limit, role\nDocumented errors:\nHTTP 401 — Missing or invalid token\nHTTP 403 — Admin role required\n\nRuntime: protected — implement checkToolAccessForListAllBookings in src/hooks/api2ai/bookings-tools/checkToolAccessForListAllBookings.ts and prepareToolCallForListAllBookings in src/hooks/api2ai/bookings-tools/prepareToolCallForListAllBookings.ts; credential sent as header "Authorization" (prefix applied to the secret).',
+            'Intent:\nAdmin only: list bookings across all customers (Bearer JWT role=admin).\n        Query limit caps how many bookings are returned (default 10, max 10).\n        checkToolAccess + prepareToolCall demo — role gate before upstream call, limit in prepare stub.\n\nMCP arguments:\npass limit as top-level tool arguments. Do not nest path or query parameters under pathParams or query.\n\nAPI:\nRequires Bearer JWT with role=admin. Returns bookings from all customers, capped by limit (max 10).\n\nMeta:\noperationId: list-all-bookings\n\nExample:\nList up to 10 bookings from all customers\n\nResponse:\nHTTP 200\nCross-customer booking list\ncontent-type: application/json\nproperties (top-level): bookings, limit, role\nDocumented errors:\nHTTP 401 — Missing or invalid token\nHTTP 403 — Admin role required\n\nRuntime: protected — implement checkToolAccessForListAllBookings in src/hooks/api2ai/bookings-tools/checkToolAccessForListAllBookings.ts and prepareToolCallForListAllBookings in src/hooks/api2ai/bookings-tools/prepareToolCallForListAllBookings.ts; credential sent as header "Authorization" (prefix applied to the secret).',
         method: 'GET',
         path: '/bookings',
         access: 'protected',
         hasCheckToolAccess: true,
-        hasPrepareToolCall: true
+        hasPrepareToolCall: true,
+        hasAfterToolCall: false
     },
     {
         toolName: 'listBookings',
         title: 'List customer vacation rental bookings',
         description:
-            'Intent:\nList bookings for the authenticated customer (Bearer JWT).\n        Path customerId is optional: when empty or omitted, filled from JWT claim customerId.\n        Role user: path customerId must match JWT; role admin may list any customerId.\n        Returns bookingId, unitId, checkIn, checkOut for each stay.\n\nMCP arguments:\npass customerId as top-level tool arguments. Do not nest path or query parameters under pathParams or query.\n\nAPI:\nRequires Bearer JWT; role=user path customerId must match JWT claim; admin may read any customer.\n\nMeta:\noperationId: list-customer-bookings\n\nParameters:\n- customerId (path): (type: string)\n\nExample:\nList my bookings\n\nResponse:\nHTTP 200\nBooking list\nproperties (top-level): bookings, customerId\nDocumented errors:\nHTTP 401 — Missing or invalid token\nHTTP 403 — Token customerId does not match path\n\nRuntime: protected — implement checkToolAccessForListBookings in src/hooks/api2ai/bookings-tools/checkToolAccessForListBookings.ts and prepareToolCallForListBookings in src/hooks/api2ai/bookings-tools/prepareToolCallForListBookings.ts; credential sent as header "Authorization" (prefix applied to the secret).',
+            'Intent:\nList bookings for the authenticated customer (Bearer JWT).\n        Path customerId is optional: when empty or omitted, filled from JWT claim customerId.\n        Role user: path customerId must match JWT; role admin may list any customerId.\n        Returns bookingId, unitId, checkIn, checkOut for each stay.\n\nMCP arguments:\npass customerId as top-level tool arguments. Do not nest path or query parameters under pathParams or query.\n\nAPI:\nRequires Bearer JWT; role=user path customerId must match JWT claim; admin may read any customer.\n\nMeta:\noperationId: list-customer-bookings\n\nExample:\nList my bookings\n\nResponse:\nHTTP 200\nBooking list\ncontent-type: application/json\nproperties (top-level): bookings, customerId\nDocumented errors:\nHTTP 401 — Missing or invalid token\nHTTP 403 — Token customerId does not match path\n\nRuntime: protected — implement checkToolAccessForListBookings in src/hooks/api2ai/bookings-tools/checkToolAccessForListBookings.ts and prepareToolCallForListBookings in src/hooks/api2ai/bookings-tools/prepareToolCallForListBookings.ts; credential sent as header "Authorization" (prefix applied to the secret).',
         method: 'GET',
         path: '/bookings/{customerId}',
         access: 'protected',
         hasCheckToolAccess: true,
-        hasPrepareToolCall: true
+        hasPrepareToolCall: true,
+        hasAfterToolCall: false
     }
 ];
 
@@ -84,7 +88,7 @@ export const authConfig: AuthConfig | undefined = {
 };
 
 export const mcpServerName = 'bookings-tools';
-export const mcpServerVersion = '1.0.4';
+export const mcpServerVersion = '1.1.0';
 
 export { mcpBuildGeneratedAt } from '../mcp-build-generated-at.js';
 
@@ -449,6 +453,139 @@ async function performToolHttpRequest(
         req.end();
     });
 }
+const HTTP_SUCCESS_BODY_MAX_BYTES_DEFAULT = 5242880;
+
+function resolveHttpSuccessBodyMaxBytes(): number {
+    const raw = process.env.TOOLFACTORY_HTTP_BODY_MAX_BYTES;
+    if (raw === undefined || raw.trim().length === 0) {
+        return HTTP_SUCCESS_BODY_MAX_BYTES_DEFAULT;
+    }
+    const parsed = Number(raw.trim());
+    if (!Number.isFinite(parsed) || parsed <= 0 || !Number.isInteger(parsed)) {
+        return HTTP_SUCCESS_BODY_MAX_BYTES_DEFAULT;
+    }
+    return parsed;
+}
+
+function parseMimeType(contentTypeHeader: string): string {
+    const raw = contentTypeHeader.split(';')[0]?.trim().toLowerCase() ?? '';
+    return raw;
+}
+
+function isJsonMimeType(mime: string): boolean {
+    return mime === 'application/json' || mime.endsWith('+json');
+}
+
+function isTextualMimeType(mime: string): boolean {
+    if (!mime) {
+        return false;
+    }
+    if (mime.startsWith('text/')) {
+        return true;
+    }
+    return (
+        mime === 'application/xml' ||
+        mime === 'application/javascript' ||
+        mime === 'application/xhtml+xml' ||
+        mime === 'application/x-www-form-urlencoded'
+    );
+}
+
+function parseFilenameFromContentDisposition(header: string | null): string | undefined {
+    if (!header) {
+        return undefined;
+    }
+    const star = /filename\*=(?:UTF-8''|utf-8'')([^;]+)/i.exec(header);
+    if (star?.[1]) {
+        try {
+            return decodeURIComponent(star[1].trim().replace(/^["']|["']$/g, ''));
+        } catch {
+            return star[1].trim().replace(/^["']|["']$/g, '');
+        }
+    }
+    const plain = /filename=(["']?)([^"';]+)\1/i.exec(header);
+    if (plain?.[2]) {
+        return plain[2].trim();
+    }
+    return undefined;
+}
+
+function assertBodyWithinLimit(byteLength: number, toolLabel: string, maxBytes: number): void {
+    if (byteLength > maxBytes) {
+        throw new Error(
+            'HTTP response body for ' +
+                toolLabel +
+                ' is ' +
+                byteLength +
+                ' bytes; maximum allowed is ' +
+                maxBytes +
+                ' bytes.'
+        );
+    }
+}
+
+async function decodeHttpSuccessResponse(response: Response, method: string, toolLabel: string): Promise<unknown> {
+    const maxBytes = resolveHttpSuccessBodyMaxBytes();
+    const contentLengthHeader = response.headers.get('content-length');
+    if (contentLengthHeader) {
+        const declared = Number(contentLengthHeader);
+        if (Number.isFinite(declared) && declared > maxBytes) {
+            assertBodyWithinLimit(declared, toolLabel, maxBytes);
+        }
+    }
+
+    if (response.status === 204 || method === 'HEAD') {
+        return { kind: 'empty', status: response.status };
+    }
+    if (contentLengthHeader === '0') {
+        return { kind: 'empty', status: response.status };
+    }
+
+    const mime = parseMimeType(response.headers.get('content-type') ?? '');
+
+    if (isJsonMimeType(mime)) {
+        const text = await response.text();
+        assertBodyWithinLimit(Buffer.byteLength(text, 'utf8'), toolLabel, maxBytes);
+        if (text.trim().length === 0) {
+            return { kind: 'empty', status: response.status };
+        }
+        return JSON.parse(text) as unknown;
+    }
+
+    if (isTextualMimeType(mime)) {
+        const text = await response.text();
+        assertBodyWithinLimit(Buffer.byteLength(text, 'utf8'), toolLabel, maxBytes);
+        if (text.trim().length === 0) {
+            return { kind: 'empty', status: response.status };
+        }
+        return text;
+    }
+
+    const buffer = Buffer.from(await response.arrayBuffer());
+    assertBodyWithinLimit(buffer.byteLength, toolLabel, maxBytes);
+    if (buffer.byteLength === 0) {
+        return { kind: 'empty', status: response.status };
+    }
+    const filename = parseFilenameFromContentDisposition(response.headers.get('content-disposition'));
+    const envelope: {
+        kind: 'binary';
+        encoding: 'base64';
+        contentType: string;
+        byteLength: number;
+        data: string;
+        filename?: string;
+    } = {
+        kind: 'binary',
+        encoding: 'base64',
+        contentType: mime || 'application/octet-stream',
+        byteLength: buffer.byteLength,
+        data: buffer.toString('base64')
+    };
+    if (filename) {
+        envelope.filename = filename;
+    }
+    return envelope;
+}
 
 export async function invokeTool(
     toolName: string,
@@ -579,9 +716,5 @@ export async function invokeTool(
         throw new Error(msg);
     }
 
-    const contentType = response.headers.get('content-type') ?? '';
-    if (contentType.includes('application/json')) {
-        return response.json();
-    }
-    return response.text();
+    return decodeHttpSuccessResponse(response, tool.method, tool.toolName);
 }

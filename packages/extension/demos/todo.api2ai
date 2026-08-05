@@ -200,3 +200,38 @@ DELETE "/todos/{todoId}" {
         HTTP 404 — Todo not found
     '''
 }
+
+GET "/todos/export.pdf" {
+    toolName: exportTodosPdf
+    access: protected
+    hooks: {
+        afterToolCall: true
+    }
+    intent: '''
+        Download the current todo list as a PDF (optional filters: status, categoryId — same as listTodos).
+        afterToolCall saves the PDF under the OS temp dir and returns path metadata (no Base64 data in the MCP result).
+        Prefer this when the user asks to export or download todos as a file.
+    '''
+    summary: "Export todos as PDF"
+    example: "Export open todos as PDF"
+    params: {
+        status: {
+            description: '''
+                Optional query filter: open or done only. Omit to export all statuses.
+            '''
+            example: "open"
+        }
+        categoryId: {
+            description: '''
+                Optional query filter by category id — from listCategories (work, home, errands).
+            '''
+            example: "work"
+        }
+    }
+    response: '''
+        HTTP 200 — PDF saved by afterToolCall; result includes kind, contentType, filename, byteLength, path
+        (Base64 data stripped after save).
+        Documented errors:
+        HTTP 401 — Missing or invalid API key
+    '''
+}

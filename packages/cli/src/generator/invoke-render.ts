@@ -1,3 +1,8 @@
+import { renderInvokePipeline, type InvokePipelineTier, type HookStubMaps } from './render-check-stubs.js';
+import { urlAndHeadersPreambleFragment } from '../codegen/fragments/url-preamble.js';
+import { renderDecodeHttpSuccessHelpers } from './decode-http-response-fragment.js';
+import { renderAfterToolCallBlock } from '@toolfactory.dev/core/codegen';
+
 function renderAuthHelpers(authKind: 'none' | 'credential'): string {
     if (authKind !== 'credential') {
         return '';
@@ -41,9 +46,6 @@ function renderAuth401Hint(authKind: 'none' | 'credential'): string {
                     ').';`
         : '';
 }
-
-import { renderInvokeAuthPipeline, type AuthPipelineTier, type HookStubMaps } from './render-check-stubs.js';
-import { urlAndHeadersPreambleFragment } from '../codegen/fragments/url-preamble.js';
 
 function renderNormalizeInvokeOptions(invokeParamBucketsLiteralBody: string): string {
     return `const invokeParamBucketsByTool = ${invokeParamBucketsLiteralBody};
@@ -312,7 +314,7 @@ function renderPerformToolHttpRequest(): string {
 
 function renderInvokeToolFunction(
     authKind: 'none' | 'credential',
-    authPipelineTier: AuthPipelineTier,
+    invokePipelineTier: InvokePipelineTier,
     stubMaps: HookStubMaps,
     hasVerifyCredential: boolean
 ): string {
@@ -327,13 +329,19 @@ function renderInvokeToolFunction(
                 msg += ' The API may require authentication.';
             }`;
     const authPipeline =
-        authPipelineTier === 'none'
+        invokePipelineTier === 'none'
             ? urlAndHeadersPreambleFragment()
-            : renderInvokeAuthPipeline(authPipelineTier, hasVerifyCredential, stubMaps, authKind === 'credential');
+            : renderInvokePipeline(invokePipelineTier, hasVerifyCredential, stubMaps, authKind === 'credential');
     const hostBinding = renderHostBinding();
     const optionsResolvedDecl = stubMaps.prepareToolCall
         ? 'let optionsResolved = normalizeInvokeOptions(toolName, options);'
         : 'const optionsResolved = normalizeInvokeOptions(toolName, options);';
+    const afterToolCallBlock = renderAfterToolCallBlock(stubMaps, 'tool', 'result');
+    const successReturn = stubMaps.afterToolCall
+        ? `    let result: unknown = await decodeHttpSuccessResponse(response, tool.method, tool.toolName);
+${afterToolCallBlock}
+    return result;`
+        : `    return decodeHttpSuccessResponse(response, tool.method, tool.toolName);`;
 
     return `export async function invokeTool(
     toolName: string,
@@ -392,11 +400,7 @@ ${hostBinding}${authPipeline}${resolveCall}
         throw new Error(msg);
     }
 
-    const contentType = response.headers.get('content-type') ?? '';
-    if (contentType.includes('application/json')) {
-        return response.json();
-    }
-    return response.text();
+${successReturn}
 }`;
 }
 
@@ -407,7 +411,7 @@ export function createSharedInvokeBlock(
     headerParamWireNamesLiteralBody: string,
     invokeParamBucketsLiteralBody: string,
     authKind: 'none' | 'credential',
-    authPipelineTier: AuthPipelineTier,
+    invokePipelineTier: InvokePipelineTier,
     stubMaps: HookStubMaps,
     hasVerifyCredential = false
 ): string {
@@ -420,7 +424,8 @@ ${renderQuerySerializationHelpers(
 )}
 ${renderAuthHelpers(authKind)}
 ${renderPerformToolHttpRequest()}
+${renderDecodeHttpSuccessHelpers()}
 
-${renderInvokeToolFunction(authKind, authPipelineTier, stubMaps, hasVerifyCredential)}
+${renderInvokeToolFunction(authKind, invokePipelineTier, stubMaps, hasVerifyCredential)}
 `.trim();
 }

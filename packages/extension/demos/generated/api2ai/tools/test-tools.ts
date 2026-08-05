@@ -18,6 +18,7 @@ export type GeneratedTool = {
     access: 'public' | 'protected';
     hasCheckToolAccess: boolean;
     hasPrepareToolCall: boolean;
+    hasAfterToolCall: boolean;
 };
 
 export const generatedTools: GeneratedTool[] = [
@@ -25,78 +26,85 @@ export const generatedTools: GeneratedTool[] = [
         toolName: 'testPing',
         title: 'Public ping',
         description:
-            'Intent:\nHarness public GET ping\n\nMeta:\noperationId: test-ping\n\nExample:\nPing the test API\n\nResponse:\nHTTP 200\nOK\nproperties (top-level): ok\n\nRuntime: public endpoint — no credential required.',
+            'Intent:\nHarness public GET ping\n\nMeta:\noperationId: test-ping\n\nExample:\nPing the test API\n\nResponse:\nHTTP 200\nOK\ncontent-type: application/json\nproperties (top-level): ok\n\nRuntime: public endpoint — no credential required.',
         method: 'GET',
         path: '/ping',
         access: 'public',
         hasCheckToolAccess: false,
-        hasPrepareToolCall: false
+        hasPrepareToolCall: false,
+        hasAfterToolCall: false
     },
     {
         toolName: 'testProtectedStatus',
         title: 'Protected status',
         description:
-            'Intent:\nHarness protected route with query api_key\n\nMeta:\noperationId: test-protected-status\n\nExample:\nGet protected status\n\nResponse:\nHTTP 200\nOK\nproperties (top-level): status\nDocumented errors:\nHTTP 401 — Unauthorized\n\nRuntime: protected — implement src/hooks/api2ai/test-tools/verifyTestCredential.ts; credential sent as query "api_key".',
+            'Intent:\nHarness protected route with query api_key\n\nMeta:\noperationId: test-protected-status\n\nExample:\nGet protected status\n\nResponse:\nHTTP 200\nOK\ncontent-type: application/json\nproperties (top-level): status\nDocumented errors:\nHTTP 401 — Unauthorized\n\nRuntime: protected — implement src/hooks/api2ai/test-tools/verifyTestCredential.ts; credential sent as query "api_key".',
         method: 'GET',
         path: '/protected/status',
         access: 'protected',
         hasCheckToolAccess: false,
-        hasPrepareToolCall: false
+        hasPrepareToolCall: false,
+        hasAfterToolCall: false
     },
     {
         toolName: 'testGetItem',
         title: 'Get item by id',
         description:
-            'Intent:\nHarness path param itemId\n\nMCP arguments:\npass itemId as top-level tool arguments. Do not nest path or query parameters under pathParams or query.\n\nMeta:\noperationId: test-get-item\n\nParameters:\n- itemId (path): (type: string)\n\nExample:\nGet item item-1\n\nResponse:\nHTTP 200\nOK\nproperties (top-level): itemId\n\nRuntime: public endpoint — no credential required.',
+            'Intent:\nHarness path param itemId\n\nMCP arguments:\npass itemId as top-level tool arguments. Do not nest path or query parameters under pathParams or query.\n\nMeta:\noperationId: test-get-item\n\nExample:\nGet item item-1\n\nResponse:\nHTTP 200\nOK\ncontent-type: application/json\nproperties (top-level): itemId\n\nRuntime: public endpoint — no credential required.',
         method: 'GET',
         path: '/items/{itemId}',
         access: 'public',
         hasCheckToolAccess: false,
-        hasPrepareToolCall: false
+        hasPrepareToolCall: false,
+        hasAfterToolCall: false
     },
     {
         toolName: 'testGetAccount',
         title: 'Get account by dotted path param',
         description:
-            'Intent:\nHarness dotted path param account.id mapped to account_id\n\nMCP arguments:\npass account_id as top-level tool arguments. Do not nest path or query parameters under pathParams or query.\n\nMeta:\noperationId: test-get-account\n\nParameters:\n- account_id (path): (type: string)\n\nExample:\nGet account acc-42\n\nResponse:\nHTTP 200\nOK\nproperties (top-level): accountId\n\nRuntime: public endpoint — no credential required.',
+            'Intent:\nHarness dotted path param account.id mapped to account_id\n\nMCP arguments:\npass account_id as top-level tool arguments. Do not nest path or query parameters under pathParams or query.\n\nMeta:\noperationId: test-get-account\n\nExample:\nGet account acc-42\n\nResponse:\nHTTP 200\nOK\ncontent-type: application/json\nproperties (top-level): accountId\n\nRuntime: public endpoint — no credential required.',
         method: 'GET',
         path: '/accounts/{account.id}',
         access: 'public',
         hasCheckToolAccess: false,
-        hasPrepareToolCall: false
+        hasPrepareToolCall: false,
+        hasAfterToolCall: false
     },
     {
         toolName: 'testListItems',
         title: 'List items by tag',
         description:
-            'Intent:\nHarness query params status (optional enum) and tag (required)\n\nMCP arguments:\npass status, tag as top-level tool arguments. Do not nest path or query parameters under pathParams or query.\n\nMeta:\noperationId: test-list-items\n\nParameters:\n- status (query): Optional filter open or done (type: string) (example: open)\n- tag (query): Required category tag for the listing (type: string) (example: harness)\n\nExample:\nList open items for tag harness\n\nResponse:\nHTTP 200\nOK\nproperties (top-level): items\n\nRuntime: public endpoint — no credential required.',
+            'Intent:\nHarness query params status (optional enum) and tag (required)\n\nMCP arguments:\npass status, tag as top-level tool arguments. Do not nest path or query parameters under pathParams or query.\n\nMeta:\noperationId: test-list-items\n\nExample:\nList open items for tag harness\n\nResponse:\nHTTP 200\nOK\ncontent-type: application/json\nproperties (top-level): items\n\nRuntime: public endpoint — no credential required.',
         method: 'GET',
         path: '/items',
         access: 'public',
         hasCheckToolAccess: false,
-        hasPrepareToolCall: false
+        hasPrepareToolCall: false,
+        hasAfterToolCall: false
     },
     {
         toolName: 'testSearchItems',
         title: 'Search items by tags',
         description:
-            'Intent:\nHarness query array tags\n\nMCP arguments:\npass tags as top-level tool arguments. Do not nest path or query parameters under pathParams or query.\n\nMeta:\noperationId: test-search-items\n\nParameters:\n- tags (query): (type: array of string)\n\nExample:\nSearch tags alpha and beta\n\nResponse:\nHTTP 200\nOK\nproperties (top-level): tags\n\nRuntime: public endpoint — no credential required.',
+            'Intent:\nHarness query array tags\n\nMCP arguments:\npass tags as top-level tool arguments. Do not nest path or query parameters under pathParams or query.\n\nMeta:\noperationId: test-search-items\n\nExample:\nSearch tags alpha and beta\n\nResponse:\nHTTP 200\nOK\ncontent-type: application/json\nproperties (top-level): tags\n\nRuntime: public endpoint — no credential required.',
         method: 'GET',
         path: '/items/search',
         access: 'public',
         hasCheckToolAccess: false,
-        hasPrepareToolCall: false
+        hasPrepareToolCall: false,
+        hasAfterToolCall: false
     },
     {
         toolName: 'testGetWithHeader',
         title: 'Get item with trace header',
         description:
-            'Intent:\nHarness required header X-Trace-Id on upstream request\n\nMCP arguments:\npass X_Trace_Id as top-level tool arguments. Do not nest path or query parameters under pathParams or query.\n\nMeta:\noperationId: test-get-with-header\n\nParameters:\n- X_Trace_Id (header): (type: string)\n\nExample:\nCall with trace id trace-1\n\nResponse:\nHTTP 200\nOK\nproperties (top-level): traceId\n\nRuntime: public endpoint — no credential required.',
+            'Intent:\nHarness required header X-Trace-Id on upstream request\n\nMCP arguments:\npass X_Trace_Id as top-level tool arguments. Do not nest path or query parameters under pathParams or query.\n\nMeta:\noperationId: test-get-with-header\n\nExample:\nCall with trace id trace-1\n\nResponse:\nHTTP 200\nOK\ncontent-type: application/json\nproperties (top-level): traceId\n\nRuntime: public endpoint — no credential required.',
         method: 'GET',
         path: '/items/with-header',
         access: 'public',
         hasCheckToolAccess: false,
-        hasPrepareToolCall: false
+        hasPrepareToolCall: false,
+        hasAfterToolCall: false
     },
     {
         toolName: 'testCreateResource',
@@ -107,40 +115,44 @@ export const generatedTools: GeneratedTool[] = [
         path: '/resources',
         access: 'public',
         hasCheckToolAccess: false,
-        hasPrepareToolCall: false
+        hasPrepareToolCall: false,
+        hasAfterToolCall: false
     },
     {
         toolName: 'testPutResource',
         title: 'Replace resource',
         description:
-            'Intent:\nHarness PUT with $ref body ResourceUpdate\n\nMCP arguments:\npass resourceId as top-level tool arguments; send the request payload in the `body` property. Do not nest path or query parameters under pathParams or query.\n\nMeta:\noperationId: test-put-resource\n\nParameters:\n- resourceId (path): (type: string)\n\nExample:\nPut resource res-1 name MCPTEST-updated\n\nResponse:\nHTTP 200\nOK\nproperties (top-level): name, resourceId\n\nRuntime: public endpoint — no credential required.',
+            'Intent:\nHarness PUT with $ref body ResourceUpdate\n\nMCP arguments:\npass resourceId as top-level tool arguments; send the request payload in the `body` property. Do not nest path or query parameters under pathParams or query.\n\nMeta:\noperationId: test-put-resource\n\nExample:\nPut resource res-1 name MCPTEST-updated\n\nResponse:\nHTTP 200\nOK\ncontent-type: application/json\nproperties (top-level): name, resourceId\n\nRuntime: public endpoint — no credential required.',
         method: 'PUT',
         path: '/resources/{resourceId}',
         access: 'public',
         hasCheckToolAccess: false,
-        hasPrepareToolCall: false
+        hasPrepareToolCall: false,
+        hasAfterToolCall: false
     },
     {
         toolName: 'testPatchResource',
         title: 'Patch resource note',
         description:
-            'Intent:\nHarness PATCH with $ref body ResourcePatch\n\nMCP arguments:\npass resourceId as top-level tool arguments; send the request payload in the `body` property. Do not nest path or query parameters under pathParams or query.\n\nMeta:\noperationId: test-patch-resource\n\nParameters:\n- resourceId (path): (type: string)\n\nExample:\nPatch resource res-1 note MCPTEST-note\n\nResponse:\nHTTP 200\nOK\n\nRuntime: public endpoint — no credential required.',
+            'Intent:\nHarness PATCH with $ref body ResourcePatch\n\nMCP arguments:\npass resourceId as top-level tool arguments; send the request payload in the `body` property. Do not nest path or query parameters under pathParams or query.\n\nMeta:\noperationId: test-patch-resource\n\nExample:\nPatch resource res-1 note MCPTEST-note\n\nResponse:\nHTTP 200\nOK\n\nRuntime: public endpoint — no credential required.',
         method: 'PATCH',
         path: '/resources/{resourceId}',
         access: 'public',
         hasCheckToolAccess: false,
-        hasPrepareToolCall: false
+        hasPrepareToolCall: false,
+        hasAfterToolCall: false
     },
     {
         toolName: 'testDeleteResource',
         title: 'Delete resource',
         description:
-            'Intent:\nHarness DELETE without body\n\nMCP arguments:\npass resourceId as top-level tool arguments. Do not nest path or query parameters under pathParams or query.\n\nMeta:\noperationId: test-delete-resource\n\nParameters:\n- resourceId (path): (type: string)\n\nExample:\nDelete resource res-1\n\nResponse:\nHTTP 204\nNo content\n\nRuntime: public endpoint — no credential required.',
+            'Intent:\nHarness DELETE without body\n\nMCP arguments:\npass resourceId as top-level tool arguments. Do not nest path or query parameters under pathParams or query.\n\nMeta:\noperationId: test-delete-resource\n\nExample:\nDelete resource res-1\n\nResponse:\nHTTP 204\nNo content\n\nRuntime: public endpoint — no credential required.',
         method: 'DELETE',
         path: '/resources/{resourceId}',
         access: 'public',
         hasCheckToolAccess: false,
-        hasPrepareToolCall: false
+        hasPrepareToolCall: false,
+        hasAfterToolCall: false
     },
     {
         toolName: 'testProbeHead',
@@ -151,7 +163,8 @@ export const generatedTools: GeneratedTool[] = [
         path: '/probe',
         access: 'public',
         hasCheckToolAccess: false,
-        hasPrepareToolCall: false
+        hasPrepareToolCall: false,
+        hasAfterToolCall: false
     },
     {
         toolName: 'testProbeOptions',
@@ -162,7 +175,8 @@ export const generatedTools: GeneratedTool[] = [
         path: '/probe',
         access: 'public',
         hasCheckToolAccess: false,
-        hasPrepareToolCall: false
+        hasPrepareToolCall: false,
+        hasAfterToolCall: false
     },
     {
         toolName: 'testTraceRoute',
@@ -173,7 +187,8 @@ export const generatedTools: GeneratedTool[] = [
         path: '/trace',
         access: 'public',
         hasCheckToolAccess: false,
-        hasPrepareToolCall: false
+        hasPrepareToolCall: false,
+        hasAfterToolCall: false
     },
     {
         toolName: 'testOneOfBody',
@@ -184,7 +199,8 @@ export const generatedTools: GeneratedTool[] = [
         path: '/composed/one-of',
         access: 'public',
         hasCheckToolAccess: false,
-        hasPrepareToolCall: false
+        hasPrepareToolCall: false,
+        hasAfterToolCall: false
     },
     {
         toolName: 'testAnyOfBody',
@@ -195,7 +211,8 @@ export const generatedTools: GeneratedTool[] = [
         path: '/composed/any-of',
         access: 'public',
         hasCheckToolAccess: false,
-        hasPrepareToolCall: false
+        hasPrepareToolCall: false,
+        hasAfterToolCall: false
     },
     {
         toolName: 'testAllOfBody',
@@ -206,7 +223,8 @@ export const generatedTools: GeneratedTool[] = [
         path: '/composed/all-of',
         access: 'public',
         hasCheckToolAccess: false,
-        hasPrepareToolCall: false
+        hasPrepareToolCall: false,
+        hasAfterToolCall: false
     },
     {
         toolName: 'testRefBody',
@@ -217,29 +235,32 @@ export const generatedTools: GeneratedTool[] = [
         path: '/echo/ref-body',
         access: 'public',
         hasCheckToolAccess: false,
-        hasPrepareToolCall: false
+        hasPrepareToolCall: false,
+        hasAfterToolCall: false
     },
     {
         toolName: 'testGetAdminSecrets',
         title: 'List admin secrets',
         description:
-            'Intent:\nHarness authorize and prepare on protected tool\n\nMCP arguments:\npass limit as top-level tool arguments. Do not nest path or query parameters under pathParams or query.\n\nMeta:\noperationId: test-admin-secrets\n\nParameters:\n- limit (query): (type: integer)\n\nExample:\nList secrets limit 5\n\nResponse:\nHTTP 200\nOK\nproperties (top-level): secrets\nDocumented errors:\nHTTP 403 — Forbidden\n\nRuntime: protected — implement checkToolAccessForTestGetAdminSecrets in src/hooks/api2ai/test-tools/checkToolAccessForTestGetAdminSecrets.ts and prepareToolCallForTestGetAdminSecrets in src/hooks/api2ai/test-tools/prepareToolCallForTestGetAdminSecrets.ts; credential sent as query "api_key".',
+            'Intent:\nHarness authorize and prepare on protected tool\n\nMCP arguments:\npass limit as top-level tool arguments. Do not nest path or query parameters under pathParams or query.\n\nMeta:\noperationId: test-admin-secrets\n\nExample:\nList secrets limit 5\n\nResponse:\nHTTP 200\nOK\ncontent-type: application/json\nproperties (top-level): secrets\nDocumented errors:\nHTTP 403 — Forbidden\n\nRuntime: protected — implement checkToolAccessForTestGetAdminSecrets in src/hooks/api2ai/test-tools/checkToolAccessForTestGetAdminSecrets.ts and prepareToolCallForTestGetAdminSecrets in src/hooks/api2ai/test-tools/prepareToolCallForTestGetAdminSecrets.ts; credential sent as query "api_key".',
         method: 'GET',
         path: '/admin/secrets',
         access: 'protected',
         hasCheckToolAccess: true,
-        hasPrepareToolCall: true
+        hasPrepareToolCall: true,
+        hasAfterToolCall: false
     },
     {
         toolName: 'testListPublicPrepared',
         title: 'List public prepared items',
         description:
-            'Intent:\nHarness public tool with prepare hook\n\nMCP arguments:\npass limit as top-level tool arguments. Do not nest path or query parameters under pathParams or query.\n\nMeta:\noperationId: test-public-prepared\n\nParameters:\n- limit (query): (type: integer)\n\nExample:\nList prepared items limit 3\n\nResponse:\nHTTP 200\nOK\nproperties (top-level): items\n\nRuntime: implement prepareToolCallForTestListPublicPrepared in src/hooks/api2ai/test-tools/prepareToolCallForTestListPublicPrepared.ts (types from this tools module; run build:generated for .js).',
+            'Intent:\nHarness public tool with prepare hook\n\nMCP arguments:\npass limit as top-level tool arguments. Do not nest path or query parameters under pathParams or query.\n\nMeta:\noperationId: test-public-prepared\n\nExample:\nList prepared items limit 3\n\nResponse:\nHTTP 200\nOK\ncontent-type: application/json\nproperties (top-level): items\n\nRuntime: implement prepareToolCallForTestListPublicPrepared in src/hooks/api2ai/test-tools/prepareToolCallForTestListPublicPrepared.ts (types from this tools module; run build:generated for .js).',
         method: 'GET',
         path: '/prepared/public',
         access: 'public',
         hasCheckToolAccess: false,
-        hasPrepareToolCall: true
+        hasPrepareToolCall: true,
+        hasAfterToolCall: false
     }
 ];
 
@@ -272,7 +293,7 @@ export const authConfig: AuthConfig | undefined = {
 export { verifyCredential } from '../../../src/hooks/api2ai/test-tools/verifyTestCredential.js';
 
 export const mcpServerName = 'test-tools';
-export const mcpServerVersion = '1.0.4';
+export const mcpServerVersion = '1.1.0';
 
 export { mcpBuildGeneratedAt } from '../mcp-build-generated-at.js';
 
@@ -985,6 +1006,139 @@ async function performToolHttpRequest(
         req.end();
     });
 }
+const HTTP_SUCCESS_BODY_MAX_BYTES_DEFAULT = 5242880;
+
+function resolveHttpSuccessBodyMaxBytes(): number {
+    const raw = process.env.TOOLFACTORY_HTTP_BODY_MAX_BYTES;
+    if (raw === undefined || raw.trim().length === 0) {
+        return HTTP_SUCCESS_BODY_MAX_BYTES_DEFAULT;
+    }
+    const parsed = Number(raw.trim());
+    if (!Number.isFinite(parsed) || parsed <= 0 || !Number.isInteger(parsed)) {
+        return HTTP_SUCCESS_BODY_MAX_BYTES_DEFAULT;
+    }
+    return parsed;
+}
+
+function parseMimeType(contentTypeHeader: string): string {
+    const raw = contentTypeHeader.split(';')[0]?.trim().toLowerCase() ?? '';
+    return raw;
+}
+
+function isJsonMimeType(mime: string): boolean {
+    return mime === 'application/json' || mime.endsWith('+json');
+}
+
+function isTextualMimeType(mime: string): boolean {
+    if (!mime) {
+        return false;
+    }
+    if (mime.startsWith('text/')) {
+        return true;
+    }
+    return (
+        mime === 'application/xml' ||
+        mime === 'application/javascript' ||
+        mime === 'application/xhtml+xml' ||
+        mime === 'application/x-www-form-urlencoded'
+    );
+}
+
+function parseFilenameFromContentDisposition(header: string | null): string | undefined {
+    if (!header) {
+        return undefined;
+    }
+    const star = /filename\*=(?:UTF-8''|utf-8'')([^;]+)/i.exec(header);
+    if (star?.[1]) {
+        try {
+            return decodeURIComponent(star[1].trim().replace(/^["']|["']$/g, ''));
+        } catch {
+            return star[1].trim().replace(/^["']|["']$/g, '');
+        }
+    }
+    const plain = /filename=(["']?)([^"';]+)\1/i.exec(header);
+    if (plain?.[2]) {
+        return plain[2].trim();
+    }
+    return undefined;
+}
+
+function assertBodyWithinLimit(byteLength: number, toolLabel: string, maxBytes: number): void {
+    if (byteLength > maxBytes) {
+        throw new Error(
+            'HTTP response body for ' +
+                toolLabel +
+                ' is ' +
+                byteLength +
+                ' bytes; maximum allowed is ' +
+                maxBytes +
+                ' bytes.'
+        );
+    }
+}
+
+async function decodeHttpSuccessResponse(response: Response, method: string, toolLabel: string): Promise<unknown> {
+    const maxBytes = resolveHttpSuccessBodyMaxBytes();
+    const contentLengthHeader = response.headers.get('content-length');
+    if (contentLengthHeader) {
+        const declared = Number(contentLengthHeader);
+        if (Number.isFinite(declared) && declared > maxBytes) {
+            assertBodyWithinLimit(declared, toolLabel, maxBytes);
+        }
+    }
+
+    if (response.status === 204 || method === 'HEAD') {
+        return { kind: 'empty', status: response.status };
+    }
+    if (contentLengthHeader === '0') {
+        return { kind: 'empty', status: response.status };
+    }
+
+    const mime = parseMimeType(response.headers.get('content-type') ?? '');
+
+    if (isJsonMimeType(mime)) {
+        const text = await response.text();
+        assertBodyWithinLimit(Buffer.byteLength(text, 'utf8'), toolLabel, maxBytes);
+        if (text.trim().length === 0) {
+            return { kind: 'empty', status: response.status };
+        }
+        return JSON.parse(text) as unknown;
+    }
+
+    if (isTextualMimeType(mime)) {
+        const text = await response.text();
+        assertBodyWithinLimit(Buffer.byteLength(text, 'utf8'), toolLabel, maxBytes);
+        if (text.trim().length === 0) {
+            return { kind: 'empty', status: response.status };
+        }
+        return text;
+    }
+
+    const buffer = Buffer.from(await response.arrayBuffer());
+    assertBodyWithinLimit(buffer.byteLength, toolLabel, maxBytes);
+    if (buffer.byteLength === 0) {
+        return { kind: 'empty', status: response.status };
+    }
+    const filename = parseFilenameFromContentDisposition(response.headers.get('content-disposition'));
+    const envelope: {
+        kind: 'binary';
+        encoding: 'base64';
+        contentType: string;
+        byteLength: number;
+        data: string;
+        filename?: string;
+    } = {
+        kind: 'binary',
+        encoding: 'base64',
+        contentType: mime || 'application/octet-stream',
+        byteLength: buffer.byteLength,
+        data: buffer.toString('base64')
+    };
+    if (filename) {
+        envelope.filename = filename;
+    }
+    return envelope;
+}
 
 export async function invokeTool(
     toolName: string,
@@ -1116,9 +1270,5 @@ export async function invokeTool(
         throw new Error(msg);
     }
 
-    const contentType = response.headers.get('content-type') ?? '';
-    if (contentType.includes('application/json')) {
-        return response.json();
-    }
-    return response.text();
+    return decodeHttpSuccessResponse(response, tool.method, tool.toolName);
 }

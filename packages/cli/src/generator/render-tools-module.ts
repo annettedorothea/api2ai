@@ -3,6 +3,7 @@ import type { LoadedOpenApi } from 'api-2-ai-dsl-language';
 import {
     getAccessKind,
     getClientMayOmit,
+    isAfterToolCallEnabled,
     isCheckToolAccessEnabled,
     isPrepareToolCallEnabled,
     isVerifyCredentialEnabled,
@@ -39,15 +40,19 @@ import {
 } from '../openapi-tool-codegen.js';
 import { createSharedInvokeBlock } from './invoke-render.js';
 import {
+    listAfterToolCallHookEntries,
+    listAfterToolCallToolNames,
     listCheckToolAccessToolNames,
     listPrepareToolCallHookEntries,
     listPrepareToolCallToolNames,
-    modelHasAuthPipeline,
+    modelHasInvokePipeline,
+    renderAfterToolCallHookImports,
+    renderAfterToolCallHooksMap,
     renderCheckToolAccessHookImports,
     renderCheckToolAccessHooksMap,
     renderPrepareToolCallHookImports,
     renderPrepareToolCallHooksMap,
-    resolveAuthPipelineTier,
+    resolveInvokePipelineTier,
     type ToolAccess
 } from './render-check-stubs.js';
 
@@ -60,6 +65,7 @@ export type ResolvedToolCodegen = {
     access: ToolAccess;
     hasCheckToolAccess: boolean;
     hasPrepareToolCall: boolean;
+    hasAfterToolCall: boolean;
 };
 
 export type RenderToolsModuleInput = {
@@ -106,7 +112,8 @@ function resolveToolsFromLoaded(model: Model, loaded: LoadedOpenApi, mcpModuleNa
             path: operation.path,
             access: getAccessKind(operation),
             hasCheckToolAccess: isCheckToolAccessEnabled(operation),
-            hasPrepareToolCall: isPrepareToolCallEnabled(operation)
+            hasPrepareToolCall: isPrepareToolCallEnabled(operation),
+            hasAfterToolCall: isAfterToolCallEnabled(operation)
         };
     });
 }
@@ -382,6 +389,7 @@ export type GeneratedTool = {
     access: 'public' | 'protected';
     hasCheckToolAccess: boolean;
     hasPrepareToolCall: boolean;
+    hasAfterToolCall: boolean;
 };
 
 export const generatedTools: GeneratedTool[] = ${enrichedToolsLiteral};
@@ -447,13 +455,15 @@ export async function renderToolsModule(input: RenderToolsModuleInput): Promise<
         mcpServerIdentity.version
     );
 
-    const hasAuthPipeline = modelHasAuthPipeline(model);
+    const hasInvokePipeline = modelHasInvokePipeline(model);
     const checkToolAccessToolNames = listCheckToolAccessToolNames(model);
     const prepareToolCallToolNames = listPrepareToolCallToolNames(model);
-    const authPipelineTier = resolveAuthPipelineTier(
-        hasAuthPipeline,
+    const afterToolCallToolNames = listAfterToolCallToolNames(model);
+    const invokePipelineTier = resolveInvokePipelineTier(
+        hasInvokePipeline,
         checkToolAccessToolNames,
-        prepareToolCallToolNames
+        prepareToolCallToolNames,
+        afterToolCallToolNames
     );
     const hasVerifyCredential = isVerifyCredentialEnabled(model.auth);
     const hasTokenExchange = isTokenExchangeEnabled(model.auth);
@@ -465,21 +475,31 @@ export async function renderToolsModule(input: RenderToolsModuleInput): Promise<
         prepareToolCallToolNames.length > 0
             ? renderPrepareToolCallHookImports(destinationTsPath, stubPaths, prepareToolCallToolNames)
             : '';
-    const authStubImports = [checkToolAccessImports, prepareToolCallImports].filter((s) => s.length > 0).join('\n');
+    const afterToolCallImports =
+        afterToolCallToolNames.length > 0
+            ? renderAfterToolCallHookImports(destinationTsPath, stubPaths, afterToolCallToolNames)
+            : '';
+    const authStubImports = [checkToolAccessImports, prepareToolCallImports, afterToolCallImports]
+        .filter((s) => s.length > 0)
+        .join('\n');
     const authMapBlocks: string[] = [];
-    if (authPipelineTier === 'full') {
+    if (invokePipelineTier === 'full') {
         if (checkToolAccessToolNames.length > 0) {
             authMapBlocks.push(renderCheckToolAccessHooksMap(checkToolAccessToolNames));
         }
         if (prepareToolCallToolNames.length > 0) {
             authMapBlocks.push(renderPrepareToolCallHooksMap(listPrepareToolCallHookEntries(model)));
         }
+        if (afterToolCallToolNames.length > 0) {
+            authMapBlocks.push(renderAfterToolCallHooksMap(listAfterToolCallHookEntries(model)));
+        }
     }
     const authRuntimePrefixBlock = authMapBlocks.length > 0 ? `${authMapBlocks.join('\n\n')}\n\n` : '';
 
     const stubMaps = {
         checkToolAccess: checkToolAccessToolNames.length > 0,
-        prepareToolCall: prepareToolCallToolNames.length > 0
+        prepareToolCall: prepareToolCallToolNames.length > 0,
+        afterToolCall: afterToolCallToolNames.length > 0
     };
     const toolRuntimeBlock = `${authRuntimePrefixBlock}${buildInputZodBlock(orderedSchemas)}\n${createSharedInvokeBlock(
         querySerializationLiteral,
@@ -488,7 +508,7 @@ export async function renderToolsModule(input: RenderToolsModuleInput): Promise<
         headerParamWireNamesLiteral,
         invokeParamBucketsLiteral,
         authKind,
-        authPipelineTier,
+        invokePipelineTier,
         stubMaps,
         hasVerifyCredential
     )}`;

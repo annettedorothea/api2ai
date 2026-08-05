@@ -17,6 +17,7 @@ export type GeneratedTool = {
     access: 'public' | 'protected';
     hasCheckToolAccess: boolean;
     hasPrepareToolCall: boolean;
+    hasAfterToolCall: boolean;
 };
 
 export const generatedTools: GeneratedTool[] = [
@@ -24,78 +25,85 @@ export const generatedTools: GeneratedTool[] = [
         toolName: 'listSpaceflightArticles',
         title: 'List spaceflight articles (limit validated, teaser only; full text at response url)',
         description:
-            'Intent:\n- List recent spaceflight news articles (pagination: limit, offset, ordering).\n        - Query limit caps how many articles are returned (default 10, max 10).\n        - Response contains title, summary teaser, and url per item — not the full article body.\n        - Use search, has_launch, or news_site filters for SpaceX, launches, or specific outlets.\n        - Follow result url only when full text is needed (same pattern for blogs and reports tools).\n\nMCP arguments:\npass event, has_event, has_launch, is_featured, launch, limit, news_site, news_site_exclude, offset, ordering, published_at_gt, published_at_gte, published_at_lt, published_at_lte, search, summary_contains, summary_contains_all, summary_contains_one, title_contains, title_contains_all, title_contains_one, updated_at_gt, updated_at_gte, updated_at_lt, updated_at_lte as top-level tool arguments. Do not nest path or query parameters under pathParams or query.\n\nMeta:\ntags: articles | operationId: articles_list\n\nParameters:\n- event (query): Search for all documents related to a specific event using its Launch Library 2 ID. (type: array of integer)\n- has_event (query): Get all documents that have a related event. (type: boolean)\n- has_launch (query): Get all documents that have a related launch. (type: boolean)\n- is_featured (query): Get all documents that are featured. (type: boolean)\n- launch (query): Search for all documents related to a specific launch using its Launch Library 2 ID. (type: array of string)\n- limit (query): Number of results per page (default 10, max 10). (type: integer) (example: 10)\n- news_site (query): Search for documents with a news_site__name present in a list of comma-separated values. Case insensitive. (type: string)\n- news_site_exclude (query): Search for documents with a news_site__name not present in a list of comma-separated values. Case insensitive. (type: string)\n- offset (query): The initial index from which to return the results. (type: integer)\n- ordering (query): Order the result on `published_at, -published_at, updated_at, -updated_at`.\n\n* `published_at` - Published at\n* `-published_at` - Published at (descending)\n* `updated_at` - Updated at\n* `-updated_at` - Updated at (descending) (type: array of string)\n- published_at_gt (query): Get all documents published after a given ISO8601 timestamp (excluded). (type: string)\n- published_at_gte (query): Get all documents published after a given ISO8601 timestamp (included). (type: string)\n- published_at_lt (query): Get all documents published before a given ISO8601 timestamp (excluded). (type: string)\n- published_at_lte (query): Get all documents published before a given ISO8601 timestamp (included). (type: string)\n- search (query): Search for documents with a specific phrase in the title or summary. (type: string)\n- summary_contains (query): Search for all documents with a specific phrase in the summary. (type: string)\n- summary_contains_all (query): Search for documents with a summary containing all keywords from comma-separated values. (type: string)\n- summary_contains_one (query): Search for documents with a summary containing at least one keyword from comma-separated values. (type: string)\n- title_contains (query): Search for all documents with a specific phrase in the title. (type: string)\n- title_contains_all (query): Search for documents with a title containing all keywords from comma-separated values. (type: string)\n- title_contains_one (query): Search for documents with a title containing at least one keyword from comma-separated values. (type: string)\n- updated_at_gt (query): Get all documents updated after a given ISO8601 timestamp (excluded). (type: string)\n- updated_at_gte (query): Get all documents updated after a given ISO8601 timestamp (included). (type: string)\n- updated_at_lt (query): Get all documents updated before a given ISO8601 timestamp (excluded). (type: string)\n- updated_at_lte (query): Get all documents updated before a given ISO8601 timestamp (included). (type: string)\n\nExample:\nGet the latest 5 articles\n\nResponse:\nHTTP 200\nproperties (top-level): count, next, previous, results\n\nRuntime: implement prepareToolCallForListSpaceflightArticles in src/hooks/api2ai/spaceflight-news-tools/prepareToolCallForListSpaceflightArticles.ts (types from this tools module; run build:generated for .js).',
+            'Intent:\n- List recent spaceflight news articles (pagination: limit, offset, ordering).\n        - Query limit caps how many articles are returned (default 10, max 10).\n        - Response contains title, summary teaser, and url per item — not the full article body.\n        - Use search, has_launch, or news_site filters for SpaceX, launches, or specific outlets.\n        - Follow result url only when full text is needed (same pattern for blogs and reports tools).\n\nMCP arguments:\npass event, has_event, has_launch, is_featured, launch, limit, news_site, news_site_exclude, offset, ordering, published_at_gt, published_at_gte, published_at_lt, published_at_lte, search, summary_contains, summary_contains_all, summary_contains_one, title_contains, title_contains_all, title_contains_one, updated_at_gt, updated_at_gte, updated_at_lt, updated_at_lte as top-level tool arguments. Do not nest path or query parameters under pathParams or query.\n\nMeta:\ntags: articles | operationId: articles_list\n\nExample:\nGet the latest 5 articles\n\nResponse:\nHTTP 200\ncontent-type: application/json\nproperties (top-level): count, next, previous, results\n\nRuntime: implement prepareToolCallForListSpaceflightArticles in src/hooks/api2ai/spaceflight-news-tools/prepareToolCallForListSpaceflightArticles.ts (types from this tools module; run build:generated for .js).',
         method: 'GET',
         path: '/v4/articles/',
         access: 'public',
         hasCheckToolAccess: false,
-        hasPrepareToolCall: true
+        hasPrepareToolCall: true,
+        hasAfterToolCall: false
     },
     {
         toolName: 'getSpaceflightArticleById',
         title: 'Get article by ID (teaser only; full text at response url)',
         description:
-            'Intent:\nget one spaceflight article by id; API returns summary teaser only, full article text at url\n\nMCP arguments:\npass id as top-level tool arguments. Do not nest path or query parameters under pathParams or query.\n\nMeta:\ntags: articles | operationId: articles_retrieve\n\nParameters:\n- id (path): A unique integer value identifying this article. (type: integer)\n\nExample:\nGet article with id 1\n\nResponse:\nHTTP 200\nproperties (top-level): authors, events, featured, id, image_url, launches, news_site, published_at, summary, title, updated_at, url\n\nRuntime: public endpoint — no credential required.',
+            'Intent:\nget one spaceflight article by id; API returns summary teaser only, full article text at url\n\nMCP arguments:\npass id as top-level tool arguments. Do not nest path or query parameters under pathParams or query.\n\nMeta:\ntags: articles | operationId: articles_retrieve\n\nExample:\nGet article with id 1\n\nResponse:\nHTTP 200\ncontent-type: application/json\nproperties (top-level): authors, events, featured, id, image_url, launches, news_site, published_at, summary, title, updated_at, url\n\nRuntime: public endpoint — no credential required.',
         method: 'GET',
         path: '/v4/articles/{id}/',
         access: 'public',
         hasCheckToolAccess: false,
-        hasPrepareToolCall: false
+        hasPrepareToolCall: false,
+        hasAfterToolCall: false
     },
     {
         toolName: 'listSpaceflightBlogs',
         title: 'List spaceflight blog posts (limit validated, teaser only; full text at response url)',
         description:
-            'Intent:\n- List recent spaceflight blog posts (pagination: limit, offset, ordering).\n        - Query limit caps how many blog posts are returned (default 10, max 10).\n        - Response contains title, summary teaser, and url per item — not the full post body.\n        - Use search, has_launch, or news_site filters for SpaceX, launches, or specific outlets.\n        - Follow result url only when full text is needed (same pattern for articles and reports tools).\n\nMCP arguments:\npass event, has_event, has_launch, is_featured, launch, limit, news_site, news_site_exclude, offset, ordering, published_at_gt, published_at_gte, published_at_lt, published_at_lte, search, summary_contains, summary_contains_all, summary_contains_one, title_contains, title_contains_all, title_contains_one, updated_at_gt, updated_at_gte, updated_at_lt, updated_at_lte as top-level tool arguments. Do not nest path or query parameters under pathParams or query.\n\nMeta:\ntags: blogs | operationId: blogs_list\n\nParameters:\n- event (query): Search for all documents related to a specific event using its Launch Library 2 ID. (type: array of integer)\n- has_event (query): Get all documents that have a related event. (type: boolean)\n- has_launch (query): Get all documents that have a related launch. (type: boolean)\n- is_featured (query): Get all documents that are featured. (type: boolean)\n- launch (query): Search for all documents related to a specific launch using its Launch Library 2 ID. (type: array of string)\n- limit (query): Number of results per page (default 10, max 10). (type: integer) (example: 10)\n- news_site (query): Search for documents with a news_site__name present in a list of comma-separated values. Case insensitive. (type: string)\n- news_site_exclude (query): Search for documents with a news_site__name not present in a list of comma-separated values. Case insensitive. (type: string)\n- offset (query): The initial index from which to return the results. (type: integer)\n- ordering (query): Order the result on `published_at, -published_at, updated_at, -updated_at`.\n\n* `published_at` - Published at\n* `-published_at` - Published at (descending)\n* `updated_at` - Updated at\n* `-updated_at` - Updated at (descending) (type: array of string)\n- published_at_gt (query): Get all documents published after a given ISO8601 timestamp (excluded). (type: string)\n- published_at_gte (query): Get all documents published after a given ISO8601 timestamp (included). (type: string)\n- published_at_lt (query): Get all documents published before a given ISO8601 timestamp (excluded). (type: string)\n- published_at_lte (query): Get all documents published before a given ISO8601 timestamp (included). (type: string)\n- search (query): Search for documents with a specific phrase in the title or summary. (type: string)\n- summary_contains (query): Search for all documents with a specific phrase in the summary. (type: string)\n- summary_contains_all (query): Search for documents with a summary containing all keywords from comma-separated values. (type: string)\n- summary_contains_one (query): Search for documents with a summary containing at least one keyword from comma-separated values. (type: string)\n- title_contains (query): Search for all documents with a specific phrase in the title. (type: string)\n- title_contains_all (query): Search for documents with a title containing all keywords from comma-separated values. (type: string)\n- title_contains_one (query): Search for documents with a title containing at least one keyword from comma-separated values. (type: string)\n- updated_at_gt (query): Get all documents updated after a given ISO8601 timestamp (excluded). (type: string)\n- updated_at_gte (query): Get all documents updated after a given ISO8601 timestamp (included). (type: string)\n- updated_at_lt (query): Get all documents updated before a given ISO8601 timestamp (excluded). (type: string)\n- updated_at_lte (query): Get all documents updated before a given ISO8601 timestamp (included). (type: string)\n\nExample:\nGet the latest 5 blog posts\n\nResponse:\nHTTP 200\nproperties (top-level): count, next, previous, results\n\nRuntime: implement prepareToolCallForListSpaceflightBlogs in src/hooks/api2ai/spaceflight-news-tools/prepareToolCallForListSpaceflightBlogs.ts (types from this tools module; run build:generated for .js).',
+            'Intent:\n- List recent spaceflight blog posts (pagination: limit, offset, ordering).\n        - Query limit caps how many blog posts are returned (default 10, max 10).\n        - Response contains title, summary teaser, and url per item — not the full post body.\n        - Use search, has_launch, or news_site filters for SpaceX, launches, or specific outlets.\n        - Follow result url only when full text is needed (same pattern for articles and reports tools).\n\nMCP arguments:\npass event, has_event, has_launch, is_featured, launch, limit, news_site, news_site_exclude, offset, ordering, published_at_gt, published_at_gte, published_at_lt, published_at_lte, search, summary_contains, summary_contains_all, summary_contains_one, title_contains, title_contains_all, title_contains_one, updated_at_gt, updated_at_gte, updated_at_lt, updated_at_lte as top-level tool arguments. Do not nest path or query parameters under pathParams or query.\n\nMeta:\ntags: blogs | operationId: blogs_list\n\nExample:\nGet the latest 5 blog posts\n\nResponse:\nHTTP 200\ncontent-type: application/json\nproperties (top-level): count, next, previous, results\n\nRuntime: implement prepareToolCallForListSpaceflightBlogs in src/hooks/api2ai/spaceflight-news-tools/prepareToolCallForListSpaceflightBlogs.ts (types from this tools module; run build:generated for .js).',
         method: 'GET',
         path: '/v4/blogs/',
         access: 'public',
         hasCheckToolAccess: false,
-        hasPrepareToolCall: true
+        hasPrepareToolCall: true,
+        hasAfterToolCall: false
     },
     {
         toolName: 'getSpaceflightBlogById',
         title: 'Get blog post by ID (teaser only; full text at response url)',
         description:
-            'Intent:\nget one spaceflight blog post by id; API returns summary teaser only, full post text at url\n\nMCP arguments:\npass id as top-level tool arguments. Do not nest path or query parameters under pathParams or query.\n\nMeta:\ntags: blogs | operationId: blogs_retrieve\n\nParameters:\n- id (path): A unique integer value identifying this blog. (type: integer)\n\nExample:\nGet blog post with id 1\n\nResponse:\nHTTP 200\nproperties (top-level): authors, events, featured, id, image_url, launches, news_site, published_at, summary, title, updated_at, url\n\nRuntime: public endpoint — no credential required.',
+            'Intent:\nget one spaceflight blog post by id; API returns summary teaser only, full post text at url\n\nMCP arguments:\npass id as top-level tool arguments. Do not nest path or query parameters under pathParams or query.\n\nMeta:\ntags: blogs | operationId: blogs_retrieve\n\nExample:\nGet blog post with id 1\n\nResponse:\nHTTP 200\ncontent-type: application/json\nproperties (top-level): authors, events, featured, id, image_url, launches, news_site, published_at, summary, title, updated_at, url\n\nRuntime: public endpoint — no credential required.',
         method: 'GET',
         path: '/v4/blogs/{id}/',
         access: 'public',
         hasCheckToolAccess: false,
-        hasPrepareToolCall: false
+        hasPrepareToolCall: false,
+        hasAfterToolCall: false
     },
     {
         toolName: 'listSpaceflightReports',
         title: 'List spaceflight reports (limit validated, teaser only; full text at response url)',
         description:
-            'Intent:\n- List recent spaceflight reports (pagination: limit, offset, ordering).\n        - Query limit caps how many reports are returned (default 10, max 10).\n        - Response contains title, summary teaser, and url per item — not the full report body.\n        - Use search or news_site filters for specific outlets or topics.\n        - Follow result url only when full text is needed (same pattern for articles and blogs tools).\n\nMCP arguments:\npass limit, news_site, news_site_exclude, offset, ordering, published_at_gt, published_at_gte, published_at_lt, published_at_lte, search, summary_contains, summary_contains_all, summary_contains_one, title_contains, title_contains_all, title_contains_one, updated_at_gt, updated_at_gte, updated_at_lt, updated_at_lte as top-level tool arguments. Do not nest path or query parameters under pathParams or query.\n\nMeta:\ntags: reports | operationId: reports_list\n\nParameters:\n- limit (query): Number of results per page (default 10, max 10). (type: integer) (example: 10)\n- news_site (query): Search for documents with a news_site__name present in a list of comma-separated values. Case insensitive. (type: string)\n- news_site_exclude (query): Search for documents with a news_site__name not present in a list of comma-separated values. Case insensitive. (type: string)\n- offset (query): The initial index from which to return the results. (type: integer)\n- ordering (query): Order the result on `published_at, -published_at, updated_at, -updated_at`.\n\n* `published_at` - Published at\n* `-published_at` - Published at (descending)\n* `updated_at` - Updated at\n* `-updated_at` - Updated at (descending) (type: array of string)\n- published_at_gt (query): Get all documents published after a given ISO8601 timestamp (excluded). (type: string)\n- published_at_gte (query): Get all documents published after a given ISO8601 timestamp (included). (type: string)\n- published_at_lt (query): Get all documents published before a given ISO8601 timestamp (excluded). (type: string)\n- published_at_lte (query): Get all documents published before a given ISO8601 timestamp (included). (type: string)\n- search (query): Search for documents with a specific phrase in the title or summary. (type: string)\n- summary_contains (query): Search for all documents with a specific phrase in the summary. (type: string)\n- summary_contains_all (query): Search for documents with a summary containing all keywords from comma-separated values. (type: string)\n- summary_contains_one (query): Search for documents with a summary containing at least one keyword from comma-separated values. (type: string)\n- title_contains (query): Search for all documents with a specific phrase in the title. (type: string)\n- title_contains_all (query): Search for documents with a title containing all keywords from comma-separated values. (type: string)\n- title_contains_one (query): Search for documents with a title containing at least one keyword from comma-separated values. (type: string)\n- updated_at_gt (query): Get all documents updated after a given ISO8601 timestamp (excluded). (type: string)\n- updated_at_gte (query): Get all documents updated after a given ISO8601 timestamp (included). (type: string)\n- updated_at_lt (query): Get all documents updated before a given ISO8601 timestamp (excluded). (type: string)\n- updated_at_lte (query): Get all documents updated before a given ISO8601 timestamp (included). (type: string)\n\nExample:\nGet the latest 5 reports\n\nResponse:\nHTTP 200\nproperties (top-level): count, next, previous, results\n\nRuntime: implement prepareToolCallForListSpaceflightReports in src/hooks/api2ai/spaceflight-news-tools/prepareToolCallForListSpaceflightReports.ts (types from this tools module; run build:generated for .js).',
+            'Intent:\n- List recent spaceflight reports (pagination: limit, offset, ordering).\n        - Query limit caps how many reports are returned (default 10, max 10).\n        - Response contains title, summary teaser, and url per item — not the full report body.\n        - Use search or news_site filters for specific outlets or topics.\n        - Follow result url only when full text is needed (same pattern for articles and blogs tools).\n\nMCP arguments:\npass limit, news_site, news_site_exclude, offset, ordering, published_at_gt, published_at_gte, published_at_lt, published_at_lte, search, summary_contains, summary_contains_all, summary_contains_one, title_contains, title_contains_all, title_contains_one, updated_at_gt, updated_at_gte, updated_at_lt, updated_at_lte as top-level tool arguments. Do not nest path or query parameters under pathParams or query.\n\nMeta:\ntags: reports | operationId: reports_list\n\nExample:\nGet the latest 5 reports\n\nResponse:\nHTTP 200\ncontent-type: application/json\nproperties (top-level): count, next, previous, results\n\nRuntime: implement prepareToolCallForListSpaceflightReports in src/hooks/api2ai/spaceflight-news-tools/prepareToolCallForListSpaceflightReports.ts (types from this tools module; run build:generated for .js).',
         method: 'GET',
         path: '/v4/reports/',
         access: 'public',
         hasCheckToolAccess: false,
-        hasPrepareToolCall: true
+        hasPrepareToolCall: true,
+        hasAfterToolCall: false
     },
     {
         toolName: 'getSpaceflightReportById',
         title: 'Get report by ID (teaser only; full text at response url)',
         description:
-            'Intent:\nget one spaceflight report by id; API returns summary teaser only, full report text at url\n\nMCP arguments:\npass id as top-level tool arguments. Do not nest path or query parameters under pathParams or query.\n\nMeta:\ntags: reports | operationId: reports_retrieve\n\nParameters:\n- id (path): A unique integer value identifying this report. (type: integer)\n\nExample:\nGet report with id 1\n\nResponse:\nHTTP 200\nproperties (top-level): authors, id, image_url, news_site, published_at, summary, title, updated_at, url\n\nRuntime: public endpoint — no credential required.',
+            'Intent:\nget one spaceflight report by id; API returns summary teaser only, full report text at url\n\nMCP arguments:\npass id as top-level tool arguments. Do not nest path or query parameters under pathParams or query.\n\nMeta:\ntags: reports | operationId: reports_retrieve\n\nExample:\nGet report with id 1\n\nResponse:\nHTTP 200\ncontent-type: application/json\nproperties (top-level): authors, id, image_url, news_site, published_at, summary, title, updated_at, url\n\nRuntime: public endpoint — no credential required.',
         method: 'GET',
         path: '/v4/reports/{id}/',
         access: 'public',
         hasCheckToolAccess: false,
-        hasPrepareToolCall: false
+        hasPrepareToolCall: false,
+        hasAfterToolCall: false
     },
     {
         toolName: 'getSpaceflightInfo',
         title: 'Spaceflight News API metadata',
         description:
-            'Intent:\nretrieve spaceflight API metadata and news sites\n\nMeta:\ntags: info | operationId: info_retrieve\n\nExample:\nShow API info and available news sites\n\nResponse:\nHTTP 200\nproperties (top-level): news_sites, version\n\nRuntime: public endpoint — no credential required.',
+            'Intent:\nretrieve spaceflight API metadata and news sites\n\nMeta:\ntags: info | operationId: info_retrieve\n\nExample:\nShow API info and available news sites\n\nResponse:\nHTTP 200\ncontent-type: application/json\nproperties (top-level): news_sites, version\n\nRuntime: public endpoint — no credential required.',
         method: 'GET',
         path: '/v4/info/',
         access: 'public',
         hasCheckToolAccess: false,
-        hasPrepareToolCall: false
+        hasPrepareToolCall: false,
+        hasAfterToolCall: false
     }
 ];
 
@@ -115,7 +123,7 @@ export type ApiHostContext = {
 export const requiresAuth = false;
 
 export const mcpServerName = 'spaceflight-news-tools';
-export const mcpServerVersion = '1.0.4';
+export const mcpServerVersion = '1.1.0';
 
 export { mcpBuildGeneratedAt } from '../mcp-build-generated-at.js';
 
@@ -1238,6 +1246,139 @@ async function performToolHttpRequest(
         req.end();
     });
 }
+const HTTP_SUCCESS_BODY_MAX_BYTES_DEFAULT = 5242880;
+
+function resolveHttpSuccessBodyMaxBytes(): number {
+    const raw = process.env.TOOLFACTORY_HTTP_BODY_MAX_BYTES;
+    if (raw === undefined || raw.trim().length === 0) {
+        return HTTP_SUCCESS_BODY_MAX_BYTES_DEFAULT;
+    }
+    const parsed = Number(raw.trim());
+    if (!Number.isFinite(parsed) || parsed <= 0 || !Number.isInteger(parsed)) {
+        return HTTP_SUCCESS_BODY_MAX_BYTES_DEFAULT;
+    }
+    return parsed;
+}
+
+function parseMimeType(contentTypeHeader: string): string {
+    const raw = contentTypeHeader.split(';')[0]?.trim().toLowerCase() ?? '';
+    return raw;
+}
+
+function isJsonMimeType(mime: string): boolean {
+    return mime === 'application/json' || mime.endsWith('+json');
+}
+
+function isTextualMimeType(mime: string): boolean {
+    if (!mime) {
+        return false;
+    }
+    if (mime.startsWith('text/')) {
+        return true;
+    }
+    return (
+        mime === 'application/xml' ||
+        mime === 'application/javascript' ||
+        mime === 'application/xhtml+xml' ||
+        mime === 'application/x-www-form-urlencoded'
+    );
+}
+
+function parseFilenameFromContentDisposition(header: string | null): string | undefined {
+    if (!header) {
+        return undefined;
+    }
+    const star = /filename\*=(?:UTF-8''|utf-8'')([^;]+)/i.exec(header);
+    if (star?.[1]) {
+        try {
+            return decodeURIComponent(star[1].trim().replace(/^["']|["']$/g, ''));
+        } catch {
+            return star[1].trim().replace(/^["']|["']$/g, '');
+        }
+    }
+    const plain = /filename=(["']?)([^"';]+)\1/i.exec(header);
+    if (plain?.[2]) {
+        return plain[2].trim();
+    }
+    return undefined;
+}
+
+function assertBodyWithinLimit(byteLength: number, toolLabel: string, maxBytes: number): void {
+    if (byteLength > maxBytes) {
+        throw new Error(
+            'HTTP response body for ' +
+                toolLabel +
+                ' is ' +
+                byteLength +
+                ' bytes; maximum allowed is ' +
+                maxBytes +
+                ' bytes.'
+        );
+    }
+}
+
+async function decodeHttpSuccessResponse(response: Response, method: string, toolLabel: string): Promise<unknown> {
+    const maxBytes = resolveHttpSuccessBodyMaxBytes();
+    const contentLengthHeader = response.headers.get('content-length');
+    if (contentLengthHeader) {
+        const declared = Number(contentLengthHeader);
+        if (Number.isFinite(declared) && declared > maxBytes) {
+            assertBodyWithinLimit(declared, toolLabel, maxBytes);
+        }
+    }
+
+    if (response.status === 204 || method === 'HEAD') {
+        return { kind: 'empty', status: response.status };
+    }
+    if (contentLengthHeader === '0') {
+        return { kind: 'empty', status: response.status };
+    }
+
+    const mime = parseMimeType(response.headers.get('content-type') ?? '');
+
+    if (isJsonMimeType(mime)) {
+        const text = await response.text();
+        assertBodyWithinLimit(Buffer.byteLength(text, 'utf8'), toolLabel, maxBytes);
+        if (text.trim().length === 0) {
+            return { kind: 'empty', status: response.status };
+        }
+        return JSON.parse(text) as unknown;
+    }
+
+    if (isTextualMimeType(mime)) {
+        const text = await response.text();
+        assertBodyWithinLimit(Buffer.byteLength(text, 'utf8'), toolLabel, maxBytes);
+        if (text.trim().length === 0) {
+            return { kind: 'empty', status: response.status };
+        }
+        return text;
+    }
+
+    const buffer = Buffer.from(await response.arrayBuffer());
+    assertBodyWithinLimit(buffer.byteLength, toolLabel, maxBytes);
+    if (buffer.byteLength === 0) {
+        return { kind: 'empty', status: response.status };
+    }
+    const filename = parseFilenameFromContentDisposition(response.headers.get('content-disposition'));
+    const envelope: {
+        kind: 'binary';
+        encoding: 'base64';
+        contentType: string;
+        byteLength: number;
+        data: string;
+        filename?: string;
+    } = {
+        kind: 'binary',
+        encoding: 'base64',
+        contentType: mime || 'application/octet-stream',
+        byteLength: buffer.byteLength,
+        data: buffer.toString('base64')
+    };
+    if (filename) {
+        envelope.filename = filename;
+    }
+    return envelope;
+}
 
 export async function invokeTool(
     toolName: string,
@@ -1351,9 +1492,5 @@ export async function invokeTool(
         throw new Error(msg);
     }
 
-    const contentType = response.headers.get('content-type') ?? '';
-    if (contentType.includes('application/json')) {
-        return response.json();
-    }
-    return response.text();
+    return decodeHttpSuccessResponse(response, tool.method, tool.toolName);
 }

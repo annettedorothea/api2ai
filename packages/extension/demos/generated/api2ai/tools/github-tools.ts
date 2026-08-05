@@ -15,6 +15,7 @@ export type GeneratedTool = {
     access: 'public' | 'protected';
     hasCheckToolAccess: boolean;
     hasPrepareToolCall: boolean;
+    hasAfterToolCall: boolean;
 };
 
 export const generatedTools: GeneratedTool[] = [
@@ -22,34 +23,37 @@ export const generatedTools: GeneratedTool[] = [
         toolName: 'getGitHubAuthenticatedUser',
         title: 'Get the authenticated user',
         description:
-            'Intent:\nreturn the GitHub user profile for the authenticated PAT; use to confirm which account the token represents before calling repo-scoped tools\n\nAPI:\nRequires a user PAT with at least read:user (classic) or equivalent fine-grained scope.\n\nMeta:\noperationId: get-authenticated-user\n\nExample:\nNo path or query parameters\n\nResponse:\nHTTP 200\nOK\ntype: object (no inlined properties)\nDocumented errors:\nHTTP 401 — Unauthorized\nHTTP 403 — Forbidden (rate limit or insufficient token scope)\n\nRuntime: protected — implement src/hooks/api2ai/github-tools/verifyGithubCredential.ts; credential sent as header "Authorization" (prefix applied to the secret).',
+            'Intent:\nreturn the GitHub user profile for the authenticated PAT; use to confirm which account the token represents before calling repo-scoped tools\n\nAPI:\nRequires a user PAT with at least read:user (classic) or equivalent fine-grained scope.\n\nMeta:\noperationId: get-authenticated-user\n\nExample:\nNo path or query parameters\n\nResponse:\nHTTP 200\nOK\ncontent-type: application/json\ntype: object (no inlined properties)\nDocumented errors:\nHTTP 401 — Unauthorized\nHTTP 403 — Forbidden (rate limit or insufficient token scope)\n\nRuntime: protected — implement src/hooks/api2ai/github-tools/verifyGithubCredential.ts; credential sent as header "Authorization" (prefix applied to the secret).',
         method: 'GET',
         path: '/user',
         access: 'protected',
         hasCheckToolAccess: false,
-        hasPrepareToolCall: false
+        hasPrepareToolCall: false,
+        hasAfterToolCall: false
     },
     {
         toolName: 'listGitHubUserRepos',
         title: 'List repositories for the authenticated user',
         description:
-            'Intent:\n- List repositories the authenticated PAT can access (pagination via query page, per_page).\n        - Use to discover owner/repo names before getGitHubRepository.\n        - Helpful when GET /repos/{owner}/{repo} returns 404 (wrong owner, private repo, or missing scope).\n        - Requires a PAT with repo read access; token comes from MCP host --auth-env.\n\nMCP arguments:\npass type, per_page, page as top-level tool arguments. Do not nest path or query parameters under pathParams or query.\n\nAPI:\nLists repositories the authenticated user has **direct** access to (your own repos, collaborations, org repos the token can see).\n\n**Classic PAT:** use scope `repo` if you need private repositories; without it, private repos may be omitted or single-repo `GET /repos/{owner}/{repo}` can return **404** (GitHub hides existence of private repos you cannot read).\n\n**Fine-grained PAT:** grant **Repository permissions** (e.g. Metadata read) on each repository or via organization/team rules; missing scope often surfaces as **404** on `GET /repos/{owner}/{repo}`, not 403.\n\nPrefer this endpoint to discover `owner`/`repo` names before calling `GET /repos/{owner}/{repo}`.\n\nMeta:\noperationId: list-repositories-for-the-authenticated-user\n\nParameters:\n- page (query): Page number of results. (type: integer)\n- per_page (query): Results per page (max 100). (type: integer)\n- type (query): `all` (default), `owner` (repos owned by user), or `member` (repos user is member of but does not own). (type: string)\n\nExample:\nFirst page, 10 per page: query per_page=10 page=1\n\nResponse:\nHTTP 200\nOK — array of repository objects\ntype: array of object\nDocumented errors:\nHTTP 401 — Unauthorized\nHTTP 403 — Forbidden (rate limit or insufficient token)\n\nRuntime: protected — implement src/hooks/api2ai/github-tools/verifyGithubCredential.ts; credential sent as header "Authorization" (prefix applied to the secret).',
+            'Intent:\n- List repositories the authenticated PAT can access (pagination via query page, per_page).\n        - Use to discover owner/repo names before getGitHubRepository.\n        - Helpful when GET /repos/{owner}/{repo} returns 404 (wrong owner, private repo, or missing scope).\n        - Requires a PAT with repo read access; token comes from MCP host --auth-env.\n\nMCP arguments:\npass type, per_page, page as top-level tool arguments. Do not nest path or query parameters under pathParams or query.\n\nAPI:\nLists repositories the authenticated user has **direct** access to (your own repos, collaborations, org repos the token can see).\n\n**Classic PAT:** use scope `repo` if you need private repositories; without it, private repos may be omitted or single-repo `GET /repos/{owner}/{repo}` can return **404** (GitHub hides existence of private repos you cannot read).\n\n**Fine-grained PAT:** grant **Repository permissions** (e.g. Metadata read) on each repository or via organization/team rules; missing scope often surfaces as **404** on `GET /repos/{owner}/{repo}`, not 403.\n\nPrefer this endpoint to discover `owner`/`repo` names before calling `GET /repos/{owner}/{repo}`.\n\nMeta:\noperationId: list-repositories-for-the-authenticated-user\n\nExample:\nFirst page, 10 per page: query per_page=10 page=1\n\nResponse:\nHTTP 200\nOK — array of repository objects\ncontent-type: application/json\ntype: array of object\nDocumented errors:\nHTTP 401 — Unauthorized\nHTTP 403 — Forbidden (rate limit or insufficient token)\n\nRuntime: protected — implement src/hooks/api2ai/github-tools/verifyGithubCredential.ts; credential sent as header "Authorization" (prefix applied to the secret).',
         method: 'GET',
         path: '/user/repos',
         access: 'protected',
         hasCheckToolAccess: false,
-        hasPrepareToolCall: false
+        hasPrepareToolCall: false,
+        hasAfterToolCall: false
     },
     {
         toolName: 'getGitHubRepository',
         title: 'Get a repository',
         description:
-            'Intent:\nfetch GitHub repository metadata when the PAT can read the repo\n\nMCP arguments:\npass owner, repo as top-level tool arguments. Do not nest path or query parameters under pathParams or query.\n\nAPI:\nReturns metadata for one repository.\n\n**404 on private repos:** GitHub often returns **404 Not Found** (not 403) when the repo is private and the token **cannot** read it, or when `owner`/`repo` is wrong — this avoids leaking whether a private repo exists.\n\nIf you are sure the PAT should have access: verify the token in the MCP host (`--auth-env` / `GITHUB_TOKEN`), PAT type (classic `repo` vs fine-grained repo access), exact `owner`/`repo` spelling, and try `GET /user/repos` to confirm the repo appears in the list for this token.\n\nMeta:\noperationId: get-a-repository\n\nParameters:\n- owner (path): (type: string)\n- repo (path): (type: string)\n\nExample:\nGet public repo octocat/Hello-World\n\nResponse:\nHTTP 200\nOK\ntype: object (no inlined properties)\nDocumented errors:\nHTTP 404 — Not Found (e.g. private repo or no access)\n\nRuntime: protected — implement src/hooks/api2ai/github-tools/verifyGithubCredential.ts; credential sent as header "Authorization" (prefix applied to the secret).',
+            'Intent:\nfetch GitHub repository metadata when the PAT can read the repo\n\nMCP arguments:\npass owner, repo as top-level tool arguments. Do not nest path or query parameters under pathParams or query.\n\nAPI:\nReturns metadata for one repository.\n\n**404 on private repos:** GitHub often returns **404 Not Found** (not 403) when the repo is private and the token **cannot** read it, or when `owner`/`repo` is wrong — this avoids leaking whether a private repo exists.\n\nIf you are sure the PAT should have access: verify the token in the MCP host (`--auth-env` / `GITHUB_TOKEN`), PAT type (classic `repo` vs fine-grained repo access), exact `owner`/`repo` spelling, and try `GET /user/repos` to confirm the repo appears in the list for this token.\n\nMeta:\noperationId: get-a-repository\n\nExample:\nGet public repo octocat/Hello-World\n\nResponse:\nHTTP 200\nOK\ncontent-type: application/json\ntype: object (no inlined properties)\nDocumented errors:\nHTTP 404 — Not Found (e.g. private repo or no access)\n\nRuntime: protected — implement src/hooks/api2ai/github-tools/verifyGithubCredential.ts; credential sent as header "Authorization" (prefix applied to the secret).',
         method: 'GET',
         path: '/repos/{owner}/{repo}',
         access: 'protected',
         hasCheckToolAccess: false,
-        hasPrepareToolCall: false
+        hasPrepareToolCall: false,
+        hasAfterToolCall: false
     }
 ];
 
@@ -82,7 +86,7 @@ export const authConfig: AuthConfig | undefined = {
 export { verifyCredential } from '../../../src/hooks/api2ai/github-tools/verifyGithubCredential.js';
 
 export const mcpServerName = 'github-tools';
-export const mcpServerVersion = '1.0.4';
+export const mcpServerVersion = '1.1.0';
 
 export { mcpBuildGeneratedAt } from '../mcp-build-generated-at.js';
 
@@ -437,6 +441,139 @@ async function performToolHttpRequest(
         req.end();
     });
 }
+const HTTP_SUCCESS_BODY_MAX_BYTES_DEFAULT = 5242880;
+
+function resolveHttpSuccessBodyMaxBytes(): number {
+    const raw = process.env.TOOLFACTORY_HTTP_BODY_MAX_BYTES;
+    if (raw === undefined || raw.trim().length === 0) {
+        return HTTP_SUCCESS_BODY_MAX_BYTES_DEFAULT;
+    }
+    const parsed = Number(raw.trim());
+    if (!Number.isFinite(parsed) || parsed <= 0 || !Number.isInteger(parsed)) {
+        return HTTP_SUCCESS_BODY_MAX_BYTES_DEFAULT;
+    }
+    return parsed;
+}
+
+function parseMimeType(contentTypeHeader: string): string {
+    const raw = contentTypeHeader.split(';')[0]?.trim().toLowerCase() ?? '';
+    return raw;
+}
+
+function isJsonMimeType(mime: string): boolean {
+    return mime === 'application/json' || mime.endsWith('+json');
+}
+
+function isTextualMimeType(mime: string): boolean {
+    if (!mime) {
+        return false;
+    }
+    if (mime.startsWith('text/')) {
+        return true;
+    }
+    return (
+        mime === 'application/xml' ||
+        mime === 'application/javascript' ||
+        mime === 'application/xhtml+xml' ||
+        mime === 'application/x-www-form-urlencoded'
+    );
+}
+
+function parseFilenameFromContentDisposition(header: string | null): string | undefined {
+    if (!header) {
+        return undefined;
+    }
+    const star = /filename\*=(?:UTF-8''|utf-8'')([^;]+)/i.exec(header);
+    if (star?.[1]) {
+        try {
+            return decodeURIComponent(star[1].trim().replace(/^["']|["']$/g, ''));
+        } catch {
+            return star[1].trim().replace(/^["']|["']$/g, '');
+        }
+    }
+    const plain = /filename=(["']?)([^"';]+)\1/i.exec(header);
+    if (plain?.[2]) {
+        return plain[2].trim();
+    }
+    return undefined;
+}
+
+function assertBodyWithinLimit(byteLength: number, toolLabel: string, maxBytes: number): void {
+    if (byteLength > maxBytes) {
+        throw new Error(
+            'HTTP response body for ' +
+                toolLabel +
+                ' is ' +
+                byteLength +
+                ' bytes; maximum allowed is ' +
+                maxBytes +
+                ' bytes.'
+        );
+    }
+}
+
+async function decodeHttpSuccessResponse(response: Response, method: string, toolLabel: string): Promise<unknown> {
+    const maxBytes = resolveHttpSuccessBodyMaxBytes();
+    const contentLengthHeader = response.headers.get('content-length');
+    if (contentLengthHeader) {
+        const declared = Number(contentLengthHeader);
+        if (Number.isFinite(declared) && declared > maxBytes) {
+            assertBodyWithinLimit(declared, toolLabel, maxBytes);
+        }
+    }
+
+    if (response.status === 204 || method === 'HEAD') {
+        return { kind: 'empty', status: response.status };
+    }
+    if (contentLengthHeader === '0') {
+        return { kind: 'empty', status: response.status };
+    }
+
+    const mime = parseMimeType(response.headers.get('content-type') ?? '');
+
+    if (isJsonMimeType(mime)) {
+        const text = await response.text();
+        assertBodyWithinLimit(Buffer.byteLength(text, 'utf8'), toolLabel, maxBytes);
+        if (text.trim().length === 0) {
+            return { kind: 'empty', status: response.status };
+        }
+        return JSON.parse(text) as unknown;
+    }
+
+    if (isTextualMimeType(mime)) {
+        const text = await response.text();
+        assertBodyWithinLimit(Buffer.byteLength(text, 'utf8'), toolLabel, maxBytes);
+        if (text.trim().length === 0) {
+            return { kind: 'empty', status: response.status };
+        }
+        return text;
+    }
+
+    const buffer = Buffer.from(await response.arrayBuffer());
+    assertBodyWithinLimit(buffer.byteLength, toolLabel, maxBytes);
+    if (buffer.byteLength === 0) {
+        return { kind: 'empty', status: response.status };
+    }
+    const filename = parseFilenameFromContentDisposition(response.headers.get('content-disposition'));
+    const envelope: {
+        kind: 'binary';
+        encoding: 'base64';
+        contentType: string;
+        byteLength: number;
+        data: string;
+        filename?: string;
+    } = {
+        kind: 'binary',
+        encoding: 'base64',
+        contentType: mime || 'application/octet-stream',
+        byteLength: buffer.byteLength,
+        data: buffer.toString('base64')
+    };
+    if (filename) {
+        envelope.filename = filename;
+    }
+    return envelope;
+}
 
 export async function invokeTool(
     toolName: string,
@@ -546,9 +683,5 @@ export async function invokeTool(
         throw new Error(msg);
     }
 
-    const contentType = response.headers.get('content-type') ?? '';
-    if (contentType.includes('application/json')) {
-        return response.json();
-    }
-    return response.text();
+    return decodeHttpSuccessResponse(response, tool.method, tool.toolName);
 }

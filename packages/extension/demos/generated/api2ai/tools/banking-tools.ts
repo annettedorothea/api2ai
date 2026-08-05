@@ -18,6 +18,7 @@ export type GeneratedTool = {
     access: 'public' | 'protected';
     hasCheckToolAccess: boolean;
     hasPrepareToolCall: boolean;
+    hasAfterToolCall: boolean;
 };
 
 export const generatedTools: GeneratedTool[] = [
@@ -30,18 +31,20 @@ export const generatedTools: GeneratedTool[] = [
         path: '/accounts',
         access: 'protected',
         hasCheckToolAccess: true,
-        hasPrepareToolCall: false
+        hasPrepareToolCall: false,
+        hasAfterToolCall: false
     },
     {
         toolName: 'getAccountBalance',
         title: 'Get account balance',
         description:
-            'Intent:\nFetch balance for one account by accountId (from listMyAccounts).\n        Users may only read their own accounts; admin may read any account.\n\nMCP arguments:\npass accountId as top-level tool arguments. Do not nest path or query parameters under pathParams or query.\n\nMeta:\noperationId: get-account-balance\n\nParameters:\n- accountId (path): (type: string)\n\nExample:\nBalance for acc-alice-checking\n\nResponse:\nHTTP 200 — accountId, balance, currency.\n        Documented errors:\n        HTTP 401 — Missing or invalid portal token\n        HTTP 403 — Account not accessible\n        HTTP 404 — Unknown account\n\nRuntime: protected — implement checkToolAccessForGetAccountBalance in src/hooks/api2ai/banking-tools/checkToolAccessForGetAccountBalance.ts; credential sent as header "Authorization" (prefix applied to the secret).',
+            'Intent:\nFetch balance for one account by accountId (from listMyAccounts).\n        Users may only read their own accounts; admin may read any account.\n\nMCP arguments:\npass accountId as top-level tool arguments. Do not nest path or query parameters under pathParams or query.\n\nMeta:\noperationId: get-account-balance\n\nExample:\nBalance for acc-alice-checking\n\nResponse:\nHTTP 200 — accountId, balance, currency.\n        Documented errors:\n        HTTP 401 — Missing or invalid portal token\n        HTTP 403 — Account not accessible\n        HTTP 404 — Unknown account\n\nRuntime: protected — implement checkToolAccessForGetAccountBalance in src/hooks/api2ai/banking-tools/checkToolAccessForGetAccountBalance.ts; credential sent as header "Authorization" (prefix applied to the secret).',
         method: 'GET',
         path: '/accounts/{accountId}/balance',
         access: 'protected',
         hasCheckToolAccess: true,
-        hasPrepareToolCall: false
+        hasPrepareToolCall: false,
+        hasAfterToolCall: false
     },
     {
         toolName: 'listAllAccounts',
@@ -52,7 +55,8 @@ export const generatedTools: GeneratedTool[] = [
         path: '/accounts/all',
         access: 'protected',
         hasCheckToolAccess: true,
-        hasPrepareToolCall: false
+        hasPrepareToolCall: false,
+        hasAfterToolCall: false
     }
 ];
 
@@ -87,7 +91,7 @@ export { verifyCredential } from '../../../src/hooks/api2ai/banking-tools/verify
 export { tokenExchange } from '../../../src/hooks/api2ai/banking-tools/tokenExchangeBankingCredential.js';
 
 export const mcpServerName = 'banking-tools';
-export const mcpServerVersion = '1.0.4';
+export const mcpServerVersion = '1.1.0';
 
 export { mcpBuildGeneratedAt } from '../mcp-build-generated-at.js';
 
@@ -426,6 +430,139 @@ async function performToolHttpRequest(
         req.end();
     });
 }
+const HTTP_SUCCESS_BODY_MAX_BYTES_DEFAULT = 5242880;
+
+function resolveHttpSuccessBodyMaxBytes(): number {
+    const raw = process.env.TOOLFACTORY_HTTP_BODY_MAX_BYTES;
+    if (raw === undefined || raw.trim().length === 0) {
+        return HTTP_SUCCESS_BODY_MAX_BYTES_DEFAULT;
+    }
+    const parsed = Number(raw.trim());
+    if (!Number.isFinite(parsed) || parsed <= 0 || !Number.isInteger(parsed)) {
+        return HTTP_SUCCESS_BODY_MAX_BYTES_DEFAULT;
+    }
+    return parsed;
+}
+
+function parseMimeType(contentTypeHeader: string): string {
+    const raw = contentTypeHeader.split(';')[0]?.trim().toLowerCase() ?? '';
+    return raw;
+}
+
+function isJsonMimeType(mime: string): boolean {
+    return mime === 'application/json' || mime.endsWith('+json');
+}
+
+function isTextualMimeType(mime: string): boolean {
+    if (!mime) {
+        return false;
+    }
+    if (mime.startsWith('text/')) {
+        return true;
+    }
+    return (
+        mime === 'application/xml' ||
+        mime === 'application/javascript' ||
+        mime === 'application/xhtml+xml' ||
+        mime === 'application/x-www-form-urlencoded'
+    );
+}
+
+function parseFilenameFromContentDisposition(header: string | null): string | undefined {
+    if (!header) {
+        return undefined;
+    }
+    const star = /filename\*=(?:UTF-8''|utf-8'')([^;]+)/i.exec(header);
+    if (star?.[1]) {
+        try {
+            return decodeURIComponent(star[1].trim().replace(/^["']|["']$/g, ''));
+        } catch {
+            return star[1].trim().replace(/^["']|["']$/g, '');
+        }
+    }
+    const plain = /filename=(["']?)([^"';]+)\1/i.exec(header);
+    if (plain?.[2]) {
+        return plain[2].trim();
+    }
+    return undefined;
+}
+
+function assertBodyWithinLimit(byteLength: number, toolLabel: string, maxBytes: number): void {
+    if (byteLength > maxBytes) {
+        throw new Error(
+            'HTTP response body for ' +
+                toolLabel +
+                ' is ' +
+                byteLength +
+                ' bytes; maximum allowed is ' +
+                maxBytes +
+                ' bytes.'
+        );
+    }
+}
+
+async function decodeHttpSuccessResponse(response: Response, method: string, toolLabel: string): Promise<unknown> {
+    const maxBytes = resolveHttpSuccessBodyMaxBytes();
+    const contentLengthHeader = response.headers.get('content-length');
+    if (contentLengthHeader) {
+        const declared = Number(contentLengthHeader);
+        if (Number.isFinite(declared) && declared > maxBytes) {
+            assertBodyWithinLimit(declared, toolLabel, maxBytes);
+        }
+    }
+
+    if (response.status === 204 || method === 'HEAD') {
+        return { kind: 'empty', status: response.status };
+    }
+    if (contentLengthHeader === '0') {
+        return { kind: 'empty', status: response.status };
+    }
+
+    const mime = parseMimeType(response.headers.get('content-type') ?? '');
+
+    if (isJsonMimeType(mime)) {
+        const text = await response.text();
+        assertBodyWithinLimit(Buffer.byteLength(text, 'utf8'), toolLabel, maxBytes);
+        if (text.trim().length === 0) {
+            return { kind: 'empty', status: response.status };
+        }
+        return JSON.parse(text) as unknown;
+    }
+
+    if (isTextualMimeType(mime)) {
+        const text = await response.text();
+        assertBodyWithinLimit(Buffer.byteLength(text, 'utf8'), toolLabel, maxBytes);
+        if (text.trim().length === 0) {
+            return { kind: 'empty', status: response.status };
+        }
+        return text;
+    }
+
+    const buffer = Buffer.from(await response.arrayBuffer());
+    assertBodyWithinLimit(buffer.byteLength, toolLabel, maxBytes);
+    if (buffer.byteLength === 0) {
+        return { kind: 'empty', status: response.status };
+    }
+    const filename = parseFilenameFromContentDisposition(response.headers.get('content-disposition'));
+    const envelope: {
+        kind: 'binary';
+        encoding: 'base64';
+        contentType: string;
+        byteLength: number;
+        data: string;
+        filename?: string;
+    } = {
+        kind: 'binary',
+        encoding: 'base64',
+        contentType: mime || 'application/octet-stream',
+        byteLength: buffer.byteLength,
+        data: buffer.toString('base64')
+    };
+    if (filename) {
+        envelope.filename = filename;
+    }
+    return envelope;
+}
 
 export async function invokeTool(
     toolName: string,
@@ -543,9 +680,5 @@ export async function invokeTool(
         throw new Error(msg);
     }
 
-    const contentType = response.headers.get('content-type') ?? '';
-    if (contentType.includes('application/json')) {
-        return response.json();
-    }
-    return response.text();
+    return decodeHttpSuccessResponse(response, tool.method, tool.toolName);
 }

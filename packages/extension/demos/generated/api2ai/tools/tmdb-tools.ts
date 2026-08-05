@@ -15,6 +15,7 @@ export type GeneratedTool = {
     access: 'public' | 'protected';
     hasCheckToolAccess: boolean;
     hasPrepareToolCall: boolean;
+    hasAfterToolCall: boolean;
 };
 
 export const generatedTools: GeneratedTool[] = [
@@ -22,144 +23,157 @@ export const generatedTools: GeneratedTool[] = [
         toolName: 'searchTmdbMovies',
         title: 'Search movies by title',
         description:
-            'Intent:\nsearch TMDB movies by title\n\nMCP arguments:\npass query, include_adult, language, primary_release_year, page, region, year as top-level tool arguments. Do not nest path or query parameters under pathParams or query.\n\nAPI:\nSearch for movies by their original, translated and alternative titles.\n\nMeta:\noperationId: search-movie\n\nParameters:\n- include_adult (query): (type: boolean)\n- language (query): (type: string)\n- page (query): (type: integer)\n- primary_release_year (query): (type: string)\n- query (query): (type: string)\n- region (query): (type: string)\n- year (query): (type: string)\n\nExample:\nFind movies named Dune\n\nResponse:\nHTTP 200\n200\nproperties (top-level): page, results, total_pages, total_results\n\nRuntime: protected — implement src/hooks/api2ai/tmdb-tools/verifyTmdbCredential.ts; credential sent as header "Authorization" (prefix applied to the secret).',
+            'Intent:\nsearch TMDB movies by title\n\nMCP arguments:\npass query, include_adult, language, primary_release_year, page, region, year as top-level tool arguments. Do not nest path or query parameters under pathParams or query.\n\nAPI:\nSearch for movies by their original, translated and alternative titles.\n\nMeta:\noperationId: search-movie\n\nExample:\nFind movies named Dune\n\nResponse:\nHTTP 200\n200\ncontent-type: application/json\nproperties (top-level): page, results, total_pages, total_results\n\nRuntime: protected — implement src/hooks/api2ai/tmdb-tools/verifyTmdbCredential.ts; credential sent as header "Authorization" (prefix applied to the secret).',
         method: 'GET',
         path: '/3/search/movie',
         access: 'protected',
         hasCheckToolAccess: false,
-        hasPrepareToolCall: false
+        hasPrepareToolCall: false,
+        hasAfterToolCall: false
     },
     {
         toolName: 'getPopularTmdbMovies',
         title: 'Popular movies',
         description:
-            'Intent:\nretrieve currently popular TMDB movies\n\nMCP arguments:\npass language, page, region as top-level tool arguments. Do not nest path or query parameters under pathParams or query.\n\nAPI:\nGet a list of movies ordered by popularity.\n\nMeta:\noperationId: movie-popular-list\n\nParameters:\n- language (query): (type: string)\n- page (query): (type: integer)\n- region (query): ISO-3166-1 code (type: string)\n\nExample:\nShow popular movies\n\nResponse:\nHTTP 200\n200\nproperties (top-level): page, results, total_pages, total_results\n\nRuntime: protected — implement src/hooks/api2ai/tmdb-tools/verifyTmdbCredential.ts; credential sent as header "Authorization" (prefix applied to the secret).',
+            'Intent:\nretrieve currently popular TMDB movies\n\nMCP arguments:\npass language, page, region as top-level tool arguments. Do not nest path or query parameters under pathParams or query.\n\nAPI:\nGet a list of movies ordered by popularity.\n\nMeta:\noperationId: movie-popular-list\n\nExample:\nShow popular movies\n\nResponse:\nHTTP 200\n200\ncontent-type: application/json\nproperties (top-level): page, results, total_pages, total_results\n\nRuntime: protected — implement src/hooks/api2ai/tmdb-tools/verifyTmdbCredential.ts; credential sent as header "Authorization" (prefix applied to the secret).',
         method: 'GET',
         path: '/3/movie/popular',
         access: 'protected',
         hasCheckToolAccess: false,
-        hasPrepareToolCall: false
+        hasPrepareToolCall: false,
+        hasAfterToolCall: false
     },
     {
         toolName: 'getTmdbMovieDetails',
         title: 'Movie details by ID',
         description:
-            'Intent:\nretrieve details for a TMDB movie by id\n\nMCP arguments:\npass movie_id, append_to_response, language as top-level tool arguments. Do not nest path or query parameters under pathParams or query.\n\nAPI:\nGet the top level details of a movie by ID.\n\nMeta:\noperationId: movie-details\n\nParameters:\n- movie_id (path): (type: integer)\n- append_to_response (query): comma separated list of endpoints within this namespace, 20 items max (type: string)\n- language (query): (type: string)\n\nExample:\nGet details for movie id 693134\n\nResponse:\nHTTP 200\n200\nproperties (top-level): adult, backdrop_path, belongs_to_collection, budget, genres, homepage, id, imdb_id, origin_country, original_language, original_title, overview, popularity, poster_path, production_companies, production_countries, release_date, revenue, runtime, spoken_languages, status, tagline, title, video, vote_average, vote_count\n\nRuntime: protected — implement src/hooks/api2ai/tmdb-tools/verifyTmdbCredential.ts; credential sent as header "Authorization" (prefix applied to the secret).',
+            'Intent:\nretrieve details for a TMDB movie by id\n\nMCP arguments:\npass movie_id, append_to_response, language as top-level tool arguments. Do not nest path or query parameters under pathParams or query.\n\nAPI:\nGet the top level details of a movie by ID.\n\nMeta:\noperationId: movie-details\n\nExample:\nGet details for movie id 693134\n\nResponse:\nHTTP 200\n200\ncontent-type: application/json\nproperties (top-level): adult, backdrop_path, belongs_to_collection, budget, genres, homepage, id, imdb_id, origin_country, original_language, original_title, overview, popularity, poster_path, production_companies, production_countries, release_date, revenue, runtime, spoken_languages, status, tagline, title, video, vote_average, vote_count\n\nRuntime: protected — implement src/hooks/api2ai/tmdb-tools/verifyTmdbCredential.ts; credential sent as header "Authorization" (prefix applied to the secret).',
         method: 'GET',
         path: '/3/movie/{movie_id}',
         access: 'protected',
         hasCheckToolAccess: false,
-        hasPrepareToolCall: false
+        hasPrepareToolCall: false,
+        hasAfterToolCall: false
     },
     {
         toolName: 'getTmdbMovieCredits',
         title: 'Movie cast and crew',
         description:
-            'Intent:\nretrieve cast and crew credits for a TMDB movie\n\nMCP arguments:\npass movie_id, language as top-level tool arguments. Do not nest path or query parameters under pathParams or query.\n\nMeta:\noperationId: movie-credits\n\nParameters:\n- movie_id (path): (type: integer)\n- language (query): (type: string)\n\nExample:\nWho played in movie id 693134?\n\nResponse:\nHTTP 200\n200\nproperties (top-level): cast, crew, id\n\nRuntime: protected — implement src/hooks/api2ai/tmdb-tools/verifyTmdbCredential.ts; credential sent as header "Authorization" (prefix applied to the secret).',
+            'Intent:\nretrieve cast and crew credits for a TMDB movie\n\nMCP arguments:\npass movie_id, language as top-level tool arguments. Do not nest path or query parameters under pathParams or query.\n\nMeta:\noperationId: movie-credits\n\nExample:\nWho played in movie id 693134?\n\nResponse:\nHTTP 200\n200\ncontent-type: application/json\nproperties (top-level): cast, crew, id\n\nRuntime: protected — implement src/hooks/api2ai/tmdb-tools/verifyTmdbCredential.ts; credential sent as header "Authorization" (prefix applied to the secret).',
         method: 'GET',
         path: '/3/movie/{movie_id}/credits',
         access: 'protected',
         hasCheckToolAccess: false,
-        hasPrepareToolCall: false
+        hasPrepareToolCall: false,
+        hasAfterToolCall: false
     },
     {
         toolName: 'discoverTmdbMovies',
         title: 'Discover movies with filters',
         description:
-            'Intent:\n- Discover movies with OpenAPI query filters (genre, year, vote_average, sort_by, etc.).\n        - Use getTmdbMovieGenres first when the user names a genre in natural language.\n        - Prefer searchTmdbMovies for a known title; use this tool for "best sci-fi 2024" style queries.\n        - with_genres: genre id as string (e.g. "878" for sci-fi from getTmdbMovieGenres); comma/pipe for AND/OR.\n        - primary_release_year: number (e.g. 2024), not a string.\n        - Example query: with_genres "878", primary_release_year 2024, sort_by vote_average.desc.\n        - Requires TMDB_ACCESS_TOKEN via MCP host --auth-env.\n\nMCP arguments:\npass certification, certification_gte, certification_lte, certification_country, include_adult, include_video, language, page, primary_release_year, primary_release_date_gte, primary_release_date_lte, region, release_date_gte, release_date_lte, sort_by, vote_average_gte, vote_average_lte, vote_count_gte, vote_count_lte, watch_region, with_cast, with_companies, with_crew, with_genres, with_keywords, with_origin_country, with_original_language, with_people, with_release_type, with_runtime_gte, with_runtime_lte, with_watch_monetization_types, with_watch_providers, without_companies, without_genres, without_keywords, without_watch_providers, year as top-level tool arguments. Do not nest path or query parameters under pathParams or query.\n\nAPI:\nFind movies using over 30 filters and sort options.\n\nMeta:\noperationId: discover-movie\n\nParameters:\n- certification (query): use in conjunction with `region` (type: string)\n- certification_country (query): use in conjunction with the `certification`, `certification_gte` and `certification_lte` filters (type: string)\n- certification_gte (query): use in conjunction with `region` (type: string)\n- certification_lte (query): use in conjunction with `region` (type: string)\n- include_adult (query): (type: boolean)\n- include_video (query): (type: boolean)\n- language (query): (type: string)\n- page (query): (type: integer)\n- primary_release_date_gte (query): (type: string)\n- primary_release_date_lte (query): (type: string)\n- primary_release_year (query): (type: integer)\n- region (query): (type: string)\n- release_date_gte (query): (type: string)\n- release_date_lte (query): (type: string)\n- sort_by (query): (type: string)\n- vote_average_gte (query): (type: number)\n- vote_average_lte (query): (type: number)\n- vote_count_gte (query): (type: number)\n- vote_count_lte (query): (type: number)\n- watch_region (query): use in conjunction with `with_watch_monetization_types ` or `with_watch_providers ` (type: string)\n- with_cast (query): can be a comma (`AND`) or pipe (`OR`) separated query (type: string)\n- with_companies (query): can be a comma (`AND`) or pipe (`OR`) separated query (type: string)\n- with_crew (query): can be a comma (`AND`) or pipe (`OR`) separated query (type: string)\n- with_genres (query): can be a comma (`AND`) or pipe (`OR`) separated query (type: string)\n- with_keywords (query): can be a comma (`AND`) or pipe (`OR`) separated query (type: string)\n- with_origin_country (query): (type: string)\n- with_original_language (query): (type: string)\n- with_people (query): can be a comma (`AND`) or pipe (`OR`) separated query (type: string)\n- with_release_type (query): possible values are: [1, 2, 3, 4, 5, 6] can be a comma (`AND`) or pipe (`OR`) separated query, can be used in conjunction with `region` (type: integer)\n- with_runtime_gte (query): (type: integer)\n- with_runtime_lte (query): (type: integer)\n- with_watch_monetization_types (query): possible values are: [flatrate, free, ads, rent, buy] use in conjunction with `watch_region`, can be a comma (`AND`) or pipe (`OR`) separated query (type: string)\n- with_watch_providers (query): use in conjunction with `watch_region`, can be a comma (`AND`) or pipe (`OR`) separated query (type: string)\n- without_companies (query): (type: string)\n- without_genres (query): (type: string)\n- without_keywords (query): (type: string)\n- without_watch_providers (query): (type: string)\n- year (query): (type: integer)\n\nExample:\nFind highly rated science fiction movies from 2024\n\nResponse:\nHTTP 200\n200\nproperties (top-level): page, results, total_pages, total_results\n\nRuntime: protected — implement src/hooks/api2ai/tmdb-tools/verifyTmdbCredential.ts; credential sent as header "Authorization" (prefix applied to the secret).',
+            'Intent:\n- Discover movies with OpenAPI query filters (genre, year, vote_average, sort_by, etc.).\n        - Use getTmdbMovieGenres first when the user names a genre in natural language.\n        - Prefer searchTmdbMovies for a known title; use this tool for "best sci-fi 2024" style queries.\n        - with_genres: genre id as string (e.g. "878" for sci-fi from getTmdbMovieGenres); comma/pipe for AND/OR.\n        - primary_release_year: number (e.g. 2024), not a string.\n        - Example query: with_genres "878", primary_release_year 2024, sort_by vote_average.desc.\n        - Requires TMDB_ACCESS_TOKEN via MCP host --auth-env.\n\nMCP arguments:\npass certification, certification_gte, certification_lte, certification_country, include_adult, include_video, language, page, primary_release_year, primary_release_date_gte, primary_release_date_lte, region, release_date_gte, release_date_lte, sort_by, vote_average_gte, vote_average_lte, vote_count_gte, vote_count_lte, watch_region, with_cast, with_companies, with_crew, with_genres, with_keywords, with_origin_country, with_original_language, with_people, with_release_type, with_runtime_gte, with_runtime_lte, with_watch_monetization_types, with_watch_providers, without_companies, without_genres, without_keywords, without_watch_providers, year as top-level tool arguments. Do not nest path or query parameters under pathParams or query.\n\nAPI:\nFind movies using over 30 filters and sort options.\n\nMeta:\noperationId: discover-movie\n\nExample:\nFind highly rated science fiction movies from 2024\n\nResponse:\nHTTP 200\n200\ncontent-type: application/json\nproperties (top-level): page, results, total_pages, total_results\n\nRuntime: protected — implement src/hooks/api2ai/tmdb-tools/verifyTmdbCredential.ts; credential sent as header "Authorization" (prefix applied to the secret).',
         method: 'GET',
         path: '/3/discover/movie',
         access: 'protected',
         hasCheckToolAccess: false,
-        hasPrepareToolCall: false
+        hasPrepareToolCall: false,
+        hasAfterToolCall: false
     },
     {
         toolName: 'getTmdbMovieGenres',
         title: 'Movie genre list',
         description:
-            'Intent:\nretrieve TMDB movie genres for filtering and lookup\n\nMCP arguments:\npass language as top-level tool arguments. Do not nest path or query parameters under pathParams or query.\n\nAPI:\nGet the list of official genres for movies.\n\nMeta:\noperationId: genre-movie-list\n\nParameters:\n- language (query): (type: string)\n\nExample:\nList available movie genres\n\nResponse:\nHTTP 200\n200\nproperties (top-level): genres\n\nRuntime: protected — implement src/hooks/api2ai/tmdb-tools/verifyTmdbCredential.ts; credential sent as header "Authorization" (prefix applied to the secret).',
+            'Intent:\nretrieve TMDB movie genres for filtering and lookup\n\nMCP arguments:\npass language as top-level tool arguments. Do not nest path or query parameters under pathParams or query.\n\nAPI:\nGet the list of official genres for movies.\n\nMeta:\noperationId: genre-movie-list\n\nExample:\nList available movie genres\n\nResponse:\nHTTP 200\n200\ncontent-type: application/json\nproperties (top-level): genres\n\nRuntime: protected — implement src/hooks/api2ai/tmdb-tools/verifyTmdbCredential.ts; credential sent as header "Authorization" (prefix applied to the secret).',
         method: 'GET',
         path: '/3/genre/movie/list',
         access: 'protected',
         hasCheckToolAccess: false,
-        hasPrepareToolCall: false
+        hasPrepareToolCall: false,
+        hasAfterToolCall: false
     },
     {
         toolName: 'getTmdbTrendingMovies',
         title: 'Trending movies',
         description:
-            'Intent:\n- Trending TMDB movies for a time window; time_window required: "day" or "week".\n        - Not the same as getPopularTmdbMovies — do not pass page here (trending has no page filter in this tool).\n        - Optional language only (ISO code).\n\nMCP arguments:\npass time_window, language as top-level tool arguments. Do not nest path or query parameters under pathParams or query.\n\nAPI:\nGet the trending movies on TMDB.\n\nMeta:\noperationId: trending-movies\n\nParameters:\n- time_window (path): (type: string)\n- language (query): `ISO-639-1`-`ISO-3166-1` code (type: string)\n\nExample:\nTrending movies this week → time_window week\n\nResponse:\nHTTP 200\n200\nproperties (top-level): page, results, total_pages, total_results\n\nRuntime: protected — implement src/hooks/api2ai/tmdb-tools/verifyTmdbCredential.ts; credential sent as header "Authorization" (prefix applied to the secret).',
+            'Intent:\n- Trending TMDB movies for a time window; time_window required: "day" or "week".\n        - Not the same as getPopularTmdbMovies — do not pass page here (trending has no page filter in this tool).\n        - Optional language only (ISO code).\n\nMCP arguments:\npass time_window, language as top-level tool arguments. Do not nest path or query parameters under pathParams or query.\n\nAPI:\nGet the trending movies on TMDB.\n\nMeta:\noperationId: trending-movies\n\nExample:\nTrending movies this week → time_window week\n\nResponse:\nHTTP 200\n200\ncontent-type: application/json\nproperties (top-level): page, results, total_pages, total_results\n\nRuntime: protected — implement src/hooks/api2ai/tmdb-tools/verifyTmdbCredential.ts; credential sent as header "Authorization" (prefix applied to the secret).',
         method: 'GET',
         path: '/3/trending/movie/{time_window}',
         access: 'protected',
         hasCheckToolAccess: false,
-        hasPrepareToolCall: false
+        hasPrepareToolCall: false,
+        hasAfterToolCall: false
     },
     {
         toolName: 'getTmdbMovieVideos',
         title: 'Movie videos and trailers',
         description:
-            'Intent:\nretrieve videos such as trailers for a TMDB movie\n\nMCP arguments:\npass movie_id, language as top-level tool arguments. Do not nest path or query parameters under pathParams or query.\n\nMeta:\noperationId: movie-videos\n\nParameters:\n- movie_id (path): (type: integer)\n- language (query): (type: string)\n\nExample:\nShow trailers for movie id 693134\n\nResponse:\nHTTP 200\n200\nproperties (top-level): id, results\n\nRuntime: protected — implement src/hooks/api2ai/tmdb-tools/verifyTmdbCredential.ts; credential sent as header "Authorization" (prefix applied to the secret).',
+            'Intent:\nretrieve videos such as trailers for a TMDB movie\n\nMCP arguments:\npass movie_id, language as top-level tool arguments. Do not nest path or query parameters under pathParams or query.\n\nMeta:\noperationId: movie-videos\n\nExample:\nShow trailers for movie id 693134\n\nResponse:\nHTTP 200\n200\ncontent-type: application/json\nproperties (top-level): id, results\n\nRuntime: protected — implement src/hooks/api2ai/tmdb-tools/verifyTmdbCredential.ts; credential sent as header "Authorization" (prefix applied to the secret).',
         method: 'GET',
         path: '/3/movie/{movie_id}/videos',
         access: 'protected',
         hasCheckToolAccess: false,
-        hasPrepareToolCall: false
+        hasPrepareToolCall: false,
+        hasAfterToolCall: false
     },
     {
         toolName: 'searchTmdbMulti',
         title: 'Multi search (movies, TV, people)',
         description:
-            'Intent:\nsearch TMDB across movies, tv shows, and people\n\nMCP arguments:\npass query, include_adult, language, page as top-level tool arguments. Do not nest path or query parameters under pathParams or query.\n\nAPI:\nUse multi search when you want to search for movies, TV shows and people in a single request.\n\nMeta:\noperationId: search-multi\n\nParameters:\n- include_adult (query): (type: boolean)\n- language (query): (type: string)\n- page (query): (type: integer)\n- query (query): (type: string)\n\nExample:\nSearch TMDB for Dune across all media types\n\nResponse:\nHTTP 200\n200\nproperties (top-level): page, results, total_pages, total_results\n\nRuntime: protected — implement src/hooks/api2ai/tmdb-tools/verifyTmdbCredential.ts; credential sent as header "Authorization" (prefix applied to the secret).',
+            'Intent:\nsearch TMDB across movies, tv shows, and people\n\nMCP arguments:\npass query, include_adult, language, page as top-level tool arguments. Do not nest path or query parameters under pathParams or query.\n\nAPI:\nUse multi search when you want to search for movies, TV shows and people in a single request.\n\nMeta:\noperationId: search-multi\n\nExample:\nSearch TMDB for Dune across all media types\n\nResponse:\nHTTP 200\n200\ncontent-type: application/json\nproperties (top-level): page, results, total_pages, total_results\n\nRuntime: protected — implement src/hooks/api2ai/tmdb-tools/verifyTmdbCredential.ts; credential sent as header "Authorization" (prefix applied to the secret).',
         method: 'GET',
         path: '/3/search/multi',
         access: 'protected',
         hasCheckToolAccess: false,
-        hasPrepareToolCall: false
+        hasPrepareToolCall: false,
+        hasAfterToolCall: false
     },
     {
         toolName: 'getTmdbMovieReleaseDates',
         title: 'Movie release dates',
         description:
-            'Intent:\nretrieve release dates for a TMDB movie\n\nMCP arguments:\npass movie_id as top-level tool arguments. Do not nest path or query parameters under pathParams or query.\n\nAPI:\nGet the release dates and certifications for a movie.\n\nMeta:\noperationId: movie-release-dates\n\nParameters:\n- movie_id (path): (type: integer)\n\nExample:\nWhen was movie id 693134 released?\n\nResponse:\nHTTP 200\n200\nproperties (top-level): id, results\n\nRuntime: protected — implement src/hooks/api2ai/tmdb-tools/verifyTmdbCredential.ts; credential sent as header "Authorization" (prefix applied to the secret).',
+            'Intent:\nretrieve release dates for a TMDB movie\n\nMCP arguments:\npass movie_id as top-level tool arguments. Do not nest path or query parameters under pathParams or query.\n\nAPI:\nGet the release dates and certifications for a movie.\n\nMeta:\noperationId: movie-release-dates\n\nExample:\nWhen was movie id 693134 released?\n\nResponse:\nHTTP 200\n200\ncontent-type: application/json\nproperties (top-level): id, results\n\nRuntime: protected — implement src/hooks/api2ai/tmdb-tools/verifyTmdbCredential.ts; credential sent as header "Authorization" (prefix applied to the secret).',
         method: 'GET',
         path: '/3/movie/{movie_id}/release_dates',
         access: 'protected',
         hasCheckToolAccess: false,
-        hasPrepareToolCall: false
+        hasPrepareToolCall: false,
+        hasAfterToolCall: false
     },
     {
         toolName: 'getTmdbMovieRecommendations',
         title: 'Movie recommendations',
         description:
-            'Intent:\nretrieve recommendations for a TMDB movie\n\nMCP arguments:\npass movie_id, language, page as top-level tool arguments. Do not nest path or query parameters under pathParams or query.\n\nMeta:\noperationId: movie-recommendations\n\nParameters:\n- movie_id (path): (type: integer)\n- language (query): (type: string)\n- page (query): (type: integer)\n\nExample:\nRecommendations for movie id 693134\n\nResponse:\nHTTP 200\n200\ntype: object (no inlined properties)\n\nRuntime: protected — implement src/hooks/api2ai/tmdb-tools/verifyTmdbCredential.ts; credential sent as header "Authorization" (prefix applied to the secret).',
+            'Intent:\nretrieve recommendations for a TMDB movie\n\nMCP arguments:\npass movie_id, language, page as top-level tool arguments. Do not nest path or query parameters under pathParams or query.\n\nMeta:\noperationId: movie-recommendations\n\nExample:\nRecommendations for movie id 693134\n\nResponse:\nHTTP 200\n200\ncontent-type: application/json\ntype: object (no inlined properties)\n\nRuntime: protected — implement src/hooks/api2ai/tmdb-tools/verifyTmdbCredential.ts; credential sent as header "Authorization" (prefix applied to the secret).',
         method: 'GET',
         path: '/3/movie/{movie_id}/recommendations',
         access: 'protected',
         hasCheckToolAccess: false,
-        hasPrepareToolCall: false
+        hasPrepareToolCall: false,
+        hasAfterToolCall: false
     },
     {
         toolName: 'getTmdbMovieSimilar',
         title: 'Retrieve similar movies',
         description:
-            'Intent:\nretrieve similar movies for a TMDB movie\n\nMCP arguments:\npass movie_id, language, page as top-level tool arguments. Do not nest path or query parameters under pathParams or query.\n\nAPI:\nGet the similar movies based on genres and keywords.\n\nMeta:\noperationId: movie-similar\n\nParameters:\n- movie_id (path): (type: integer)\n- language (query): (type: string)\n- page (query): (type: integer)\n\nExample:\nFind similar movies to 693134\n\nResponse:\nHTTP 200\n200\nproperties (top-level): page, results, total_pages, total_results\n\nRuntime: protected — implement src/hooks/api2ai/tmdb-tools/verifyTmdbCredential.ts; credential sent as header "Authorization" (prefix applied to the secret).',
+            'Intent:\nretrieve similar movies for a TMDB movie\n\nMCP arguments:\npass movie_id, language, page as top-level tool arguments. Do not nest path or query parameters under pathParams or query.\n\nAPI:\nGet the similar movies based on genres and keywords.\n\nMeta:\noperationId: movie-similar\n\nExample:\nFind similar movies to 693134\n\nResponse:\nHTTP 200\n200\ncontent-type: application/json\nproperties (top-level): page, results, total_pages, total_results\n\nRuntime: protected — implement src/hooks/api2ai/tmdb-tools/verifyTmdbCredential.ts; credential sent as header "Authorization" (prefix applied to the secret).',
         method: 'GET',
         path: '/3/movie/{movie_id}/similar',
         access: 'protected',
         hasCheckToolAccess: false,
-        hasPrepareToolCall: false
+        hasPrepareToolCall: false,
+        hasAfterToolCall: false
     },
     {
         toolName: 'getTmdbMovieReviews',
         title: 'Retrieve movie reviews',
         description:
-            'Intent:\nretrieve reviews for a TMDB movie\n\nMCP arguments:\npass movie_id, language, page as top-level tool arguments. Do not nest path or query parameters under pathParams or query.\n\nAPI:\nGet the user reviews for a movie.\n\nMeta:\noperationId: movie-reviews\n\nParameters:\n- movie_id (path): (type: integer)\n- language (query): (type: string)\n- page (query): (type: integer)\n\nExample:\nReviews for movie id 693134\n\nResponse:\nHTTP 200\n200\nproperties (top-level): id, page, results, total_pages, total_results\n\nRuntime: protected — implement src/hooks/api2ai/tmdb-tools/verifyTmdbCredential.ts; credential sent as header "Authorization" (prefix applied to the secret).',
+            'Intent:\nretrieve reviews for a TMDB movie\n\nMCP arguments:\npass movie_id, language, page as top-level tool arguments. Do not nest path or query parameters under pathParams or query.\n\nAPI:\nGet the user reviews for a movie.\n\nMeta:\noperationId: movie-reviews\n\nExample:\nReviews for movie id 693134\n\nResponse:\nHTTP 200\n200\ncontent-type: application/json\nproperties (top-level): id, page, results, total_pages, total_results\n\nRuntime: protected — implement src/hooks/api2ai/tmdb-tools/verifyTmdbCredential.ts; credential sent as header "Authorization" (prefix applied to the secret).',
         method: 'GET',
         path: '/3/movie/{movie_id}/reviews',
         access: 'protected',
         hasCheckToolAccess: false,
-        hasPrepareToolCall: false
+        hasPrepareToolCall: false,
+        hasAfterToolCall: false
     }
 ];
 
@@ -192,7 +206,7 @@ export const authConfig: AuthConfig | undefined = {
 export { verifyCredential } from '../../../src/hooks/api2ai/tmdb-tools/verifyTmdbCredential.js';
 
 export const mcpServerName = 'tmdb-tools';
-export const mcpServerVersion = '1.0.4';
+export const mcpServerVersion = '1.1.0';
 
 export { mcpBuildGeneratedAt } from '../mcp-build-generated-at.js';
 
@@ -1180,6 +1194,139 @@ async function performToolHttpRequest(
         req.end();
     });
 }
+const HTTP_SUCCESS_BODY_MAX_BYTES_DEFAULT = 5242880;
+
+function resolveHttpSuccessBodyMaxBytes(): number {
+    const raw = process.env.TOOLFACTORY_HTTP_BODY_MAX_BYTES;
+    if (raw === undefined || raw.trim().length === 0) {
+        return HTTP_SUCCESS_BODY_MAX_BYTES_DEFAULT;
+    }
+    const parsed = Number(raw.trim());
+    if (!Number.isFinite(parsed) || parsed <= 0 || !Number.isInteger(parsed)) {
+        return HTTP_SUCCESS_BODY_MAX_BYTES_DEFAULT;
+    }
+    return parsed;
+}
+
+function parseMimeType(contentTypeHeader: string): string {
+    const raw = contentTypeHeader.split(';')[0]?.trim().toLowerCase() ?? '';
+    return raw;
+}
+
+function isJsonMimeType(mime: string): boolean {
+    return mime === 'application/json' || mime.endsWith('+json');
+}
+
+function isTextualMimeType(mime: string): boolean {
+    if (!mime) {
+        return false;
+    }
+    if (mime.startsWith('text/')) {
+        return true;
+    }
+    return (
+        mime === 'application/xml' ||
+        mime === 'application/javascript' ||
+        mime === 'application/xhtml+xml' ||
+        mime === 'application/x-www-form-urlencoded'
+    );
+}
+
+function parseFilenameFromContentDisposition(header: string | null): string | undefined {
+    if (!header) {
+        return undefined;
+    }
+    const star = /filename\*=(?:UTF-8''|utf-8'')([^;]+)/i.exec(header);
+    if (star?.[1]) {
+        try {
+            return decodeURIComponent(star[1].trim().replace(/^["']|["']$/g, ''));
+        } catch {
+            return star[1].trim().replace(/^["']|["']$/g, '');
+        }
+    }
+    const plain = /filename=(["']?)([^"';]+)\1/i.exec(header);
+    if (plain?.[2]) {
+        return plain[2].trim();
+    }
+    return undefined;
+}
+
+function assertBodyWithinLimit(byteLength: number, toolLabel: string, maxBytes: number): void {
+    if (byteLength > maxBytes) {
+        throw new Error(
+            'HTTP response body for ' +
+                toolLabel +
+                ' is ' +
+                byteLength +
+                ' bytes; maximum allowed is ' +
+                maxBytes +
+                ' bytes.'
+        );
+    }
+}
+
+async function decodeHttpSuccessResponse(response: Response, method: string, toolLabel: string): Promise<unknown> {
+    const maxBytes = resolveHttpSuccessBodyMaxBytes();
+    const contentLengthHeader = response.headers.get('content-length');
+    if (contentLengthHeader) {
+        const declared = Number(contentLengthHeader);
+        if (Number.isFinite(declared) && declared > maxBytes) {
+            assertBodyWithinLimit(declared, toolLabel, maxBytes);
+        }
+    }
+
+    if (response.status === 204 || method === 'HEAD') {
+        return { kind: 'empty', status: response.status };
+    }
+    if (contentLengthHeader === '0') {
+        return { kind: 'empty', status: response.status };
+    }
+
+    const mime = parseMimeType(response.headers.get('content-type') ?? '');
+
+    if (isJsonMimeType(mime)) {
+        const text = await response.text();
+        assertBodyWithinLimit(Buffer.byteLength(text, 'utf8'), toolLabel, maxBytes);
+        if (text.trim().length === 0) {
+            return { kind: 'empty', status: response.status };
+        }
+        return JSON.parse(text) as unknown;
+    }
+
+    if (isTextualMimeType(mime)) {
+        const text = await response.text();
+        assertBodyWithinLimit(Buffer.byteLength(text, 'utf8'), toolLabel, maxBytes);
+        if (text.trim().length === 0) {
+            return { kind: 'empty', status: response.status };
+        }
+        return text;
+    }
+
+    const buffer = Buffer.from(await response.arrayBuffer());
+    assertBodyWithinLimit(buffer.byteLength, toolLabel, maxBytes);
+    if (buffer.byteLength === 0) {
+        return { kind: 'empty', status: response.status };
+    }
+    const filename = parseFilenameFromContentDisposition(response.headers.get('content-disposition'));
+    const envelope: {
+        kind: 'binary';
+        encoding: 'base64';
+        contentType: string;
+        byteLength: number;
+        data: string;
+        filename?: string;
+    } = {
+        kind: 'binary',
+        encoding: 'base64',
+        contentType: mime || 'application/octet-stream',
+        byteLength: buffer.byteLength,
+        data: buffer.toString('base64')
+    };
+    if (filename) {
+        envelope.filename = filename;
+    }
+    return envelope;
+}
 
 export async function invokeTool(
     toolName: string,
@@ -1289,9 +1436,5 @@ export async function invokeTool(
         throw new Error(msg);
     }
 
-    const contentType = response.headers.get('content-type') ?? '';
-    if (contentType.includes('application/json')) {
-        return response.json();
-    }
-    return response.text();
+    return decodeHttpSuccessResponse(response, tool.method, tool.toolName);
 }

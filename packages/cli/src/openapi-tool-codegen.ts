@@ -8,6 +8,7 @@ import type {
 import {
     coerceExampleFromSchemaType,
     getAccessKind,
+    isAfterToolCallEnabled,
     isCheckToolAccessEnabled,
     isPrepareToolCallEnabled,
     parseApiParamSpec
@@ -23,6 +24,7 @@ import {
     toMcpParamName,
     type ParamWireMaps
 } from './mcp-param-names.js';
+import { isBinaryHttpSuccessResponse } from './generator/http-response-body-kind.js';
 
 /** JSON-schema-like dict emitted into generated modules / MCP. */
 export type JsonSchemaDict = Record<string, unknown>;
@@ -156,7 +158,7 @@ function buildDocumentedErrorLines(details: OpenApiOperationDetails): string[] {
     return lines;
 }
 
-/** Plan: 200 → 201 → other 2xx with application/json+schema → any 2xx. */
+/** Plan: 200 → 201 → other 2xx with application/json+schema → any 2xx with schema → any 2xx with contentType → any 2xx. */
 function pickSuccessResponseForSummary(details: OpenApiOperationDetails): (typeof details.responses)[0] | undefined {
     const twoxx = details.responses.filter(responseIsSuccess2xx);
     if (twoxx.length === 0) {
@@ -178,7 +180,15 @@ function pickSuccessResponseForSummary(details: OpenApiOperationDetails): (typeo
     if (withSchema) {
         return withSchema;
     }
+    const withContentType = twoxx.find((r) => isTruthyString(r.contentType));
+    if (withContentType) {
+        return withContentType;
+    }
     return twoxx[0];
+}
+
+function isBinaryResponseSchema(schema: OpenApiSchema | undefined, contentType: string | undefined): boolean {
+    return isBinaryHttpSuccessResponse(schema?.format, contentType);
 }
 
 function topLevelShapeLine(schema: OpenApiSchema | undefined): string | undefined {
@@ -200,6 +210,9 @@ function topLevelShapeLine(schema: OpenApiSchema | undefined): string | undefine
             ? `properties (top-level): ${keys.sort().join(', ')}`
             : 'type: object (no inlined properties)';
     }
+    if (s.format === 'binary' || s.format === 'byte') {
+        return `type: ${t ?? 'string'} (format: ${s.format})`;
+    }
     return t ? `type: ${t}` : undefined;
 }
 
@@ -212,9 +225,17 @@ function buildSuccessResponseParagraph(details: OpenApiOperationDetails): string
     if (isTruthyString(resp.description)) {
         lines.push(resp.description!.trim());
     }
+    if (isTruthyString(resp.contentType)) {
+        lines.push(`content-type: ${resp.contentType}`);
+    }
     const shape = topLevelShapeLine(resp.schema);
     if (shape) {
         lines.push(shape);
+    }
+    if (isBinaryResponseSchema(resp.schema, resp.contentType)) {
+        lines.push(
+            'Binary body is returned as a Base64 envelope: { kind: "binary", encoding: "base64", contentType, filename?, byteLength, data }. Non-JSON/non-textual content-types use this envelope. Bodies over 5 MiB fail (override with TOOLFACTORY_HTTP_BODY_MAX_BYTES).'
+        );
     }
     return lines.join('\n');
 }
@@ -361,11 +382,6 @@ export function buildMcpDescription(
         sections.push(`Meta:\n${metaParts.join(' | ')}`);
     }
 
-    const parametersText = buildInvokeParameterDescriptionSection(operation, details);
-    if (parametersText) {
-        sections.push(`Parameters:\n${parametersText}`);
-    }
-
     const requestBodyText = effectiveRequestBodyDescription(operation, details);
     if (requestBodyText) {
         sections.push(`Request body:\n${requestBodyText}`);
@@ -386,19 +402,28 @@ export function buildMcpDescription(
     const access = getAccessKind(operation);
     const hasCheckToolAccess = isCheckToolAccessEnabled(operation);
     const hasPrepareToolCall = isPrepareToolCallEnabled(operation);
+    const hasAfterToolCall = isAfterToolCallEnabled(operation);
     const hookDir = `src/hooks/api2ai/${mcpModuleName ?? 'mcp'}`;
     const checkHookPath = `${hookDir}/checkToolAccessFor${capitalize(toolFile)}.ts`;
     const prepareHookPath = `${hookDir}/prepareToolCallFor${capitalize(toolFile)}.ts`;
+    const afterHookPath = `${hookDir}/afterToolCallFor${capitalize(toolFile)}.ts`;
     const prefixNote =
         auth && auth.prefix !== undefined && String(auth.prefix).trim().length > 0
             ? ' (prefix applied to the secret)'
             : '';
 
-    if (access === 'public' && !hasPrepareToolCall) {
+    if (access === 'public' && !hasPrepareToolCall && !hasAfterToolCall) {
         sections.push('Runtime: public endpoint — no credential required.');
-    } else if (access === 'public' && hasPrepareToolCall) {
+    } else if (access === 'public' && (hasPrepareToolCall || hasAfterToolCall)) {
+        const implParts: string[] = [];
+        if (hasPrepareToolCall) {
+            implParts.push(`prepareToolCallFor${capitalize(toolFile)} in ${prepareHookPath}`);
+        }
+        if (hasAfterToolCall) {
+            implParts.push(`afterToolCallFor${capitalize(toolFile)} in ${afterHookPath}`);
+        }
         sections.push(
-            `Runtime: implement prepareToolCallFor${capitalize(toolFile)} in ${prepareHookPath} (types from this tools module; run build:generated for .js).`
+            `Runtime: implement ${implParts.join(' and ')} (types from this tools module; run build:generated for .js).`
         );
     } else if (access === 'protected' && auth) {
         const implParts: string[] = [];
@@ -407,6 +432,9 @@ export function buildMcpDescription(
         }
         if (hasPrepareToolCall) {
             implParts.push(`prepareToolCallFor${capitalize(toolFile)} in ${prepareHookPath}`);
+        }
+        if (hasAfterToolCall) {
+            implParts.push(`afterToolCallFor${capitalize(toolFile)} in ${afterHookPath}`);
         }
         const implNote =
             implParts.length > 0

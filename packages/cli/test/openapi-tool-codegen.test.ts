@@ -101,7 +101,7 @@ describe('buildMcpDescription', () => {
         expect(description).not.toContain('OpenAPI body hint');
     });
 
-    test('includes Parameters section with path and query params and DSL patches', () => {
+    test('omits Parameters prose section (inputSchema carries param descriptions)', () => {
         const details: OpenApiOperationDetails = {
             ...sampleDetails,
             parameters: [
@@ -151,10 +151,8 @@ describe('buildMcpDescription', () => {
             undefined,
             'demo-tools'
         );
-        expect(description).toContain(
-            'Parameters:\n- todoId (path): Todo id from listTodos. (type: string) (example: t-1)'
-        );
-        expect(description).toContain('- status (query): (type: string)');
+        expect(description).not.toContain('Parameters:');
+        expect(description).toContain('Intent:');
     });
 });
 

@@ -1,11 +1,12 @@
 import { describe, expect, test } from 'vitest';
-import { renderInvokeAuthPipeline } from '../src/codegen/auth-pipeline-render.js';
+import { renderInvokePipeline } from '../src/codegen/invoke-pipeline-render.js';
 
-describe('renderInvokeAuthPipeline', () => {
+describe('renderInvokePipeline', () => {
     test('public prepare calls prepareToolCall(optionsResolved) without credential preamble', () => {
-        const pipeline = renderInvokeAuthPipeline('full', false, {
+        const pipeline = renderInvokePipeline('full', false, {
             checkToolAccess: false,
-            prepareToolCall: true
+            prepareToolCall: true,
+            afterToolCall: false
         });
         expect(pipeline).toContain('prepareToolCall(optionsResolved));');
         expect(pipeline).not.toContain('ModuleCredentials');
@@ -13,19 +14,20 @@ describe('renderInvokeAuthPipeline', () => {
     });
 
     test('protected prepare calls prepareToolCall(optionsResolved, credential)', () => {
-        const pipeline = renderInvokeAuthPipeline('full', true, {
+        const pipeline = renderInvokePipeline('full', true, {
             checkToolAccess: false,
-            prepareToolCall: true
+            prepareToolCall: true,
+            afterToolCall: false
         });
         expect(pipeline).toContain('prepareToolCall(optionsResolved, credential)');
         expect(pipeline).toContain('prepareToolCall requires credential');
     });
 
     test('hooks-only module omits authCredential when auth is disabled', () => {
-        const pipeline = renderInvokeAuthPipeline(
+        const pipeline = renderInvokePipeline(
             'full',
             false,
-            { checkToolAccess: false, prepareToolCall: true },
+            { checkToolAccess: false, prepareToolCall: true, afterToolCall: false },
             false
         );
         expect(pipeline).not.toContain('authCredential');

@@ -12,6 +12,26 @@ Policy: [core2ai docs/development/changelog-policy.md](https://github.com/annett
 
 ---
 
+## [1.1.0] - 2026-08-05
+
+### Added
+
+- **`afterToolCall` hook:** DSL `hooks: { afterToolCall: true }`; runs after successful invoke; write-once stub `afterToolCallFor{Tool}`
+- **Binary / non-JSON HTTP responses:** `invokeTool` returns a Base64 envelope for PDF/octet-stream/… (`kind`, `encoding`, `contentType`, `filename?`, `byteLength`, `data`); `*+json` parsed as JSON; `204`/`HEAD`/empty as `{ kind: "empty", status }`; bodies over 5 MiB hard-fail
+- **Demo `todo`:** `GET /todos/export.pdf` + tool `exportTodosPdf` with `afterToolCall` saving PDF under OS temp (`toolfactory-todo-exports`)
+
+### Changed
+
+- **MCP tool descriptions:** omit prose `Parameters:` section (schema is source of truth); shared MIME classifier for binary hints vs decode
+- **HTTP body limit:** default 5 MiB; runtime override via `TOOLFACTORY_HTTP_BODY_MAX_BYTES`; empty textual bodies return `{ kind: "empty", status }`
+- **Invoke pipeline naming:** `InvokePipelineTier` / `renderInvokePipeline` (was AuthPipeline\*)
+- OpenAPI response summaries keep media types without schema; tool descriptions include `content-type` and binary-envelope hint
+- **`@toolfactory.dev/core`:** pin **1.1.0**
+
+### Upgrade notes
+
+- Regenerate after upgrade (`generate:all` / save `.api2ai`). Requires `@toolfactory.dev/core` **1.1.0**.
+
 ## [1.0.4] - 2026-08-04
 
 ### Added

@@ -246,11 +246,7 @@ function extractMediaForResponse(
         return undefined;
     }
     const [contentType, media] = firstPair;
-    const schema = media?.schema;
-    if (!schema) {
-        return undefined;
-    }
-    return { contentType, schema };
+    return { contentType, schema: media?.schema };
 }
 
 function extractResponses(operation: OpenApiOperation): OpenApiResponseSummary[] {

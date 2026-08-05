@@ -2,39 +2,48 @@ import type { Model } from 'api-2-ai-dsl-language';
 import {
     accessRequiresAuth,
     getAccessKind,
+    isAfterToolCallEnabled,
     isCheckToolAccessEnabled,
     isPrepareToolCallEnabled
 } from 'api-2-ai-dsl-language';
 import {
+    afterToolCallExportName,
     checkToolAccessExportName,
+    listAfterToolCallHookEntriesFromSpecs,
+    listAfterToolCallToolNamesFromSpecs,
     listCheckToolAccessToolNamesFromSpecs,
     listPrepareToolCallHookEntriesFromSpecs,
     listPrepareToolCallToolNamesFromSpecs,
     prepareToolCallExportName,
+    renderAfterToolCallHookImports,
+    renderAfterToolCallHooksMap,
     renderCheckStubsFromSpecs,
     renderCheckToolAccessHookImports,
     renderCheckToolAccessHooksMap,
     renderPrepareToolCallHookImports,
     renderPrepareToolCallHooksMap,
-    resolveAuthPipelineTier,
+    resolveInvokePipelineTier,
     type ToolHookStubSpec,
-    type AuthPipelineTier,
+    type InvokePipelineTier,
     type HookStubMaps
 } from '@toolfactory.dev/core/codegen';
-import { renderInvokeAuthPipeline } from '../codegen/auth-pipeline-render.js';
+import { renderInvokePipeline } from '../codegen/invoke-pipeline-render.js';
 
 export type ToolAccess = 'public' | 'protected';
 
 export {
+    afterToolCallExportName,
     checkToolAccessExportName,
     prepareToolCallExportName,
+    renderAfterToolCallHookImports,
+    renderAfterToolCallHooksMap,
     renderCheckToolAccessHookImports,
     renderCheckToolAccessHooksMap,
     renderPrepareToolCallHookImports,
     renderPrepareToolCallHooksMap,
-    renderInvokeAuthPipeline,
-    resolveAuthPipelineTier,
-    type AuthPipelineTier,
+    renderInvokePipeline,
+    resolveInvokePipelineTier,
+    type InvokePipelineTier,
     type HookStubMaps
 };
 
@@ -47,8 +56,15 @@ function listToolHookSpecs(model: Model): ToolHookStubSpec[] {
         }
         const checkToolAccess = isCheckToolAccessEnabled(operation);
         const prepareToolCall = isPrepareToolCallEnabled(operation);
-        if (checkToolAccess || prepareToolCall) {
-            specs.push({ toolName, checkToolAccess, prepareToolCall, access: getAccessKind(operation) });
+        const afterToolCall = isAfterToolCallEnabled(operation);
+        if (checkToolAccess || prepareToolCall || afterToolCall) {
+            specs.push({
+                toolName,
+                checkToolAccess,
+                prepareToolCall,
+                afterToolCall,
+                access: getAccessKind(operation)
+            });
         }
     }
     return specs;
@@ -72,8 +88,16 @@ export function listPrepareToolCallToolNames(model: Model): string[] {
     return listPrepareToolCallToolNamesFromSpecs(listToolHookSpecs(model));
 }
 
+export function listAfterToolCallToolNames(model: Model): string[] {
+    return listAfterToolCallToolNamesFromSpecs(listToolHookSpecs(model));
+}
+
 export function listPrepareToolCallHookEntries(model: Model): { toolName: string; access: 'public' | 'protected' }[] {
     return listPrepareToolCallHookEntriesFromSpecs(listToolHookSpecs(model));
+}
+
+export function listAfterToolCallHookEntries(model: Model): { toolName: string; access: 'public' | 'protected' }[] {
+    return listAfterToolCallHookEntriesFromSpecs(listToolHookSpecs(model));
 }
 
 export async function renderCheckStubs(
@@ -84,6 +108,9 @@ export async function renderCheckStubs(
     return renderCheckStubsFromSpecs(source, listToolHookSpecs(model), toolsModuleTsPath);
 }
 
-export function modelHasAuthPipeline(model: Model): boolean {
-    return model.operations.some((operation) => accessRequiresAuth(operation) || isPrepareToolCallEnabled(operation));
+export function modelHasInvokePipeline(model: Model): boolean {
+    return model.operations.some(
+        (operation) =>
+            accessRequiresAuth(operation) || isPrepareToolCallEnabled(operation) || isAfterToolCallEnabled(operation)
+    );
 }

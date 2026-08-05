@@ -19,7 +19,8 @@ type NormalizeInvokeOptions = (toolName: string, options: InvokeOptions) => Invo
 function compileNormalizeInvokeOptions(invokeParamBucketsLiteralBody: string): NormalizeInvokeOptions {
     const block = createSharedInvokeBlock('{}', '{}', '{}', '{}', invokeParamBucketsLiteralBody, 'none', 'none', {
         checkToolAccess: false,
-        prepareToolCall: false
+        prepareToolCall: false,
+        afterToolCall: false
     });
     const normalizeBlock = block.slice(0, block.indexOf('const queryParamSerializationByTool'));
     const js = ts.transpileModule(`${normalizeBlock}\nexports.normalizeInvokeOptions = normalizeInvokeOptions;`, {
@@ -45,7 +46,8 @@ describe('invoke-render', () => {
     test('emits TRACE fallback because fetch rejects that method', () => {
         const block = createSharedInvokeBlock('{}', '{}', '{}', '{}', '{}', 'none', 'none', {
             checkToolAccess: false,
-            prepareToolCall: false
+            prepareToolCall: false,
+            afterToolCall: false
         });
         expect(block).toContain('performToolHttpRequest');
         expect(block).toContain("init.method !== 'TRACE'");
@@ -130,7 +132,8 @@ describe('invoke-render', () => {
         });
         const block = createSharedInvokeBlock('{}', wireNames, '{}', '{}', buckets, 'none', 'none', {
             checkToolAccess: false,
-            prepareToolCall: false
+            prepareToolCall: false,
+            afterToolCall: false
         });
         const helpersBlock = block.slice(
             block.indexOf('const queryParamSerializationByTool'),
@@ -170,7 +173,8 @@ exports.appendSerializedQueryParams = appendSerializedQueryParams;`,
         });
         const block = createSharedInvokeBlock('{}', '{}', pathWireNames, '{}', '{}', 'none', 'none', {
             checkToolAccess: false,
-            prepareToolCall: false
+            prepareToolCall: false,
+            afterToolCall: false
         });
         expect(block).toContain('pathParamWireNamesByTool');
         expect(block).toContain('pathWireNames[key] ?? key');
@@ -223,7 +227,8 @@ exports.buildUrl = buildUrl;`,
         });
         const block = createSharedInvokeBlock('{}', '{}', '{}', headerWireNames, '{}', 'none', 'none', {
             checkToolAccess: false,
-            prepareToolCall: false
+            prepareToolCall: false,
+            afterToolCall: false
         });
         expect(block).toContain('headerParamWireNamesByTool');
         expect(block).toContain('headerWireNames[key] ?? key');

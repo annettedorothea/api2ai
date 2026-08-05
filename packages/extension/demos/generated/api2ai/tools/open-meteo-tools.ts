@@ -14,6 +14,7 @@ export type GeneratedTool = {
     access: 'public' | 'protected';
     hasCheckToolAccess: boolean;
     hasPrepareToolCall: boolean;
+    hasAfterToolCall: boolean;
 };
 
 export const generatedTools: GeneratedTool[] = [
@@ -21,12 +22,13 @@ export const generatedTools: GeneratedTool[] = [
         toolName: 'openMeteoForecast',
         title: '7 day weather forecast for coordinates',
         description:
-            'Intent:\nretrieve hourly weather forecast for coordinates\n\nMCP arguments:\npass hourly, daily, latitude, longitude, current_weather, temperature_unit, wind_speed_unit, timeformat, timezone, past_days as top-level tool arguments. Do not nest path or query parameters under pathParams or query.\n\nAPI:\n- Fetch up to 7 days of weather forecast for fixed WGS84 coordinates (query: latitude, longitude).\n        - Supports hourly and daily aggregates; request only the variables needed (e.g. temperature_2m, precipitation_sum, weather_code).\n        - Prefer small hourly/daily arrays to keep MCP responses compact and agent-focused.\n        - Optional: timezone (e.g. Europe/Berlin), temperature_unit, wind_speed_unit, current_weather for nowcast.\n        - Resolve place names to coordinates first via openMeteoGeocodeSearch (api2ai-open-meteo-geocoding), then call this tool.\n        - Public endpoint; no API key. OpenAPI operation text is overridden here for clearer agent guidance.\n\nMeta:\ntags: Weather Forecast APIs\n\nParameters:\n- current_weather (query): (type: boolean)\n- daily (query): (type: array of string)\n- hourly (query): (type: array of string)\n- latitude (query): WGS84 coordinate (type: number)\n- longitude (query): WGS84 coordinate (type: number)\n- past_days (query): If `past_days` is set, yesterdays or the day before yesterdays data are also returned. (type: integer)\n- temperature_unit (query): (type: string)\n- timeformat (query): If format `unixtime` is selected, all time values are returned in UNIX epoch time in seconds. Please not that all time is then in GMT+0! For daily values with unix timestamp, please apply `utc_offset_seconds` again to get the correct date. (type: string)\n- timezone (query): If `timezone` is set, all timestamps are returned as local-time and data is returned starting at 0:00 local-time. Any time zone name from the [time zone database](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones) is supported. (type: string)\n- wind_speed_unit (query): (type: string)\n\nExample:\nGet hourly temperature forecast for Offenburg, Germany\n\nResponse:\nHTTP 200\nOK\nproperties (top-level): current_weather, daily, daily_units, elevation, generationtime_ms, hourly, hourly_units, latitude, longitude, utc_offset_seconds\nDocumented errors:\nHTTP 400 — Bad Request\n\nRuntime: public endpoint — no credential required.',
+            'Intent:\nretrieve hourly weather forecast for coordinates\n\nMCP arguments:\npass hourly, daily, latitude, longitude, current_weather, temperature_unit, wind_speed_unit, timeformat, timezone, past_days as top-level tool arguments. Do not nest path or query parameters under pathParams or query.\n\nAPI:\n- Fetch up to 7 days of weather forecast for fixed WGS84 coordinates (query: latitude, longitude).\n        - Supports hourly and daily aggregates; request only the variables needed (e.g. temperature_2m, precipitation_sum, weather_code).\n        - Prefer small hourly/daily arrays to keep MCP responses compact and agent-focused.\n        - Optional: timezone (e.g. Europe/Berlin), temperature_unit, wind_speed_unit, current_weather for nowcast.\n        - Resolve place names to coordinates first via openMeteoGeocodeSearch (api2ai-open-meteo-geocoding), then call this tool.\n        - Public endpoint; no API key. OpenAPI operation text is overridden here for clearer agent guidance.\n\nMeta:\ntags: Weather Forecast APIs\n\nExample:\nGet hourly temperature forecast for Offenburg, Germany\n\nResponse:\nHTTP 200\nOK\ncontent-type: application/json\nproperties (top-level): current_weather, daily, daily_units, elevation, generationtime_ms, hourly, hourly_units, latitude, longitude, utc_offset_seconds\nDocumented errors:\nHTTP 400 — Bad Request\n\nRuntime: public endpoint — no credential required.',
         method: 'GET',
         path: '/v1/forecast',
         access: 'public',
         hasCheckToolAccess: false,
-        hasPrepareToolCall: false
+        hasPrepareToolCall: false,
+        hasAfterToolCall: false
     }
 ];
 
@@ -46,7 +48,7 @@ export type ApiHostContext = {
 export const requiresAuth = false;
 
 export const mcpServerName = 'open-meteo-tools';
-export const mcpServerVersion = '1.0.4';
+export const mcpServerVersion = '1.1.0';
 
 export { mcpBuildGeneratedAt } from '../mcp-build-generated-at.js';
 
@@ -473,6 +475,139 @@ async function performToolHttpRequest(
         req.end();
     });
 }
+const HTTP_SUCCESS_BODY_MAX_BYTES_DEFAULT = 5242880;
+
+function resolveHttpSuccessBodyMaxBytes(): number {
+    const raw = process.env.TOOLFACTORY_HTTP_BODY_MAX_BYTES;
+    if (raw === undefined || raw.trim().length === 0) {
+        return HTTP_SUCCESS_BODY_MAX_BYTES_DEFAULT;
+    }
+    const parsed = Number(raw.trim());
+    if (!Number.isFinite(parsed) || parsed <= 0 || !Number.isInteger(parsed)) {
+        return HTTP_SUCCESS_BODY_MAX_BYTES_DEFAULT;
+    }
+    return parsed;
+}
+
+function parseMimeType(contentTypeHeader: string): string {
+    const raw = contentTypeHeader.split(';')[0]?.trim().toLowerCase() ?? '';
+    return raw;
+}
+
+function isJsonMimeType(mime: string): boolean {
+    return mime === 'application/json' || mime.endsWith('+json');
+}
+
+function isTextualMimeType(mime: string): boolean {
+    if (!mime) {
+        return false;
+    }
+    if (mime.startsWith('text/')) {
+        return true;
+    }
+    return (
+        mime === 'application/xml' ||
+        mime === 'application/javascript' ||
+        mime === 'application/xhtml+xml' ||
+        mime === 'application/x-www-form-urlencoded'
+    );
+}
+
+function parseFilenameFromContentDisposition(header: string | null): string | undefined {
+    if (!header) {
+        return undefined;
+    }
+    const star = /filename\*=(?:UTF-8''|utf-8'')([^;]+)/i.exec(header);
+    if (star?.[1]) {
+        try {
+            return decodeURIComponent(star[1].trim().replace(/^["']|["']$/g, ''));
+        } catch {
+            return star[1].trim().replace(/^["']|["']$/g, '');
+        }
+    }
+    const plain = /filename=(["']?)([^"';]+)\1/i.exec(header);
+    if (plain?.[2]) {
+        return plain[2].trim();
+    }
+    return undefined;
+}
+
+function assertBodyWithinLimit(byteLength: number, toolLabel: string, maxBytes: number): void {
+    if (byteLength > maxBytes) {
+        throw new Error(
+            'HTTP response body for ' +
+                toolLabel +
+                ' is ' +
+                byteLength +
+                ' bytes; maximum allowed is ' +
+                maxBytes +
+                ' bytes.'
+        );
+    }
+}
+
+async function decodeHttpSuccessResponse(response: Response, method: string, toolLabel: string): Promise<unknown> {
+    const maxBytes = resolveHttpSuccessBodyMaxBytes();
+    const contentLengthHeader = response.headers.get('content-length');
+    if (contentLengthHeader) {
+        const declared = Number(contentLengthHeader);
+        if (Number.isFinite(declared) && declared > maxBytes) {
+            assertBodyWithinLimit(declared, toolLabel, maxBytes);
+        }
+    }
+
+    if (response.status === 204 || method === 'HEAD') {
+        return { kind: 'empty', status: response.status };
+    }
+    if (contentLengthHeader === '0') {
+        return { kind: 'empty', status: response.status };
+    }
+
+    const mime = parseMimeType(response.headers.get('content-type') ?? '');
+
+    if (isJsonMimeType(mime)) {
+        const text = await response.text();
+        assertBodyWithinLimit(Buffer.byteLength(text, 'utf8'), toolLabel, maxBytes);
+        if (text.trim().length === 0) {
+            return { kind: 'empty', status: response.status };
+        }
+        return JSON.parse(text) as unknown;
+    }
+
+    if (isTextualMimeType(mime)) {
+        const text = await response.text();
+        assertBodyWithinLimit(Buffer.byteLength(text, 'utf8'), toolLabel, maxBytes);
+        if (text.trim().length === 0) {
+            return { kind: 'empty', status: response.status };
+        }
+        return text;
+    }
+
+    const buffer = Buffer.from(await response.arrayBuffer());
+    assertBodyWithinLimit(buffer.byteLength, toolLabel, maxBytes);
+    if (buffer.byteLength === 0) {
+        return { kind: 'empty', status: response.status };
+    }
+    const filename = parseFilenameFromContentDisposition(response.headers.get('content-disposition'));
+    const envelope: {
+        kind: 'binary';
+        encoding: 'base64';
+        contentType: string;
+        byteLength: number;
+        data: string;
+        filename?: string;
+    } = {
+        kind: 'binary',
+        encoding: 'base64',
+        contentType: mime || 'application/octet-stream',
+        byteLength: buffer.byteLength,
+        data: buffer.toString('base64')
+    };
+    if (filename) {
+        envelope.filename = filename;
+    }
+    return envelope;
+}
 
 export async function invokeTool(
     toolName: string,
@@ -561,9 +696,5 @@ export async function invokeTool(
         throw new Error(msg);
     }
 
-    const contentType = response.headers.get('content-type') ?? '';
-    if (contentType.includes('application/json')) {
-        return response.json();
-    }
-    return response.text();
+    return decodeHttpSuccessResponse(response, tool.method, tool.toolName);
 }

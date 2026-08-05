@@ -31,6 +31,7 @@ const CANONICAL_KEYWORD_SORT: Record<string, string> = {
     access: '0201',
     checkToolAccess: '0201.25',
     prepareToolCall: '0201.5',
+    afterToolCall: '0201.75',
     intent: '0202',
     summary: '0203',
     description: '0204',
@@ -64,7 +65,7 @@ const AUTH_KEYWORD_INSERT: Record<string, string> = {
 const OPERATION_KEYWORD_INSERT: Record<string, string> = {
     toolName: 'toolName: $1$0',
     access: 'access: public$0',
-    hooks: 'hooks: {\n    checkToolAccess: true\n    prepareToolCall: true\n}$0',
+    hooks: 'hooks: {\n    checkToolAccess: true\n    prepareToolCall: true\n    afterToolCall: true\n}$0',
     intent: 'intent: "$1"$0',
     summary: 'summary: "$1"$0',
     description: 'description: "$1"$0',
@@ -448,6 +449,11 @@ export class Api2AiDslCompletionProvider extends DefaultCompletionProvider {
         if (prepareToolCallSpecItems.length > 0) {
             return CompletionList.create(this.deduplicateItems(prepareToolCallSpecItems), false);
         }
+        const afterToolCallSpecItems = this.buildAfterToolCallSpecCompletionItems(document, params.position);
+        debugCompletion('getCompletion afterToolCallSpecItems count', afterToolCallSpecItems.length);
+        if (afterToolCallSpecItems.length > 0) {
+            return CompletionList.create(this.deduplicateItems(afterToolCallSpecItems), false);
+        }
         const clientMayOmitItems = await this.buildClientMayOmitCompletionItems(document, params.position);
         debugCompletion('getCompletion clientMayOmitItems count', clientMayOmitItems.length);
         if (clientMayOmitItems.length > 0) {
@@ -755,6 +761,37 @@ export class Api2AiDslCompletionProvider extends DefaultCompletionProvider {
             });
         }
         return items;
+    }
+
+    private buildAfterToolCallSpecCompletionItems(document: LangiumDocument, position: Position): CompletionItem[] {
+        const textDoc = document.textDocument;
+        const text = textDoc.getText();
+        const offset = textDoc.offsetAt(position);
+        const { line } = currentLineUntilOffset(text, offset);
+        if (textHasUnclosedString(line)) {
+            return [];
+        }
+        const match = /^\s*afterToolCall\s*:\s*(\w*)$/.exec(line);
+        if (!match) {
+            return [];
+        }
+        const typedPrefix = match[1] ?? '';
+        const { prefix, range } = currentWordRange(text, offset, textDoc);
+        const effectivePrefix = typedPrefix.length > 0 ? typedPrefix : prefix;
+        if (!'true'.startsWith(effectivePrefix)) {
+            return [];
+        }
+        return [
+            {
+                label: 'true',
+                kind: CompletionItemKind.Constant,
+                detail: 'Enable afterToolCallFor{Tool} stub',
+                insertTextFormat: InsertTextFormat.PlainText,
+                sortText: CANONICAL_KEYWORD_SORT.true,
+                insertText: 'true',
+                textEdit: TextEdit.replace(range, 'true')
+            }
+        ];
     }
 
     private async buildOpenApiPathCompletionItems(
