@@ -6,6 +6,8 @@ This workspace contains examples for MCP tool generation, authentication, author
 
 If this is your first time using `api2ai`, start with `open-meteo.api2ai`.
 
+Walkthrough (DE): [Willkommen bei Tool Factory](https://www.youtube.com/watch?v=KYaKTWkooeU)
+
 ---
 
 ## Quick Start
@@ -186,6 +188,8 @@ Cursor • ChatGPT • Claude • MCP Inspector
 ## Documentation
 
 [Documentation index](https://github.com/annettedorothea/core2ai/blob/main/docs/README.md) — architecture, authoring, runtime, and integrations.
+
+[Videos](https://github.com/annettedorothea/core2ai/blob/main/docs/videos.md) — [Willkommen bei Tool Factory](https://www.youtube.com/watch?v=KYaKTWkooeU) (DE) and more.
 
 ---
 
