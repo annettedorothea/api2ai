@@ -348,6 +348,29 @@ paths:
             responses:
                 '200':
                     description: OK
+    /labeled-map:
+        post:
+            operationId: test-labeled-map
+            summary: Named props plus typed additionalProperties
+            description: >
+                Request body has known labeled fields and allows extra keys of the same
+                LabeledValue shape (Zod catchall regression).
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/LabeledMapInput'
+            responses:
+                '200':
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    received:
+                                        $ref: '#/components/schemas/LabeledMapInput'
     /admin/secrets:
         get:
             operationId: test-admin-secrets
@@ -413,3 +436,22 @@ components:
             properties:
                 payload:
                     type: string
+        LabeledValue:
+            type: object
+            required: [value]
+            properties:
+                value:
+                    type: string
+            additionalProperties: false
+        LabeledMapInput:
+            type: object
+            required: [title, region, category]
+            properties:
+                title:
+                    $ref: '#/components/schemas/LabeledValue'
+                region:
+                    $ref: '#/components/schemas/LabeledValue'
+                category:
+                    $ref: '#/components/schemas/LabeledValue'
+            additionalProperties:
+                $ref: '#/components/schemas/LabeledValue'

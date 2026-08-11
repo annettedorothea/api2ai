@@ -12,6 +12,23 @@ Policy: [core2ai docs/development/changelog-policy.md](https://github.com/annett
 
 ---
 
+## [1.2.1] - 2026-08-12
+
+### Added
+
+- **Demo harness `testLabeledMap`:** request body with named props + typed `additionalProperties` (Zod `.catchall` regression)
+
+### Changed
+
+- **`@toolfactory.dev/core`:** pin **1.2.1** (Zod emit honors `additionalProperties` on objects with named properties)
+- **README:** prefer VS Marketplace / Open VSX install links
+
+### Upgrade notes
+
+- Regenerate after upgrade. Requires `@toolfactory.dev/core` **1.2.1**.
+
+---
+
 ## [1.2.0] - 2026-08-05
 
 ### Added

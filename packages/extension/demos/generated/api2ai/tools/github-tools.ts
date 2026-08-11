@@ -88,7 +88,7 @@ export const authConfig: AuthConfig | undefined = {
 export { verifyCredential } from '../../../src/hooks/api2ai/github-tools/verifyGithubCredential.js';
 
 export const mcpServerName = 'github-tools';
-export const mcpServerVersion = '1.2.0';
+export const mcpServerVersion = '1.2.1';
 
 export { mcpBuildGeneratedAt } from '../mcp-build-generated-at.js';
 

@@ -239,6 +239,18 @@ export const generatedTools: GeneratedTool[] = [
         hasAfterToolCall: false
     },
     {
+        toolName: 'testLabeledMap',
+        title: 'Post labeled map with extra keys',
+        description:
+            'Intent:\nHarness body with known labeled fields plus extra LabeledValue keys\n\nMCP arguments:\nsend the request payload in the `body` property. Do not nest path or query parameters under pathParams or query.\n\nAPI:\nRequest body has known labeled fields and allows extra keys of the same LabeledValue shape (Zod catchall regression).\n\nMeta:\noperationId: test-labeled-map\n\nRequest body:\nRequired: title, region, category (each { value: string }).\n        Extra keys of the same shape are allowed (additionalProperties).\n\nExample:\nPost labeled map title Demo region north category general customTag extra-1\n\nResponse:\nHTTP 200\nOK\ncontent-type: application/json\nproperties (top-level): received\n\nRuntime: public endpoint — no credential required.',
+        method: 'POST',
+        path: '/labeled-map',
+        access: 'public',
+        hasCheckToolAccess: false,
+        hasPrepareToolCall: false,
+        hasAfterToolCall: false
+    },
+    {
         toolName: 'testGetAdminSecrets',
         title: 'List admin secrets',
         description:
@@ -295,7 +307,7 @@ export const authConfig: AuthConfig | undefined = {
 export { verifyCredential } from '../../../src/hooks/api2ai/test-tools/verifyTestCredential.js';
 
 export const mcpServerName = 'test-tools';
-export const mcpServerVersion = '1.2.0';
+export const mcpServerVersion = '1.2.1';
 
 export { mcpBuildGeneratedAt } from '../mcp-build-generated-at.js';
 
@@ -491,6 +503,22 @@ export const inputZodByTool = {
         })
         .strict()
         .describe('Arguments for invoking the generated HTTP wrapper.'),
+    testLabeledMap: z
+        .object({
+            headers: z.record(z.string(), z.string()).describe('Optional extra headers.').optional(),
+            body: z
+                .object({
+                    title: z.object({ value: z.string() }).strict(),
+                    region: z.object({ value: z.string() }).strict(),
+                    category: z.object({ value: z.string() }).strict()
+                })
+                .catchall(z.object({ value: z.string() }).strict())
+                .describe(
+                    'Required: title, region, category (each { value: string }).\n        Extra keys of the same shape are allowed (additionalProperties).'
+                )
+        })
+        .strict()
+        .describe('Arguments for invoking the generated HTTP wrapper.'),
     testGetAdminSecrets: z
         .object({
             limit: z.number().int().optional(),
@@ -636,6 +664,13 @@ const invokeParamBucketsByTool = {
         hookParams: []
     },
     testRefBody: {
+        pathParams: [],
+        query: [],
+        headers: [],
+        arrayQuery: [],
+        hookParams: []
+    },
+    testLabeledMap: {
         pathParams: [],
         query: [],
         headers: [],
@@ -858,6 +893,7 @@ const queryParamSerializationByTool = {
     testAnyOfBody: {},
     testAllOfBody: {},
     testRefBody: {},
+    testLabeledMap: {},
     testGetAdminSecrets: {
         limit: {
             style: 'form',
@@ -890,6 +926,7 @@ const queryParamWireNamesByTool = {
     testAnyOfBody: {},
     testAllOfBody: {},
     testRefBody: {},
+    testLabeledMap: {},
     testGetAdminSecrets: {},
     testListPublicPrepared: {}
 };
@@ -914,6 +951,7 @@ const pathParamWireNamesByTool = {
     testAnyOfBody: {},
     testAllOfBody: {},
     testRefBody: {},
+    testLabeledMap: {},
     testGetAdminSecrets: {},
     testListPublicPrepared: {}
 };
@@ -938,6 +976,7 @@ const headerParamWireNamesByTool = {
     testAnyOfBody: {},
     testAllOfBody: {},
     testRefBody: {},
+    testLabeledMap: {},
     testGetAdminSecrets: {},
     testListPublicPrepared: {}
 };

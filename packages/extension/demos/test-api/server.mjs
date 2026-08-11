@@ -234,6 +234,30 @@ const server = createServer(async (req, res) => {
             return;
         }
 
+        if (method === 'POST' && pathname === '/labeled-map') {
+            const body = await readJsonBody(req);
+            if (!body || typeof body !== 'object' || Array.isArray(body)) {
+                sendJson(res, 400, { error: 'invalid_body' });
+                return;
+            }
+            const requiredKeys = ['title', 'region', 'category'];
+            for (const key of requiredKeys) {
+                const entry = body[key];
+                if (!entry || typeof entry !== 'object' || typeof entry.value !== 'string') {
+                    sendJson(res, 400, { error: `invalid_${key}` });
+                    return;
+                }
+            }
+            for (const [key, entry] of Object.entries(body)) {
+                if (!entry || typeof entry !== 'object' || typeof entry.value !== 'string') {
+                    sendJson(res, 400, { error: `invalid_${key}` });
+                    return;
+                }
+            }
+            sendJson(res, 200, { received: body });
+            return;
+        }
+
         if (method === 'GET' && pathname === '/admin/secrets') {
             if (!requireApiKey(req, res, url)) {
                 return;

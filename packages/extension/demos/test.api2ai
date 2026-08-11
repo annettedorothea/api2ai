@@ -190,6 +190,19 @@ POST "/echo/ref-body" {
     example: "Post ref body payload hello"
 }
 
+// Tests: named properties + typed additionalProperties → Zod catchall
+POST "/labeled-map" {
+    toolName: testLabeledMap
+    access: public
+    intent: "Harness body with known labeled fields plus extra LabeledValue keys"
+    summary: "Post labeled map with extra keys"
+    example: "Post labeled map title Demo region north category general customTag extra-1"
+    body: '''
+        Required: title, region, category (each { value: string }).
+        Extra keys of the same shape are allowed (additionalProperties).
+    '''
+}
+
 // Tests: protected + authorize + prepare
 GET "/admin/secrets" {
     toolName: testGetAdminSecrets

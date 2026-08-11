@@ -33,6 +33,26 @@ describe('json-schema-to-zod-codegen', () => {
         expect(emitZodExpression({ type: 'boolean' })).toBe('z.boolean()');
     });
 
+    it('emits named props with typed additionalProperties as catchall', () => {
+        const labeledValue: JsonSchemaDict = {
+            type: 'object',
+            properties: { value: { type: 'string' } },
+            required: ['value'],
+            additionalProperties: false
+        };
+        expect(
+            emitZodExpression({
+                type: 'object',
+                properties: {
+                    title: labeledValue,
+                    region: labeledValue
+                },
+                required: ['title'],
+                additionalProperties: labeledValue
+            })
+        ).toContain('.catchall(');
+    });
+
     it('emits inputZodByTool export', () => {
         const out = emitInputZodByToolExport({
             demo: { type: 'object', properties: {}, additionalProperties: true }

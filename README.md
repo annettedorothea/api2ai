@@ -22,9 +22,12 @@ The easiest way to explore `api2ai` is with the VSIX extension and the bundled d
 
 ### 1. Install the extension
 
-Download the latest VSIX from the releases page:
+Preferred: install from the marketplace in your editor (search **api2ai** / publisher **toolfactorydev**):
 
-https://github.com/annettedorothea/api2ai/releases
+- [VS Marketplace](https://marketplace.visualstudio.com/items?itemName=toolfactorydev.vscode-api2ai) (VS Code)
+- [Open VSX](https://open-vsx.org/extension/toolfactorydev/vscode-api2ai) (Cursor)
+
+Alternative: download the latest `.vsix` from [GitHub Releases](https://github.com/annettedorothea/api2ai/releases) and install it manually (**Install from VSIX…**).
 
 ### 2. Create a demo workspace
 
