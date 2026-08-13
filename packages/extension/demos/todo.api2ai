@@ -18,6 +18,11 @@ GET "/categories" {
     '''
     summary: "List todo categories"
     example: "List todo categories"
+    annotations: {
+        readOnlyHint: true
+        idempotentHint: true
+        openWorldHint: true
+    }
     response: '''
         HTTP 200 — top-level categories array. Each category: id, name, color (ids: work, home, errands).
         Documented errors:
@@ -39,6 +44,11 @@ GET "/todos" {
     '''
     summary: "List todos"
     example: "List todos whose title contains milk"
+    annotations: {
+        readOnlyHint: true
+        idempotentHint: true
+        openWorldHint: true
+    }
     params: {
         status: {
             description: '''
@@ -80,6 +90,11 @@ GET "/categories/{categoryId}/todos" {
     '''
     summary: "List todos by category"
     example: "List open todos in category work"
+    annotations: {
+        readOnlyHint: true
+        idempotentHint: true
+        openWorldHint: true
+    }
     params: {
         categoryId: {
             description: '''
@@ -113,6 +128,11 @@ GET "/todos/{todoId}" {
     '''
     summary: "Get todo by id"
     example: "Get todo t-1"
+    annotations: {
+        readOnlyHint: true
+        idempotentHint: true
+        openWorldHint: true
+    }
     params: {
         todoId: {
             description: '''
@@ -139,6 +159,10 @@ POST "/todos" {
     '''
     summary: "Create todo"
     example: "Create todo Buy milk in errands"
+    annotations: {
+        destructiveHint: false
+        openWorldHint: true
+    }
     body: '''
         JSON body object (required). Required fields: title (string), categoryId (work|home|errands).
         Optional: status (open|done, default open), dueDate (ISO date YYYY-MM-DD).
@@ -165,6 +189,10 @@ PATCH "/todos/{todoId}" {
     '''
     summary: "Update todo"
     example: "Mark todo t-1 as done"
+    annotations: {
+        destructiveHint: false
+        openWorldHint: true
+    }
     params: {
         todoId: {
             description: '''
@@ -199,6 +227,11 @@ DELETE "/todos/{todoId}" {
     '''
     summary: "Delete todo"
     example: "Delete todo t-2"
+    annotations: {
+        destructiveHint: true
+        idempotentHint: true
+        openWorldHint: true
+    }
     params: {
         todoId: {
             description: '''
@@ -228,6 +261,11 @@ GET "/todos/export.pdf" {
     '''
     summary: "Export todos as PDF"
     example: "Export open todos as PDF"
+    annotations: {
+        readOnlyHint: true
+        idempotentHint: true
+        openWorldHint: true
+    }
     params: {
         status: {
             description: '''

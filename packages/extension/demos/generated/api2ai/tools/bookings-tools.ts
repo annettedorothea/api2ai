@@ -20,6 +20,12 @@ export type GeneratedTool = {
     hasCheckToolAccess: boolean;
     hasPrepareToolCall: boolean;
     hasAfterToolCall: boolean;
+    annotations?: {
+        readOnlyHint?: boolean;
+        destructiveHint?: boolean;
+        idempotentHint?: boolean;
+        openWorldHint?: boolean;
+    };
 };
 
 export const generatedTools: GeneratedTool[] = [
@@ -33,7 +39,12 @@ export const generatedTools: GeneratedTool[] = [
         access: 'public',
         hasCheckToolAccess: false,
         hasPrepareToolCall: true,
-        hasAfterToolCall: false
+        hasAfterToolCall: false,
+        annotations: {
+            readOnlyHint: true,
+            idempotentHint: true,
+            openWorldHint: true
+        }
     },
     {
         toolName: 'listAllBookings',
@@ -45,7 +56,12 @@ export const generatedTools: GeneratedTool[] = [
         access: 'protected',
         hasCheckToolAccess: true,
         hasPrepareToolCall: true,
-        hasAfterToolCall: false
+        hasAfterToolCall: false,
+        annotations: {
+            readOnlyHint: true,
+            idempotentHint: true,
+            openWorldHint: true
+        }
     },
     {
         toolName: 'listBookings',
@@ -57,7 +73,12 @@ export const generatedTools: GeneratedTool[] = [
         access: 'protected',
         hasCheckToolAccess: true,
         hasPrepareToolCall: true,
-        hasAfterToolCall: false
+        hasAfterToolCall: false,
+        annotations: {
+            readOnlyHint: true,
+            idempotentHint: true,
+            openWorldHint: true
+        }
     }
 ];
 
@@ -90,7 +111,7 @@ export const authConfig: AuthConfig | undefined = {
 };
 
 export const mcpServerName = 'bookings-tools';
-export const mcpServerVersion = '1.2.1';
+export const mcpServerVersion = '1.2.2';
 
 export { mcpBuildGeneratedAt } from '../mcp-build-generated-at.js';
 

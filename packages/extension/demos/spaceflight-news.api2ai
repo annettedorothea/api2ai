@@ -15,6 +15,11 @@ GET "/v4/articles/" {
     '''
     summary: "List spaceflight articles (limit validated, teaser only; full text at response url)"
     example: "Get the latest 5 articles"
+    annotations: {
+        readOnlyHint: true
+        idempotentHint: true
+        openWorldHint: true
+    }
     params: {
         limit: {
             description: "Number of results per page (default 10, max 10)."
@@ -29,6 +34,11 @@ GET "/v4/articles/{id}/" {
     intent: "get one spaceflight article by id; API returns summary teaser only, full article text at url"
     summary: "Get article by ID (teaser only; full text at response url)"
     example: "Get article with id 1"
+    annotations: {
+        readOnlyHint: true
+        idempotentHint: true
+        openWorldHint: true
+    }
 }
 
 GET "/v4/blogs/" {
@@ -46,6 +56,11 @@ GET "/v4/blogs/" {
     '''
     summary: "List spaceflight blog posts (limit validated, teaser only; full text at response url)"
     example: "Get the latest 5 blog posts"
+    annotations: {
+        readOnlyHint: true
+        idempotentHint: true
+        openWorldHint: true
+    }
     params: {
         limit: {
             description: "Number of results per page (default 10, max 10)."
@@ -60,6 +75,11 @@ GET "/v4/blogs/{id}/" {
     intent: "get one spaceflight blog post by id; API returns summary teaser only, full post text at url"
     summary: "Get blog post by ID (teaser only; full text at response url)"
     example: "Get blog post with id 1"
+    annotations: {
+        readOnlyHint: true
+        idempotentHint: true
+        openWorldHint: true
+    }
 }
 
 GET "/v4/reports/" {
@@ -77,6 +97,11 @@ GET "/v4/reports/" {
     '''
     summary: "List spaceflight reports (limit validated, teaser only; full text at response url)"
     example: "Get the latest 5 reports"
+    annotations: {
+        readOnlyHint: true
+        idempotentHint: true
+        openWorldHint: true
+    }
     params: {
         limit: {
             description: "Number of results per page (default 10, max 10)."
@@ -91,6 +116,11 @@ GET "/v4/reports/{id}/" {
     intent: "get one spaceflight report by id; API returns summary teaser only, full report text at url"
     summary: "Get report by ID (teaser only; full text at response url)"
     example: "Get report with id 1"
+    annotations: {
+        readOnlyHint: true
+        idempotentHint: true
+        openWorldHint: true
+    }
 }
 
 GET "/v4/info/" {
@@ -99,4 +129,9 @@ GET "/v4/info/" {
     intent: "retrieve spaceflight API metadata and news sites"
     summary: "Spaceflight News API metadata"
     example: "Show API info and available news sites"
+    annotations: {
+        readOnlyHint: true
+        idempotentHint: true
+        openWorldHint: true
+    }
 }

@@ -19,6 +19,12 @@ export type GeneratedTool = {
     hasCheckToolAccess: boolean;
     hasPrepareToolCall: boolean;
     hasAfterToolCall: boolean;
+    annotations?: {
+        readOnlyHint?: boolean;
+        destructiveHint?: boolean;
+        idempotentHint?: boolean;
+        openWorldHint?: boolean;
+    };
 };
 
 export const generatedTools: GeneratedTool[] = [
@@ -32,7 +38,12 @@ export const generatedTools: GeneratedTool[] = [
         access: 'protected',
         hasCheckToolAccess: true,
         hasPrepareToolCall: false,
-        hasAfterToolCall: false
+        hasAfterToolCall: false,
+        annotations: {
+            readOnlyHint: true,
+            idempotentHint: true,
+            openWorldHint: true
+        }
     },
     {
         toolName: 'getAccountBalance',
@@ -44,7 +55,12 @@ export const generatedTools: GeneratedTool[] = [
         access: 'protected',
         hasCheckToolAccess: true,
         hasPrepareToolCall: false,
-        hasAfterToolCall: false
+        hasAfterToolCall: false,
+        annotations: {
+            readOnlyHint: true,
+            idempotentHint: true,
+            openWorldHint: true
+        }
     },
     {
         toolName: 'listAllAccounts',
@@ -56,7 +72,12 @@ export const generatedTools: GeneratedTool[] = [
         access: 'protected',
         hasCheckToolAccess: true,
         hasPrepareToolCall: false,
-        hasAfterToolCall: false
+        hasAfterToolCall: false,
+        annotations: {
+            readOnlyHint: true,
+            idempotentHint: true,
+            openWorldHint: true
+        }
     }
 ];
 
@@ -93,7 +114,7 @@ export { verifyCredential } from '../../../src/hooks/api2ai/banking-tools/verify
 export { tokenExchange } from '../../../src/hooks/api2ai/banking-tools/tokenExchangeBankingCredential.js';
 
 export const mcpServerName = 'banking-tools';
-export const mcpServerVersion = '1.2.1';
+export const mcpServerVersion = '1.2.2';
 
 export { mcpBuildGeneratedAt } from '../mcp-build-generated-at.js';
 

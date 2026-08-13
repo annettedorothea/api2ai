@@ -41,6 +41,7 @@ const CANONICAL_KEYWORD_SORT: Record<string, string> = {
     summary: '0203',
     description: '0204',
     example: '0205',
+    annotations: '0205.5',
     params: '0206',
     hookParams: '0206.5',
     body: '0207',
@@ -76,6 +77,8 @@ const OPERATION_KEYWORD_INSERT: Record<string, string> = {
     summary: 'summary: "$1"$0',
     description: 'description: "$1"$0',
     example: 'example: "$1"$0',
+    annotations:
+        'annotations: {\n    readOnlyHint: true\n    destructiveHint: false\n    idempotentHint: false\n    openWorldHint: true\n}$0',
     params: 'params: {\n    status: {\n        description: "$1"\n        example: "$2"\n    }\n}$0',
     hookParams:
         'hookParams: {\n    titleContains: {\n        type: string\n        description: "$1"\n        example: "$2"\n    }\n}$0',

@@ -12,6 +12,23 @@ Policy: [core2ai docs/development/changelog-policy.md](https://github.com/annett
 
 ---
 
+## [1.2.2] - 2026-08-13
+
+### Added
+
+- **DSL `annotations`:** optional MCP ToolAnnotations (`readOnlyHint`, `destructiveHint`, `idempotentHint`, `openWorldHint`) on operations; curated only (not inferred from HTTP verbs)
+- **Demo DSLs:** MCP `annotations` on all demo tools (`todo`, `bookings`, `banking`, `cakes`, `github`, `tmdb`, `xquik`, `open-meteo`, `open-meteo-geocoding`, `spaceflight-news`, `test`)
+
+### Changed
+
+- **`@toolfactory.dev/core`:** pin **1.2.2** (MCP `registerTool` annotations passthrough)
+
+### Upgrade notes
+
+- Regenerate after upgrade. Requires `@toolfactory.dev/core` **1.2.2**.
+
+---
+
 ## [1.2.1] - 2026-08-12
 
 ### Added

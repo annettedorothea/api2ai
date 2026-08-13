@@ -16,6 +16,12 @@ export type GeneratedTool = {
     hasCheckToolAccess: boolean;
     hasPrepareToolCall: boolean;
     hasAfterToolCall: boolean;
+    annotations?: {
+        readOnlyHint?: boolean;
+        destructiveHint?: boolean;
+        idempotentHint?: boolean;
+        openWorldHint?: boolean;
+    };
 };
 
 export const generatedTools: GeneratedTool[] = [
@@ -29,7 +35,12 @@ export const generatedTools: GeneratedTool[] = [
         access: 'protected',
         hasCheckToolAccess: false,
         hasPrepareToolCall: false,
-        hasAfterToolCall: false
+        hasAfterToolCall: false,
+        annotations: {
+            readOnlyHint: true,
+            idempotentHint: true,
+            openWorldHint: true
+        }
     },
     {
         toolName: 'getPopularTmdbMovies',
@@ -41,7 +52,12 @@ export const generatedTools: GeneratedTool[] = [
         access: 'protected',
         hasCheckToolAccess: false,
         hasPrepareToolCall: false,
-        hasAfterToolCall: false
+        hasAfterToolCall: false,
+        annotations: {
+            readOnlyHint: true,
+            idempotentHint: true,
+            openWorldHint: true
+        }
     },
     {
         toolName: 'getTmdbMovieDetails',
@@ -53,7 +69,12 @@ export const generatedTools: GeneratedTool[] = [
         access: 'protected',
         hasCheckToolAccess: false,
         hasPrepareToolCall: false,
-        hasAfterToolCall: false
+        hasAfterToolCall: false,
+        annotations: {
+            readOnlyHint: true,
+            idempotentHint: true,
+            openWorldHint: true
+        }
     },
     {
         toolName: 'getTmdbMovieCredits',
@@ -65,7 +86,12 @@ export const generatedTools: GeneratedTool[] = [
         access: 'protected',
         hasCheckToolAccess: false,
         hasPrepareToolCall: false,
-        hasAfterToolCall: false
+        hasAfterToolCall: false,
+        annotations: {
+            readOnlyHint: true,
+            idempotentHint: true,
+            openWorldHint: true
+        }
     },
     {
         toolName: 'discoverTmdbMovies',
@@ -77,7 +103,12 @@ export const generatedTools: GeneratedTool[] = [
         access: 'protected',
         hasCheckToolAccess: false,
         hasPrepareToolCall: false,
-        hasAfterToolCall: false
+        hasAfterToolCall: false,
+        annotations: {
+            readOnlyHint: true,
+            idempotentHint: true,
+            openWorldHint: true
+        }
     },
     {
         toolName: 'getTmdbMovieGenres',
@@ -89,7 +120,12 @@ export const generatedTools: GeneratedTool[] = [
         access: 'protected',
         hasCheckToolAccess: false,
         hasPrepareToolCall: false,
-        hasAfterToolCall: false
+        hasAfterToolCall: false,
+        annotations: {
+            readOnlyHint: true,
+            idempotentHint: true,
+            openWorldHint: true
+        }
     },
     {
         toolName: 'getTmdbTrendingMovies',
@@ -101,7 +137,12 @@ export const generatedTools: GeneratedTool[] = [
         access: 'protected',
         hasCheckToolAccess: false,
         hasPrepareToolCall: false,
-        hasAfterToolCall: false
+        hasAfterToolCall: false,
+        annotations: {
+            readOnlyHint: true,
+            idempotentHint: true,
+            openWorldHint: true
+        }
     },
     {
         toolName: 'getTmdbMovieVideos',
@@ -113,7 +154,12 @@ export const generatedTools: GeneratedTool[] = [
         access: 'protected',
         hasCheckToolAccess: false,
         hasPrepareToolCall: false,
-        hasAfterToolCall: false
+        hasAfterToolCall: false,
+        annotations: {
+            readOnlyHint: true,
+            idempotentHint: true,
+            openWorldHint: true
+        }
     },
     {
         toolName: 'searchTmdbMulti',
@@ -125,7 +171,12 @@ export const generatedTools: GeneratedTool[] = [
         access: 'protected',
         hasCheckToolAccess: false,
         hasPrepareToolCall: false,
-        hasAfterToolCall: false
+        hasAfterToolCall: false,
+        annotations: {
+            readOnlyHint: true,
+            idempotentHint: true,
+            openWorldHint: true
+        }
     },
     {
         toolName: 'getTmdbMovieReleaseDates',
@@ -137,7 +188,12 @@ export const generatedTools: GeneratedTool[] = [
         access: 'protected',
         hasCheckToolAccess: false,
         hasPrepareToolCall: false,
-        hasAfterToolCall: false
+        hasAfterToolCall: false,
+        annotations: {
+            readOnlyHint: true,
+            idempotentHint: true,
+            openWorldHint: true
+        }
     },
     {
         toolName: 'getTmdbMovieRecommendations',
@@ -149,7 +205,12 @@ export const generatedTools: GeneratedTool[] = [
         access: 'protected',
         hasCheckToolAccess: false,
         hasPrepareToolCall: false,
-        hasAfterToolCall: false
+        hasAfterToolCall: false,
+        annotations: {
+            readOnlyHint: true,
+            idempotentHint: true,
+            openWorldHint: true
+        }
     },
     {
         toolName: 'getTmdbMovieSimilar',
@@ -161,7 +222,12 @@ export const generatedTools: GeneratedTool[] = [
         access: 'protected',
         hasCheckToolAccess: false,
         hasPrepareToolCall: false,
-        hasAfterToolCall: false
+        hasAfterToolCall: false,
+        annotations: {
+            readOnlyHint: true,
+            idempotentHint: true,
+            openWorldHint: true
+        }
     },
     {
         toolName: 'getTmdbMovieReviews',
@@ -173,7 +239,12 @@ export const generatedTools: GeneratedTool[] = [
         access: 'protected',
         hasCheckToolAccess: false,
         hasPrepareToolCall: false,
-        hasAfterToolCall: false
+        hasAfterToolCall: false,
+        annotations: {
+            readOnlyHint: true,
+            idempotentHint: true,
+            openWorldHint: true
+        }
     }
 ];
 
@@ -208,7 +279,7 @@ export const authConfig: AuthConfig | undefined = {
 export { verifyCredential } from '../../../src/hooks/api2ai/tmdb-tools/verifyTmdbCredential.js';
 
 export const mcpServerName = 'tmdb-tools';
-export const mcpServerVersion = '1.2.1';
+export const mcpServerVersion = '1.2.2';
 
 export { mcpBuildGeneratedAt } from '../mcp-build-generated-at.js';
 

@@ -10,5 +10,10 @@ GET "/v1/search" {
         - Pick the result that matches the intended admin region (e.g. Baden-Württemberg vs. Hessen for "Ortenberg").
     '''
     example: "Find coordinates for Bernstein, Burgenland, Austria"
+    annotations: {
+        readOnlyHint: true
+        idempotentHint: true
+        openWorldHint: true
+    }
 }
 

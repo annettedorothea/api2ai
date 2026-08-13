@@ -17,6 +17,12 @@ export type GeneratedTool = {
     hasCheckToolAccess: boolean;
     hasPrepareToolCall: boolean;
     hasAfterToolCall: boolean;
+    annotations?: {
+        readOnlyHint?: boolean;
+        destructiveHint?: boolean;
+        idempotentHint?: boolean;
+        openWorldHint?: boolean;
+    };
 };
 
 export const generatedTools: GeneratedTool[] = [
@@ -30,7 +36,12 @@ export const generatedTools: GeneratedTool[] = [
         access: 'protected',
         hasCheckToolAccess: false,
         hasPrepareToolCall: true,
-        hasAfterToolCall: false
+        hasAfterToolCall: false,
+        annotations: {
+            readOnlyHint: true,
+            idempotentHint: true,
+            openWorldHint: true
+        }
     },
     {
         toolName: 'searchXquikUsers',
@@ -42,7 +53,12 @@ export const generatedTools: GeneratedTool[] = [
         access: 'protected',
         hasCheckToolAccess: false,
         hasPrepareToolCall: false,
-        hasAfterToolCall: false
+        hasAfterToolCall: false,
+        annotations: {
+            readOnlyHint: true,
+            idempotentHint: true,
+            openWorldHint: true
+        }
     },
     {
         toolName: 'lookupXquikTweet',
@@ -54,7 +70,12 @@ export const generatedTools: GeneratedTool[] = [
         access: 'protected',
         hasCheckToolAccess: false,
         hasPrepareToolCall: false,
-        hasAfterToolCall: false
+        hasAfterToolCall: false,
+        annotations: {
+            readOnlyHint: true,
+            idempotentHint: true,
+            openWorldHint: true
+        }
     }
 ];
 
@@ -89,7 +110,7 @@ export const authConfig: AuthConfig | undefined = {
 export { verifyCredential } from '../../../src/hooks/api2ai/xquik-tools/verifyXquikCredential.js';
 
 export const mcpServerName = 'xquik-tools';
-export const mcpServerVersion = '1.2.1';
+export const mcpServerVersion = '1.2.2';
 
 export { mcpBuildGeneratedAt } from '../mcp-build-generated-at.js';
 

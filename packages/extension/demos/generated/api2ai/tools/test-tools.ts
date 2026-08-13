@@ -19,6 +19,12 @@ export type GeneratedTool = {
     hasCheckToolAccess: boolean;
     hasPrepareToolCall: boolean;
     hasAfterToolCall: boolean;
+    annotations?: {
+        readOnlyHint?: boolean;
+        destructiveHint?: boolean;
+        idempotentHint?: boolean;
+        openWorldHint?: boolean;
+    };
 };
 
 export const generatedTools: GeneratedTool[] = [
@@ -32,7 +38,12 @@ export const generatedTools: GeneratedTool[] = [
         access: 'public',
         hasCheckToolAccess: false,
         hasPrepareToolCall: false,
-        hasAfterToolCall: false
+        hasAfterToolCall: false,
+        annotations: {
+            readOnlyHint: true,
+            idempotentHint: true,
+            openWorldHint: true
+        }
     },
     {
         toolName: 'testProtectedStatus',
@@ -44,7 +55,12 @@ export const generatedTools: GeneratedTool[] = [
         access: 'protected',
         hasCheckToolAccess: false,
         hasPrepareToolCall: false,
-        hasAfterToolCall: false
+        hasAfterToolCall: false,
+        annotations: {
+            readOnlyHint: true,
+            idempotentHint: true,
+            openWorldHint: true
+        }
     },
     {
         toolName: 'testGetItem',
@@ -56,7 +72,12 @@ export const generatedTools: GeneratedTool[] = [
         access: 'public',
         hasCheckToolAccess: false,
         hasPrepareToolCall: false,
-        hasAfterToolCall: false
+        hasAfterToolCall: false,
+        annotations: {
+            readOnlyHint: true,
+            idempotentHint: true,
+            openWorldHint: true
+        }
     },
     {
         toolName: 'testGetAccount',
@@ -68,7 +89,12 @@ export const generatedTools: GeneratedTool[] = [
         access: 'public',
         hasCheckToolAccess: false,
         hasPrepareToolCall: false,
-        hasAfterToolCall: false
+        hasAfterToolCall: false,
+        annotations: {
+            readOnlyHint: true,
+            idempotentHint: true,
+            openWorldHint: true
+        }
     },
     {
         toolName: 'testListItems',
@@ -80,7 +106,12 @@ export const generatedTools: GeneratedTool[] = [
         access: 'public',
         hasCheckToolAccess: false,
         hasPrepareToolCall: false,
-        hasAfterToolCall: false
+        hasAfterToolCall: false,
+        annotations: {
+            readOnlyHint: true,
+            idempotentHint: true,
+            openWorldHint: true
+        }
     },
     {
         toolName: 'testSearchItems',
@@ -92,7 +123,12 @@ export const generatedTools: GeneratedTool[] = [
         access: 'public',
         hasCheckToolAccess: false,
         hasPrepareToolCall: false,
-        hasAfterToolCall: false
+        hasAfterToolCall: false,
+        annotations: {
+            readOnlyHint: true,
+            idempotentHint: true,
+            openWorldHint: true
+        }
     },
     {
         toolName: 'testGetWithHeader',
@@ -104,7 +140,12 @@ export const generatedTools: GeneratedTool[] = [
         access: 'public',
         hasCheckToolAccess: false,
         hasPrepareToolCall: false,
-        hasAfterToolCall: false
+        hasAfterToolCall: false,
+        annotations: {
+            readOnlyHint: true,
+            idempotentHint: true,
+            openWorldHint: true
+        }
     },
     {
         toolName: 'testCreateResource',
@@ -116,7 +157,11 @@ export const generatedTools: GeneratedTool[] = [
         access: 'public',
         hasCheckToolAccess: false,
         hasPrepareToolCall: false,
-        hasAfterToolCall: false
+        hasAfterToolCall: false,
+        annotations: {
+            destructiveHint: false,
+            openWorldHint: true
+        }
     },
     {
         toolName: 'testPutResource',
@@ -128,7 +173,12 @@ export const generatedTools: GeneratedTool[] = [
         access: 'public',
         hasCheckToolAccess: false,
         hasPrepareToolCall: false,
-        hasAfterToolCall: false
+        hasAfterToolCall: false,
+        annotations: {
+            destructiveHint: true,
+            idempotentHint: true,
+            openWorldHint: true
+        }
     },
     {
         toolName: 'testPatchResource',
@@ -140,7 +190,11 @@ export const generatedTools: GeneratedTool[] = [
         access: 'public',
         hasCheckToolAccess: false,
         hasPrepareToolCall: false,
-        hasAfterToolCall: false
+        hasAfterToolCall: false,
+        annotations: {
+            destructiveHint: false,
+            openWorldHint: true
+        }
     },
     {
         toolName: 'testDeleteResource',
@@ -152,7 +206,12 @@ export const generatedTools: GeneratedTool[] = [
         access: 'public',
         hasCheckToolAccess: false,
         hasPrepareToolCall: false,
-        hasAfterToolCall: false
+        hasAfterToolCall: false,
+        annotations: {
+            destructiveHint: true,
+            idempotentHint: true,
+            openWorldHint: true
+        }
     },
     {
         toolName: 'testProbeHead',
@@ -164,7 +223,12 @@ export const generatedTools: GeneratedTool[] = [
         access: 'public',
         hasCheckToolAccess: false,
         hasPrepareToolCall: false,
-        hasAfterToolCall: false
+        hasAfterToolCall: false,
+        annotations: {
+            readOnlyHint: true,
+            idempotentHint: true,
+            openWorldHint: true
+        }
     },
     {
         toolName: 'testProbeOptions',
@@ -176,7 +240,12 @@ export const generatedTools: GeneratedTool[] = [
         access: 'public',
         hasCheckToolAccess: false,
         hasPrepareToolCall: false,
-        hasAfterToolCall: false
+        hasAfterToolCall: false,
+        annotations: {
+            readOnlyHint: true,
+            idempotentHint: true,
+            openWorldHint: true
+        }
     },
     {
         toolName: 'testTraceRoute',
@@ -188,7 +257,12 @@ export const generatedTools: GeneratedTool[] = [
         access: 'public',
         hasCheckToolAccess: false,
         hasPrepareToolCall: false,
-        hasAfterToolCall: false
+        hasAfterToolCall: false,
+        annotations: {
+            readOnlyHint: true,
+            idempotentHint: true,
+            openWorldHint: true
+        }
     },
     {
         toolName: 'testOneOfBody',
@@ -200,7 +274,11 @@ export const generatedTools: GeneratedTool[] = [
         access: 'public',
         hasCheckToolAccess: false,
         hasPrepareToolCall: false,
-        hasAfterToolCall: false
+        hasAfterToolCall: false,
+        annotations: {
+            destructiveHint: false,
+            openWorldHint: true
+        }
     },
     {
         toolName: 'testAnyOfBody',
@@ -212,7 +290,11 @@ export const generatedTools: GeneratedTool[] = [
         access: 'public',
         hasCheckToolAccess: false,
         hasPrepareToolCall: false,
-        hasAfterToolCall: false
+        hasAfterToolCall: false,
+        annotations: {
+            destructiveHint: false,
+            openWorldHint: true
+        }
     },
     {
         toolName: 'testAllOfBody',
@@ -224,7 +306,11 @@ export const generatedTools: GeneratedTool[] = [
         access: 'public',
         hasCheckToolAccess: false,
         hasPrepareToolCall: false,
-        hasAfterToolCall: false
+        hasAfterToolCall: false,
+        annotations: {
+            destructiveHint: false,
+            openWorldHint: true
+        }
     },
     {
         toolName: 'testRefBody',
@@ -236,7 +322,11 @@ export const generatedTools: GeneratedTool[] = [
         access: 'public',
         hasCheckToolAccess: false,
         hasPrepareToolCall: false,
-        hasAfterToolCall: false
+        hasAfterToolCall: false,
+        annotations: {
+            destructiveHint: false,
+            openWorldHint: true
+        }
     },
     {
         toolName: 'testLabeledMap',
@@ -248,7 +338,11 @@ export const generatedTools: GeneratedTool[] = [
         access: 'public',
         hasCheckToolAccess: false,
         hasPrepareToolCall: false,
-        hasAfterToolCall: false
+        hasAfterToolCall: false,
+        annotations: {
+            destructiveHint: false,
+            openWorldHint: true
+        }
     },
     {
         toolName: 'testGetAdminSecrets',
@@ -260,7 +354,12 @@ export const generatedTools: GeneratedTool[] = [
         access: 'protected',
         hasCheckToolAccess: true,
         hasPrepareToolCall: true,
-        hasAfterToolCall: false
+        hasAfterToolCall: false,
+        annotations: {
+            readOnlyHint: true,
+            idempotentHint: true,
+            openWorldHint: true
+        }
     },
     {
         toolName: 'testListPublicPrepared',
@@ -272,7 +371,12 @@ export const generatedTools: GeneratedTool[] = [
         access: 'public',
         hasCheckToolAccess: false,
         hasPrepareToolCall: true,
-        hasAfterToolCall: false
+        hasAfterToolCall: false,
+        annotations: {
+            readOnlyHint: true,
+            idempotentHint: true,
+            openWorldHint: true
+        }
     }
 ];
 
@@ -307,7 +411,7 @@ export const authConfig: AuthConfig | undefined = {
 export { verifyCredential } from '../../../src/hooks/api2ai/test-tools/verifyTestCredential.js';
 
 export const mcpServerName = 'test-tools';
-export const mcpServerVersion = '1.2.1';
+export const mcpServerVersion = '1.2.2';
 
 export { mcpBuildGeneratedAt } from '../mcp-build-generated-at.js';
 

@@ -16,6 +16,11 @@ GET "/ping" {
     intent: "Harness public GET ping"
     summary: "Public ping"
     example: "Ping the test API"
+    annotations: {
+        readOnlyHint: true
+        idempotentHint: true
+        openWorldHint: true
+    }
 }
 
 // Tests: protected + auth in query + verifyCredential
@@ -25,6 +30,11 @@ GET "/protected/status" {
     intent: "Harness protected route with query api_key"
     summary: "Protected status"
     example: "Get protected status"
+    annotations: {
+        readOnlyHint: true
+        idempotentHint: true
+        openWorldHint: true
+    }
 }
 
 // Tests: required path parameter
@@ -34,6 +44,11 @@ GET "/items/{itemId}" {
     intent: "Harness path param itemId"
     summary: "Get item by id"
     example: "Get item item-1"
+    annotations: {
+        readOnlyHint: true
+        idempotentHint: true
+        openWorldHint: true
+    }
 }
 
 // Tests: dotted OpenAPI path param → MCP-safe account_id
@@ -43,6 +58,11 @@ GET "/accounts/{account.id}" {
     intent: "Harness dotted path param account.id mapped to account_id"
     summary: "Get account by dotted path param"
     example: "Get account acc-42"
+    annotations: {
+        readOnlyHint: true
+        idempotentHint: true
+        openWorldHint: true
+    }
 }
 
 // Tests: query optional enum + required query; DSL params override
@@ -52,6 +72,11 @@ GET "/items" {
     intent: "Harness query params status (optional enum) and tag (required)"
     summary: "List items by tag"
     example: "List open items for tag harness"
+    annotations: {
+        readOnlyHint: true
+        idempotentHint: true
+        openWorldHint: true
+    }
     params: {
         status: {
             description: "Optional filter open or done"
@@ -71,6 +96,11 @@ GET "/items/search" {
     intent: "Harness query array tags"
     summary: "Search items by tags"
     example: "Search tags alpha and beta"
+    annotations: {
+        readOnlyHint: true
+        idempotentHint: true
+        openWorldHint: true
+    }
 }
 
 // Tests: upstream header parameter (not MCP auth)
@@ -80,6 +110,11 @@ GET "/items/with-header" {
     intent: "Harness required header X-Trace-Id on upstream request"
     summary: "Get item with trace header"
     example: "Call with trace id trace-1"
+    annotations: {
+        readOnlyHint: true
+        idempotentHint: true
+        openWorldHint: true
+    }
 }
 
 // Tests: POST JSON body; DSL summary, description, example, body, response
@@ -92,6 +127,10 @@ POST "/resources" {
         Creates a resource in the test API. Use for MCP write smoke.
     '''
     example: "Create resource MCPTEST-name"
+    annotations: {
+        destructiveHint: false
+        openWorldHint: true
+    }
     body: '''
         Required: name (string). Optional: note (string).
     '''
@@ -107,6 +146,11 @@ PUT "/resources/{resourceId}" {
     intent: "Harness PUT with $ref body ResourceUpdate"
     summary: "Replace resource"
     example: "Put resource res-1 name MCPTEST-updated"
+    annotations: {
+        destructiveHint: true
+        idempotentHint: true
+        openWorldHint: true
+    }
 }
 
 // Tests: PATCH + $ref body
@@ -116,6 +160,10 @@ PATCH "/resources/{resourceId}" {
     intent: "Harness PATCH with $ref body ResourcePatch"
     summary: "Patch resource note"
     example: "Patch resource res-1 note MCPTEST-note"
+    annotations: {
+        destructiveHint: false
+        openWorldHint: true
+    }
 }
 
 // Tests: DELETE path only
@@ -125,6 +173,11 @@ DELETE "/resources/{resourceId}" {
     intent: "Harness DELETE without body"
     summary: "Delete resource"
     example: "Delete resource res-1"
+    annotations: {
+        destructiveHint: true
+        idempotentHint: true
+        openWorldHint: true
+    }
 }
 
 // Tests: HTTP HEAD
@@ -134,6 +187,11 @@ HEAD "/probe" {
     intent: "Harness HEAD method"
     summary: "Probe HEAD"
     example: "HEAD probe"
+    annotations: {
+        readOnlyHint: true
+        idempotentHint: true
+        openWorldHint: true
+    }
 }
 
 // Tests: HTTP OPTIONS
@@ -143,6 +201,11 @@ OPTIONS "/probe" {
     intent: "Harness OPTIONS method"
     summary: "Probe OPTIONS"
     example: "OPTIONS probe"
+    annotations: {
+        readOnlyHint: true
+        idempotentHint: true
+        openWorldHint: true
+    }
 }
 
 // Tests: HTTP TRACE
@@ -152,6 +215,11 @@ TRACE "/trace" {
     intent: "Harness TRACE method"
     summary: "Trace route"
     example: "TRACE trace path"
+    annotations: {
+        readOnlyHint: true
+        idempotentHint: true
+        openWorldHint: true
+    }
 }
 
 // Tests: oneOf request body → Zod union
@@ -161,6 +229,10 @@ POST "/composed/one-of" {
     intent: "Harness oneOf body schema"
     summary: "Post oneOf body variant a or b"
     example: "Post oneOf kind a valueA hello"
+    annotations: {
+        destructiveHint: false
+        openWorldHint: true
+    }
 }
 
 // Tests: anyOf request body
@@ -170,6 +242,10 @@ POST "/composed/any-of" {
     intent: "Harness anyOf body schema"
     summary: "Post anyOf body text or count mode"
     example: "Post anyOf mode text text hello"
+    annotations: {
+        destructiveHint: false
+        openWorldHint: true
+    }
 }
 
 // Tests: allOf body (codegen fallback / unknown)
@@ -179,6 +255,10 @@ POST "/composed/all-of" {
     intent: "Harness allOf body — expect permissive schema fallback"
     summary: "Post allOf composed body"
     example: "Post allOf base x extra y"
+    annotations: {
+        destructiveHint: false
+        openWorldHint: true
+    }
 }
 
 // Tests: POST body $ref from components (deref regression)
@@ -188,6 +268,10 @@ POST "/echo/ref-body" {
     intent: "Harness components $ref request body RefBodyInput"
     summary: "Echo ref body"
     example: "Post ref body payload hello"
+    annotations: {
+        destructiveHint: false
+        openWorldHint: true
+    }
 }
 
 // Tests: named properties + typed additionalProperties → Zod catchall
@@ -197,6 +281,10 @@ POST "/labeled-map" {
     intent: "Harness body with known labeled fields plus extra LabeledValue keys"
     summary: "Post labeled map with extra keys"
     example: "Post labeled map title Demo region north category general customTag extra-1"
+    annotations: {
+        destructiveHint: false
+        openWorldHint: true
+    }
     body: '''
         Required: title, region, category (each { value: string }).
         Extra keys of the same shape are allowed (additionalProperties).
@@ -214,6 +302,11 @@ GET "/admin/secrets" {
     intent: "Harness authorize and prepare on protected tool"
     summary: "List admin secrets"
     example: "List secrets limit 5"
+    annotations: {
+        readOnlyHint: true
+        idempotentHint: true
+        openWorldHint: true
+    }
 }
 
 // Tests: public + prepare (no auth)
@@ -226,4 +319,9 @@ GET "/prepared/public" {
     intent: "Harness public tool with prepare hook"
     summary: "List public prepared items"
     example: "List prepared items limit 3"
+    annotations: {
+        readOnlyHint: true
+        idempotentHint: true
+        openWorldHint: true
+    }
 }

@@ -22,6 +22,11 @@ GET "/api/v1/x/tweets/search" {
     '''
     summary: "Search X posts"
     example: "Find recent posts about open source agents"
+    annotations: {
+        readOnlyHint: true
+        idempotentHint: true
+        openWorldHint: true
+    }
     params: {
         q: {
             description: "Required query string, Tweet ID, or X status URL."
@@ -53,6 +58,11 @@ GET "/api/v1/x/users/search" {
     '''
     summary: "Search X users"
     example: "Find accounts named Xquik"
+    annotations: {
+        readOnlyHint: true
+        idempotentHint: true
+        openWorldHint: true
+    }
     response: '''
         HTTP 200 returns users plus has_next_page and next_cursor.
         Each user can include id, username, name, verified, followers, and following.
@@ -69,6 +79,11 @@ GET "/api/v1/x/tweets/{id}" {
     '''
     summary: "Get X post by ID"
     example: "Get Tweet ID 1234567890"
+    annotations: {
+        readOnlyHint: true
+        idempotentHint: true
+        openWorldHint: true
+    }
     params: {
         id: {
             description: "Tweet ID from search results or an X status URL."

@@ -19,6 +19,11 @@ GET "/v1/forecast" {
         - Public endpoint; no API key. OpenAPI operation text is overridden here for clearer agent guidance.
     '''
     example: "Get hourly temperature forecast for Offenburg, Germany"
+    annotations: {
+        readOnlyHint: true
+        idempotentHint: true
+        openWorldHint: true
+    }
 }
 
 

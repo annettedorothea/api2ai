@@ -57,6 +57,13 @@ import {
     type ToolAccess
 } from './render-check-stubs.js';
 
+export type McpToolAnnotations = {
+    readOnlyHint?: boolean;
+    destructiveHint?: boolean;
+    idempotentHint?: boolean;
+    openWorldHint?: boolean;
+};
+
 export type ResolvedToolCodegen = {
     toolName: string;
     title: string;
@@ -67,6 +74,7 @@ export type ResolvedToolCodegen = {
     hasCheckToolAccess: boolean;
     hasPrepareToolCall: boolean;
     hasAfterToolCall: boolean;
+    annotations?: McpToolAnnotations;
 };
 
 export type RenderToolsModuleInput = {
@@ -90,6 +98,27 @@ function requireToolName(operation: Operation): string {
     return operation.toolName.trim();
 }
 
+function resolveToolAnnotations(operation: Operation): McpToolAnnotations | undefined {
+    const source = operation.annotations;
+    if (!source) {
+        return undefined;
+    }
+    const annotations: McpToolAnnotations = {};
+    if (source.readOnlyHint !== undefined) {
+        annotations.readOnlyHint = source.readOnlyHint;
+    }
+    if (source.destructiveHint !== undefined) {
+        annotations.destructiveHint = source.destructiveHint;
+    }
+    if (source.idempotentHint !== undefined) {
+        annotations.idempotentHint = source.idempotentHint;
+    }
+    if (source.openWorldHint !== undefined) {
+        annotations.openWorldHint = source.openWorldHint;
+    }
+    return Object.keys(annotations).length > 0 ? annotations : undefined;
+}
+
 async function loadOpenApiForModel(model: Model, sourcePath: string): Promise<LoadedOpenApi> {
     const absSource = path.resolve(sourcePath);
     const baseDir = path.dirname(absSource);
@@ -105,6 +134,7 @@ function resolveToolsFromLoaded(model: Model, loaded: LoadedOpenApi, mcpModuleNa
                 `Codegen: operation ${operation.method} ${operation.path} not found in OpenAPI (${model.openapi}). Re-run validates the DSL earlier – ensure spec matches.`
             );
         }
+        const annotations = resolveToolAnnotations(operation);
         return {
             toolName: requireToolName(operation),
             title: buildMcpTitle(operation, details),
@@ -114,7 +144,8 @@ function resolveToolsFromLoaded(model: Model, loaded: LoadedOpenApi, mcpModuleNa
             access: getAccessKind(operation),
             hasCheckToolAccess: isCheckToolAccessEnabled(operation),
             hasPrepareToolCall: isPrepareToolCallEnabled(operation),
-            hasAfterToolCall: isAfterToolCallEnabled(operation)
+            hasAfterToolCall: isAfterToolCallEnabled(operation),
+            ...(annotations ? { annotations } : {})
         };
     });
 }
@@ -394,6 +425,12 @@ export type GeneratedTool = {
     hasCheckToolAccess: boolean;
     hasPrepareToolCall: boolean;
     hasAfterToolCall: boolean;
+    annotations?: {
+        readOnlyHint?: boolean;
+        destructiveHint?: boolean;
+        idempotentHint?: boolean;
+        openWorldHint?: boolean;
+    };
 };
 
 export const generatedTools: GeneratedTool[] = ${enrichedToolsLiteral};

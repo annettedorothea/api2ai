@@ -22,6 +22,11 @@ GET "/accounts" {
     '''
     summary: "List my bank accounts"
     example: "List my accounts"
+    annotations: {
+        readOnlyHint: true
+        idempotentHint: true
+        openWorldHint: true
+    }
     response: '''
         HTTP 200 — customerId and accounts array (accountId, label, currency).
         Documented errors:
@@ -41,6 +46,11 @@ GET "/accounts/{accountId}/balance" {
     '''
     summary: "Get account balance"
     example: "Balance for acc-alice-checking"
+    annotations: {
+        readOnlyHint: true
+        idempotentHint: true
+        openWorldHint: true
+    }
     response: '''
         HTTP 200 — accountId, balance, currency.
         Documented errors:
@@ -61,6 +71,11 @@ GET "/accounts/all" {
     '''
     summary: "List all accounts (admin)"
     example: "List all customer accounts as admin"
+    annotations: {
+        readOnlyHint: true
+        idempotentHint: true
+        openWorldHint: true
+    }
     response: '''
         HTTP 200 — role and accounts array.
         Documented errors:

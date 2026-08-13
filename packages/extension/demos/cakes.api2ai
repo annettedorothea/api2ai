@@ -14,6 +14,11 @@ GET "/cakes" {
     '''
     summary: "Search cake recipes by keyword"
     example: "Search cakes with Erdbeer"
+    annotations: {
+        readOnlyHint: true
+        idempotentHint: true
+        openWorldHint: true
+    }
     response: '''
         HTTP 200 — top-level query, count, cakes array. Each cake: id, title, keywords, prepMinutes, servings.
         Use cakes[].id for getCake (e.g. schwarzwaelder-kirschtorte).
@@ -30,6 +35,11 @@ GET "/cakes/{cakeId}" {
     '''
     summary: "Get cake recipe by id"
     example: "Get Schwarzwälder Kirschtorte recipe"
+    annotations: {
+        readOnlyHint: true
+        idempotentHint: true
+        openWorldHint: true
+    }
     response: '''
         HTTP 200 — top-level property cake (id, title, keywords, prepMinutes, servings, ingredients).
         Documented errors:

@@ -28,10 +28,19 @@ Operation:
         ('summary' ':' summary=DslText)?
         ('description' ':' description=DslText)?
         ('example' ':' example=DslText)?
+        ('annotations' ':' annotations=ToolAnnotations)?
         ('params' ':' params=ApiParamMap)?
         ('hookParams' ':' hookParams=HookParamMap)?
         ('body' ':' body=DslText)?
         ('response' ':' response=DslText)?
+    '}';
+
+ToolAnnotations:
+    '{'
+        ('readOnlyHint' ':' readOnlyHint=Boolean)?
+        ('destructiveHint' ':' destructiveHint=Boolean)?
+        ('idempotentHint' ':' idempotentHint=Boolean)?
+        ('openWorldHint' ':' openWorldHint=Boolean)?
     '}';
 
 ToolHooks:

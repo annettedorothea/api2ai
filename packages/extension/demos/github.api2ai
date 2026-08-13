@@ -15,6 +15,11 @@ GET "/user" {
     intent: "return the GitHub user profile for the authenticated PAT; use to confirm which account the token represents before calling repo-scoped tools"
     summary: "Get the authenticated user"
     example: "No path or query parameters"
+    annotations: {
+        readOnlyHint: true
+        idempotentHint: true
+        openWorldHint: true
+    }
 }
 
 GET "/user/repos" {
@@ -28,6 +33,11 @@ GET "/user/repos" {
     '''
     summary: "List repositories for the authenticated user"
     example: "First page, 10 per page: query per_page=10 page=1"
+    annotations: {
+        readOnlyHint: true
+        idempotentHint: true
+        openWorldHint: true
+    }
 }
 
 GET "/repos/{owner}/{repo}" {
@@ -36,4 +46,9 @@ GET "/repos/{owner}/{repo}" {
     intent: "fetch GitHub repository metadata when the PAT can read the repo"
     summary: "Get a repository"
     example: "Get public repo octocat/Hello-World"
+    annotations: {
+        readOnlyHint: true
+        idempotentHint: true
+        openWorldHint: true
+    }
 }
