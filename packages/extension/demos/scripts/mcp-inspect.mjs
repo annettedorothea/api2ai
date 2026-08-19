@@ -61,14 +61,16 @@ function printMcpInspectAuthHints(demoName, env = process.env) {
 
     if (demoName === 'xquik') {
         const headerName = env.XQUIK_MCP_AUTH_HEADER?.trim() || 'x-api-key';
-        const apiKey = env.XQUIK_API_KEY?.trim();
-        printAuthHeader(headerName, apiKey || '(set XQUIK_API_KEY in .env — optional for connect, required for tools)');
+        printAuthHeader(headerName);
+        if (!env.XQUIK_API_KEY?.trim()) {
+            console.log('  Set XQUIK_API_KEY in .env — optional for connect, required for tools.');
+        }
         console.log('');
         return;
     }
 
     if (demoName === 'todo') {
-        printAuthHeader(env.TODO_MCP_AUTH_HEADER?.trim() || 'x-api-token', env.TODO_API_KEY?.trim() || 'demo-todo-api-key');
+        printAuthHeader(env.TODO_MCP_AUTH_HEADER?.trim() || 'x-api-token');
         console.log('  Must match TODO_API_KEY in .env and the mock todo-api.');
         console.log('');
         return;

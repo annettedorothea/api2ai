@@ -65,7 +65,7 @@ export function buildHttpMcpCatalogEntry(name, env, options = {}) {
         entry.auth = 'Header (mcp.json)';
         const headerValue = env[demo.authExpectedEnv]?.trim();
         entry.headers = headerValue
-            ? JSON.stringify({ [headerName]: headerValue })
+            ? `${headerName} (value not printed)`
             : `${headerName}=<set in .env>`;
     } else if (demo.authEnv) {
         entry.auth = `API key (.env: ${demo.authEnv})`;
